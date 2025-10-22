@@ -42,7 +42,7 @@ export default function MinhaEmpresa() {
         {/* Lista de empresas - Esquerda */}
         <div 
           className={`flex-shrink-0 transition-all duration-300 ${
-            selectedCompanyId ? 'hidden md:block md:w-[400px]' : 'w-full'
+            selectedCompanyId ? 'w-[280px]' : 'w-full'
           }`}
         >
           <Card className="h-full flex flex-col">
@@ -67,9 +67,13 @@ export default function MinhaEmpresa() {
                     <TableRow>
                       <TableHead>Código</TableHead>
                       <TableHead>Nome</TableHead>
-                      <TableHead>CNPJ</TableHead>
-                      <TableHead>Telefone</TableHead>
-                      <TableHead>Status</TableHead>
+                      {!selectedCompanyId && (
+                        <>
+                          <TableHead>CNPJ</TableHead>
+                          <TableHead>Telefone</TableHead>
+                          <TableHead>Status</TableHead>
+                        </>
+                      )}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -87,23 +91,29 @@ export default function MinhaEmpresa() {
                         </TableCell>
                         <TableCell data-testid={`text-name-${company.id}`}>
                           <div className="font-medium">{company.tradeName}</div>
-                          <div className="text-xs text-muted-foreground">
-                            {company.legalName}
-                          </div>
+                          {!selectedCompanyId && (
+                            <div className="text-xs text-muted-foreground">
+                              {company.legalName}
+                            </div>
+                          )}
                         </TableCell>
-                        <TableCell data-testid={`text-cnpj-${company.id}`}>
-                          {company.cnpj}
-                        </TableCell>
-                        <TableCell data-testid={`text-phone-${company.id}`}>
-                          {company.phone}
-                        </TableCell>
-                        <TableCell data-testid={`text-status-${company.id}`}>
-                          <Badge
-                            variant={company.status === "Ativa" ? "default" : "secondary"}
-                          >
-                            {company.status}
-                          </Badge>
-                        </TableCell>
+                        {!selectedCompanyId && (
+                          <>
+                            <TableCell data-testid={`text-cnpj-${company.id}`}>
+                              {company.cnpj}
+                            </TableCell>
+                            <TableCell data-testid={`text-phone-${company.id}`}>
+                              {company.phone}
+                            </TableCell>
+                            <TableCell data-testid={`text-status-${company.id}`}>
+                              <Badge
+                                variant={company.status === "Ativa" ? "default" : "secondary"}
+                              >
+                                {company.status}
+                              </Badge>
+                            </TableCell>
+                          </>
+                        )}
                       </TableRow>
                     ))}
                   </TableBody>
