@@ -34,7 +34,6 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
   SidebarHeader,
-  SidebarFooter,
 } from "@/components/ui/sidebar";
 import {
   Collapsible,
@@ -264,24 +263,6 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-
-      <SidebarFooter className="border-t p-4 bg-gradient-to-br from-muted/30 to-transparent">
-        <div className="flex items-center gap-3 rounded-xl bg-gradient-to-br from-card to-muted/30 p-3 border shadow-sm hover-elevate cursor-pointer" data-testid="profile-card">
-          <Avatar className="h-10 w-10 border-2 border-primary/20">
-            <AvatarImage src="" alt="User" />
-            <AvatarFallback className="bg-gradient-to-br from-primary to-blue-600 text-white font-semibold text-xs">
-              JD
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex flex-col flex-1 min-w-0">
-            <span className="font-semibold text-xs truncate">João Silva</span>
-            <div className="flex items-center gap-1.5">
-              <div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
-              <span className="text-[10px] text-muted-foreground truncate">Premium</span>
-            </div>
-          </div>
-        </div>
-      </SidebarFooter>
     </Sidebar>
   );
 }
