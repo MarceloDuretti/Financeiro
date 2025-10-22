@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Building2, Phone, Mail, MapPin, FileText, Briefcase, Globe, User, X } from "lucide-react";
+import { Building2, Phone, Mail, MapPin, FileText, Briefcase, Globe, User, X, ChevronRight } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { Company } from "@shared/schema";
 
@@ -52,7 +51,7 @@ export default function MinhaEmpresa() {
                 Empresas do Grupo
               </CardTitle>
             </CardHeader>
-            <CardContent className="flex-1 overflow-auto">
+            <CardContent className="flex-1 overflow-auto p-4">
               {isLoading ? (
                 <div className="text-center text-muted-foreground py-8">
                   Carregando empresas...
@@ -62,62 +61,90 @@ export default function MinhaEmpresa() {
                   Nenhuma empresa cadastrada
                 </div>
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Código</TableHead>
-                      <TableHead>Nome</TableHead>
-                      {!selectedCompanyId && (
-                        <>
-                          <TableHead>CNPJ</TableHead>
-                          <TableHead>Telefone</TableHead>
-                          <TableHead>Status</TableHead>
-                        </>
-                      )}
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {companies.map((company) => (
-                      <TableRow
-                        key={company.id}
-                        data-testid={`row-company-${company.id}`}
-                        className={`cursor-pointer hover-elevate ${
-                          selectedCompanyId === company.id ? 'bg-muted' : ''
-                        }`}
-                        onClick={() => setSelectedCompanyId(company.id)}
-                      >
-                        <TableCell data-testid={`text-code-${company.id}`}>
-                          {company.code}
-                        </TableCell>
-                        <TableCell data-testid={`text-name-${company.id}`}>
-                          <div className="font-medium">{company.tradeName}</div>
-                          {!selectedCompanyId && (
-                            <div className="text-xs text-muted-foreground">
-                              {company.legalName}
-                            </div>
-                          )}
-                        </TableCell>
-                        {!selectedCompanyId && (
-                          <>
-                            <TableCell data-testid={`text-cnpj-${company.id}`}>
-                              {company.cnpj}
-                            </TableCell>
-                            <TableCell data-testid={`text-phone-${company.id}`}>
-                              {company.phone}
-                            </TableCell>
-                            <TableCell data-testid={`text-status-${company.id}`}>
-                              <Badge
+                <div className="space-y-3">
+                  {companies.map((company) => (
+                    <div
+                      key={company.id}
+                      data-testid={`row-company-${company.id}`}
+                      onClick={() => setSelectedCompanyId(company.id)}
+                      className={`group relative rounded-lg border transition-all duration-200 cursor-pointer hover-elevate active-elevate-2 ${
+                        selectedCompanyId === company.id 
+                          ? 'bg-gradient-to-br from-primary/10 to-primary/5 border-primary/30 shadow-sm' 
+                          : 'bg-card border-border hover:border-primary/20'
+                      }`}
+                    >
+                      <div className="p-4">
+                        <div className="flex items-center gap-3">
+                          {/* Avatar com gradiente */}
+                          <Avatar className="h-12 w-12 border-2 border-primary/20">
+                            <AvatarImage src="" alt={company.tradeName} />
+                            <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary font-semibold">
+                              {company.tradeName.substring(0, 2).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+
+                          {/* Conteúdo */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span 
+                                className="text-xs font-mono text-muted-foreground bg-muted px-2 py-0.5 rounded"
+                                data-testid={`text-code-${company.id}`}
+                              >
+                                #{company.code}
+                              </span>
+                              <Badge 
                                 variant={company.status === "Ativa" ? "default" : "secondary"}
+                                className="text-xs"
+                                data-testid={`text-status-${company.id}`}
                               >
                                 {company.status}
                               </Badge>
-                            </TableCell>
-                          </>
-                        )}
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                            </div>
+                            <h3 
+                              className="font-semibold text-foreground truncate"
+                              data-testid={`text-name-${company.id}`}
+                            >
+                              {company.tradeName}
+                            </h3>
+                            {!selectedCompanyId && (
+                              <>
+                                <p className="text-xs text-muted-foreground truncate mt-0.5">
+                                  {company.legalName}
+                                </p>
+                                <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+                                  <div 
+                                    className="flex items-center gap-1"
+                                    data-testid={`text-cnpj-${company.id}`}
+                                  >
+                                    <FileText className="h-3 w-3" />
+                                    <span>{company.cnpj}</span>
+                                  </div>
+                                  <div 
+                                    className="flex items-center gap-1"
+                                    data-testid={`text-phone-${company.id}`}
+                                  >
+                                    <Phone className="h-3 w-3" />
+                                    <span>{company.phone}</span>
+                                  </div>
+                                </div>
+                              </>
+                            )}
+                          </div>
+
+                          {/* Ícone de seta */}
+                          <ChevronRight className={`h-5 w-5 text-muted-foreground transition-transform ${
+                            selectedCompanyId === company.id ? 'text-primary' : 'group-hover:translate-x-0.5'
+                          }`} />
+                        </div>
+                      </div>
+
+                      {/* Indicador de seleção */}
+                      {selectedCompanyId === company.id && (
+                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-primary to-primary/50 rounded-l-lg" />
+                      )}
+                    </div>
+                  ))}
+                </div>
               )}
             </CardContent>
           </Card>
