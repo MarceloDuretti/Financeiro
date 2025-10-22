@@ -46,13 +46,14 @@ Preferred communication style: Simple, everyday language.
 - **Financial Chart**: Clean LineChart (240px height) showing only Revenues and Expenses with gradients and smooth curves
 - **Department Performance**: Custom heatmap table (replaced BarChart) showing monthly spending with color-coded cells (red=high, blue=low) for instant visual pattern recognition with automatic normalization and edge-case handling
 - **Landing Page Hero**: Balanced minimalist design with medium-sized feature stats using subtle primary-colored icons (h-8 w-8) on light backgrounds (bg-primary/10)
-- **Minha Empresa Page**: Added as second menu item with pink-to-rose gradient icon - professional, impactful design
-  - **Top Section**: 3 info cards with colored icons in blur circles (Regime Tributário/green, Porte da Empresa/blue, Atividade Principal/purple)
-  - **Company Identity Band**: Large avatar with gradient blur, company name, status badges (Ativa, Desde, Nacional), company description - creates immediate impact and professionalism
-  - **Segmented Data Cards**: 4 independently editable cards in 2x2 grid (Dados da Empresa/blue, Dados Tributários/green, Contato/orange, Endereço/purple) using EditableCard component
-  - **Inline Editing System**: Each card has its own edit mode with icon-only Edit/Cancel/Save buttons in header - much more fluid than global edit mode
-  - **State Management**: Per-card backup/restore pattern - each EditableCard independently manages its state, clicking Cancel restores original values
-  - **Partners Section**: Grid layout with individual glassmorphism cards, larger avatars with gradient blurs, colored percentage badges, role badges
+- **Minha Empresa Page**: Added as second menu item with pink-to-rose gradient icon - optimized compact design to fit on screen without scrolling
+  - **Company Identity Band**: Compact horizontal layout with small avatar (h-12), company name, status badges (Ativa, Desde, Nacional) - minimal space usage
+  - **Top Section**: 3 compact info cards with colored icons (Regime Tributário/green, Porte da Empresa/blue, Atividade Principal/purple) - reduced padding and text sizes
+  - **Main Data Card**: Full-width "Dados da Empresa" card combining company and tax data - 6 fields organized in responsive 3-column grid (2 rows × 3 columns on desktop)
+  - **Secondary Cards**: Contact and Address cards side by side, each with 3 fields in vertical layout with separators
+  - **Inline Editing System**: Each card has its own edit mode with compact icon-only Edit/Cancel/Save buttons (h-7) in header
+  - **State Management**: Per-card backup/restore pattern - each EditableCard independently manages its state
+  - **Space Optimization**: Reduced all padding (p-4), spacing (space-y-4), and component sizes to eliminate scrollbars while maintaining readability
 
 ### Backend Architecture
 
