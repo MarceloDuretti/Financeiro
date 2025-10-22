@@ -159,7 +159,7 @@ export default function Dashboard() {
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
             <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
-              Analytics Dashboard
+              Análise
             </h1>
             <p className="text-muted-foreground mt-1">
               Visão estratégica em tempo real da sua operação financeira
