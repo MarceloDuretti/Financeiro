@@ -1,6 +1,6 @@
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import dashboardImage from "@assets/generated_images/Clean_dashboard_mockup_white_background_6ebc67b8.png";
+import dashboardImage from "@assets/generated_images/Flat_dashboard_UI_mockup_e0f2438f.png";
 
 export default function HeroSection() {
   return (
@@ -48,15 +48,12 @@ export default function HeroSection() {
           </div>
 
           <div className="relative">
-            <div className="relative rounded-lg overflow-hidden shadow-2xl transform hover:scale-[1.02] transition-transform duration-300">
-              <img
-                src={dashboardImage}
-                alt="Dashboard Financeiro"
-                className="w-full h-auto"
-                data-testid="img-dashboard-mockup"
-              />
-            </div>
-            <div className="absolute -bottom-4 -right-4 -z-10 h-full w-full rounded-lg bg-gradient-to-br from-primary/20 to-blue-600/20 blur-3xl" />
+            <img
+              src={dashboardImage}
+              alt="Dashboard Financeiro"
+              className="w-full h-auto"
+              data-testid="img-dashboard-mockup"
+            />
           </div>
         </div>
       </div>
