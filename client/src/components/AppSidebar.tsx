@@ -156,7 +156,7 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="px-3 py-4">
+      <SidebarContent className="px-3 py-4 overflow-y-auto">
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu className="gap-2">
@@ -180,8 +180,8 @@ export function AppSidebar() {
                             <ChevronDown className="ml-auto h-4 w-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-180" />
                           </SidebarMenuButton>
                         </CollapsibleTrigger>
-                        <CollapsibleContent>
-                          <SidebarMenuSub className="ml-11 border-l-2 border-border/50">
+                        <CollapsibleContent className="pb-2">
+                          <SidebarMenuSub className="ml-6 mt-2 space-y-1 border-l-2 border-border/50 pl-4">
                             {item.items.map((subItem) => {
                               const SubIcon = subItem.icon;
                               return (
@@ -189,15 +189,15 @@ export function AppSidebar() {
                                   <SidebarMenuSubButton
                                     asChild
                                     isActive={location === subItem.url}
-                                    className="hover-elevate"
+                                    className="hover-elevate py-2"
                                   >
                                     <Link href={subItem.url}>
                                       <div
-                                        className="flex items-center gap-2"
+                                        className="flex items-center gap-2.5 w-full"
                                         data-testid={`link-submenu-${subItem.title.toLowerCase().replace(/\s+/g, '-')}`}
                                       >
-                                        <SubIcon className="h-3.5 w-3.5" />
-                                        <span className="text-sm">{subItem.title}</span>
+                                        <SubIcon className="h-4 w-4 text-muted-foreground" />
+                                        <span className="text-sm flex-1 truncate">{subItem.title}</span>
                                       </div>
                                     </Link>
                                   </SidebarMenuSubButton>

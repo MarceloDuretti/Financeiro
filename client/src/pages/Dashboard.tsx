@@ -43,8 +43,8 @@ import { Separator } from "@/components/ui/separator";
 
 const kpis = [
   {
-    title: "MRR",
-    description: "Monthly Recurring Revenue",
+    title: "Receita Recorrente Mensal",
+    description: "Receitas mensais fixas",
     value: "R$ 45.231",
     change: "+20.1%",
     trend: "up",
@@ -55,8 +55,8 @@ const kpis = [
     current: 45231,
   },
   {
-    title: "Margem EBITDA",
-    description: "Earnings Before Interest",
+    title: "Margem de Lucro",
+    description: "Lucratividade operacional",
     value: "28.2%",
     change: "+3.5%",
     trend: "up",
@@ -67,8 +67,8 @@ const kpis = [
     current: 28.2,
   },
   {
-    title: "Burn Multiple",
-    description: "Eficiência de Queima",
+    title: "Múltiplo de Queima",
+    description: "Eficiência de gastos",
     value: "1.2x",
     change: "-0.3x",
     trend: "down",
@@ -79,8 +79,8 @@ const kpis = [
     current: 1.2,
   },
   {
-    title: "Cash Runway",
-    description: "Meses restantes",
+    title: "Tempo de Caixa",
+    description: "Meses de reserva financeira",
     value: "18 meses",
     change: "+2 meses",
     trend: "up",
@@ -91,8 +91,8 @@ const kpis = [
     current: 18,
   },
   {
-    title: "DSO",
-    description: "Days Sales Outstanding",
+    title: "Prazo Médio de Recebimento",
+    description: "Dias para receber vendas",
     value: "32 dias",
     change: "-5 dias",
     trend: "down",
@@ -104,7 +104,7 @@ const kpis = [
   },
   {
     title: "Taxa de Conversão",
-    description: "Eficiência Comercial",
+    description: "Eficiência em vendas",
     value: "67%",
     change: "+12%",
     trend: "up",
