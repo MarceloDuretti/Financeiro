@@ -41,7 +41,7 @@ export default function MinhaEmpresa() {
         {/* Lista de empresas - Esquerda */}
         <div 
           className={`flex-shrink-0 transition-all duration-300 ${
-            selectedCompanyId ? 'w-[280px]' : 'w-full'
+            selectedCompanyId ? 'w-[360px]' : 'w-full'
           }`}
         >
           <Card className="h-full flex flex-col">
