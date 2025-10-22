@@ -2,9 +2,9 @@ import {
   TrendingUp,
   Building2,
   PieChart,
-  Target,
-  Shield,
-  Smartphone,
+  Activity,
+  RefreshCw,
+  BarChart3,
   ArrowRight,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -14,37 +14,43 @@ const features = [
     icon: TrendingUp,
     title: "Controle de Receitas e Despesas",
     description:
-      "Categorize e acompanhe todas as suas movimentações financeiras com precisão e facilidade.",
+      "Categorize automaticamente suas movimentações financeiras com precisão. Acompanhe cada centavo com clareza total.",
+    gradient: "from-blue-500 to-cyan-500",
   },
   {
     icon: Building2,
     title: "Multi-Contas e Bancos",
     description:
-      "Integre todas as suas contas bancárias e visualize seu patrimônio em um único lugar.",
+      "Centralize todas as suas contas bancárias e cartões em um único painel. Visualização completa do seu patrimônio.",
+    gradient: "from-purple-500 to-pink-500",
+  },
+  {
+    icon: Activity,
+    title: "Fluxo de Caixa",
+    description:
+      "Monitore entradas e saídas em tempo real. Projeções precisas para planejar seu futuro financeiro com segurança.",
+    gradient: "from-green-500 to-emerald-500",
+  },
+  {
+    icon: BarChart3,
+    title: "DRE - Demonstrativo de Resultados",
+    description:
+      "Relatórios contábeis profissionais gerados automaticamente. Visão estratégica da saúde financeira do negócio.",
+    gradient: "from-orange-500 to-red-500",
+  },
+  {
+    icon: RefreshCw,
+    title: "Conciliação Bancária Automática",
+    description:
+      "Importação e reconciliação automática de extratos. Elimine erros e economize horas de trabalho manual.",
+    gradient: "from-indigo-500 to-blue-500",
   },
   {
     icon: PieChart,
     title: "Relatórios e Gráficos",
     description:
-      "Transforme dados em insights visuais para decisões financeiras mais inteligentes.",
-  },
-  {
-    icon: Target,
-    title: "Metas Financeiras",
-    description:
-      "Defina objetivos e acompanhe seu progresso rumo à realização dos seus sonhos.",
-  },
-  {
-    icon: Shield,
-    title: "Segurança de Dados",
-    description:
-      "Criptografia de ponta e backups automáticos para proteger suas informações.",
-  },
-  {
-    icon: Smartphone,
-    title: "Acesso Multi-Plataforma",
-    description:
-      "Use em qualquer dispositivo - web, iOS ou Android - com sincronização automática.",
+      "Dashboards inteligentes com análises visuais poderosas. Transforme dados complexos em decisões claras.",
+    gradient: "from-teal-500 to-green-500",
   },
 ];
 
@@ -61,34 +67,42 @@ export default function FeaturesSection() {
           </p>
         </div>
 
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
           {features.map((feature, index) => {
             const Icon = feature.icon;
             return (
               <Card
                 key={index}
-                className="group p-6 transition-all hover:-translate-y-1 hover:shadow-lg"
+                className="group relative overflow-hidden border-0 bg-gradient-to-br from-card to-card/50 p-8 shadow-md transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl"
                 data-testid={`card-feature-${index}`}
               >
-                <div className="flex flex-col gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-                    <Icon className="h-6 w-6 text-primary" />
+                <div 
+                  className={`absolute right-0 top-0 h-32 w-32 translate-x-8 -translate-y-8 rounded-full bg-gradient-to-br opacity-10 blur-2xl transition-all duration-300 group-hover:scale-150 group-hover:opacity-20 ${feature.gradient}`}
+                />
+                
+                <div className="relative flex flex-col gap-5">
+                  <div className={`flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br ${feature.gradient} shadow-lg transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl`}>
+                    <Icon className="h-8 w-8 text-white" strokeWidth={2.5} />
                   </div>
-                  <div className="flex flex-col gap-2">
-                    <h3 className="font-semibold text-lg">{feature.title}</h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">
+                  
+                  <div className="flex flex-col gap-3">
+                    <h3 className="text-xl font-bold leading-tight">
+                      {feature.title}
+                    </h3>
+                    <p className="text-sm leading-relaxed text-muted-foreground">
                       {feature.description}
                     </p>
                   </div>
-                  <a
-                    href="#"
-                    className="inline-flex items-center text-sm font-medium text-primary transition-colors hover:text-primary/80"
-                    data-testid={`link-feature-${index}`}
-                  >
-                    Saiba Mais
-                    <ArrowRight className="ml-1 h-3 w-3" />
-                  </a>
+                  
+                  <div className="mt-2 flex items-center gap-2 text-sm font-semibold text-primary transition-all group-hover:gap-3">
+                    <span>Explorar</span>
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  </div>
                 </div>
+
+                <div 
+                  className={`absolute bottom-0 left-0 h-1 w-0 bg-gradient-to-r transition-all duration-300 group-hover:w-full ${feature.gradient}`}
+                />
               </Card>
             );
           })}
