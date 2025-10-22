@@ -209,27 +209,24 @@ export default function Dashboard() {
         {kpis.map((kpi, index) => {
           const Icon = kpi.icon;
           const progressPercent = (kpi.current / kpi.target) * 100;
+          const accentColor = kpi.gradient.includes('green') ? 'border-green-500' : 
+                             kpi.gradient.includes('blue') ? 'border-blue-500' : 
+                             kpi.gradient.includes('orange') ? 'border-orange-500' : 
+                             kpi.gradient.includes('purple') ? 'border-purple-500' : 
+                             kpi.gradient.includes('cyan') ? 'border-cyan-500' : 'border-pink-500';
           
           return (
             <Card
               key={index}
-              className="relative overflow-hidden border-0 bg-gradient-to-br from-card via-card to-muted/20 shadow-lg hover-elevate transition-all duration-300"
+              className={`relative overflow-hidden hover-elevate transition-all duration-300 border-l-4 ${accentColor}`}
               data-testid={`card-kpi-${index}`}
             >
-              <div
-                className={`absolute -right-8 -top-8 h-32 w-32 rounded-full bg-gradient-to-br ${kpi.gradient} opacity-10 blur-3xl`}
-              />
               <CardHeader className="pb-3">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex flex-col gap-1 flex-1 min-w-0">
-                    <CardDescription className="text-xs font-medium">
-                      {kpi.title}
-                    </CardDescription>
-                    <CardTitle className="text-2xl font-bold truncate">{kpi.value}</CardTitle>
-                  </div>
-                  <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${kpi.gradient} shadow-lg`}>
-                    <Icon className="h-5 w-5 text-white" strokeWidth={2.5} />
-                  </div>
+                <div className="flex flex-col gap-1">
+                  <CardDescription className="text-xs font-medium">
+                    {kpi.title}
+                  </CardDescription>
+                  <CardTitle className="text-2xl font-bold truncate">{kpi.value}</CardTitle>
                 </div>
               </CardHeader>
               <CardContent className="pb-4">
@@ -288,7 +285,7 @@ export default function Dashboard() {
       {/* Advanced Charts Grid */}
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Combo Chart - Revenue, Expenses, Forecast */}
-        <Card className="border-0 bg-gradient-to-br from-card to-muted/20 shadow-lg col-span-full">
+        <Card className="col-span-full">
           <CardHeader>
             <div className="flex items-start justify-between flex-wrap gap-4">
               <div>
@@ -357,7 +354,7 @@ export default function Dashboard() {
         </Card>
 
         {/* Category Breakdown */}
-        <Card className="border-0 bg-gradient-to-br from-card to-muted/20 shadow-lg">
+        <Card>
           <CardHeader>
             <CardTitle className="text-xl font-bold">Distribuição de Despesas</CardTitle>
             <CardDescription>Análise por categoria operacional</CardDescription>
@@ -396,7 +393,7 @@ export default function Dashboard() {
         </Card>
 
         {/* Department Performance */}
-        <Card className="border-0 bg-gradient-to-br from-card to-muted/20 shadow-lg">
+        <Card>
           <CardHeader>
             <CardTitle className="text-xl font-bold">Performance por Departamento</CardTitle>
             <CardDescription>Gastos mensais em milhares (R$)</CardDescription>
@@ -424,7 +421,7 @@ export default function Dashboard() {
       {/* Intelligence Workspace */}
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Transactions Table */}
-        <Card className="border-0 bg-gradient-to-br from-card to-muted/20 shadow-lg lg:col-span-2">
+        <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle className="text-xl font-bold">Últimas Transações</CardTitle>
             <CardDescription>Movimentações recentes com status de confirmação</CardDescription>
@@ -493,7 +490,7 @@ export default function Dashboard() {
         </Card>
 
         {/* Alerts Feed */}
-        <Card className="border-0 bg-gradient-to-br from-card to-muted/20 shadow-lg">
+        <Card>
           <CardHeader>
             <CardTitle className="text-xl font-bold">Alertas & Insights</CardTitle>
             <CardDescription>Notificações importantes do sistema</CardDescription>

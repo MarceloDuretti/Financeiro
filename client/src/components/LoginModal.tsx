@@ -7,6 +7,8 @@ import { Separator } from "@/components/ui/separator";
 import {
   Dialog,
   DialogContent,
+  DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { useLocation } from "wouter";
 
@@ -32,6 +34,10 @@ export default function LoginModal({ open, onOpenChange }: LoginModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[480px] p-0 gap-0" data-testid="modal-login">
+        <DialogTitle className="sr-only">Login - Acessar Conta</DialogTitle>
+        <DialogDescription className="sr-only">
+          Faça login na sua conta usando e-mail e senha ou continue com Google
+        </DialogDescription>
         <div className="flex flex-col">
           <div className="relative overflow-hidden bg-gradient-to-br from-primary to-blue-600 px-8 py-12 text-white">
             <div className="relative z-10 flex flex-col gap-3">
