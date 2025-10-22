@@ -151,18 +151,6 @@ export default function MinhaEmpresa() {
 
   return (
     <div className="space-y-6 p-6">
-      {/* Page Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Minha Empresa</h1>
-          <p className="text-muted-foreground mt-1">
-            Informações cadastrais e configurações da sua empresa
-          </p>
-        </div>
-      </div>
-
-      <Separator />
-
       {/* Company Identity Band */}
       <Card className="border-0 bg-gradient-to-br from-primary/5 via-card to-muted/10 shadow-lg overflow-visible">
         <CardContent className="p-6">
