@@ -158,7 +158,7 @@ export default function MinhaEmpresa() {
             <div>
               <h3 className="text-sm font-semibold text-primary mb-3">Dados da Empresa</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-1.5">
+                <div className="space-y-1.5 p-3 rounded-md border border-border/40 bg-card/50">
                   <Label htmlFor="razaoSocial" className="text-xs text-muted-foreground">
                     Razão Social
                   </Label>
@@ -177,7 +177,7 @@ export default function MinhaEmpresa() {
                   )}
                 </div>
 
-                <div className="space-y-1.5">
+                <div className="space-y-1.5 p-3 rounded-md border border-border/40 bg-card/50">
                   <Label htmlFor="cnpj" className="text-xs text-muted-foreground">
                     CNPJ
                   </Label>
@@ -196,7 +196,7 @@ export default function MinhaEmpresa() {
                   )}
                 </div>
 
-                <div className="space-y-1.5">
+                <div className="space-y-1.5 p-3 rounded-md border border-border/40 bg-card/50">
                   <Label htmlFor="dataAbertura" className="text-xs text-muted-foreground">
                     Data de Abertura
                   </Label>
@@ -215,7 +215,7 @@ export default function MinhaEmpresa() {
                   )}
                 </div>
 
-                <div className="space-y-1.5">
+                <div className="space-y-1.5 p-3 rounded-md border border-border/40 bg-card/50">
                   <Label htmlFor="ie" className="text-xs text-muted-foreground">
                     Inscrição Estadual
                   </Label>
@@ -234,7 +234,7 @@ export default function MinhaEmpresa() {
                   )}
                 </div>
 
-                <div className="space-y-1.5">
+                <div className="space-y-1.5 p-3 rounded-md border border-border/40 bg-card/50">
                   <Label htmlFor="im" className="text-xs text-muted-foreground">
                     Inscrição Municipal
                   </Label>
@@ -253,7 +253,7 @@ export default function MinhaEmpresa() {
                   )}
                 </div>
 
-                <div className="space-y-1.5">
+                <div className="space-y-1.5 p-3 rounded-md border border-border/40 bg-card/50">
                   <Label htmlFor="cnaeSecundario" className="text-xs text-muted-foreground">
                     CNAE Secundário
                   </Label>
@@ -280,7 +280,7 @@ export default function MinhaEmpresa() {
             <div>
               <h3 className="text-sm font-semibold text-primary mb-3">Endereço e Contato</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-1.5">
+                <div className="space-y-1.5 p-3 rounded-md border border-border/40 bg-card/50">
                   <Label htmlFor="endereco" className="text-xs text-muted-foreground">
                     Logradouro
                   </Label>
@@ -299,7 +299,7 @@ export default function MinhaEmpresa() {
                   )}
                 </div>
 
-                <div className="space-y-1.5">
+                <div className="space-y-1.5 p-3 rounded-md border border-border/40 bg-card/50">
                   <Label htmlFor="cidade" className="text-xs text-muted-foreground">
                     Cidade/UF
                   </Label>
@@ -318,7 +318,7 @@ export default function MinhaEmpresa() {
                   )}
                 </div>
 
-                <div className="space-y-1.5">
+                <div className="space-y-1.5 p-3 rounded-md border border-border/40 bg-card/50">
                   <Label htmlFor="cep" className="text-xs text-muted-foreground">
                     CEP
                   </Label>
@@ -337,7 +337,7 @@ export default function MinhaEmpresa() {
                   )}
                 </div>
 
-                <div className="space-y-1.5">
+                <div className="space-y-1.5 p-3 rounded-md border border-border/40 bg-card/50">
                   <Label htmlFor="telefone" className="text-xs text-muted-foreground">
                     Telefone
                   </Label>
@@ -356,7 +356,7 @@ export default function MinhaEmpresa() {
                   )}
                 </div>
 
-                <div className="space-y-1.5">
+                <div className="space-y-1.5 p-3 rounded-md border border-border/40 bg-card/50">
                   <Label htmlFor="email" className="text-xs text-muted-foreground">
                     E-mail
                   </Label>
@@ -376,7 +376,7 @@ export default function MinhaEmpresa() {
                   )}
                 </div>
 
-                <div className="space-y-1.5">
+                <div className="space-y-1.5 p-3 rounded-md border border-border/40 bg-card/50">
                   <Label htmlFor="website" className="text-xs text-muted-foreground">
                     Website
                   </Label>
