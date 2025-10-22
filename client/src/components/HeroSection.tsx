@@ -1,6 +1,6 @@
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import dashboardImage from "@assets/generated_images/Dashboard_devices_white_background_da762c11.png";
+import dashboardImage from "@assets/generated_images/Dashboard_solid_white_background_RGB255_3fe105af.png";
 
 export default function HeroSection() {
   return (
