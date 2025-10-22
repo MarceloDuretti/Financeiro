@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import headerLogo from "@assets/image_1761139734810.png";
 
 interface HeaderProps {
   onLoginClick: () => void;
@@ -42,10 +43,12 @@ export default function Header({ onLoginClick }: HeaderProps) {
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center gap-8">
             <a href="#" className="flex items-center gap-2" data-testid="link-logo">
-              <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary">
-                <span className="text-lg font-semibold text-primary-foreground">F</span>
-              </div>
-              <span className="hidden font-medium md:inline-block">FinControl</span>
+              <img 
+                src={headerLogo} 
+                alt="SyncTime Logo" 
+                className="h-8 w-auto"
+                data-testid="img-header-logo"
+              />
             </a>
 
             <nav className="hidden lg:flex lg:gap-6">
