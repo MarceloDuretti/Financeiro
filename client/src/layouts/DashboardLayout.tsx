@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Bell, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import headerLogo from "@assets/image_1761141745101.png";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -34,6 +35,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               </div>
             </div>
             <div className="flex items-center gap-3">
+              <img 
+                src={headerLogo} 
+                alt="SyncTime Logo" 
+                className="h-8 w-auto hidden md:block"
+                data-testid="img-header-logo-small"
+              />
               <Button
                 size="icon"
                 variant="ghost"
