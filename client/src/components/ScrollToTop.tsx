@@ -7,13 +7,15 @@ export default function ScrollToTop() {
 
   useEffect(() => {
     const toggleVisibility = () => {
-      if (window.pageYOffset > 300) {
+      if (window.scrollY > 300) {
         setIsVisible(true);
       } else {
         setIsVisible(false);
       }
     };
 
+    toggleVisibility();
+    
     window.addEventListener("scroll", toggleVisibility);
 
     return () => {
@@ -28,18 +30,20 @@ export default function ScrollToTop() {
     });
   };
 
-  if (!isVisible) {
-    return null;
-  }
-
   return (
-    <Button
-      onClick={scrollToTop}
-      size="icon"
-      className="fixed bottom-8 right-8 z-50 h-12 w-12 rounded-full shadow-lg transition-all hover:scale-110"
-      data-testid="button-scroll-to-top"
+    <div
+      className={`fixed bottom-6 right-6 z-[100] transition-all duration-300 ${
+        isVisible ? "translate-y-0 opacity-100" : "translate-y-16 opacity-0 pointer-events-none"
+      }`}
     >
-      <ArrowUp className="h-5 w-5" />
-    </Button>
+      <Button
+        onClick={scrollToTop}
+        size="icon"
+        className="h-14 w-14 rounded-full shadow-2xl transition-all hover:scale-110 hover:shadow-xl"
+        data-testid="button-scroll-to-top"
+      >
+        <ArrowUp className="h-6 w-6" />
+      </Button>
+    </div>
   );
 }
