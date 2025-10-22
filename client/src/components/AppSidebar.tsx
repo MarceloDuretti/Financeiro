@@ -146,23 +146,6 @@ export function AppSidebar() {
           </div>
         </Link>
 
-        <div className="rounded-xl bg-gradient-to-br from-primary/10 to-blue-500/5 p-4 border border-primary/20 mb-4" data-testid="goal-card">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-medium text-muted-foreground">Meta Mensal</span>
-            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/20">
-              <Target className="h-3.5 w-3.5 text-primary" />
-            </div>
-          </div>
-          <div className="flex items-baseline gap-2 mb-2">
-            <span className="text-2xl font-bold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">R$ 128k</span>
-            <span className="text-sm text-muted-foreground">/ 150k</span>
-          </div>
-          <div className="h-2 w-full rounded-full bg-muted/50 overflow-hidden mb-2">
-            <div className="h-full w-[85%] bg-gradient-to-r from-primary to-blue-600 rounded-full transition-all duration-500" />
-          </div>
-          <span className="text-xs font-medium text-primary">85%</span>
-        </div>
-
         <div className="grid grid-cols-3 gap-2">
           {quickStats.map((stat, index) => (
             <div
@@ -227,8 +210,8 @@ export function AppSidebar() {
                                         className="flex items-center gap-2 w-full"
                                         data-testid={`link-submenu-${subItem.title.toLowerCase().replace(/\s+/g, '-')}`}
                                       >
-                                        <ArrowRight className="h-3 w-3 text-muted-foreground shrink-0" />
-                                        <span className="text-xs flex-1 truncate">{subItem.title}</span>
+                                        <ArrowRight className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                                        <span className="text-sm flex-1 truncate">{subItem.title}</span>
                                       </div>
                                     </Link>
                                   </SidebarMenuSubButton>
