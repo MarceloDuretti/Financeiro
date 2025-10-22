@@ -1,18 +1,26 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Building2, Phone, Mail, MapPin, FileText, Briefcase, Globe, User, X, ChevronRight } from "lucide-react";
+import { Building2, Phone, Mail, MapPin, FileText, Briefcase, Globe, User, X, ChevronRight, Edit2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
+import { queryClient, apiRequest } from "@/lib/queryClient";
 import type { Company } from "@shared/schema";
 
 const SELECTED_COMPANY_KEY = "fincontrol_selected_company_id";
 
 export default function MinhaEmpresa() {
+  const { toast } = useToast();
   const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(() => {
     return localStorage.getItem(SELECTED_COMPANY_KEY);
   });
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editFormData, setEditFormData] = useState<Partial<Company>>({});
 
   const { data: companies = [], isLoading } = useQuery<Company[]>({
     queryKey: ["/api/companies"],
@@ -33,6 +41,40 @@ export default function MinhaEmpresa() {
 
   const handleCloseDetails = () => {
     setSelectedCompanyId(null);
+  };
+
+  const handleOpenEdit = () => {
+    if (selectedCompany) {
+      setEditFormData(selectedCompany);
+      setIsEditDialogOpen(true);
+    }
+  };
+
+  const handleEditChange = (field: keyof Company, value: string) => {
+    setEditFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleSaveEdit = async () => {
+    if (!selectedCompanyId) return;
+
+    try {
+      await apiRequest("PATCH", `/api/companies/${selectedCompanyId}`, editFormData);
+
+      await queryClient.invalidateQueries({ queryKey: ["/api/companies"] });
+      await queryClient.invalidateQueries({ queryKey: [`/api/companies/${selectedCompanyId}`] });
+
+      setIsEditDialogOpen(false);
+      toast({
+        title: "Sucesso",
+        description: "Dados da empresa atualizados com sucesso!",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar os dados da empresa.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -202,15 +244,26 @@ export default function MinhaEmpresa() {
                       </div>
                     </div>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={handleCloseDetails}
-                    data-testid="button-close-details"
-                    className="flex-shrink-0"
-                  >
-                    <X className="h-5 w-5" />
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleOpenEdit}
+                      data-testid="button-edit-company"
+                    >
+                      <Edit2 className="h-4 w-4 mr-2" />
+                      Editar
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={handleCloseDetails}
+                      data-testid="button-close-details"
+                      className="flex-shrink-0"
+                    >
+                      <X className="h-5 w-5" />
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -387,6 +440,253 @@ export default function MinhaEmpresa() {
           </div>
         )}
       </div>
+
+      {/* Dialog de Edição */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Editar Informações da Empresa</DialogTitle>
+            <DialogDescription>
+              Atualize os dados cadastrais da empresa selecionada.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-6 py-4">
+            {/* Informações Básicas */}
+            <div className="space-y-4">
+              <h3 className="font-semibold text-sm text-primary">Informações Básicas</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="edit-tradeName">Nome Fantasia</Label>
+                  <Input
+                    id="edit-tradeName"
+                    value={editFormData.tradeName || ''}
+                    onChange={(e) => handleEditChange('tradeName', e.target.value)}
+                    data-testid="input-edit-tradeName"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-legalName">Razão Social</Label>
+                  <Input
+                    id="edit-legalName"
+                    value={editFormData.legalName || ''}
+                    onChange={(e) => handleEditChange('legalName', e.target.value)}
+                    data-testid="input-edit-legalName"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-cnpj">CNPJ</Label>
+                  <Input
+                    id="edit-cnpj"
+                    value={editFormData.cnpj || ''}
+                    onChange={(e) => handleEditChange('cnpj', e.target.value)}
+                    data-testid="input-edit-cnpj"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-phone">Telefone</Label>
+                  <Input
+                    id="edit-phone"
+                    value={editFormData.phone || ''}
+                    onChange={(e) => handleEditChange('phone', e.target.value)}
+                    data-testid="input-edit-phone"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Dados Fiscais */}
+            <div className="space-y-4">
+              <h3 className="font-semibold text-sm text-primary">Dados Fiscais</h3>
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <Label htmlFor="edit-ie">Inscrição Estadual</Label>
+                  <Input
+                    id="edit-ie"
+                    value={editFormData.ie || ''}
+                    onChange={(e) => handleEditChange('ie', e.target.value)}
+                    data-testid="input-edit-ie"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-im">Inscrição Municipal</Label>
+                  <Input
+                    id="edit-im"
+                    value={editFormData.im || ''}
+                    onChange={(e) => handleEditChange('im', e.target.value)}
+                    data-testid="input-edit-im"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-dataAbertura">Data de Abertura</Label>
+                  <Input
+                    id="edit-dataAbertura"
+                    value={editFormData.dataAbertura || ''}
+                    onChange={(e) => handleEditChange('dataAbertura', e.target.value)}
+                    data-testid="input-edit-dataAbertura"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Endereço */}
+            <div className="space-y-4">
+              <h3 className="font-semibold text-sm text-primary">Endereço</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="col-span-2">
+                  <Label htmlFor="edit-logradouro">Logradouro</Label>
+                  <Input
+                    id="edit-logradouro"
+                    value={editFormData.logradouro || ''}
+                    onChange={(e) => handleEditChange('logradouro', e.target.value)}
+                    data-testid="input-edit-logradouro"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-numero">Número</Label>
+                  <Input
+                    id="edit-numero"
+                    value={editFormData.numero || ''}
+                    onChange={(e) => handleEditChange('numero', e.target.value)}
+                    data-testid="input-edit-numero"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-complemento">Complemento</Label>
+                  <Input
+                    id="edit-complemento"
+                    value={editFormData.complemento || ''}
+                    onChange={(e) => handleEditChange('complemento', e.target.value)}
+                    data-testid="input-edit-complemento"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-bairro">Bairro</Label>
+                  <Input
+                    id="edit-bairro"
+                    value={editFormData.bairro || ''}
+                    onChange={(e) => handleEditChange('bairro', e.target.value)}
+                    data-testid="input-edit-bairro"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-cidade">Cidade</Label>
+                  <Input
+                    id="edit-cidade"
+                    value={editFormData.cidade || ''}
+                    onChange={(e) => handleEditChange('cidade', e.target.value)}
+                    data-testid="input-edit-cidade"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-uf">UF</Label>
+                  <Input
+                    id="edit-uf"
+                    value={editFormData.uf || ''}
+                    onChange={(e) => handleEditChange('uf', e.target.value)}
+                    data-testid="input-edit-uf"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-cep">CEP</Label>
+                  <Input
+                    id="edit-cep"
+                    value={editFormData.cep || ''}
+                    onChange={(e) => handleEditChange('cep', e.target.value)}
+                    data-testid="input-edit-cep"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Contato */}
+            <div className="space-y-4">
+              <h3 className="font-semibold text-sm text-primary">Contato</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="edit-email">E-mail</Label>
+                  <Input
+                    id="edit-email"
+                    type="email"
+                    value={editFormData.email || ''}
+                    onChange={(e) => handleEditChange('email', e.target.value)}
+                    data-testid="input-edit-email"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-website">Website</Label>
+                  <Input
+                    id="edit-website"
+                    value={editFormData.website || ''}
+                    onChange={(e) => handleEditChange('website', e.target.value)}
+                    data-testid="input-edit-website"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Responsável */}
+            <div className="space-y-4">
+              <h3 className="font-semibold text-sm text-primary">Responsável</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="edit-responsavelNome">Nome</Label>
+                  <Input
+                    id="edit-responsavelNome"
+                    value={editFormData.responsavelNome || ''}
+                    onChange={(e) => handleEditChange('responsavelNome', e.target.value)}
+                    data-testid="input-edit-responsavelNome"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-responsavelCargo">Cargo</Label>
+                  <Input
+                    id="edit-responsavelCargo"
+                    value={editFormData.responsavelCargo || ''}
+                    onChange={(e) => handleEditChange('responsavelCargo', e.target.value)}
+                    data-testid="input-edit-responsavelCargo"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-responsavelTelefone">Telefone</Label>
+                  <Input
+                    id="edit-responsavelTelefone"
+                    value={editFormData.responsavelTelefone || ''}
+                    onChange={(e) => handleEditChange('responsavelTelefone', e.target.value)}
+                    data-testid="input-edit-responsavelTelefone"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-responsavelEmail">E-mail</Label>
+                  <Input
+                    id="edit-responsavelEmail"
+                    type="email"
+                    value={editFormData.responsavelEmail || ''}
+                    onChange={(e) => handleEditChange('responsavelEmail', e.target.value)}
+                    data-testid="input-edit-responsavelEmail"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4 border-t">
+            <Button
+              variant="outline"
+              onClick={() => setIsEditDialogOpen(false)}
+              data-testid="button-cancel-edit"
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleSaveEdit}
+              data-testid="button-save-edit"
+            >
+              Salvar Alterações
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
