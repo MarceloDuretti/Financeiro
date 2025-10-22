@@ -46,22 +46,31 @@ Preferred communication style: Simple, everyday language.
 - **Financial Chart**: Clean LineChart (240px height) showing only Revenues and Expenses with gradients and smooth curves
 - **Department Performance**: Custom heatmap table (replaced BarChart) showing monthly spending with color-coded cells (red=high, blue=low) for instant visual pattern recognition with automatic normalization and edge-case handling
 - **Landing Page Hero**: Balanced minimalist design with medium-sized feature stats using subtle primary-colored icons (h-8 w-8) on light backgrounds (bg-primary/10)
-- **Minha Empresa Page**: Redesigned as a visual company profile (October 22, 2025)
-  - **Design Philosophy**: Transformed from cadastral form to informative company profile - visual, elegant, minimalist
-  - **Hero Section**: Large logo (h-24 w-24), company name in large heading, legal name subtitle, status badges
-  - **Layout**: Two-column responsive grid (2/3 main info + 1/3 sidebar on desktop)
-  - **Main Column Cards**:
-    - **Dados Fiscais**: CNPJ, IE, IM, Data de Abertura with FileText icon
-    - **Atividade Econômica**: CNAE Principal with Briefcase icon
-    - **Endereço**: Complete address with MapPin icon
-    - **Contato**: Phone, Email, Website with respective icons
-  - **Sidebar Card**:
-    - **Responsável**: Large avatar (h-20 w-20), name, position, contact details
-    - **Info Card**: Last updated date and company status
-  - **Edit Mode**: Modal dialog (not inline) with complete form for all fields
-  - **Visual Design**: Gradient backgrounds (from-card to-muted/20), icon-led sections, no border confusion with menu
-  - **State Management**: Controlled form with editFormData, save/cancel with toast confirmation
-  - **Accessibility**: Full data-testid coverage, DialogDescription for screen readers
+- **Minha Empresa Page**: Multi-company management system (October 22, 2025)
+  - **Design Philosophy**: Master-detail pattern for managing multiple companies in the same group
+  - **Architecture**: Full CRUD support with backend API and in-memory storage
+  - **Data Model**: Company schema with fiscal, economic, address, contact, and responsible person fields
+  - **Backend**:
+    - IStorage interface extended with company CRUD methods (listCompanies, getCompanyById, updateCompany)
+    - API routes: GET /api/companies (list), GET /api/companies/:id (details), PATCH /api/companies/:id (update)
+    - Seed data with 3 example companies for demonstration
+  - **UI Layout**: Master-detail with responsive behavior
+    - **Left Panel**: Company list table with columns (Code, Name, CNPJ, Phone, Status)
+    - **Right Panel**: Detailed company card that appears when clicking a row
+    - **Animation**: List width transitions from w-full to md:w-[400px] when details are shown
+    - **Selection**: Click table row to select company and show details
+  - **Detail Card Sections**:
+    - Header with avatar, company names, and status badges
+    - Fiscal Data (CNPJ, IE, IM, opening date, tax regime)
+    - Economic Activity (primary CNAE)
+    - Complete Address with MapPin icon
+    - Contact information (phone, email, website)
+    - Responsible person with avatar and contact details
+  - **State Management**: 
+    - TanStack Query for API data fetching
+    - localStorage persistence of selected company
+    - Proper queryKey structure for list and detail queries
+  - **Accessibility**: Complete data-testid coverage on all interactive and display elements
 
 ### Backend Architecture
 

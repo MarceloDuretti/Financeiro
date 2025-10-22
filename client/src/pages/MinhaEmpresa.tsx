@@ -19,7 +19,7 @@ export default function MinhaEmpresa() {
   });
 
   const { data: selectedCompany } = useQuery<Company>({
-    queryKey: ["/api/companies", selectedCompanyId],
+    queryKey: [`/api/companies/${selectedCompanyId}`],
     enabled: !!selectedCompanyId,
   });
 
