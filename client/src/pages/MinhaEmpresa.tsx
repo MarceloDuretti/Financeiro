@@ -101,26 +101,29 @@ function EditableCard({ title, description, icon, fields, onSave, iconGradient, 
           )}
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {fields.map((field) => (
-          <div key={field.key} className="space-y-1.5">
-            <Label htmlFor={field.key} className="text-xs text-muted-foreground flex items-center gap-1.5">
-              {field.icon}
-              {field.label}
-            </Label>
-            {isEditing ? (
-              <Input
-                id={field.key}
-                value={formData[field.key]}
-                onChange={(e) => handleChange(field.key, e.target.value)}
-                className="h-9"
-                data-testid={`${testIdPrefix}-input-${field.key}`}
-              />
-            ) : (
-              <p className="text-sm font-medium py-1.5" data-testid={`${testIdPrefix}-text-${field.key}`}>
-                {formData[field.key]}
-              </p>
-            )}
+      <CardContent className="space-y-0">
+        {fields.map((field, index) => (
+          <div key={field.key}>
+            <div className="py-3">
+              <Label htmlFor={field.key} className="text-xs text-muted-foreground flex items-center gap-1.5 mb-2">
+                {field.icon}
+                {field.label}
+              </Label>
+              {isEditing ? (
+                <Input
+                  id={field.key}
+                  value={formData[field.key]}
+                  onChange={(e) => handleChange(field.key, e.target.value)}
+                  className="h-9"
+                  data-testid={`${testIdPrefix}-input-${field.key}`}
+                />
+              ) : (
+                <p className="text-sm font-medium" data-testid={`${testIdPrefix}-text-${field.key}`}>
+                  {formData[field.key]}
+                </p>
+              )}
+            </div>
+            {index < fields.length - 1 && <Separator />}
           </div>
         ))}
       </CardContent>
