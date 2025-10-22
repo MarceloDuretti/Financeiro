@@ -94,38 +94,46 @@ export default function ContactSection() {
                       rel={method.action.startsWith("http") ? "noopener noreferrer" : undefined}
                       data-testid={`link-contact-${index}`}
                     >
-                      <Card className="p-4 transition-all hover:-translate-y-1 hover:shadow-md">
-                        <div className="flex items-start gap-4">
-                          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                            <Icon className="h-5 w-5 text-primary" />
+                      <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-card to-card/50 p-5 shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+                        <div className="absolute right-0 top-0 h-20 w-20 translate-x-6 -translate-y-6 rounded-full bg-gradient-to-br from-primary/10 to-blue-600/10 blur-xl transition-all duration-300 group-hover:scale-150" />
+                        
+                        <div className="relative flex items-start gap-4">
+                          <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-blue-600 shadow-lg transition-all duration-300 group-hover:scale-110">
+                            <Icon className="h-6 w-6 text-white" strokeWidth={2.5} />
                           </div>
                           <div className="flex flex-col gap-1">
-                            <h4 className="font-semibold text-sm">{method.title}</h4>
+                            <h4 className="font-bold text-sm">{method.title}</h4>
                             <p className="text-xs text-muted-foreground">
                               {method.description}
                             </p>
-                            <p className="text-sm font-medium text-primary group-hover:underline">
+                            <p className="text-sm font-semibold text-primary group-hover:underline">
                               {method.info}
                             </p>
                           </div>
                         </div>
+
+                        <div className="absolute bottom-0 left-0 h-1 w-0 bg-gradient-to-r from-primary to-blue-600 transition-all duration-300 group-hover:w-full" />
                       </Card>
                     </a>
                   );
                 })}
               </div>
 
-              <Card className="border-primary/20 bg-primary/5 p-4">
-                <div className="flex items-start gap-3">
-                  <Clock className="h-5 w-5 flex-shrink-0 text-primary" />
+              <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-primary/10 to-blue-600/10 p-5 shadow-md">
+                <div className="absolute right-0 top-0 h-20 w-20 translate-x-6 -translate-y-6 rounded-full bg-gradient-to-br from-primary/20 to-blue-600/20 blur-xl" />
+                
+                <div className="relative flex items-start gap-3">
+                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-blue-600">
+                    <Clock className="h-5 w-5 text-white" strokeWidth={2.5} />
+                  </div>
                   <div className="flex flex-col gap-1">
-                    <h4 className="font-semibold text-sm">
+                    <h4 className="font-bold text-sm">
                       Horário de Atendimento
                     </h4>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs font-medium text-foreground">
                       Segunda a Sexta: 9h às 18h
                     </p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs font-medium text-foreground">
                       Sábado: 9h às 13h
                     </p>
                   </div>
@@ -135,10 +143,11 @@ export default function ContactSection() {
           </div>
 
           <div className="lg:col-span-2">
-            <Card className="p-6 md:p-8">
-              <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+            <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-card to-card/50 p-6 shadow-md md:p-8">
+              <div className="absolute right-0 top-0 h-40 w-40 translate-x-12 -translate-y-12 rounded-full bg-gradient-to-br from-primary/10 to-blue-600/10 blur-3xl" />
+              <form onSubmit={handleSubmit} className="relative flex flex-col gap-6">
                 <div className="flex flex-col gap-2">
-                  <h3 className="text-xl font-semibold">Envie uma Mensagem</h3>
+                  <h3 className="text-xl font-bold">Envie uma Mensagem</h3>
                   <p className="text-sm text-muted-foreground">
                     Preencha o formulário abaixo e retornaremos em até 24 horas.
                   </p>

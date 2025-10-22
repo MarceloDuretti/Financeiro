@@ -73,23 +73,25 @@ export default function PlansSection() {
           {plans.map((plan, index) => (
             <Card
               key={index}
-              className={`relative flex flex-col p-8 transition-all hover:-translate-y-2 hover:shadow-xl ${
-                plan.popular ? "border-2 border-primary shadow-lg" : ""
+              className={`group relative flex flex-col overflow-hidden border-0 bg-gradient-to-br from-card to-card/50 p-8 shadow-md transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl ${
+                plan.popular ? "ring-2 ring-primary shadow-xl" : ""
               }`}
               data-testid={`card-plan-${index}`}
             >
+              <div className="absolute right-0 top-0 h-32 w-32 translate-x-8 -translate-y-8 rounded-full bg-gradient-to-br from-primary/20 to-blue-600/20 opacity-10 blur-2xl transition-all duration-300 group-hover:scale-150 group-hover:opacity-20" />
+              
               {plan.popular && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                  <div className="flex items-center gap-1 rounded-full bg-primary px-4 py-1 text-xs font-semibold text-primary-foreground">
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
+                  <div className="flex items-center gap-1 rounded-full bg-gradient-to-r from-primary to-blue-600 px-4 py-1.5 text-xs font-bold text-white shadow-lg">
                     <Sparkles className="h-3 w-3" />
                     Mais Popular
                   </div>
                 </div>
               )}
 
-              <div className="flex flex-col gap-4 border-b pb-6">
+              <div className="relative flex flex-col gap-4 border-b pb-6">
                 <div className="flex flex-col gap-2">
-                  <h3 className="text-2xl font-bold">{plan.name}</h3>
+                  <h3 className="text-2xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">{plan.name}</h3>
                   <p className="text-sm text-muted-foreground">
                     {plan.description}
                   </p>
@@ -125,7 +127,7 @@ export default function PlansSection() {
 
                 <div className="mt-auto pt-6">
                   <Button
-                    className="w-full"
+                    className={`w-full transition-all ${plan.popular ? "bg-gradient-to-r from-primary to-blue-600 hover:shadow-lg" : ""}`}
                     variant={plan.popular ? "default" : "outline"}
                     size="lg"
                     data-testid={`button-plan-${index}`}
@@ -134,6 +136,8 @@ export default function PlansSection() {
                   </Button>
                 </div>
               </div>
+
+              <div className="absolute bottom-0 left-0 h-1 w-0 bg-gradient-to-r from-primary to-blue-600 transition-all duration-300 group-hover:w-full" />
             </Card>
           ))}
         </div>

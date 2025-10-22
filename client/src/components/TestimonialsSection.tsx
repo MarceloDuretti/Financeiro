@@ -74,42 +74,49 @@ export default function TestimonialsSection() {
                 return (
                   <Card
                     key={index}
-                    className={`p-6 transition-all duration-300 ${
+                    className={`group relative overflow-hidden border-0 bg-gradient-to-br from-card to-card/50 p-8 shadow-md transition-all duration-300 ${
                       isActive
-                        ? "scale-100 opacity-100 md:scale-105"
+                        ? "scale-100 opacity-100 md:scale-105 shadow-2xl"
                         : "scale-95 opacity-60 md:opacity-100"
                     }`}
                     data-testid={`card-testimonial-${index}`}
                   >
-                    <div className="flex flex-col gap-4">
+                    <div className="absolute right-0 top-0 h-24 w-24 translate-x-6 -translate-y-6 rounded-full bg-gradient-to-br from-primary/20 to-blue-600/20 blur-2xl" />
+                    
+                    <div className="relative flex flex-col gap-5">
                       <div className="flex gap-1">
                         {[...Array(5)].map((_, i) => (
                           <Star
                             key={i}
-                            className="h-4 w-4 fill-primary text-primary"
+                            className="h-5 w-5 fill-amber-400 text-amber-400"
                           />
                         ))}
                       </div>
-                      <p className="text-sm leading-relaxed text-foreground">
+                      <p className="text-base leading-relaxed text-foreground font-medium">
                         "{testimonial.text}"
                       </p>
-                      <div className="flex items-center gap-3 pt-2">
-                        <img
-                          src={testimonial.image}
-                          alt={testimonial.name}
-                          className="h-12 w-12 rounded-full object-cover"
-                          data-testid={`img-testimonial-${index}`}
-                        />
-                        <div className="flex flex-col">
-                          <span className="font-semibold text-sm">
+                      <div className="flex items-center gap-4 pt-2">
+                        <div className="relative">
+                          <div className="absolute -inset-0.5 rounded-full bg-gradient-to-br from-primary to-blue-600 opacity-75 blur" />
+                          <img
+                            src={testimonial.image}
+                            alt={testimonial.name}
+                            className="relative h-14 w-14 rounded-full object-cover ring-2 ring-background"
+                            data-testid={`img-testimonial-${index}`}
+                          />
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <span className="font-bold text-sm">
                             {testimonial.name}
                           </span>
-                          <span className="text-xs text-muted-foreground">
+                          <span className="text-xs text-muted-foreground font-medium">
                             {testimonial.role}
                           </span>
                         </div>
                       </div>
                     </div>
+
+                    <div className="absolute bottom-0 left-0 h-1 w-full bg-gradient-to-r from-primary to-blue-600 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
                   </Card>
                 );
               })}
