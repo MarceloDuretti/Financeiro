@@ -239,20 +239,6 @@ export default function Dashboard() {
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
-
-                {/* Progress Bar */}
-                <div className="mt-3">
-                  <div className="flex items-center justify-between text-xs mb-1">
-                    <span className="text-muted-foreground">Progresso</span>
-                    <span className="font-semibold">{Math.round(progressPercent)}%</span>
-                  </div>
-                  <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
-                    <div
-                      className={`h-full bg-gradient-to-r ${kpi.gradient} rounded-full transition-all duration-500`}
-                      style={{ width: `${Math.min(progressPercent, 100)}%` }}
-                    />
-                  </div>
-                </div>
               </CardContent>
             </Card>
           );
