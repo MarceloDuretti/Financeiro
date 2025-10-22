@@ -46,11 +46,13 @@ Preferred communication style: Simple, everyday language.
 - **Financial Chart**: Clean LineChart (240px height) showing only Revenues and Expenses with gradients and smooth curves
 - **Department Performance**: Custom heatmap table (replaced BarChart) showing monthly spending with color-coded cells (red=high, blue=low) for instant visual pattern recognition with automatic normalization and edge-case handling
 - **Landing Page Hero**: Balanced minimalist design with medium-sized feature stats using subtle primary-colored icons (h-8 w-8) on light backgrounds (bg-primary/10)
-- **Minha Empresa Page**: Added as second menu item with pink-to-rose gradient icon
+- **Minha Empresa Page**: Added as second menu item with pink-to-rose gradient icon - professional, impactful design
   - **Top Section**: 3 info cards with colored icons in blur circles (Regime Tributário/green, Porte da Empresa/blue, Atividade Principal/purple)
-  - **Main Form**: Clean white card with view/edit mode toggle - displays company registration data (Razão Social, CNPJ, IE, etc.) with Edit/Save/Cancel buttons
-  - **State Management**: Implements backup/restore pattern - clicking Edit creates data snapshot, Cancel restores original values, Save persists changes
-  - **Partners Section**: Gradient card displaying company partners with avatars and ownership percentages
+  - **Company Identity Band**: Large avatar with gradient blur, company name, status badges (Ativa, Desde, Nacional), company description - creates immediate impact and professionalism
+  - **Segmented Data Cards**: 4 independently editable cards in 2x2 grid (Dados da Empresa/blue, Dados Tributários/green, Contato/orange, Endereço/purple) using EditableCard component
+  - **Inline Editing System**: Each card has its own edit mode with icon-only Edit/Cancel/Save buttons in header - much more fluid than global edit mode
+  - **State Management**: Per-card backup/restore pattern - each EditableCard independently manages its state, clicking Cancel restores original values
+  - **Partners Section**: Grid layout with individual glassmorphism cards, larger avatars with gradient blurs, colored percentage badges, role badges
 
 ### Backend Architecture
 
