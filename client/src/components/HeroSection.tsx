@@ -9,7 +9,7 @@ export default function HeroSection() {
         <div className="grid gap-12 lg:grid-cols-2 lg:gap-16 items-center">
           <div className="flex flex-col gap-6 md:gap-8">
             <div className="flex flex-col gap-4">
-              <h1 className="font-bold tracking-tight md:text-5xl lg:text-6xl text-[50px]">
+              <h1 className="font-semibold tracking-tight md:text-5xl lg:text-6xl text-[50px] leading-tight">
                 <span className="bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
                   Organize suas finanças
                 </span>{" "}
@@ -33,15 +33,15 @@ export default function HeroSection() {
 
             <div className="flex flex-wrap gap-8 pt-4 text-sm">
               <div className="flex flex-col gap-1">
-                <span className="font-semibold text-foreground">Sem Cartão</span>
+                <span className="font-medium text-foreground">Sem Cartão</span>
                 <span className="text-muted-foreground">Para experimentar</span>
               </div>
               <div className="flex flex-col gap-1">
-                <span className="font-semibold text-foreground">18 Anos</span>
+                <span className="font-medium text-foreground">18 Anos</span>
                 <span className="text-muted-foreground">No mercado</span>
               </div>
               <div className="flex flex-col gap-1">
-                <span className="font-semibold text-foreground">97%</span>
+                <span className="font-medium text-foreground">97%</span>
                 <span className="text-muted-foreground">Aprovação</span>
               </div>
             </div>
