@@ -16,7 +16,7 @@ export default function HeroSection() {
                 className="w-80 h-auto mb-6"
                 data-testid="img-company-logo"
               />
-              <h1 className="font-semibold tracking-tight text-3xl md:text-4xl lg:text-5xl leading-tight">
+              <h1 className="font-semibold tracking-tight text-2xl md:text-3xl lg:text-4xl leading-tight">
                 <span className="bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
                   Organize suas finanças
                 </span>{" "}
