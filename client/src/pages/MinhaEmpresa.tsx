@@ -61,86 +61,107 @@ export default function MinhaEmpresa() {
                   Nenhuma empresa cadastrada
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className={`grid gap-4 ${selectedCompanyId ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-2'}`}>
                   {companies.map((company) => (
                     <div
                       key={company.id}
                       data-testid={`row-company-${company.id}`}
                       onClick={() => setSelectedCompanyId(company.id)}
-                      className={`group relative rounded-lg border transition-all duration-200 cursor-pointer hover-elevate active-elevate-2 ${
+                      className={`group relative rounded-xl border transition-all duration-200 cursor-pointer hover-elevate active-elevate-2 overflow-hidden ${
                         selectedCompanyId === company.id 
-                          ? 'bg-gradient-to-br from-primary/10 to-primary/5 border-primary/30 shadow-sm' 
-                          : 'bg-card border-border hover:border-primary/20'
+                          ? 'bg-gradient-to-br from-primary/10 to-primary/5 border-primary/30 shadow-md' 
+                          : 'bg-card border-border hover:border-primary/20 hover:shadow-sm'
                       }`}
                     >
-                      <div className="p-4">
-                        <div className="flex items-center gap-3">
-                          {/* Avatar com gradiente */}
-                          <Avatar className="h-12 w-12 border-2 border-primary/20">
-                            <AvatarImage src="" alt={company.tradeName} />
-                            <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary font-semibold">
-                              {company.tradeName.substring(0, 2).toUpperCase()}
-                            </AvatarFallback>
-                          </Avatar>
+                      {/* Header do Card */}
+                      <div className="p-4 pb-3 border-b border-border/50">
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-3 flex-1 min-w-0">
+                            <Avatar className="h-14 w-14 border-2 border-primary/20 shadow-sm">
+                              <AvatarImage src="" alt={company.tradeName} />
+                              <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary font-bold text-lg">
+                                {company.tradeName.substring(0, 2).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <h3 
+                                className="font-bold text-base text-foreground truncate"
+                                data-testid={`text-name-${company.id}`}
+                              >
+                                {company.tradeName}
+                              </h3>
+                              <p className="text-xs text-muted-foreground truncate">
+                                {company.legalName}
+                              </p>
+                            </div>
+                          </div>
+                          <ChevronRight className={`h-5 w-5 flex-shrink-0 text-muted-foreground transition-all ${
+                            selectedCompanyId === company.id ? 'text-primary rotate-90' : 'group-hover:translate-x-1'
+                          }`} />
+                        </div>
+                      </div>
 
-                          {/* Conteúdo */}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span 
-                                className="text-xs font-mono text-muted-foreground bg-muted px-2 py-0.5 rounded"
+                      {/* Body do Card - Grid de informações */}
+                      {!selectedCompanyId && (
+                        <div className="p-4 pt-3 space-y-3">
+                          <div className="grid grid-cols-2 gap-3">
+                            {/* Código */}
+                            <div className="space-y-1">
+                              <p className="text-xs text-muted-foreground">Código</p>
+                              <p 
+                                className="text-sm font-semibold font-mono text-foreground"
                                 data-testid={`text-code-${company.id}`}
                               >
                                 #{company.code}
-                              </span>
+                              </p>
+                            </div>
+
+                            {/* Status */}
+                            <div className="space-y-1">
+                              <p className="text-xs text-muted-foreground">Status</p>
                               <Badge 
                                 variant={company.status === "Ativa" ? "default" : "secondary"}
-                                className="text-xs"
+                                className="text-xs w-fit"
                                 data-testid={`text-status-${company.id}`}
                               >
                                 {company.status}
                               </Badge>
                             </div>
-                            <h3 
-                              className="font-semibold text-foreground truncate"
-                              data-testid={`text-name-${company.id}`}
-                            >
-                              {company.tradeName}
-                            </h3>
-                            {!selectedCompanyId && (
-                              <>
-                                <p className="text-xs text-muted-foreground truncate mt-0.5">
-                                  {company.legalName}
-                                </p>
-                                <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-                                  <div 
-                                    className="flex items-center gap-1"
-                                    data-testid={`text-cnpj-${company.id}`}
-                                  >
-                                    <FileText className="h-3 w-3" />
-                                    <span>{company.cnpj}</span>
-                                  </div>
-                                  <div 
-                                    className="flex items-center gap-1"
-                                    data-testid={`text-phone-${company.id}`}
-                                  >
-                                    <Phone className="h-3 w-3" />
-                                    <span>{company.phone}</span>
-                                  </div>
-                                </div>
-                              </>
-                            )}
-                          </div>
 
-                          {/* Ícone de seta */}
-                          <ChevronRight className={`h-5 w-5 text-muted-foreground transition-transform ${
-                            selectedCompanyId === company.id ? 'text-primary' : 'group-hover:translate-x-0.5'
-                          }`} />
+                            {/* CNPJ */}
+                            <div className="space-y-1">
+                              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                                <FileText className="h-3 w-3" />
+                                CNPJ
+                              </p>
+                              <p 
+                                className="text-sm font-medium text-foreground"
+                                data-testid={`text-cnpj-${company.id}`}
+                              >
+                                {company.cnpj}
+                              </p>
+                            </div>
+
+                            {/* Telefone */}
+                            <div className="space-y-1">
+                              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                                <Phone className="h-3 w-3" />
+                                Telefone
+                              </p>
+                              <p 
+                                className="text-sm font-medium text-foreground"
+                                data-testid={`text-phone-${company.id}`}
+                              >
+                                {company.phone}
+                              </p>
+                            </div>
+                          </div>
                         </div>
-                      </div>
+                      )}
 
                       {/* Indicador de seleção */}
                       {selectedCompanyId === company.id && (
-                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-primary to-primary/50 rounded-l-lg" />
+                        <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-primary via-primary to-primary/50" />
                       )}
                     </div>
                   ))}
