@@ -1,0 +1,132 @@
+Prompt para Design de Sistema Financeiro (Frontend)
+
+Objetivo
+
+Desenvolver o design de uma landing page para um sistema financeiro, focando em uma experiência de usuário intuitiva e uma estética moderna e sofisticada. O projeto deve ser implementado no Replit, utilizando HTML, CSS e JavaScript (para interações sutis e animações).
+
+Estilo e Inspiração
+
+O design deve ser minimalista, clean e moderno, com elementos visuais ricos e animações sutis. A inspiração principal é o estilo Apple, conhecido por sua elegância, tipografia limpa, uso inteligente de espaço em branco e foco na usabilidade. O objetivo é criar algo melhor e mais elaborado que o site de referência, Contas Online, mas mantendo a clareza e funcionalidade.
+
+Cores
+
+Utilizar uma paleta de cores baseada em:
+
+•
+Azul: Para elementos de destaque, botões de ação e títulos importantes.
+
+•
+Cinza Escuro: Para textos principais, fundos de seções e elementos de navegação.
+
+•
+Cinza Claro: Para fundos secundários, detalhes e elementos que precisam de menos destaque.
+
+•
+Branco: Para o fundo principal e espaços em branco, garantindo a sensação de limpeza e amplitude.
+
+Público-Alvo
+
+O design deve ser atraente e funcional tanto para pessoas físicas (controle financeiro pessoal) quanto para empresas/MEI (gestão financeira empresarial).
+
+Estrutura da Página (Landing Page)
+
+A página deve apresentar as seguintes seções, com transições suaves e animações sutis entre elas:
+
+1. Cabeçalho (Header)
+
+•
+Logotipo: Espaço para um logotipo (pode ser um placeholder de texto por enquanto).
+
+•
+Menu de Navegação: Itens como "Para Você", "Para Empresas", "Recursos", "Planos", "Contato".
+
+•
+Botões de Ação: "Acessar Conta" e "Criar Conta Grátis".
+
+2. Seção Principal (Hero Section)
+
+•
+Título Impactante: Uma frase que capture a proposta de valor do sistema.
+
+•
+Subtítulo/Descrição: Breve explicação sobre os benefícios do sistema.
+
+•
+Call to Action (CTA): Botão principal, por exemplo, "Experimente Grátis por 7 Dias".
+
+•
+Visual de Destaque: Uma ilustração ou imagem de um mockup do sistema em funcionamento, exibindo um dashboard clean e intuitivo. Este visual deve ser moderno, com sombras suaves e profundidade.
+
+3. Seção de Apresentação de Serviços/Funcionalidades
+
+Esta seção deve detalhar os principais recursos do sistema, utilizando ícones modernos, títulos claros e descrições concisas. Exemplos de funcionalidades a serem apresentadas:
+
+•
+Controle de Receitas e Despesas: Com um visual que sugira categorização e gráficos.
+
+•
+Multi-Contas e Bancos: Ilustrando a integração com diferentes instituições.
+
+•
+Relatórios e Gráficos: Apresentação visual de como os dados são transformados em insights.
+
+•
+Metas Financeiras: Como o sistema ajuda a alcançar objetivos.
+
+•
+Segurança: Destaque para a proteção dos dados do usuário.
+
+Cada funcionalidade pode ter um pequeno bloco com título, ícone e descrição, e talvez um CTA "Saiba Mais".
+
+4. Depoimentos/Provas Sociais
+
+Uma seção com depoimentos de usuários satisfeitos, destacando a credibilidade e eficácia do sistema. Pode ser um carrossel ou blocos individuais com foto/nome do usuário.
+
+5. Call to Action Secundário
+
+Um CTA semelhante ao da seção principal, incentivando o usuário a experimentar o sistema ou saber mais sobre os planos.
+
+6. Rodapé (Footer)
+
+•
+Links de Navegação: Links para "Sobre Nós", "Termos de Uso", "Política de Privacidade", etc.
+
+•
+Redes Sociais: Ícones para as redes sociais.
+
+•
+Informações de Contato: Endereço, e-mail ou telefone.
+
+•
+Direitos Autorais.
+
+Interações e Animações
+
+•
+Hover Effects: Animações sutis ao passar o mouse sobre botões e links.
+
+•
+Scroll Animations: Elementos que aparecem ou se animam suavemente à medida que o usuário rola a página.
+
+•
+Login: O botão "Acessar Conta" no cabeçalho deve, ao ser clicado, exibir um modal de login ou redirecionar para uma página de login com um design igualmente clean e minimalista.
+
+Considerações Técnicas (para o Replit)
+
+•
+Utilizar HTML5 semântico.
+
+•
+CSS3 para estilização, com foco em Flexbox ou CSS Grid para layout responsivo.
+
+•
+JavaScript para as animações sutis e interações (como o modal de login).
+
+•
+O design deve ser responsivo, adaptando-se bem a diferentes tamanhos de tela (desktop, tablet, mobile).
+
+•
+Priorizar a performance e a acessibilidade.
+
+O objetivo é que o Replit crie o código-fonte (HTML, CSS, JS) para esta landing page, focando exclusivamente no design e na experiência visual, sem a necessidade de funcionalidades de backend por enquanto.
+
