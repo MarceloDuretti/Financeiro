@@ -52,12 +52,12 @@ function EditableCard({ title, description, icon, fields, onSave, iconGradient, 
   };
 
   return (
-    <Card className="border-0 bg-gradient-to-br from-card to-muted/20 shadow-sm overflow-visible hover-elevate transition-all">
+    <Card className="border-0 bg-muted/30 shadow-sm overflow-visible hover-elevate transition-all">
       <CardHeader className="pb-2 pt-3 px-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-2.5 flex-1">
             <div className="relative flex-shrink-0">
-              <div className={`absolute inset-0 ${iconGradient} blur-lg rounded-full opacity-30`} />
+              <div className="absolute inset-0 bg-gray-600/20 blur-lg rounded-full" />
               <div className={`relative flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br ${iconGradient}`}>
                 {icon}
               </div>
@@ -289,7 +289,7 @@ export default function MinhaEmpresa() {
           title="Dados da Empresa"
           description="Informações de registro e tributárias"
           icon={<Building2 className="h-5 w-5 text-white" />}
-          iconGradient="from-blue-500 to-indigo-600"
+          iconGradient="from-gray-600 to-gray-700"
           testIdPrefix="company-data"
           fields={[
             { label: "Razão Social", value: "FinControl Soluções Financeiras LTDA", key: "razaoSocial", icon: <Building2 className="h-3 w-3" /> },
@@ -302,36 +302,23 @@ export default function MinhaEmpresa() {
           onSave={handleSaveCompanyData}
         />
 
-        {/* Contact and Address - Side by Side */}
-        <div className="grid gap-4 lg:grid-cols-2">
-          <EditableCard
-            title="Contato"
-            description="Informações de comunicação"
-            icon={<Mail className="h-5 w-5 text-white" />}
-            iconGradient="from-orange-500 to-red-600"
-            testIdPrefix="contact-data"
-            fields={[
-              { label: "Telefone", value: "(11) 3456-7890", key: "telefone", icon: <Phone className="h-3 w-3" /> },
-              { label: "E-mail", value: "contato@fincontrol.com.br", key: "email", icon: <Mail className="h-3 w-3" /> },
-              { label: "Website", value: "www.fincontrol.com.br", key: "website", icon: <Globe className="h-3 w-3" /> },
-            ]}
-            onSave={handleSaveContactData}
-          />
-
-          <EditableCard
-            title="Endereço"
-            description="Localização da empresa"
-            icon={<MapPin className="h-5 w-5 text-white" />}
-            iconGradient="from-purple-500 to-violet-600"
-            testIdPrefix="address-data"
-            fields={[
-              { label: "Logradouro", value: "Av. Paulista, 1000 - Bela Vista", key: "endereco", icon: <MapPin className="h-3 w-3" /> },
-              { label: "Cidade/UF", value: "São Paulo - SP", key: "cidade", icon: <MapPin className="h-3 w-3" /> },
-              { label: "CEP", value: "01310-100", key: "cep", icon: <MapPin className="h-3 w-3" /> },
-            ]}
-            onSave={handleSaveAddressData}
-          />
-        </div>
+        {/* Address and Contact - Full Width */}
+        <EditableCard
+          title="Endereço e Contato"
+          description="Localização e informações de comunicação"
+          icon={<MapPin className="h-5 w-5 text-white" />}
+          iconGradient="from-gray-600 to-gray-700"
+          testIdPrefix="address-contact-data"
+          fields={[
+            { label: "Logradouro", value: "Av. Paulista, 1000 - Bela Vista", key: "endereco", icon: <MapPin className="h-3 w-3" /> },
+            { label: "Cidade/UF", value: "São Paulo - SP", key: "cidade", icon: <MapPin className="h-3 w-3" /> },
+            { label: "CEP", value: "01310-100", key: "cep", icon: <MapPin className="h-3 w-3" /> },
+            { label: "Telefone", value: "(11) 3456-7890", key: "telefone", icon: <Phone className="h-3 w-3" /> },
+            { label: "E-mail", value: "contato@fincontrol.com.br", key: "email", icon: <Mail className="h-3 w-3" /> },
+            { label: "Website", value: "www.fincontrol.com.br", key: "website", icon: <Globe className="h-3 w-3" /> },
+          ]}
+          onSave={handleSaveAddressData}
+        />
       </div>
     </div>
   );
