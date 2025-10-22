@@ -32,14 +32,17 @@ Preferred communication style: Simple, everyday language.
 **Application Structure:**
 - **Landing Page**: Marketing site with hero, features, testimonials, plans, contact sections
 - **Dashboard**: Authenticated application with sidebar navigation and multiple feature modules
-- **Routing Strategy**: Two main routes - public landing (/) and protected dashboard (/dashboard/*)
+- **Routing Strategy**: Public landing (/) for non-authenticated users, protected dashboard (/dashboard/*) for authenticated users
+- **Authentication**: Replit Auth (OpenID Connect) with automatic login/signup pages
 
 **Key Features:**
 - Modular component architecture with reusable UI primitives
 - Chart visualizations using Recharts (LineChart, PieChart) and custom heatmap tables
 - Form handling with React Hook Form
 - Responsive sidebar layout for dashboard
-- Modal-based login system
+- Full authentication system with Replit Auth (login via Google, GitHub, X, Apple, email/password)
+- Protected routes with automatic redirect to login
+- User profile display with avatar and logout functionality
 
 **Dashboard Design Decisions (Recent Updates - October 22, 2025):**
 - **KPI Cards**: 4 main metrics with Portuguese names (no acronyms), gradient backgrounds, colored icons in blur circles, sparklines - removed progress bars for cleaner look
@@ -83,14 +86,20 @@ Preferred communication style: Simple, everyday language.
 
 **API Design:**
 - RESTful API pattern with `/api` prefix for all routes
-- Session-based authentication (scaffolded but not fully implemented)
+- **Authentication**: Full Replit Auth (OpenID Connect) implementation
+  - Routes: `/api/login`, `/api/logout`, `/api/callback`, `/api/auth/user`
+  - Session-based authentication with PostgreSQL session storage
+  - `isAuthenticated` middleware for protected routes
+  - Automatic token refresh for long-lived sessions
 - Request logging middleware with performance tracking
 - JSON body parsing with raw body preservation for webhook support
 
 **Storage Layer:**
-- Dual storage interface: In-memory (MemStorage) and database-backed
-- Storage abstraction allows easy switching between implementations
-- CRUD operations for user management (extensible for other entities)
+- **DatabaseStorage**: PostgreSQL-backed storage using Drizzle ORM
+- Storage abstraction (IStorage interface) for clean architecture
+- CRUD operations for users and companies
+- User operations: `getUser()`, `upsertUser()` (required for Replit Auth)
+- Company operations: `listCompanies()`, `getCompanyById()`, `createCompany()`, `updateCompany()`
 
 **Development Setup:**
 - Vite dev server middleware integration for HMR
@@ -105,14 +114,21 @@ Preferred communication style: Simple, everyday language.
 - **Migrations**: Managed via Drizzle Kit (output to ./migrations)
 - **Schema Location**: Shared between client/server (./shared/schema.ts)
 
-**Current Schema:**
-- Users table with UUID primary keys, username, and password fields
-- Zod validation schemas for type-safe data insertion
+**Current Schema (Updated October 22, 2025):**
+- **sessions table**: PostgreSQL-backed session storage (required for Replit Auth)
+  - Fields: sid (PK), sess (jsonb), expire (timestamp with index)
+- **users table**: User authentication and profile data (Replit Auth)
+  - Fields: id (varchar PK with UUID default), email (unique), firstName, lastName, profileImageUrl, createdAt, updatedAt
+  - Type: `UpsertUser` for insertion, `User` for selection
+- **companies table**: Multi-company management
+  - Fields: id, code, tradeName, legalName, cnpj, phone, status, fiscal data, address, contact, responsible person
+  - Type: `InsertCompany` for insertion, `Company` for selection
 
 **Design Decisions:**
 - Shared schema approach allows type safety across frontend/backend
 - Session storage uses connect-pg-simple for PostgreSQL-backed sessions
 - Database URL configured via environment variable (DATABASE_URL)
+- All tables created and managed via Drizzle ORM with `npm run db:push`
 
 ### External Dependencies
 
