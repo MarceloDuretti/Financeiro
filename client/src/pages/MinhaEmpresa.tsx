@@ -115,7 +115,7 @@ export default function MinhaEmpresa() {
       </div>
 
       {/* Single Card with All Data */}
-      <Card className="border-0 bg-muted/30 shadow-sm">
+      <Card className="bg-muted/30 shadow-sm border border-primary/20">
         <CardHeader className="pb-3 pt-4 px-4">
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg">Cadastro da Empresa</CardTitle>
