@@ -399,35 +399,35 @@ export default function Dashboard() {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b">
-                    <th className="pb-3 text-left text-sm font-semibold">Descrição</th>
-                    <th className="pb-3 text-left text-sm font-semibold">Categoria</th>
-                    <th className="pb-3 text-left text-sm font-semibold">Data</th>
-                    <th className="pb-3 text-right text-sm font-semibold">Valor</th>
-                    <th className="pb-3 text-center text-sm font-semibold">Status</th>
+                  <tr className="border-b border-muted/30">
+                    <th className="pb-2 text-left text-xs font-medium text-muted-foreground">Descrição</th>
+                    <th className="pb-2 text-left text-xs font-medium text-muted-foreground">Categoria</th>
+                    <th className="pb-2 text-left text-xs font-medium text-muted-foreground">Data</th>
+                    <th className="pb-2 text-right text-xs font-medium text-muted-foreground">Valor</th>
+                    <th className="pb-2 text-center text-xs font-medium text-muted-foreground">Status</th>
                   </tr>
                 </thead>
                 <tbody>
                   {recentTransactions.map((transaction) => (
                     <tr
                       key={transaction.id}
-                      className="border-b last:border-0 hover-elevate transition-colors"
+                      className="border-b border-muted/20 last:border-0 hover-elevate transition-colors"
                       data-testid={`row-transaction-${transaction.id}`}
                     >
-                      <td className="py-4 text-sm font-medium">{transaction.description}</td>
-                      <td className="py-4">
+                      <td className="py-2.5 text-sm font-medium">{transaction.description}</td>
+                      <td className="py-2.5">
                         <Badge variant="secondary" className="text-xs">
                           {transaction.category}
                         </Badge>
                       </td>
-                      <td className="py-4 text-sm text-muted-foreground">
+                      <td className="py-2.5 text-sm text-muted-foreground">
                         <div className="flex items-center gap-2">
                           <Calendar className="h-3 w-3" />
                           {transaction.date}
                         </div>
                       </td>
                       <td
-                        className={`py-4 text-right text-sm font-bold ${
+                        className={`py-2.5 text-right text-sm font-bold ${
                           transaction.type === "receita" ? "text-green-600" : "text-red-600"
                         }`}
                       >
@@ -437,7 +437,7 @@ export default function Dashboard() {
                           currency: "BRL",
                         })}
                       </td>
-                      <td className="py-4 text-center">
+                      <td className="py-2.5 text-center">
                         {transaction.status === "confirmed" ? (
                           <Badge className="bg-green-500/10 text-green-600 border-green-500/20">
                             <CheckCircle className="h-3 w-3 mr-1" />
