@@ -10,10 +10,8 @@ import {
   AlertCircle,
   CheckCircle,
   Clock,
-  Flame,
   Target as TargetIcon,
   Activity,
-  Zap,
   BarChart4,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -67,18 +65,6 @@ const kpis = [
     current: 28.2,
   },
   {
-    title: "Múltiplo de Queima",
-    description: "Eficiência de gastos",
-    value: "1.2x",
-    change: "-0.3x",
-    trend: "down",
-    icon: Flame,
-    gradient: "from-orange-500 to-amber-600",
-    sparklineData: [2.1, 1.8, 1.6, 1.5, 1.3, 1.2],
-    target: 1.0,
-    current: 1.2,
-  },
-  {
     title: "Tempo de Caixa",
     description: "Meses de reserva financeira",
     value: "18 meses",
@@ -101,18 +87,6 @@ const kpis = [
     sparklineData: [42, 40, 38, 35, 34, 32],
     target: 30,
     current: 32,
-  },
-  {
-    title: "Taxa de Conversão",
-    description: "Eficiência em vendas",
-    value: "67%",
-    change: "+12%",
-    trend: "up",
-    icon: Zap,
-    gradient: "from-pink-500 to-rose-600",
-    sparklineData: [45, 50, 55, 58, 62, 67],
-    target: 75,
-    current: 67,
   },
 ];
 
@@ -205,7 +179,7 @@ export default function Dashboard() {
       </div>
 
       {/* Hero KPIs Grid */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {kpis.map((kpi, index) => {
           const Icon = kpi.icon;
           const progressPercent = (kpi.current / kpi.target) * 100;
