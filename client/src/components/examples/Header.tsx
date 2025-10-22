@@ -1,0 +1,5 @@
+import Header from "../Header";
+
+export default function HeaderExample() {
+  return <Header onLoginClick={() => console.log("Login clicked")} />;
+}
