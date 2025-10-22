@@ -135,7 +135,7 @@ export function AppSidebar() {
     <Sidebar className="border-r bg-gradient-to-b from-background to-muted/20">
       <SidebarHeader className="border-b bg-gradient-to-br from-primary/5 to-transparent p-5">
         <Link href="/dashboard">
-          <div className="flex items-center justify-center group cursor-pointer mb-5" data-testid="link-dashboard-logo">
+          <div className="flex items-center justify-center group cursor-pointer mb-5 rounded-xl bg-muted/30 p-3" data-testid="link-dashboard-logo">
             <img 
               src={sidebarLogo} 
               alt="SyncTime Logo" 
