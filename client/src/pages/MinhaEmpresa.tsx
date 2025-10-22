@@ -163,6 +163,47 @@ export default function MinhaEmpresa() {
 
       <Separator />
 
+      {/* Company Identity Band */}
+      <Card className="border-0 bg-gradient-to-br from-primary/5 via-card to-muted/10 shadow-lg overflow-visible">
+        <CardContent className="p-6">
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
+            <div className="relative">
+              <div className="absolute inset-0 bg-primary/20 blur-2xl rounded-full" />
+              <Avatar className="relative h-20 w-20 border-4 border-background shadow-xl">
+                <AvatarFallback className="bg-gradient-to-br from-primary to-primary/60 text-white text-2xl font-bold">
+                  FC
+                </AvatarFallback>
+              </Avatar>
+            </div>
+            <div className="flex-1 space-y-2">
+              <div className="flex flex-col gap-2">
+                <h2 className="text-2xl font-bold tracking-tight" data-testid="text-company-identity-name">
+                  FinControl Soluções Financeiras LTDA
+                </h2>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant="secondary" className="font-medium" data-testid="badge-company-status">
+                    <Check className="h-3 w-3 mr-1 text-green-600" />
+                    Ativa
+                  </Badge>
+                  <Badge variant="outline" className="font-medium">
+                    <Calendar className="h-3 w-3 mr-1" />
+                    Desde 15/01/2020
+                  </Badge>
+                  <Badge variant="outline" className="font-medium">
+                    <Globe className="h-3 w-3 mr-1" />
+                    Nacional
+                  </Badge>
+                </div>
+              </div>
+              <p className="text-sm text-muted-foreground max-w-2xl">
+                Empresa especializada em soluções financeiras e consultoria, oferecendo 
+                serviços de gestão, planejamento tributário e tecnologia da informação.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Top Cards - Tax and Legal Info */}
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="border-0 bg-gradient-to-br from-card to-muted/20 shadow-lg overflow-visible">
@@ -240,47 +281,6 @@ export default function MinhaEmpresa() {
           </CardContent>
         </Card>
       </div>
-
-      {/* Company Identity Band */}
-      <Card className="border-0 bg-gradient-to-br from-primary/5 via-card to-muted/10 shadow-lg overflow-visible">
-        <CardContent className="p-6">
-          <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
-            <div className="relative">
-              <div className="absolute inset-0 bg-primary/20 blur-2xl rounded-full" />
-              <Avatar className="relative h-20 w-20 border-4 border-background shadow-xl">
-                <AvatarFallback className="bg-gradient-to-br from-primary to-primary/60 text-white text-2xl font-bold">
-                  FC
-                </AvatarFallback>
-              </Avatar>
-            </div>
-            <div className="flex-1 space-y-2">
-              <div className="flex flex-col gap-2">
-                <h2 className="text-2xl font-bold tracking-tight" data-testid="text-company-identity-name">
-                  FinControl Soluções Financeiras LTDA
-                </h2>
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge variant="secondary" className="font-medium" data-testid="badge-company-status">
-                    <Check className="h-3 w-3 mr-1 text-green-600" />
-                    Ativa
-                  </Badge>
-                  <Badge variant="outline" className="font-medium">
-                    <Calendar className="h-3 w-3 mr-1" />
-                    Desde 15/01/2020
-                  </Badge>
-                  <Badge variant="outline" className="font-medium">
-                    <Globe className="h-3 w-3 mr-1" />
-                    Nacional
-                  </Badge>
-                </div>
-              </div>
-              <p className="text-sm text-muted-foreground max-w-2xl">
-                Empresa especializada em soluções financeiras e consultoria, oferecendo 
-                serviços de gestão, planejamento tributário e tecnologia da informação.
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Data Grid - Segmented Cards */}
       <div className="grid gap-6 lg:grid-cols-2">
