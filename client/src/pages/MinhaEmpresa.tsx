@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Building2, Phone, Mail, MapPin, FileText, Briefcase, Globe, User } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,8 +7,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { Company } from "@shared/schema";
 
+const SELECTED_COMPANY_KEY = "fincontrol_selected_company_id";
+
 export default function MinhaEmpresa() {
-  const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(null);
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(() => {
+    return localStorage.getItem(SELECTED_COMPANY_KEY);
+  });
 
   const { data: companies = [], isLoading } = useQuery<Company[]>({
     queryKey: ["/api/companies"],
@@ -18,6 +22,14 @@ export default function MinhaEmpresa() {
     queryKey: ["/api/companies", selectedCompanyId],
     enabled: !!selectedCompanyId,
   });
+
+  useEffect(() => {
+    if (selectedCompanyId) {
+      localStorage.setItem(SELECTED_COMPANY_KEY, selectedCompanyId);
+    } else {
+      localStorage.removeItem(SELECTED_COMPANY_KEY);
+    }
+  }, [selectedCompanyId]);
 
   return (
     <div className="h-full overflow-hidden">
