@@ -17,6 +17,9 @@ import {
   Bell,
   ChevronDown,
   ArrowRight,
+  TrendingUp,
+  Activity,
+  Zap,
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import {
@@ -119,6 +122,12 @@ const menuItems = [
   },
 ];
 
+const quickStats = [
+  { label: "Receitas", value: "R$ 45k", icon: TrendingUp, color: "text-green-500" },
+  { label: "Performance", value: "98%", icon: Activity, color: "text-blue-500" },
+  { label: "Meta Mensal", value: "87%", icon: Zap, color: "text-orange-500" },
+];
+
 export function AppSidebar() {
   const [location] = useLocation();
 
@@ -137,7 +146,7 @@ export function AppSidebar() {
           </div>
         </Link>
 
-        <div className="rounded-xl bg-gradient-to-br from-primary/10 to-blue-500/5 p-4 border border-primary/20" data-testid="goal-card">
+        <div className="rounded-xl bg-gradient-to-br from-primary/10 to-blue-500/5 p-4 border border-primary/20 mb-4" data-testid="goal-card">
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-medium text-muted-foreground">Meta Mensal</span>
             <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/20">
@@ -152,6 +161,20 @@ export function AppSidebar() {
             <div className="h-full w-[85%] bg-gradient-to-r from-primary to-blue-600 rounded-full transition-all duration-500" />
           </div>
           <span className="text-xs font-medium text-primary">85%</span>
+        </div>
+
+        <div className="grid grid-cols-3 gap-2">
+          {quickStats.map((stat, index) => (
+            <div
+              key={index}
+              className="flex flex-col items-center gap-1 rounded-lg bg-gradient-to-br from-muted/50 to-transparent p-2.5 border border-border/50 hover-elevate cursor-default"
+              data-testid={`quick-stat-${index}`}
+            >
+              <stat.icon className={`h-4 w-4 ${stat.color}`} />
+              <span className="text-xs font-semibold">{stat.value}</span>
+              <span className="text-[10px] text-muted-foreground text-center">{stat.label}</span>
+            </div>
+          ))}
         </div>
       </SidebarHeader>
 
