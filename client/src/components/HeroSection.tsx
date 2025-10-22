@@ -13,7 +13,7 @@ export default function HeroSection() {
               <img 
                 src={companyLogo} 
                 alt="SyncTime Logo" 
-                className="w-96 h-auto mb-6"
+                className="w-80 h-auto mb-6"
                 data-testid="img-company-logo"
               />
               <h1 className="font-semibold tracking-tight text-3xl md:text-4xl lg:text-5xl leading-tight">
