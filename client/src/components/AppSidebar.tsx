@@ -43,6 +43,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import sidebarLogo from "@assets/image_1761141217552.png";
 
 const menuItems = [
   {
@@ -134,14 +135,13 @@ export function AppSidebar() {
     <Sidebar className="border-r bg-gradient-to-b from-background to-muted/20">
       <SidebarHeader className="border-b bg-gradient-to-br from-primary/5 to-transparent p-5">
         <Link href="/dashboard">
-          <div className="flex items-center gap-3 group cursor-pointer mb-5" data-testid="link-dashboard-logo">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-blue-600 shadow-lg shadow-primary/20 transition-transform group-hover:scale-105">
-              <span className="text-lg font-bold text-white">F</span>
-            </div>
-            <div className="flex flex-col">
-              <span className="font-semibold text-base tracking-tight">FinControl</span>
-              <span className="text-[10px] text-muted-foreground">Financial Suite</span>
-            </div>
+          <div className="flex items-center justify-center group cursor-pointer mb-5" data-testid="link-dashboard-logo">
+            <img 
+              src={sidebarLogo} 
+              alt="SyncTime Logo" 
+              className="h-12 w-auto transition-transform group-hover:scale-105"
+              data-testid="img-sidebar-logo"
+            />
           </div>
         </Link>
 
