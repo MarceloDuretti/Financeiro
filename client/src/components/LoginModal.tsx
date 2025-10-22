@@ -8,6 +8,7 @@ import {
   Dialog,
   DialogContent,
 } from "@/components/ui/dialog";
+import { useLocation } from "wouter";
 
 interface LoginModalProps {
   open: boolean;
@@ -19,10 +20,13 @@ export default function LoginModal({ open, onOpenChange }: LoginModalProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
+  const [, setLocation] = useLocation();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     console.log("Login submitted", { email, password, rememberMe });
+    onOpenChange(false);
+    setLocation("/dashboard");
   };
 
   return (
