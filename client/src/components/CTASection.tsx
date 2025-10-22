@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 
 export default function CTASection() {
   return (
-    <section className="w-full bg-gradient-to-r from-primary to-blue-600 px-4 py-16 md:px-6 md:py-24">
+    <section id="planos" className="w-full bg-gradient-to-r from-primary to-blue-600 px-4 py-16 md:px-6 md:py-24">
       <div className="container mx-auto">
         <div className="flex flex-col items-center gap-8 text-center">
           <div className="flex flex-col gap-4 max-w-3xl">

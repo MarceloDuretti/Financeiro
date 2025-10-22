@@ -6,6 +6,7 @@ import TestimonialsSection from "@/components/TestimonialsSection";
 import CTASection from "@/components/CTASection";
 import Footer from "@/components/Footer";
 import LoginModal from "@/components/LoginModal";
+import ForEmpresas from "./ForEmpresas";
 
 export default function Home() {
   const [loginModalOpen, setLoginModalOpen] = useState(false);
@@ -16,6 +17,7 @@ export default function Home() {
       
       <main className="flex-1">
         <HeroSection />
+        <ForEmpresas />
         <FeaturesSection />
         <TestimonialsSection />
         <CTASection />

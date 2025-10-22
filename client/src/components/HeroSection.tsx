@@ -4,7 +4,7 @@ import dashboardImage from "@assets/generated_images/Financial_dashboard_hero_mo
 
 export default function HeroSection() {
   return (
-    <section className="w-full px-4 py-12 md:px-6 md:py-20 lg:px-8 lg:py-32">
+    <section id="para-voce" className="w-full px-4 py-12 md:px-6 md:py-20 lg:px-8 lg:py-32">
       <div className="container mx-auto">
         <div className="grid gap-12 lg:grid-cols-2 lg:gap-16 items-center">
           <div className="flex flex-col gap-6 md:gap-8">
