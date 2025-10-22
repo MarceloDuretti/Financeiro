@@ -31,18 +31,27 @@ export default function HeroSection() {
               </Button>
             </div>
 
-            <div className="flex flex-wrap gap-8 pt-4 text-sm">
-              <div className="flex flex-col gap-1">
-                <span className="font-medium text-foreground">Sem Cartão</span>
-                <span className="text-muted-foreground">Para experimentar</span>
+            <div className="grid grid-cols-3 gap-6 pt-6">
+              <div className="flex flex-col gap-1.5">
+                <div className="text-2xl font-semibold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
+                  ✓
+                </div>
+                <span className="text-sm font-medium text-foreground">Sem Cartão</span>
+                <span className="text-xs text-muted-foreground">Para experimentar</span>
               </div>
-              <div className="flex flex-col gap-1">
-                <span className="font-medium text-foreground">18 Anos</span>
-                <span className="text-muted-foreground">No mercado</span>
+              <div className="flex flex-col gap-1.5">
+                <div className="text-2xl font-semibold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
+                  18
+                </div>
+                <span className="text-sm font-medium text-foreground">Anos</span>
+                <span className="text-xs text-muted-foreground">No mercado</span>
               </div>
-              <div className="flex flex-col gap-1">
-                <span className="font-medium text-foreground">97%</span>
-                <span className="text-muted-foreground">Aprovação</span>
+              <div className="flex flex-col gap-1.5">
+                <div className="text-2xl font-semibold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
+                  97%
+                </div>
+                <span className="text-sm font-medium text-foreground">Aprovação</span>
+                <span className="text-xs text-muted-foreground">Dos usuários</span>
               </div>
             </div>
           </div>
