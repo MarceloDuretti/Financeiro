@@ -1,7 +1,7 @@
 import { ArrowRight, ShieldCheck, Award, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import dashboardImage from "@assets/generated_images/Opaque_white_background_dashboard_mockup_c2870e32.png";
-import companyLogo from "@assets/image_1761138279350.png";
+import companyLogo from "@assets/image_1761141856415.png";
 
 export default function HeroSection() {
   return (
