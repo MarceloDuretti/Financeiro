@@ -1,6 +1,5 @@
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import dashboardImage from "@assets/generated_images/Dashboard_solid_white_background_RGB255_3fe105af.png";
 
 export default function HeroSection() {
   return (
@@ -45,15 +44,6 @@ export default function HeroSection() {
                 <span className="text-muted-foreground">Aprovação</span>
               </div>
             </div>
-          </div>
-
-          <div className="relative">
-            <img
-              src={dashboardImage}
-              alt="Dashboard Financeiro em Laptop e Celular"
-              className="w-full h-auto"
-              data-testid="img-dashboard-devices"
-            />
           </div>
         </div>
       </div>
