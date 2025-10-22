@@ -46,14 +46,16 @@ Preferred communication style: Simple, everyday language.
 - **Financial Chart**: Clean LineChart (240px height) showing only Revenues and Expenses with gradients and smooth curves
 - **Department Performance**: Custom heatmap table (replaced BarChart) showing monthly spending with color-coded cells (red=high, blue=low) for instant visual pattern recognition with automatic normalization and edge-case handling
 - **Landing Page Hero**: Balanced minimalist design with medium-sized feature stats using subtle primary-colored icons (h-8 w-8) on light backgrounds (bg-primary/10)
-- **Minha Empresa Page**: Added as second menu item with pink-to-rose gradient icon - optimized compact design to fit on screen without scrolling
-  - **Company Identity Band**: Compact horizontal layout with small avatar (h-12), company name, status badges (Ativa, Desde, Nacional) - minimal space usage
-  - **Top Section**: 3 compact info cards with colored icons (Regime Tributário/green, Porte da Empresa/blue, Atividade Principal/purple) - reduced padding and text sizes
-  - **Main Data Card**: Full-width "Dados da Empresa" card combining company and tax data - 6 fields organized in responsive 3-column grid (2 rows × 3 columns on desktop)
-  - **Secondary Cards**: Contact and Address cards side by side, each with 3 fields in vertical layout with separators
-  - **Inline Editing System**: Each card has its own edit mode with compact icon-only Edit/Cancel/Save buttons (h-7) in header
-  - **State Management**: Per-card backup/restore pattern - each EditableCard independently manages its state
-  - **Space Optimization**: Reduced all padding (p-4), spacing (space-y-4), and component sizes to eliminate scrollbars while maintaining readability
+- **Minha Empresa Page**: Added as second menu item with pink-to-rose gradient icon - ultra-clean simplified design to fit on screen without scrolling
+  - **Company Identity Band**: Compact horizontal layout with small avatar (h-12), company name, status badges (Ativa, Desde, Nacional)
+  - **Top Section**: 3 minimalist info cards (Regime Tributário, Porte da Empresa, Atividade Principal) - text labels and badges only, no icon backgrounds
+  - **Single Unified Card**: "Cadastro da Empresa" card containing all company data with clear section headers
+  - **Section Organization**: Two main sections separated by divider lines:
+    - "Dados da Empresa" - 6 fields in 3-column grid (Razão Social, CNPJ, Data Abertura, IE, IM, CNAE Secundário)
+    - "Endereço e Contato" - 6 fields in 3-column grid (Logradouro, Cidade/UF, CEP, Telefone, Email, Website)
+  - **Edit Mode**: Single Edit button in card header enables editing all fields at once - unified state management
+  - **Visual Design**: Clean gray backgrounds (bg-muted/30), no icon circles, section titles in primary color for emphasis
+  - **State Management**: Single backup/restore pattern for all form data - clicking Cancel restores all original values
 
 ### Backend Architecture
 
