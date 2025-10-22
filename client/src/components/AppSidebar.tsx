@@ -147,19 +147,19 @@ export function AppSidebar() {
           </div>
         </div>
 
-        <div className="flex flex-col gap-3">
+        <div className="grid grid-cols-3 gap-2">
           {quickStats.map((stat, index) => (
             <div
               key={index}
-              className="flex items-center gap-3 rounded-xl bg-gradient-to-br from-muted/50 to-transparent p-3 border border-border/50 hover-elevate cursor-default"
+              className="flex flex-col items-center gap-2 rounded-xl bg-gradient-to-br from-muted/50 to-transparent p-3 border border-border/50 hover-elevate cursor-default"
               data-testid={`quick-stat-${index}`}
             >
-              <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${stat.color === 'text-green-500' ? 'from-green-500 to-emerald-600' : stat.color === 'text-blue-500' ? 'from-blue-500 to-indigo-600' : 'from-orange-500 to-amber-600'} shadow-sm`}>
-                <stat.icon className="h-5 w-5 text-white" />
+              <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${stat.color === 'text-green-500' ? 'from-green-500 to-emerald-600' : stat.color === 'text-blue-500' ? 'from-blue-500 to-indigo-600' : 'from-orange-500 to-amber-600'} shadow-sm`}>
+                <stat.icon className="h-4 w-4 text-white" />
               </div>
-              <div className="flex flex-col flex-1 min-w-0">
-                <span className="text-base font-bold truncate">{stat.value}</span>
-                <span className="text-xs text-muted-foreground truncate">{stat.label}</span>
+              <div className="flex flex-col items-center gap-0.5 w-full">
+                <span className="text-sm font-bold truncate">{stat.value}</span>
+                <span className="text-[10px] text-muted-foreground text-center truncate w-full">{stat.label}</span>
               </div>
             </div>
           ))}
