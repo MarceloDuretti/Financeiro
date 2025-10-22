@@ -36,10 +36,16 @@ Preferred communication style: Simple, everyday language.
 
 **Key Features:**
 - Modular component architecture with reusable UI primitives
-- Chart visualizations using Recharts
+- Chart visualizations using Recharts (LineChart, PieChart) and custom heatmap tables
 - Form handling with React Hook Form
 - Responsive sidebar layout for dashboard
 - Modal-based login system
+
+**Dashboard Design Decisions (Recent Updates):**
+- **KPI Cards**: 4 main metrics with Portuguese names (no acronyms), gradient backgrounds, colored icons in blur circles, sparklines - removed progress bars for cleaner look
+- **Financial Chart**: Clean LineChart (240px height) showing only Revenues and Expenses with gradients and smooth curves
+- **Department Performance**: Custom heatmap table (replaced BarChart) showing monthly spending with color-coded cells (red=high, blue=low) for instant visual pattern recognition
+- **Landing Page Hero**: Balanced minimalist design with medium-sized feature stats using subtle primary-colored icons on light backgrounds
 
 ### Backend Architecture
 

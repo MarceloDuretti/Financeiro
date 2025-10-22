@@ -361,28 +361,108 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Department Performance */}
+        {/* Department Performance Heatmap */}
         <Card className="border-0 bg-gradient-to-br from-card to-muted/20 shadow-lg">
           <CardHeader>
             <CardTitle className="text-xl font-bold">Performance por Departamento</CardTitle>
-            <CardDescription>Gastos mensais em milhares (R$)</CardDescription>
+            <CardDescription>Gastos mensais em milhares (R$) - Heatmap visual</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={departmentHeatmap} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" className="stroke-muted/50" />
-                <XAxis type="number" className="text-xs" stroke="hsl(var(--muted-foreground))" />
-                <YAxis type="category" dataKey="dept" className="text-xs" stroke="hsl(var(--muted-foreground))" width={80} />
-                <Tooltip content={<CustomTooltip />} />
-                <Legend wrapperStyle={{ paddingTop: "10px" }} />
-                <Bar dataKey="jan" name="Jan" fill="#3b82f6" radius={[0, 4, 4, 0]} />
-                <Bar dataKey="fev" name="Fev" fill="#8b5cf6" radius={[0, 4, 4, 0]} />
-                <Bar dataKey="mar" name="Mar" fill="#06b6d4" radius={[0, 4, 4, 0]} />
-                <Bar dataKey="abr" name="Abr" fill="#10b981" radius={[0, 4, 4, 0]} />
-                <Bar dataKey="mai" name="Mai" fill="#f59e0b" radius={[0, 4, 4, 0]} />
-                <Bar dataKey="jun" name="Jun" fill="#ec4899" radius={[0, 4, 4, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr>
+                    <th className="p-2 text-left text-xs font-semibold text-muted-foreground border-b border-muted/30">
+                      Departamento
+                    </th>
+                    {["Jan", "Fev", "Mar", "Abr", "Mai", "Jun"].map((month) => (
+                      <th
+                        key={month}
+                        className="p-2 text-center text-xs font-semibold text-muted-foreground border-b border-muted/30"
+                      >
+                        {month}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {(() => {
+                    // Precompute min/max once for all cells
+                    const allValues = departmentHeatmap.flatMap(d => [d.jan, d.fev, d.mar, d.abr, d.mai, d.jun]);
+                    const minValue = Math.min(...allValues);
+                    const maxValue = Math.max(...allValues);
+                    const range = maxValue - minValue;
+                    
+                    const getHeatColor = (value: number) => {
+                      // Handle case where all values are equal (max === min)
+                      if (range === 0) {
+                        return { bg: "bg-amber-500/70", text: "text-white" };
+                      }
+                      
+                      const normalized = (value - minValue) / range;
+                      
+                      if (normalized >= 0.8) return { bg: "bg-red-500/90", text: "text-white" };
+                      if (normalized >= 0.6) return { bg: "bg-orange-500/80", text: "text-white" };
+                      if (normalized >= 0.4) return { bg: "bg-amber-500/70", text: "text-white" };
+                      if (normalized >= 0.2) return { bg: "bg-emerald-500/60", text: "text-white" };
+                      return { bg: "bg-blue-500/50", text: "text-white" };
+                    };
+
+                    return departmentHeatmap.map((dept, deptIdx) => {
+                      const months = [dept.jan, dept.fev, dept.mar, dept.abr, dept.mai, dept.jun];
+                      
+                      return (
+                        <tr key={deptIdx} className="border-b border-muted/20 last:border-0">
+                          <td className="p-2 text-sm font-medium">{dept.dept}</td>
+                          {months.map((value, idx) => {
+                            const colors = getHeatColor(value);
+                            return (
+                              <td
+                                key={idx}
+                                className="p-0"
+                                data-testid={`heatmap-${dept.dept}-${idx}`}
+                              >
+                                <div
+                                  className={`${colors.bg} ${colors.text} rounded-md m-1 p-2.5 text-center text-sm font-bold transition-all hover:scale-105 hover:shadow-md cursor-default`}
+                                  title={`${dept.dept} - ${["Jan", "Fev", "Mar", "Abr", "Mai", "Jun"][idx]}: R$ ${value}k`}
+                                >
+                                  {value}k
+                                </div>
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      );
+                    });
+                  })()}
+                </tbody>
+              </table>
+            </div>
+            
+            {/* Color Legend */}
+            <div className="mt-4 flex items-center justify-center gap-4 text-xs">
+              <span className="text-muted-foreground font-medium">Escala de gastos:</span>
+              <div className="flex items-center gap-2">
+                <div className="h-3 w-3 rounded-sm bg-blue-500/50" />
+                <span className="text-muted-foreground">Muito Baixo</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="h-3 w-3 rounded-sm bg-emerald-500/60" />
+                <span className="text-muted-foreground">Baixo</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="h-3 w-3 rounded-sm bg-amber-500/70" />
+                <span className="text-muted-foreground">Médio</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="h-3 w-3 rounded-sm bg-orange-500/80" />
+                <span className="text-muted-foreground">Alto</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="h-3 w-3 rounded-sm bg-red-500/90" />
+                <span className="text-muted-foreground">Muito Alto</span>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
