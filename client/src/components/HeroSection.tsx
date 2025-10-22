@@ -38,27 +38,27 @@ export default function HeroSection() {
               </Button>
             </div>
 
-            <div className="grid grid-cols-3 gap-6 pt-6">
-              <div className="flex flex-col gap-1.5">
-                <div className="text-2xl font-semibold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
+            <div className="grid grid-cols-3 gap-4 pt-8">
+              <div className="flex flex-col gap-2 p-5 rounded-xl bg-gradient-to-br from-card to-muted/30 border border-border/50 shadow-sm hover-elevate">
+                <div className="text-4xl font-bold bg-gradient-to-r from-green-500 to-emerald-600 bg-clip-text text-transparent">
                   ✓
                 </div>
-                <span className="text-sm font-medium text-foreground">Sem Cartão</span>
-                <span className="text-xs text-muted-foreground">Para experimentar</span>
+                <span className="text-base font-semibold text-foreground">Sem Cartão</span>
+                <span className="text-sm text-muted-foreground">Para experimentar</span>
               </div>
-              <div className="flex flex-col gap-1.5">
-                <div className="text-2xl font-semibold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
+              <div className="flex flex-col gap-2 p-5 rounded-xl bg-gradient-to-br from-card to-muted/30 border border-border/50 shadow-sm hover-elevate">
+                <div className="text-4xl font-bold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
                   18
                 </div>
-                <span className="text-sm font-medium text-foreground">Anos</span>
-                <span className="text-xs text-muted-foreground">No mercado</span>
+                <span className="text-base font-semibold text-foreground">Anos</span>
+                <span className="text-sm text-muted-foreground">No mercado</span>
               </div>
-              <div className="flex flex-col gap-1.5">
-                <div className="text-2xl font-semibold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
+              <div className="flex flex-col gap-2 p-5 rounded-xl bg-gradient-to-br from-card to-muted/30 border border-border/50 shadow-sm hover-elevate">
+                <div className="text-4xl font-bold bg-gradient-to-r from-orange-500 to-amber-600 bg-clip-text text-transparent">
                   97%
                 </div>
-                <span className="text-sm font-medium text-foreground">Aprovação</span>
-                <span className="text-xs text-muted-foreground">Dos usuários</span>
+                <span className="text-base font-semibold text-foreground">Aprovação</span>
+                <span className="text-sm text-muted-foreground">Dos usuários</span>
               </div>
             </div>
           </div>
