@@ -55,9 +55,9 @@ export default function Footer() {
             <div className="flex flex-col gap-4">
               <div className="flex items-center gap-2">
                 <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary">
-                  <span className="text-lg font-bold text-primary-foreground">F</span>
+                  <span className="text-lg font-semibold text-primary-foreground">F</span>
                 </div>
-                <span className="font-semibold">FinControl</span>
+                <span className="font-medium">FinControl</span>
               </div>
               <p className="text-sm text-muted-foreground">
                 Controle financeiro inteligente para pessoas e empresas.
@@ -83,7 +83,7 @@ export default function Footer() {
 
           {Object.entries(footerLinks).map(([key, section]) => (
             <div key={key} className="flex flex-col gap-4">
-              <h3 className="font-semibold">{section.title}</h3>
+              <h3 className="font-medium">{section.title}</h3>
               <ul className="flex flex-col gap-2">
                 {section.links.map((link) => (
                   <li key={link.label}>

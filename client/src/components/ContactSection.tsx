@@ -62,7 +62,7 @@ export default function ContactSection() {
     <section id="contato" className="w-full bg-muted/30 px-4 py-16 md:px-6 md:py-24 lg:px-8">
       <div className="container mx-auto">
         <div className="mb-12 flex flex-col gap-4 text-center md:mb-16">
-          <h2 className="text-3xl font-bold tracking-tight md:text-4xl lg:text-5xl">
+          <h2 className="text-3xl font-semibold tracking-tight md:text-4xl lg:text-5xl">
             Entre em contato
           </h2>
           <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
@@ -102,11 +102,11 @@ export default function ContactSection() {
                             <Icon className="h-6 w-6 text-white" strokeWidth={2.5} />
                           </div>
                           <div className="flex flex-col gap-1">
-                            <h4 className="font-bold text-sm">{method.title}</h4>
+                            <h4 className="font-semibold text-sm">{method.title}</h4>
                             <p className="text-xs text-muted-foreground">
                               {method.description}
                             </p>
-                            <p className="text-sm font-semibold text-primary group-hover:underline">
+                            <p className="text-sm font-medium text-primary group-hover:underline">
                               {method.info}
                             </p>
                           </div>
@@ -127,7 +127,7 @@ export default function ContactSection() {
                     <Clock className="h-5 w-5 text-white" strokeWidth={2.5} />
                   </div>
                   <div className="flex flex-col gap-1">
-                    <h4 className="font-bold text-sm">
+                    <h4 className="font-semibold text-sm">
                       Horário de Atendimento
                     </h4>
                     <p className="text-xs font-medium text-foreground">
@@ -147,7 +147,7 @@ export default function ContactSection() {
               <div className="absolute right-0 top-0 h-40 w-40 translate-x-12 -translate-y-12 rounded-full bg-gradient-to-br from-primary/10 to-blue-600/10 blur-3xl" />
               <form onSubmit={handleSubmit} className="relative flex flex-col gap-6">
                 <div className="flex flex-col gap-2">
-                  <h3 className="text-xl font-bold">Envie uma Mensagem</h3>
+                  <h3 className="text-xl font-semibold">Envie uma Mensagem</h3>
                   <p className="text-sm text-muted-foreground">
                     Preencha o formulário abaixo e retornaremos em até 24 horas.
                   </p>

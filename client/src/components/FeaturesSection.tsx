@@ -59,7 +59,7 @@ export default function FeaturesSection() {
     <section id="recursos" className="w-full bg-muted/30 px-4 py-16 md:px-6 md:py-24 lg:px-8">
       <div className="container mx-auto">
         <div className="mb-12 flex flex-col gap-4 text-center md:mb-16">
-          <h2 className="text-3xl font-bold tracking-tight md:text-4xl lg:text-5xl">
+          <h2 className="text-3xl font-semibold tracking-tight md:text-4xl lg:text-5xl">
             Recursos que fazem a diferença
           </h2>
           <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
@@ -86,7 +86,7 @@ export default function FeaturesSection() {
                   </div>
                   
                   <div className="flex flex-col gap-3">
-                    <h3 className="text-xl font-bold leading-tight">
+                    <h3 className="text-xl font-semibold leading-tight">
                       {feature.title}
                     </h3>
                     <p className="text-sm leading-relaxed text-muted-foreground">
@@ -94,7 +94,7 @@ export default function FeaturesSection() {
                     </p>
                   </div>
                   
-                  <div className="mt-2 flex items-center gap-2 text-sm font-semibold text-primary transition-all group-hover:gap-3">
+                  <div className="mt-2 flex items-center gap-2 text-sm font-medium text-primary transition-all group-hover:gap-3">
                     <span>Explorar</span>
                     <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                   </div>

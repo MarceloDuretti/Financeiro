@@ -53,7 +53,7 @@ export default function TestimonialsSection() {
     <section className="w-full px-4 py-16 md:px-6 md:py-24 lg:px-8">
       <div className="container mx-auto">
         <div className="mb-12 flex flex-col gap-4 text-center md:mb-16">
-          <h2 className="text-3xl font-bold tracking-tight md:text-4xl lg:text-5xl">
+          <h2 className="text-3xl font-semibold tracking-tight md:text-4xl lg:text-5xl">
             O que nossos clientes dizem
           </h2>
           <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
@@ -106,7 +106,7 @@ export default function TestimonialsSection() {
                           />
                         </div>
                         <div className="flex flex-col gap-1">
-                          <span className="font-bold text-sm">
+                          <span className="font-semibold text-sm">
                             {testimonial.name}
                           </span>
                           <span className="text-xs text-muted-foreground font-medium">

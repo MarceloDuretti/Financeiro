@@ -60,7 +60,7 @@ export default function PlansSection() {
     <section id="planos" className="w-full px-4 py-16 md:px-6 md:py-24 lg:px-8">
       <div className="container mx-auto">
         <div className="mb-12 flex flex-col gap-4 text-center md:mb-16">
-          <h2 className="text-3xl font-bold tracking-tight md:text-4xl lg:text-5xl">
+          <h2 className="text-3xl font-semibold tracking-tight md:text-4xl lg:text-5xl">
             Planos que cabem no seu bolso
           </h2>
           <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
@@ -82,7 +82,7 @@ export default function PlansSection() {
               
               {plan.popular && (
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
-                  <div className="flex items-center gap-1 rounded-full bg-gradient-to-r from-primary to-blue-600 px-4 py-1.5 text-xs font-bold text-white shadow-lg">
+                  <div className="flex items-center gap-1 rounded-full bg-gradient-to-r from-primary to-blue-600 px-4 py-1.5 text-xs font-semibold text-white shadow-lg">
                     <Sparkles className="h-3 w-3" />
                     Mais Popular
                   </div>
@@ -91,14 +91,14 @@ export default function PlansSection() {
 
               <div className="relative flex flex-col gap-4 border-b pb-6">
                 <div className="flex flex-col gap-2">
-                  <h3 className="text-2xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">{plan.name}</h3>
+                  <h3 className="text-2xl font-semibold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">{plan.name}</h3>
                   <p className="text-sm text-muted-foreground">
                     {plan.description}
                   </p>
                 </div>
 
                 <div className="flex items-baseline gap-2">
-                  <span className="text-4xl font-bold">R$ {plan.price}</span>
+                  <span className="text-4xl font-semibold">R$ {plan.price}</span>
                   <div className="flex flex-col">
                     <span className="text-sm text-muted-foreground">/mês</span>
                     <span className="text-xs text-muted-foreground">

@@ -43,9 +43,9 @@ export default function Header({ onLoginClick }: HeaderProps) {
           <div className="flex items-center gap-8">
             <a href="#" className="flex items-center gap-2" data-testid="link-logo">
               <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary">
-                <span className="text-lg font-bold text-primary-foreground">F</span>
+                <span className="text-lg font-semibold text-primary-foreground">F</span>
               </div>
-              <span className="hidden font-semibold md:inline-block">FinControl</span>
+              <span className="hidden font-medium md:inline-block">FinControl</span>
             </a>
 
             <nav className="hidden lg:flex lg:gap-6">
