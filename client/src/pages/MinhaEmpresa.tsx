@@ -7,31 +7,35 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 
+const initialData = {
+  razaoSocial: "FinControl Soluções Financeiras LTDA",
+  cnpj: "12.345.678/0001-90",
+  ie: "123.456.789.012",
+  dataAbertura: "15 de Janeiro de 2020",
+  endereco: "Av. Paulista, 1000 - Bela Vista",
+  cidade: "São Paulo - SP, 01310-100",
+  telefone: "(11) 3456-7890",
+  email: "contato@fincontrol.com.br",
+};
+
 export default function MinhaEmpresa() {
   const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState({
-    razaoSocial: "FinControl Soluções Financeiras LTDA",
-    cnpj: "12.345.678/0001-90",
-    ie: "123.456.789.012",
-    dataAbertura: "15 de Janeiro de 2020",
-    endereco: "Av. Paulista, 1000 - Bela Vista",
-    cidade: "São Paulo - SP, 01310-100",
-    telefone: "(11) 3456-7890",
-    email: "contato@fincontrol.com.br",
-  });
+  const [formData, setFormData] = useState(initialData);
+  const [backupData, setBackupData] = useState(initialData);
 
   const handleEdit = () => {
+    setBackupData({ ...formData }); // Backup current data before editing
     setIsEditing(true);
   };
 
   const handleSave = () => {
     setIsEditing(false);
-    // Aqui você adicionaria a lógica para salvar os dados
+    // Aqui você adicionaria a lógica para salvar os dados no backend
   };
 
   const handleCancel = () => {
+    setFormData({ ...backupData }); // Restore backup data
     setIsEditing(false);
-    // Aqui você resetaria os dados para os valores originais
   };
 
   const handleChange = (field: string, value: string) => {
