@@ -38,13 +38,14 @@ export default function HeroSection() {
               </Button>
             </div>
 
-            <div className="grid grid-cols-3 gap-8 pt-10">
-              <div className="relative flex flex-col gap-3 group cursor-default">
-                <div className="absolute -top-1 -right-1">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 shadow-lg">
-                    <ShieldCheck className="h-4 w-4 text-white" />
+            <div className="grid grid-cols-3 gap-12 pt-10">
+              <div className="relative flex flex-col gap-3 pl-4 group cursor-default">
+                <div className="absolute -top-2 -right-2 z-10">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 shadow-xl">
+                    <ShieldCheck className="h-5 w-5 text-white" />
                   </div>
                 </div>
+                <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-green-500 to-emerald-600 rounded-full"></div>
                 <div className="text-5xl font-bold bg-gradient-to-r from-green-500 to-emerald-600 bg-clip-text text-transparent transition-all duration-300 group-hover:scale-105">
                   ✓
                 </div>
@@ -52,15 +53,16 @@ export default function HeroSection() {
                   <span className="text-base font-semibold text-foreground">Sem Cartão</span>
                   <span className="text-sm text-muted-foreground">Para experimentar</span>
                 </div>
-                <div className="absolute bottom-0 left-0 h-0.5 w-12 bg-gradient-to-r from-green-500 to-emerald-600 transition-all duration-300 group-hover:w-full"></div>
+                <div className="absolute bottom-0 left-4 h-0.5 w-12 bg-gradient-to-r from-green-500 to-emerald-600 transition-all duration-300 group-hover:w-[calc(100%-1rem)]"></div>
               </div>
               
-              <div className="relative flex flex-col gap-3 group cursor-default">
-                <div className="absolute -top-1 -right-1">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-blue-600 shadow-lg">
-                    <Award className="h-4 w-4 text-white" />
+              <div className="relative flex flex-col gap-3 pl-4 group cursor-default">
+                <div className="absolute -top-2 -right-2 z-10">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-blue-600 shadow-xl">
+                    <Award className="h-5 w-5 text-white" />
                   </div>
                 </div>
+                <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-primary to-blue-600 rounded-full"></div>
                 <div className="text-5xl font-bold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent transition-all duration-300 group-hover:scale-105">
                   18
                 </div>
@@ -68,15 +70,16 @@ export default function HeroSection() {
                   <span className="text-base font-semibold text-foreground">Anos</span>
                   <span className="text-sm text-muted-foreground">No mercado</span>
                 </div>
-                <div className="absolute bottom-0 left-0 h-0.5 w-12 bg-gradient-to-r from-primary to-blue-600 transition-all duration-300 group-hover:w-full"></div>
+                <div className="absolute bottom-0 left-4 h-0.5 w-12 bg-gradient-to-r from-primary to-blue-600 transition-all duration-300 group-hover:w-[calc(100%-1rem)]"></div>
               </div>
               
-              <div className="relative flex flex-col gap-3 group cursor-default">
-                <div className="absolute -top-1 -right-1">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-orange-500 to-amber-600 shadow-lg">
-                    <TrendingUp className="h-4 w-4 text-white" />
+              <div className="relative flex flex-col gap-3 pl-4 group cursor-default">
+                <div className="absolute -top-2 -right-2 z-10">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 to-amber-600 shadow-xl">
+                    <TrendingUp className="h-5 w-5 text-white" />
                   </div>
                 </div>
+                <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-orange-500 to-amber-600 rounded-full"></div>
                 <div className="text-5xl font-bold bg-gradient-to-r from-orange-500 to-amber-600 bg-clip-text text-transparent transition-all duration-300 group-hover:scale-105">
                   97%
                 </div>
@@ -84,7 +87,7 @@ export default function HeroSection() {
                   <span className="text-base font-semibold text-foreground">Aprovação</span>
                   <span className="text-sm text-muted-foreground">Dos usuários</span>
                 </div>
-                <div className="absolute bottom-0 left-0 h-0.5 w-12 bg-gradient-to-r from-orange-500 to-amber-600 transition-all duration-300 group-hover:w-full"></div>
+                <div className="absolute bottom-0 left-4 h-0.5 w-12 bg-gradient-to-r from-orange-500 to-amber-600 transition-all duration-300 group-hover:w-[calc(100%-1rem)]"></div>
               </div>
             </div>
           </div>
