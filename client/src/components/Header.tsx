@@ -1,13 +1,10 @@
+// Integration: blueprint:javascript_log_in_with_replit (Replit Auth)
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import headerLogo from "@assets/image_1761139734810.png";
 
-interface HeaderProps {
-  onLoginClick: () => void;
-}
-
-export default function Header({ onLoginClick }: HeaderProps) {
+export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navItems = [
@@ -35,6 +32,10 @@ export default function Header({ onLoginClick }: HeaderProps) {
     }
     
     setMobileMenuOpen(false);
+  };
+
+  const handleLogin = () => {
+    window.location.href = "/api/login";
   };
 
   return (
@@ -70,7 +71,7 @@ export default function Header({ onLoginClick }: HeaderProps) {
             <Button
               variant="ghost"
               size="sm"
-              onClick={onLoginClick}
+              onClick={handleLogin}
               className="hidden sm:inline-flex"
               data-testid="button-login"
             >
@@ -78,6 +79,7 @@ export default function Header({ onLoginClick }: HeaderProps) {
             </Button>
             <Button
               size="sm"
+              onClick={handleLogin}
               className="hidden sm:inline-flex"
               data-testid="button-signup"
             >
@@ -115,14 +117,20 @@ export default function Header({ onLoginClick }: HeaderProps) {
               <Button
                 variant="ghost"
                 onClick={() => {
-                  onLoginClick();
+                  handleLogin();
                   setMobileMenuOpen(false);
                 }}
                 data-testid="button-mobile-login"
               >
                 Acessar Conta
               </Button>
-              <Button data-testid="button-mobile-signup">
+              <Button 
+                onClick={() => {
+                  handleLogin();
+                  setMobileMenuOpen(false);
+                }}
+                data-testid="button-mobile-signup"
+              >
                 Criar Conta Grátis
               </Button>
             </div>

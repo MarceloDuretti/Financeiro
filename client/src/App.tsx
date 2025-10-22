@@ -1,8 +1,10 @@
+// Integration: blueprint:javascript_log_in_with_replit (Replit Auth)
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { useAuth } from "@/hooks/useAuth";
 import Home from "@/pages/Home";
 import NotFound from "@/pages/not-found";
 import DashboardLayout from "@/layouts/DashboardLayout";
@@ -27,114 +29,134 @@ import Ajuda from "@/pages/Ajuda";
 import Notificacoes from "@/pages/Notificacoes";
 
 function Router() {
+  const { isAuthenticated, isLoading } = useAuth();
+
   return (
     <Switch>
-      <Route path="/" component={Home} />
-      
-      {/* Dashboard Routes */}
-      <Route path="/dashboard">
-        <DashboardLayout>
-          <Dashboard />
-        </DashboardLayout>
-      </Route>
-      
-      <Route path="/dashboard/minha-empresa">
-        <DashboardLayout>
-          <MinhaEmpresa />
-        </DashboardLayout>
-      </Route>
-      
-      <Route path="/dashboard/lancamentos">
-        <DashboardLayout>
-          <Lancamentos />
-        </DashboardLayout>
-      </Route>
-      
-      <Route path="/dashboard/metas">
-        <DashboardLayout>
-          <Metas />
-        </DashboardLayout>
-      </Route>
-      
-      <Route path="/dashboard/clientes-fornecedores">
-        <DashboardLayout>
-          <ClientesFornecedores />
-        </DashboardLayout>
-      </Route>
-      
-      <Route path="/dashboard/contas-bancarias">
-        <DashboardLayout>
-          <ContasBancarias />
-        </DashboardLayout>
-      </Route>
-      
-      <Route path="/dashboard/categorias">
-        <DashboardLayout>
-          <Categorias />
-        </DashboardLayout>
-      </Route>
-      
-      <Route path="/dashboard/formas-pagamento">
-        <DashboardLayout>
-          <FormasPagamento />
-        </DashboardLayout>
-      </Route>
-      
-      <Route path="/dashboard/parametros">
-        <DashboardLayout>
-          <Parametros />
-        </DashboardLayout>
-      </Route>
-      
-      <Route path="/dashboard/exportacao">
-        <DashboardLayout>
-          <Exportacao />
-        </DashboardLayout>
-      </Route>
-      
-      <Route path="/dashboard/importacoes">
-        <DashboardLayout>
-          <Importacoes />
-        </DashboardLayout>
-      </Route>
-      
-      <Route path="/dashboard/analise">
-        <DashboardLayout>
-          <Analise />
-        </DashboardLayout>
-      </Route>
-      
-      <Route path="/dashboard/relatorios">
-        <DashboardLayout>
-          <Relatorios />
-        </DashboardLayout>
-      </Route>
-      
-      <Route path="/dashboard/recibos">
-        <DashboardLayout>
-          <Recibos />
-        </DashboardLayout>
-      </Route>
-      
-      <Route path="/dashboard/usuarios">
-        <DashboardLayout>
-          <Usuarios />
-        </DashboardLayout>
-      </Route>
-      
-      <Route path="/dashboard/ajuda">
-        <DashboardLayout>
-          <Ajuda />
-        </DashboardLayout>
-      </Route>
-      
-      <Route path="/dashboard/notificacoes">
-        <DashboardLayout>
-          <Notificacoes />
-        </DashboardLayout>
-      </Route>
-      
-      <Route component={NotFound} />
+      {/* Show landing page if not authenticated or still loading */}
+      {isLoading || !isAuthenticated ? (
+        <>
+          <Route path="/" component={Home} />
+          <Route path="/dashboard" component={Home} />
+          <Route path="/dashboard/:rest*" component={Home} />
+          <Route component={NotFound} />
+        </>
+      ) : (
+        <>
+          {/* Redirect root to dashboard if authenticated */}
+          <Route path="/">
+            {() => {
+              window.location.href = "/dashboard";
+              return null;
+            }}
+          </Route>
+
+          {/* Protected Dashboard Routes */}
+          <Route path="/dashboard">
+            <DashboardLayout>
+              <Dashboard />
+            </DashboardLayout>
+          </Route>
+
+          <Route path="/dashboard/minha-empresa">
+            <DashboardLayout>
+              <MinhaEmpresa />
+            </DashboardLayout>
+          </Route>
+
+          <Route path="/dashboard/lancamentos">
+            <DashboardLayout>
+              <Lancamentos />
+            </DashboardLayout>
+          </Route>
+
+          <Route path="/dashboard/metas">
+            <DashboardLayout>
+              <Metas />
+            </DashboardLayout>
+          </Route>
+
+          <Route path="/dashboard/clientes-fornecedores">
+            <DashboardLayout>
+              <ClientesFornecedores />
+            </DashboardLayout>
+          </Route>
+
+          <Route path="/dashboard/contas-bancarias">
+            <DashboardLayout>
+              <ContasBancarias />
+            </DashboardLayout>
+          </Route>
+
+          <Route path="/dashboard/categorias">
+            <DashboardLayout>
+              <Categorias />
+            </DashboardLayout>
+          </Route>
+
+          <Route path="/dashboard/formas-pagamento">
+            <DashboardLayout>
+              <FormasPagamento />
+            </DashboardLayout>
+          </Route>
+
+          <Route path="/dashboard/parametros">
+            <DashboardLayout>
+              <Parametros />
+            </DashboardLayout>
+          </Route>
+
+          <Route path="/dashboard/exportacao">
+            <DashboardLayout>
+              <Exportacao />
+            </DashboardLayout>
+          </Route>
+
+          <Route path="/dashboard/importacoes">
+            <DashboardLayout>
+              <Importacoes />
+            </DashboardLayout>
+          </Route>
+
+          <Route path="/dashboard/analise">
+            <DashboardLayout>
+              <Analise />
+            </DashboardLayout>
+          </Route>
+
+          <Route path="/dashboard/relatorios">
+            <DashboardLayout>
+              <Relatorios />
+            </DashboardLayout>
+          </Route>
+
+          <Route path="/dashboard/recibos">
+            <DashboardLayout>
+              <Recibos />
+            </DashboardLayout>
+          </Route>
+
+          <Route path="/dashboard/usuarios">
+            <DashboardLayout>
+              <Usuarios />
+            </DashboardLayout>
+          </Route>
+
+          <Route path="/dashboard/ajuda">
+            <DashboardLayout>
+              <Ajuda />
+            </DashboardLayout>
+          </Route>
+
+          <Route path="/dashboard/notificacoes">
+            <DashboardLayout>
+              <Notificacoes />
+            </DashboardLayout>
+          </Route>
+
+          <Route component={NotFound} />
+        </>
+      )}
     </Switch>
   );
 }

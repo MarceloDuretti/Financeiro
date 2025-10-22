@@ -1,9 +1,19 @@
+// Integration: blueprint:javascript_log_in_with_replit (Replit Auth)
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Bell, Search } from "lucide-react";
+import { Bell, Search, LogOut, User as UserIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/hooks/useAuth";
 import headerLogo from "@assets/image_1761141745101.png";
 
 interface DashboardLayoutProps {
@@ -11,9 +21,40 @@ interface DashboardLayoutProps {
 }
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
+  const { user } = useAuth();
+  
   const style = {
     "--sidebar-width": "22rem",
     "--sidebar-width-icon": "3rem",
+  };
+
+  const handleLogout = () => {
+    window.location.href = "/api/logout";
+  };
+
+  // Get user initials for avatar fallback
+  const getUserInitials = () => {
+    if (!user) return "U";
+    const firstName = user.firstName || "";
+    const lastName = user.lastName || "";
+    if (firstName && lastName) {
+      return `${firstName[0]}${lastName[0]}`.toUpperCase();
+    }
+    if (firstName) return firstName[0].toUpperCase();
+    if (user.email) return user.email[0].toUpperCase();
+    return "U";
+  };
+
+  const getUserDisplayName = () => {
+    if (!user) return "Usuário";
+    const firstName = user.firstName || "";
+    const lastName = user.lastName || "";
+    if (firstName && lastName) {
+      return `${firstName} ${lastName}`;
+    }
+    if (firstName) return firstName;
+    if (user.email) return user.email;
+    return "Usuário";
   };
 
   return (
@@ -53,12 +94,56 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   <span className="relative inline-flex h-2 w-2 rounded-full bg-primary"></span>
                 </span>
               </Button>
-              <Avatar className="h-9 w-9" data-testid="avatar-user">
-                <AvatarImage src="" alt="User" />
-                <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
-                  U
-                </AvatarFallback>
-              </Avatar>
+
+              {/* User Dropdown Menu */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="relative h-9 w-9 rounded-full p-0"
+                    data-testid="button-user-menu"
+                  >
+                    <Avatar className="h-9 w-9" data-testid="avatar-user">
+                      <AvatarImage 
+                        src={user?.profileImageUrl || ""} 
+                        alt={getUserDisplayName()}
+                        style={{ objectFit: "cover" }}
+                      />
+                      <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
+                        {getUserInitials()}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel data-testid="text-user-name">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">
+                        {getUserDisplayName()}
+                      </p>
+                      {user?.email && (
+                        <p className="text-xs leading-none text-muted-foreground" data-testid="text-user-email">
+                          {user.email}
+                        </p>
+                      )}
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem data-testid="menu-item-profile">
+                    <UserIcon className="mr-2 h-4 w-4" />
+                    <span>Meu Perfil</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={handleLogout}
+                    className="text-destructive focus:text-destructive"
+                    data-testid="button-logout"
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Sair</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </header>
           <main className="flex-1 overflow-auto bg-muted/30">
