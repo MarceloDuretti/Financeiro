@@ -16,9 +16,7 @@ import {
   HelpCircle,
   Bell,
   ChevronDown,
-  TrendingUp,
-  Activity,
-  Zap,
+  ArrowRight,
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import {
@@ -47,14 +45,17 @@ import { Separator } from "@/components/ui/separator";
 const menuItems = [
   {
     title: "Início",
+    description: "Visão executiva completa",
     url: "/dashboard",
     icon: Home,
     color: "from-blue-500 to-indigo-500",
   },
   {
     title: "Cadastros",
+    description: "Gestão da carteira",
     icon: FolderTree,
     color: "from-purple-500 to-violet-500",
+    count: "127",
     items: [
       { title: "Clientes e Fornecedores", url: "/dashboard/clientes-fornecedores", icon: Users },
       { title: "Contas Bancárias", url: "/dashboard/contas-bancarias", icon: Landmark },
@@ -64,6 +65,7 @@ const menuItems = [
   },
   {
     title: "Lançamentos",
+    description: "Receitas e despesas",
     url: "/dashboard/lancamentos",
     icon: ArrowLeftRight,
     color: "from-green-500 to-emerald-500",
@@ -71,43 +73,50 @@ const menuItems = [
   },
   {
     title: "Metas",
+    description: "Objetivos e indicadores",
     url: "/dashboard/metas",
     icon: Target,
     color: "from-orange-500 to-amber-500",
   },
   {
+    title: "Documentos",
+    description: "Boletos, DAS e guias",
+    icon: FileText,
+    color: "from-indigo-500 to-purple-500",
+    count: "12",
+    items: [
+      { title: "Recibos", url: "/dashboard/recibos", icon: Receipt },
+      { title: "Relatórios", url: "/dashboard/relatorios", icon: FileText },
+      { title: "Análise", url: "/dashboard/analise", icon: BarChart3 },
+    ],
+  },
+  {
     title: "Administração",
+    description: "Configurações do sistema",
     icon: Settings,
     color: "from-gray-500 to-slate-600",
     items: [
       { title: "Parâmetros do Sistema", url: "/dashboard/parametros", icon: Settings },
       { title: "Exportação", url: "/dashboard/exportacao", icon: FileOutput },
       { title: "Importações", url: "/dashboard/importacoes", icon: FileInput },
-      { title: "Análise", url: "/dashboard/analise", icon: BarChart3 },
-      { title: "Relatórios", url: "/dashboard/relatorios", icon: FileText },
-      { title: "Recibos", url: "/dashboard/recibos", icon: Receipt },
       { title: "Usuários", url: "/dashboard/usuarios", icon: UserCog },
     ],
   },
   {
     title: "Central de Ajuda",
+    description: "Suporte e tutoriais",
     url: "/dashboard/ajuda",
     icon: HelpCircle,
     color: "from-cyan-500 to-teal-500",
   },
   {
     title: "Notificações",
+    description: "Alertas e avisos",
     url: "/dashboard/notificacoes",
     icon: Bell,
     color: "from-red-500 to-rose-500",
-    badge: "3",
+    badge: "23",
   },
-];
-
-const quickStats = [
-  { label: "Receitas", value: "R$ 45k", trend: "+12%", icon: TrendingUp, color: "text-green-500" },
-  { label: "Performance", value: "98%", trend: "+5%", icon: Activity, color: "text-blue-500" },
-  { label: "Meta Mensal", value: "87%", trend: "+8%", icon: Zap, color: "text-orange-500" },
 ];
 
 export function AppSidebar() {
@@ -115,73 +124,72 @@ export function AppSidebar() {
 
   return (
     <Sidebar className="border-r bg-gradient-to-b from-background to-muted/20">
-      <SidebarHeader className="border-b bg-gradient-to-br from-primary/5 to-transparent p-6">
+      <SidebarHeader className="border-b bg-gradient-to-br from-primary/5 to-transparent p-5">
         <Link href="/dashboard">
-          <div className="flex items-center gap-3 group cursor-pointer" data-testid="link-dashboard-logo">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-blue-600 shadow-lg shadow-primary/20 transition-transform group-hover:scale-105">
-              <span className="text-xl font-bold text-white">F</span>
+          <div className="flex items-center gap-3 group cursor-pointer mb-5" data-testid="link-dashboard-logo">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-blue-600 shadow-lg shadow-primary/20 transition-transform group-hover:scale-105">
+              <span className="text-lg font-bold text-white">F</span>
             </div>
             <div className="flex flex-col">
-              <span className="font-semibold text-lg tracking-tight">FinControl</span>
-              <span className="text-xs text-muted-foreground">Financial Suite</span>
+              <span className="font-semibold text-base tracking-tight">FinControl</span>
+              <span className="text-[10px] text-muted-foreground">Financial Suite</span>
             </div>
           </div>
         </Link>
 
-        <div className="mt-6 flex items-center gap-3 rounded-xl bg-gradient-to-br from-card to-muted/30 p-4 border shadow-sm hover-elevate cursor-pointer" data-testid="profile-card">
-          <Avatar className="h-12 w-12 border-2 border-primary/20">
-            <AvatarImage src="" alt="User" />
-            <AvatarFallback className="bg-gradient-to-br from-primary to-blue-600 text-white font-semibold text-sm">
-              JD
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex flex-col flex-1 min-w-0">
-            <span className="font-semibold text-sm truncate">João Silva</span>
-            <span className="text-xs text-muted-foreground truncate">Analista Financeiro</span>
-          </div>
-        </div>
-
-        <div className="mt-4 grid grid-cols-3 gap-2">
-          {quickStats.map((stat, index) => (
-            <div
-              key={index}
-              className="flex flex-col items-center gap-1 rounded-lg bg-gradient-to-br from-muted/50 to-transparent p-2 border border-border/50"
-              data-testid={`quick-stat-${index}`}
-            >
-              <stat.icon className={`h-3.5 w-3.5 ${stat.color}`} />
-              <span className="text-xs font-semibold">{stat.value}</span>
-              <span className="text-[10px] text-muted-foreground">{stat.label}</span>
+        <div className="rounded-xl bg-gradient-to-br from-primary/10 to-blue-500/5 p-4 border border-primary/20" data-testid="goal-card">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-medium text-muted-foreground">Meta Mensal</span>
+            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/20">
+              <Target className="h-3.5 w-3.5 text-primary" />
             </div>
-          ))}
+          </div>
+          <div className="flex items-baseline gap-2 mb-2">
+            <span className="text-2xl font-bold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">R$ 128k</span>
+            <span className="text-sm text-muted-foreground">/ 150k</span>
+          </div>
+          <div className="h-2 w-full rounded-full bg-muted/50 overflow-hidden mb-2">
+            <div className="h-full w-[85%] bg-gradient-to-r from-primary to-blue-600 rounded-full transition-all duration-500" />
+          </div>
+          <span className="text-xs font-medium text-primary">85%</span>
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="px-3 py-4 overflow-y-auto">
+      <SidebarContent className="px-4 py-4 overflow-y-auto">
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu className="gap-2">
+            <SidebarMenu className="gap-1">
               {menuItems.map((item) => {
                 const Icon = item.icon;
                 
                 if (item.items) {
                   return (
-                    <Collapsible key={item.title} asChild defaultOpen={false}>
+                    <Collapsible key={item.title} asChild defaultOpen={true}>
                       <SidebarMenuItem>
                         <CollapsibleTrigger asChild>
                           <SidebarMenuButton
-                            className="group/item relative overflow-hidden"
+                            className="group/item h-auto py-3 px-3 hover-elevate"
                             data-testid={`button-menu-${item.title.toLowerCase()}`}
                           >
-                            <div className={`absolute left-0 top-0 h-full w-1 bg-gradient-to-b ${item.color} opacity-0 group-hover/item:opacity-100 transition-opacity`} />
-                            <div className={`flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br ${item.color} shadow-sm`}>
-                              <Icon className="h-4 w-4 text-white" strokeWidth={2.5} />
+                            <div className="flex items-start gap-3 flex-1">
+                              <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${item.color} shadow-sm mt-0.5`}>
+                                <Icon className="h-4 w-4 text-white" strokeWidth={2.5} />
+                              </div>
+                              <div className="flex flex-col gap-0.5 flex-1 min-w-0">
+                                <div className="flex items-center justify-between gap-2">
+                                  <span className="font-semibold text-sm truncate">{item.title}</span>
+                                  {item.count && (
+                                    <span className="text-xs font-semibold text-muted-foreground shrink-0">{item.count}</span>
+                                  )}
+                                </div>
+                                <span className="text-xs text-muted-foreground truncate">{item.description}</span>
+                              </div>
+                              <ChevronDown className="h-4 w-4 shrink-0 mt-1 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-180" />
                             </div>
-                            <span className="font-medium">{item.title}</span>
-                            <ChevronDown className="ml-auto h-4 w-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-180" />
                           </SidebarMenuButton>
                         </CollapsibleTrigger>
-                        <CollapsibleContent className="pb-2">
-                          <SidebarMenuSub className="ml-6 mt-2 space-y-1 border-l-2 border-border/50 pl-4">
+                        <CollapsibleContent className="pb-1">
+                          <SidebarMenuSub className="ml-11 mt-1 space-y-0.5 border-l-2 border-border/30 pl-3">
                             {item.items.map((subItem) => {
                               const SubIcon = subItem.icon;
                               return (
@@ -193,11 +201,11 @@ export function AppSidebar() {
                                   >
                                     <Link href={subItem.url}>
                                       <div
-                                        className="flex items-center gap-2.5 w-full"
+                                        className="flex items-center gap-2 w-full"
                                         data-testid={`link-submenu-${subItem.title.toLowerCase().replace(/\s+/g, '-')}`}
                                       >
-                                        <SubIcon className="h-4 w-4 text-muted-foreground" />
-                                        <span className="text-sm flex-1 truncate">{subItem.title}</span>
+                                        <ArrowRight className="h-3 w-3 text-muted-foreground shrink-0" />
+                                        <span className="text-xs flex-1 truncate">{subItem.title}</span>
                                       </div>
                                     </Link>
                                   </SidebarMenuSubButton>
@@ -216,26 +224,30 @@ export function AppSidebar() {
                     <SidebarMenuButton
                       asChild
                       isActive={location === item.url}
-                      className="group/item relative overflow-hidden"
+                      className="group/item h-auto py-3 px-3 hover-elevate"
                     >
                       <Link href={item.url}>
                         <div
-                          className="flex items-center gap-3"
+                          className="flex items-start gap-3 w-full"
                           data-testid={`link-menu-${item.title.toLowerCase()}`}
                         >
-                          <div className={`absolute left-0 top-0 h-full w-1 bg-gradient-to-b ${item.color} opacity-0 group-hover/item:opacity-100 transition-opacity`} />
-                          <div className={`flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br ${item.color} shadow-sm`}>
+                          <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${item.color} shadow-sm mt-0.5`}>
                             <Icon className="h-4 w-4 text-white" strokeWidth={2.5} />
                           </div>
-                          <span className="font-medium flex-1">{item.title}</span>
-                          {item.badge && (
-                            <Badge
-                              variant="secondary"
-                              className="h-5 min-w-5 px-1.5 text-xs font-semibold bg-primary text-primary-foreground"
-                            >
-                              {item.badge}
-                            </Badge>
-                          )}
+                          <div className="flex flex-col gap-0.5 flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="font-semibold text-sm truncate">{item.title}</span>
+                              {item.badge && (
+                                <Badge
+                                  variant="secondary"
+                                  className="h-5 min-w-5 px-1.5 text-xs font-semibold bg-primary text-primary-foreground shrink-0"
+                                >
+                                  {item.badge}
+                                </Badge>
+                              )}
+                            </div>
+                            <span className="text-xs text-muted-foreground truncate">{item.description}</span>
+                          </div>
                         </div>
                       </Link>
                     </SidebarMenuButton>
@@ -248,13 +260,19 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="border-t p-4 bg-gradient-to-br from-muted/30 to-transparent">
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-            <span>Sistema Online</span>
-          </div>
-          <div className="text-xs text-muted-foreground">
-            Última atualização: Há 2 minutos
+        <div className="flex items-center gap-3 rounded-xl bg-gradient-to-br from-card to-muted/30 p-3 border shadow-sm hover-elevate cursor-pointer" data-testid="profile-card">
+          <Avatar className="h-10 w-10 border-2 border-primary/20">
+            <AvatarImage src="" alt="User" />
+            <AvatarFallback className="bg-gradient-to-br from-primary to-blue-600 text-white font-semibold text-xs">
+              JD
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex flex-col flex-1 min-w-0">
+            <span className="font-semibold text-xs truncate">João Silva</span>
+            <div className="flex items-center gap-1.5">
+              <div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
+              <span className="text-[10px] text-muted-foreground truncate">Premium</span>
+            </div>
           </div>
         </div>
       </SidebarFooter>
