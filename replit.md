@@ -46,16 +46,22 @@ Preferred communication style: Simple, everyday language.
 - **Financial Chart**: Clean LineChart (240px height) showing only Revenues and Expenses with gradients and smooth curves
 - **Department Performance**: Custom heatmap table (replaced BarChart) showing monthly spending with color-coded cells (red=high, blue=low) for instant visual pattern recognition with automatic normalization and edge-case handling
 - **Landing Page Hero**: Balanced minimalist design with medium-sized feature stats using subtle primary-colored icons (h-8 w-8) on light backgrounds (bg-primary/10)
-- **Minha Empresa Page**: Added as second menu item with pink-to-rose gradient icon - ultra-clean simplified design to fit on screen without scrolling
-  - **Company Identity Band**: Compact horizontal layout with small avatar (h-12), company name, status badges (Ativa, Desde, Nacional)
-  - **Top Section**: 3 minimalist info cards (Regime Tributário, Porte da Empresa, Atividade Principal) - text labels and badges only, no icon backgrounds
-  - **Single Unified Card**: "Cadastro da Empresa" card containing all company data with clear section headers
-  - **Section Organization**: Two main sections separated by divider lines:
-    - "Dados da Empresa" - 6 fields in 3-column grid (Razão Social, CNPJ, Data Abertura, IE, IM, CNAE Secundário)
-    - "Endereço e Contato" - 6 fields in 3-column grid (Logradouro, Cidade/UF, CEP, Telefone, Email, Website)
-  - **Edit Mode**: Single Edit button in card header enables editing all fields at once - unified state management
-  - **Visual Design**: Clean gray backgrounds (bg-muted/30), no icon circles, section titles in primary color for emphasis
-  - **State Management**: Single backup/restore pattern for all form data - clicking Cancel restores all original values
+- **Minha Empresa Page**: Redesigned as a visual company profile (October 22, 2025)
+  - **Design Philosophy**: Transformed from cadastral form to informative company profile - visual, elegant, minimalist
+  - **Hero Section**: Large logo (h-24 w-24), company name in large heading, legal name subtitle, status badges
+  - **Layout**: Two-column responsive grid (2/3 main info + 1/3 sidebar on desktop)
+  - **Main Column Cards**:
+    - **Dados Fiscais**: CNPJ, IE, IM, Data de Abertura with FileText icon
+    - **Atividade Econômica**: CNAE Principal with Briefcase icon
+    - **Endereço**: Complete address with MapPin icon
+    - **Contato**: Phone, Email, Website with respective icons
+  - **Sidebar Card**:
+    - **Responsável**: Large avatar (h-20 w-20), name, position, contact details
+    - **Info Card**: Last updated date and company status
+  - **Edit Mode**: Modal dialog (not inline) with complete form for all fields
+  - **Visual Design**: Gradient backgrounds (from-card to-muted/20), icon-led sections, no border confusion with menu
+  - **State Management**: Controlled form with editFormData, save/cancel with toast confirmation
+  - **Accessibility**: Full data-testid coverage, DialogDescription for screen readers
 
 ### Backend Architecture
 
