@@ -1,6 +1,7 @@
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import dashboardImage from "@assets/generated_images/Opaque_white_background_dashboard_mockup_c2870e32.png";
+import companyLogo from "@assets/image_1761138279350.png";
 
 export default function HeroSection() {
   return (
@@ -9,6 +10,12 @@ export default function HeroSection() {
         <div className="grid gap-12 lg:grid-cols-2 lg:gap-16 items-center">
           <div className="flex flex-col gap-6 md:gap-8">
             <div className="flex flex-col gap-4">
+              <img 
+                src={companyLogo} 
+                alt="SyncTime Logo" 
+                className="w-64 h-auto mb-4"
+                data-testid="img-company-logo"
+              />
               <h1 className="font-semibold tracking-tight md:text-5xl lg:text-6xl text-[50px] leading-tight">
                 <span className="bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
                   Organize suas finanças
