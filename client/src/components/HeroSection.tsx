@@ -1,4 +1,4 @@
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ShieldCheck, Award, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import dashboardImage from "@assets/generated_images/Opaque_white_background_dashboard_mockup_c2870e32.png";
 import companyLogo from "@assets/image_1761141856415.png";
@@ -38,34 +38,34 @@ export default function HeroSection() {
               </Button>
             </div>
 
-            <div className="grid grid-cols-3 gap-6 pt-6">
-              <div className="flex flex-col gap-1">
-                <div className="text-2xl font-bold text-foreground">
-                  ✓
+            <div className="grid grid-cols-3 gap-8 pt-8">
+              <div className="relative flex items-start gap-3">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                  <ShieldCheck className="h-4 w-4 text-primary" />
                 </div>
-                <div className="flex flex-col">
+                <div className="flex flex-col gap-0.5">
                   <span className="text-sm font-semibold text-foreground">Sem Cartão</span>
                   <span className="text-xs text-muted-foreground">Para experimentar</span>
                 </div>
               </div>
               
-              <div className="flex flex-col gap-1">
-                <div className="text-2xl font-bold text-foreground">
-                  18
+              <div className="relative flex items-start gap-3">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                  <Award className="h-4 w-4 text-primary" />
                 </div>
-                <div className="flex flex-col">
-                  <span className="text-sm font-semibold text-foreground">Anos</span>
-                  <span className="text-xs text-muted-foreground">No mercado</span>
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-xl font-bold text-foreground">18</span>
+                  <span className="text-xs text-muted-foreground">Anos no mercado</span>
                 </div>
               </div>
               
-              <div className="flex flex-col gap-1">
-                <div className="text-2xl font-bold text-foreground">
-                  97%
+              <div className="relative flex items-start gap-3">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                  <TrendingUp className="h-4 w-4 text-primary" />
                 </div>
-                <div className="flex flex-col">
-                  <span className="text-sm font-semibold text-foreground">Aprovação</span>
-                  <span className="text-xs text-muted-foreground">Dos usuários</span>
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-xl font-bold text-foreground">97%</span>
+                  <span className="text-xs text-muted-foreground">Aprovação dos usuários</span>
                 </div>
               </div>
             </div>
