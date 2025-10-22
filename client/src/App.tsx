@@ -9,6 +9,7 @@ import DashboardLayout from "@/layouts/DashboardLayout";
 
 // Dashboard Pages
 import Dashboard from "@/pages/Dashboard";
+import MinhaEmpresa from "@/pages/MinhaEmpresa";
 import Lancamentos from "@/pages/Lancamentos";
 import Metas from "@/pages/Metas";
 import ClientesFornecedores from "@/pages/ClientesFornecedores";
@@ -34,6 +35,12 @@ function Router() {
       <Route path="/dashboard">
         <DashboardLayout>
           <Dashboard />
+        </DashboardLayout>
+      </Route>
+      
+      <Route path="/dashboard/minha-empresa">
+        <DashboardLayout>
+          <MinhaEmpresa />
         </DashboardLayout>
       </Route>
       

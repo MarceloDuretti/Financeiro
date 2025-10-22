@@ -41,11 +41,12 @@ Preferred communication style: Simple, everyday language.
 - Responsive sidebar layout for dashboard
 - Modal-based login system
 
-**Dashboard Design Decisions (Recent Updates):**
+**Dashboard Design Decisions (Recent Updates - October 22, 2025):**
 - **KPI Cards**: 4 main metrics with Portuguese names (no acronyms), gradient backgrounds, colored icons in blur circles, sparklines - removed progress bars for cleaner look
 - **Financial Chart**: Clean LineChart (240px height) showing only Revenues and Expenses with gradients and smooth curves
-- **Department Performance**: Custom heatmap table (replaced BarChart) showing monthly spending with color-coded cells (red=high, blue=low) for instant visual pattern recognition
-- **Landing Page Hero**: Balanced minimalist design with medium-sized feature stats using subtle primary-colored icons on light backgrounds
+- **Department Performance**: Custom heatmap table (replaced BarChart) showing monthly spending with color-coded cells (red=high, blue=low) for instant visual pattern recognition with automatic normalization and edge-case handling
+- **Landing Page Hero**: Balanced minimalist design with medium-sized feature stats using subtle primary-colored icons (h-8 w-8) on light backgrounds (bg-primary/10)
+- **New Menu Item**: "Minha Empresa" added as second menu item (right after "Início") with pink-to-rose gradient, showing company information, contacts, tax regime, partners
 
 ### Backend Architecture
 

@@ -1,5 +1,6 @@
 import {
   Home,
+  Building2,
   Users,
   Landmark,
   FolderTree,
@@ -52,6 +53,13 @@ const menuItems = [
     url: "/dashboard",
     icon: Home,
     color: "from-blue-500 to-indigo-500",
+  },
+  {
+    title: "Minha Empresa",
+    description: "Dados e configurações",
+    url: "/dashboard/minha-empresa",
+    icon: Building2,
+    color: "from-pink-500 to-rose-500",
   },
   {
     title: "Cadastros",
