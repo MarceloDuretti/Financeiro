@@ -1,6 +1,6 @@
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import dashboardImage from "@assets/generated_images/Laptop_and_phone_dashboard_mockup_9ae29bca.png";
+import dashboardImage from "@assets/generated_images/Impactful_dashboard_devices_hero_image_873440c5.png";
 
 export default function HeroSection() {
   return (
@@ -9,7 +9,7 @@ export default function HeroSection() {
         <div className="grid gap-12 lg:grid-cols-2 lg:gap-16 items-center">
           <div className="flex flex-col gap-6 md:gap-8">
             <div className="flex flex-col gap-4">
-              <h1 className="text-4xl font-bold leading-tight tracking-tight md:text-5xl lg:text-6xl">
+              <h1 className="font-bold tracking-tight md:text-5xl lg:text-6xl text-[50px]">
                 <span className="bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
                   Organize suas finanças
                 </span>{" "}
