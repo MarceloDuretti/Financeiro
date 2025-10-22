@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Building2, Phone, Mail, MapPin, FileText, Briefcase, Globe, User } from "lucide-react";
+import { Building2, Phone, Mail, MapPin, FileText, Briefcase, Globe, User, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { Company } from "@shared/schema";
@@ -31,13 +32,17 @@ export default function MinhaEmpresa() {
     }
   }, [selectedCompanyId]);
 
+  const handleCloseDetails = () => {
+    setSelectedCompanyId(null);
+  };
+
   return (
     <div className="h-full overflow-hidden">
       <div className="flex flex-col md:flex-row gap-6 h-full p-6">
         {/* Lista de empresas - Esquerda */}
         <div 
           className={`flex-shrink-0 transition-all duration-300 ${
-            selectedCompanyId ? 'md:w-[400px]' : 'w-full'
+            selectedCompanyId ? 'hidden md:block md:w-[400px]' : 'w-full'
           }`}
         >
           <Card className="h-full flex flex-col">
@@ -113,7 +118,7 @@ export default function MinhaEmpresa() {
           <div className="flex-1 overflow-auto">
             <Card>
               <CardHeader className="pb-4">
-                <div className="flex items-start justify-between">
+                <div className="flex items-start justify-between gap-4">
                   <div className="flex items-center gap-4">
                     <Avatar className="h-16 w-16">
                       <AvatarImage src="" alt={selectedCompany.tradeName} />
@@ -139,6 +144,15 @@ export default function MinhaEmpresa() {
                       </div>
                     </div>
                   </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleCloseDetails}
+                    data-testid="button-close-details"
+                    className="flex-shrink-0"
+                  >
+                    <X className="h-5 w-5" />
+                  </Button>
                 </div>
               </CardHeader>
               <CardContent className="space-y-6">
