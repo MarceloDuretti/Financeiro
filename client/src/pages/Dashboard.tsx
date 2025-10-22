@@ -222,7 +222,7 @@ export default function Dashboard() {
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex flex-col gap-1 flex-1 min-w-0">
-                    <CardDescription className="text-xs font-medium uppercase tracking-wider">
+                    <CardDescription className="text-xs font-medium">
                       {kpi.title}
                     </CardDescription>
                     <CardTitle className="text-2xl font-bold truncate">{kpi.value}</CardTitle>
