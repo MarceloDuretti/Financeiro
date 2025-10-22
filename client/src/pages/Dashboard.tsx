@@ -247,14 +247,14 @@ export default function Dashboard() {
 
       {/* Advanced Charts Grid */}
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* Combo Chart - Revenue, Expenses, Forecast */}
+        {/* Modern Line Chart - Revenue & Expenses */}
         <Card className="border-0 bg-gradient-to-br from-card to-muted/20 shadow-lg col-span-full">
           <CardHeader>
             <div className="flex items-start justify-between flex-wrap gap-4">
               <div>
-                <CardTitle className="text-xl font-bold">Análise Financeira Consolidada</CardTitle>
+                <CardTitle className="text-xl font-bold">Receitas e Despesas</CardTitle>
                 <CardDescription className="mt-1">
-                  Receitas vs Despesas com Forecast de Tendência
+                  Evolução mensal dos últimos 6 meses
                 </CardDescription>
               </div>
               <div className="flex gap-2">
@@ -266,52 +266,58 @@ export default function Dashboard() {
             </div>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={350}>
-              <ComposedChart data={monthlyData}>
+            <ResponsiveContainer width="100%" height={240}>
+              <LineChart data={monthlyData}>
                 <defs>
-                  <linearGradient id="colorReceitas" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                  <linearGradient id="lineGradientReceitas" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stopColor="#10b981" />
+                    <stop offset="100%" stopColor="#34d399" />
                   </linearGradient>
-                  <linearGradient id="colorDespesas" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                  <linearGradient id="lineGradientDespesas" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stopColor="#ef4444" />
+                    <stop offset="100%" stopColor="#f87171" />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-muted/50" />
-                <XAxis dataKey="month" className="text-xs" stroke="hsl(var(--muted-foreground))" />
-                <YAxis className="text-xs" stroke="hsl(var(--muted-foreground))" />
-                <Tooltip content={<CustomTooltip />} />
-                <Legend wrapperStyle={{ paddingTop: "20px" }} />
-                <Area
-                  type="monotone"
-                  dataKey="receitas"
-                  name="Receitas"
-                  stroke="#10b981"
-                  fillOpacity={1}
-                  fill="url(#colorReceitas)"
-                  strokeWidth={3}
+                <CartesianGrid strokeDasharray="3 3" className="stroke-muted/30" vertical={false} />
+                <XAxis 
+                  dataKey="month" 
+                  className="text-xs" 
+                  stroke="hsl(var(--muted-foreground))" 
+                  axisLine={false}
+                  tickLine={false}
+                  dy={10}
                 />
-                <Area
-                  type="monotone"
-                  dataKey="despesas"
-                  name="Despesas"
-                  stroke="#ef4444"
-                  fillOpacity={1}
-                  fill="url(#colorDespesas)"
-                  strokeWidth={3}
+                <YAxis 
+                  className="text-xs" 
+                  stroke="hsl(var(--muted-foreground))" 
+                  axisLine={false}
+                  tickLine={false}
+                  dx={-10}
+                />
+                <Tooltip content={<CustomTooltip />} />
+                <Legend 
+                  wrapperStyle={{ paddingTop: "16px" }}
+                  iconType="circle"
                 />
                 <Line
                   type="monotone"
-                  dataKey="forecast"
-                  name="Forecast"
-                  stroke="#3b82f6"
-                  strokeWidth={2}
-                  strokeDasharray="5 5"
-                  dot={{ fill: "#3b82f6", r: 4 }}
+                  dataKey="receitas"
+                  name="Receitas"
+                  stroke="url(#lineGradientReceitas)"
+                  strokeWidth={3}
+                  dot={{ fill: "#10b981", r: 5, strokeWidth: 2, stroke: "#fff" }}
+                  activeDot={{ r: 7, strokeWidth: 2 }}
                 />
-                <Bar dataKey="margem" name="Margem %" fill="#8b5cf6" opacity={0.3} />
-              </ComposedChart>
+                <Line
+                  type="monotone"
+                  dataKey="despesas"
+                  name="Despesas"
+                  stroke="url(#lineGradientDespesas)"
+                  strokeWidth={3}
+                  dot={{ fill: "#ef4444", r: 5, strokeWidth: 2, stroke: "#fff" }}
+                  activeDot={{ r: 7, strokeWidth: 2 }}
+                />
+              </LineChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
