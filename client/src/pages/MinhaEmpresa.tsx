@@ -222,8 +222,8 @@ export default function MinhaEmpresa() {
           <CardHeader className="pb-2 pt-3 px-4">
             <div className="flex items-center gap-2.5">
               <div className="relative">
-                <div className="absolute inset-0 bg-green-500/20 blur-lg rounded-full" />
-                <div className="relative flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-green-500 to-emerald-600">
+                <div className="absolute inset-0 bg-gray-600/20 blur-lg rounded-full" />
+                <div className="relative flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-gray-600 to-gray-700">
                   <Scale className="h-4 w-4 text-white" />
                 </div>
               </div>
@@ -243,8 +243,8 @@ export default function MinhaEmpresa() {
           <CardHeader className="pb-2 pt-3 px-4">
             <div className="flex items-center gap-2.5">
               <div className="relative">
-                <div className="absolute inset-0 bg-blue-500/20 blur-lg rounded-full" />
-                <div className="relative flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600">
+                <div className="absolute inset-0 bg-gray-600/20 blur-lg rounded-full" />
+                <div className="relative flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-gray-600 to-gray-700">
                   <Briefcase className="h-4 w-4 text-white" />
                 </div>
               </div>
@@ -264,8 +264,8 @@ export default function MinhaEmpresa() {
           <CardHeader className="pb-2 pt-3 px-4">
             <div className="flex items-center gap-2.5">
               <div className="relative">
-                <div className="absolute inset-0 bg-purple-500/20 blur-lg rounded-full" />
-                <div className="relative flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-purple-500 to-violet-600">
+                <div className="absolute inset-0 bg-gray-600/20 blur-lg rounded-full" />
+                <div className="relative flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-gray-600 to-gray-700">
                   <FileCheck className="h-4 w-4 text-white" />
                 </div>
               </div>
