@@ -134,16 +134,18 @@ export function AppSidebar() {
   return (
     <Sidebar className="border-r bg-gradient-to-b from-background to-muted/20">
       <SidebarHeader className="border-b bg-gradient-to-br from-primary/5 to-transparent p-5">
-        <Link href="/dashboard">
-          <div className="flex items-center justify-center group cursor-pointer mb-5 rounded-xl bg-muted/30 p-3" data-testid="link-dashboard-logo">
-            <img 
-              src={sidebarLogo} 
-              alt="SyncTime Logo" 
-              className="h-12 w-auto transition-transform group-hover:scale-105"
-              data-testid="img-sidebar-logo"
-            />
+        <div className="flex items-center gap-3 rounded-xl bg-gradient-to-br from-card to-muted/30 p-4 border shadow-sm hover-elevate cursor-pointer mb-5" data-testid="profile-card">
+          <Avatar className="h-12 w-12 border-2 border-primary/20">
+            <AvatarImage src="" alt="User" />
+            <AvatarFallback className="bg-gradient-to-br from-primary to-blue-600 text-white font-semibold text-sm">
+              JD
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex flex-col flex-1 min-w-0">
+            <span className="font-semibold text-sm truncate">João Silva</span>
+            <span className="text-xs text-muted-foreground truncate">Analista Financeiro</span>
           </div>
-        </Link>
+        </div>
 
         <div className="grid grid-cols-3 gap-2">
           {quickStats.map((stat, index) => (

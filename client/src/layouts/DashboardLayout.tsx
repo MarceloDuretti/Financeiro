@@ -34,22 +34,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <div className="hidden md:flex items-center gap-3 mr-2 rounded-xl bg-gradient-to-br from-card to-muted/30 px-3 py-2 border shadow-sm hover-elevate cursor-pointer" data-testid="profile-card-header">
-                <Avatar className="h-9 w-9 border-2 border-primary/20">
-                  <AvatarImage src="" alt="User" />
-                  <AvatarFallback className="bg-gradient-to-br from-primary to-blue-600 text-white font-semibold text-xs">
-                    JD
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex flex-col min-w-0">
-                  <span className="font-semibold text-sm truncate">João Silva</span>
-                  <div className="flex items-center gap-1.5">
-                    <div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
-                    <span className="text-xs text-muted-foreground truncate">Analista Financeiro</span>
-                  </div>
-                </div>
-              </div>
-              
               <Button
                 size="icon"
                 variant="ghost"
@@ -62,7 +46,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   <span className="relative inline-flex h-2 w-2 rounded-full bg-primary"></span>
                 </span>
               </Button>
-              <Avatar className="h-9 w-9 md:hidden" data-testid="avatar-user">
+              <Avatar className="h-9 w-9" data-testid="avatar-user">
                 <AvatarImage src="" alt="User" />
                 <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
                   U
