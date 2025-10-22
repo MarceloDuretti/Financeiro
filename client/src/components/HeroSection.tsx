@@ -1,4 +1,4 @@
-import { ArrowRight, ShieldCheck, Award, TrendingUp } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import dashboardImage from "@assets/generated_images/Opaque_white_background_dashboard_mockup_c2870e32.png";
 import companyLogo from "@assets/image_1761141856415.png";
@@ -38,56 +38,35 @@ export default function HeroSection() {
               </Button>
             </div>
 
-            <div className="grid grid-cols-3 gap-12 pt-10">
-              <div className="relative flex flex-col gap-3 pl-4 group cursor-default">
-                <div className="absolute -top-2 -right-2 z-10">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 shadow-xl">
-                    <ShieldCheck className="h-5 w-5 text-white" />
-                  </div>
-                </div>
-                <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-green-500 to-emerald-600 rounded-full"></div>
-                <div className="text-5xl font-bold bg-gradient-to-r from-green-500 to-emerald-600 bg-clip-text text-transparent transition-all duration-300 group-hover:scale-105">
+            <div className="grid grid-cols-3 gap-6 pt-6">
+              <div className="flex flex-col gap-1">
+                <div className="text-2xl font-bold text-foreground">
                   ✓
                 </div>
-                <div className="flex flex-col gap-1">
-                  <span className="text-base font-semibold text-foreground">Sem Cartão</span>
-                  <span className="text-sm text-muted-foreground">Para experimentar</span>
+                <div className="flex flex-col">
+                  <span className="text-sm font-semibold text-foreground">Sem Cartão</span>
+                  <span className="text-xs text-muted-foreground">Para experimentar</span>
                 </div>
-                <div className="absolute bottom-0 left-4 h-0.5 w-12 bg-gradient-to-r from-green-500 to-emerald-600 transition-all duration-300 group-hover:w-[calc(100%-1rem)]"></div>
               </div>
               
-              <div className="relative flex flex-col gap-3 pl-4 group cursor-default">
-                <div className="absolute -top-2 -right-2 z-10">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-blue-600 shadow-xl">
-                    <Award className="h-5 w-5 text-white" />
-                  </div>
-                </div>
-                <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-primary to-blue-600 rounded-full"></div>
-                <div className="text-5xl font-bold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent transition-all duration-300 group-hover:scale-105">
+              <div className="flex flex-col gap-1">
+                <div className="text-2xl font-bold text-foreground">
                   18
                 </div>
-                <div className="flex flex-col gap-1">
-                  <span className="text-base font-semibold text-foreground">Anos</span>
-                  <span className="text-sm text-muted-foreground">No mercado</span>
+                <div className="flex flex-col">
+                  <span className="text-sm font-semibold text-foreground">Anos</span>
+                  <span className="text-xs text-muted-foreground">No mercado</span>
                 </div>
-                <div className="absolute bottom-0 left-4 h-0.5 w-12 bg-gradient-to-r from-primary to-blue-600 transition-all duration-300 group-hover:w-[calc(100%-1rem)]"></div>
               </div>
               
-              <div className="relative flex flex-col gap-3 pl-4 group cursor-default">
-                <div className="absolute -top-2 -right-2 z-10">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 to-amber-600 shadow-xl">
-                    <TrendingUp className="h-5 w-5 text-white" />
-                  </div>
-                </div>
-                <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-orange-500 to-amber-600 rounded-full"></div>
-                <div className="text-5xl font-bold bg-gradient-to-r from-orange-500 to-amber-600 bg-clip-text text-transparent transition-all duration-300 group-hover:scale-105">
+              <div className="flex flex-col gap-1">
+                <div className="text-2xl font-bold text-foreground">
                   97%
                 </div>
-                <div className="flex flex-col gap-1">
-                  <span className="text-base font-semibold text-foreground">Aprovação</span>
-                  <span className="text-sm text-muted-foreground">Dos usuários</span>
+                <div className="flex flex-col">
+                  <span className="text-sm font-semibold text-foreground">Aprovação</span>
+                  <span className="text-xs text-muted-foreground">Dos usuários</span>
                 </div>
-                <div className="absolute bottom-0 left-4 h-0.5 w-12 bg-gradient-to-r from-orange-500 to-amber-600 transition-all duration-300 group-hover:w-[calc(100%-1rem)]"></div>
               </div>
             </div>
           </div>
