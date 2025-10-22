@@ -1,4 +1,4 @@
-import { Mail, Phone, MapPin, Clock, Send, MessageCircle } from "lucide-react";
+import { Mail, Phone, Clock, Send, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,13 +27,6 @@ const contactMethods = [
     description: "Envie sua dúvida",
     info: "contato@fincontrol.com.br",
     action: "mailto:contato@fincontrol.com.br",
-  },
-  {
-    icon: MapPin,
-    title: "Endereço",
-    description: "Visite nosso escritório",
-    info: "Av. Paulista, 1578 - São Paulo, SP",
-    action: "#",
   },
 ];
 
