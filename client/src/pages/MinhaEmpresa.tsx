@@ -5,9 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import type { Company } from "@shared/schema";
@@ -19,7 +17,7 @@ export default function MinhaEmpresa() {
   const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(() => {
     return localStorage.getItem(SELECTED_COMPANY_KEY);
   });
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [editFormData, setEditFormData] = useState<Partial<Company>>({});
 
   const { data: companies = [], isLoading } = useQuery<Company[]>({
@@ -43,11 +41,16 @@ export default function MinhaEmpresa() {
     setSelectedCompanyId(null);
   };
 
-  const handleOpenEdit = () => {
+  const handleStartEdit = () => {
     if (selectedCompany) {
       setEditFormData(selectedCompany);
-      setIsEditDialogOpen(true);
+      setIsEditing(true);
     }
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditFormData({});
   };
 
   const handleEditChange = (field: keyof Company, value: string) => {
@@ -63,7 +66,7 @@ export default function MinhaEmpresa() {
       await queryClient.invalidateQueries({ queryKey: ["/api/companies"] });
       await queryClient.invalidateQueries({ queryKey: [`/api/companies/${selectedCompanyId}`] });
 
-      setIsEditDialogOpen(false);
+      setIsEditing(false);
       toast({
         title: "Sucesso",
         description: "Dados da empresa atualizados com sucesso!",
@@ -226,13 +229,34 @@ export default function MinhaEmpresa() {
                         {selectedCompany.tradeName.substring(0, 2).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
-                    <div>
-                      <CardTitle className="text-2xl" data-testid="text-detail-trade-name">
-                        {selectedCompany.tradeName}
-                      </CardTitle>
-                      <p className="text-sm text-muted-foreground" data-testid="text-detail-legal-name">
-                        {selectedCompany.legalName}
-                      </p>
+                    <div className="flex-1">
+                      {isEditing ? (
+                        <div className="space-y-2">
+                          <Input
+                            value={editFormData.tradeName || ''}
+                            onChange={(e) => handleEditChange('tradeName', e.target.value)}
+                            placeholder="Nome Fantasia"
+                            className="h-8 text-lg font-bold"
+                            data-testid="input-edit-tradeName"
+                          />
+                          <Input
+                            value={editFormData.legalName || ''}
+                            onChange={(e) => handleEditChange('legalName', e.target.value)}
+                            placeholder="Razão Social"
+                            className="h-8 text-sm"
+                            data-testid="input-edit-legalName"
+                          />
+                        </div>
+                      ) : (
+                        <>
+                          <CardTitle className="text-2xl" data-testid="text-detail-trade-name">
+                            {selectedCompany.tradeName}
+                          </CardTitle>
+                          <p className="text-sm text-muted-foreground" data-testid="text-detail-legal-name">
+                            {selectedCompany.legalName}
+                          </p>
+                        </>
+                      )}
                       <div className="flex gap-2 mt-2">
                         <Badge variant="outline">{selectedCompany.status}</Badge>
                         {selectedCompany.porte && (
@@ -245,24 +269,46 @@ export default function MinhaEmpresa() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleOpenEdit}
-                      data-testid="button-edit-company"
-                    >
-                      <Edit2 className="h-4 w-4 mr-2" />
-                      Editar
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={handleCloseDetails}
-                      data-testid="button-close-details"
-                      className="flex-shrink-0"
-                    >
-                      <X className="h-5 w-5" />
-                    </Button>
+                    {isEditing ? (
+                      <>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleCancelEdit}
+                          data-testid="button-cancel-edit"
+                        >
+                          Cancelar
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={handleSaveEdit}
+                          data-testid="button-save-edit"
+                        >
+                          Salvar
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleStartEdit}
+                          data-testid="button-edit-company"
+                        >
+                          <Edit2 className="h-4 w-4 mr-2" />
+                          Editar
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={handleCloseDetails}
+                          data-testid="button-close-details"
+                          className="flex-shrink-0"
+                        >
+                          <X className="h-5 w-5" />
+                        </Button>
+                      </>
+                    )}
                   </div>
                 </div>
               </CardHeader>
@@ -276,36 +322,64 @@ export default function MinhaEmpresa() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-7">
                     <div>
                       <p className="text-xs text-muted-foreground">CNPJ</p>
-                      <p className="font-medium" data-testid="text-detail-cnpj">{selectedCompany.cnpj}</p>
+                      {isEditing ? (
+                        <Input
+                          value={editFormData.cnpj || ''}
+                          onChange={(e) => handleEditChange('cnpj', e.target.value)}
+                          placeholder="CNPJ"
+                          className="h-8"
+                          data-testid="input-edit-cnpj"
+                        />
+                      ) : (
+                        <p className="font-medium" data-testid="text-detail-cnpj">{selectedCompany.cnpj}</p>
+                      )}
                     </div>
-                    {selectedCompany.ie && (
-                      <div>
-                        <p className="text-xs text-muted-foreground">Inscrição Estadual</p>
-                        <p className="font-medium" data-testid="text-detail-ie">{selectedCompany.ie}</p>
-                      </div>
-                    )}
-                    {selectedCompany.im && (
-                      <div>
-                        <p className="text-xs text-muted-foreground">Inscrição Municipal</p>
-                        <p className="font-medium" data-testid="text-detail-im">{selectedCompany.im}</p>
-                      </div>
-                    )}
-                    {selectedCompany.dataAbertura && (
-                      <div>
-                        <p className="text-xs text-muted-foreground">Data de Abertura</p>
-                        <p className="font-medium" data-testid="text-detail-data-abertura">
-                          {selectedCompany.dataAbertura}
-                        </p>
-                      </div>
-                    )}
-                    {selectedCompany.regimeTributario && (
-                      <div>
-                        <p className="text-xs text-muted-foreground">Regime Tributário</p>
-                        <p className="font-medium" data-testid="text-detail-regime">
-                          {selectedCompany.regimeTributario}
-                        </p>
-                      </div>
-                    )}
+                    <div>
+                      <p className="text-xs text-muted-foreground">Inscrição Estadual</p>
+                      {isEditing ? (
+                        <Input
+                          value={editFormData.ie || ''}
+                          onChange={(e) => handleEditChange('ie', e.target.value)}
+                          placeholder="IE"
+                          className="h-8"
+                          data-testid="input-edit-ie"
+                        />
+                      ) : (
+                        selectedCompany.ie && <p className="font-medium" data-testid="text-detail-ie">{selectedCompany.ie}</p>
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Inscrição Municipal</p>
+                      {isEditing ? (
+                        <Input
+                          value={editFormData.im || ''}
+                          onChange={(e) => handleEditChange('im', e.target.value)}
+                          placeholder="IM"
+                          className="h-8"
+                          data-testid="input-edit-im"
+                        />
+                      ) : (
+                        selectedCompany.im && <p className="font-medium" data-testid="text-detail-im">{selectedCompany.im}</p>
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Data de Abertura</p>
+                      {isEditing ? (
+                        <Input
+                          value={editFormData.dataAbertura || ''}
+                          onChange={(e) => handleEditChange('dataAbertura', e.target.value)}
+                          placeholder="DD/MM/AAAA"
+                          className="h-8"
+                          data-testid="input-edit-dataAbertura"
+                        />
+                      ) : (
+                        selectedCompany.dataAbertura && (
+                          <p className="font-medium" data-testid="text-detail-data-abertura">
+                            {selectedCompany.dataAbertura}
+                          </p>
+                        )
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -324,25 +398,102 @@ export default function MinhaEmpresa() {
                 )}
 
                 {/* Endereço */}
-                {selectedCompany.logradouro && (
+                {(selectedCompany.logradouro || isEditing) && (
                   <div className="space-y-3">
                     <div className="flex items-center gap-2 text-primary">
                       <MapPin className="h-5 w-5" />
                       <h3 className="font-semibold">Endereço</h3>
                     </div>
-                    <div className="pl-7">
-                      <p className="font-medium" data-testid="text-detail-address">
-                        {selectedCompany.logradouro}
-                        {selectedCompany.numero && `, ${selectedCompany.numero}`}
-                        {selectedCompany.complemento && ` - ${selectedCompany.complemento}`}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {selectedCompany.bairro && `${selectedCompany.bairro}, `}
-                        {selectedCompany.cidade}/{selectedCompany.uf}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        CEP: {selectedCompany.cep}
-                      </p>
+                    <div className="pl-7 space-y-3">
+                      {isEditing ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <div className="md:col-span-2">
+                            <p className="text-xs text-muted-foreground">Logradouro</p>
+                            <Input
+                              value={editFormData.logradouro || ''}
+                              onChange={(e) => handleEditChange('logradouro', e.target.value)}
+                              placeholder="Rua, Avenida..."
+                              className="h-8"
+                              data-testid="input-edit-logradouro"
+                            />
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground">Número</p>
+                            <Input
+                              value={editFormData.numero || ''}
+                              onChange={(e) => handleEditChange('numero', e.target.value)}
+                              placeholder="Nº"
+                              className="h-8"
+                              data-testid="input-edit-numero"
+                            />
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground">Complemento</p>
+                            <Input
+                              value={editFormData.complemento || ''}
+                              onChange={(e) => handleEditChange('complemento', e.target.value)}
+                              placeholder="Apto, Sala..."
+                              className="h-8"
+                              data-testid="input-edit-complemento"
+                            />
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground">Bairro</p>
+                            <Input
+                              value={editFormData.bairro || ''}
+                              onChange={(e) => handleEditChange('bairro', e.target.value)}
+                              placeholder="Bairro"
+                              className="h-8"
+                              data-testid="input-edit-bairro"
+                            />
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground">Cidade</p>
+                            <Input
+                              value={editFormData.cidade || ''}
+                              onChange={(e) => handleEditChange('cidade', e.target.value)}
+                              placeholder="Cidade"
+                              className="h-8"
+                              data-testid="input-edit-cidade"
+                            />
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground">UF</p>
+                            <Input
+                              value={editFormData.uf || ''}
+                              onChange={(e) => handleEditChange('uf', e.target.value)}
+                              placeholder="UF"
+                              className="h-8"
+                              data-testid="input-edit-uf"
+                            />
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground">CEP</p>
+                            <Input
+                              value={editFormData.cep || ''}
+                              onChange={(e) => handleEditChange('cep', e.target.value)}
+                              placeholder="CEP"
+                              className="h-8"
+                              data-testid="input-edit-cep"
+                            />
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <p className="font-medium" data-testid="text-detail-address">
+                            {selectedCompany.logradouro}
+                            {selectedCompany.numero && `, ${selectedCompany.numero}`}
+                            {selectedCompany.complemento && ` - ${selectedCompany.complemento}`}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {selectedCompany.bairro && `${selectedCompany.bairro}, `}
+                            {selectedCompany.cidade}/{selectedCompany.uf}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            CEP: {selectedCompany.cep}
+                          </p>
+                        </>
+                      )}
                     </div>
                   </div>
                 )}
@@ -354,84 +505,159 @@ export default function MinhaEmpresa() {
                     <h3 className="font-semibold">Contato</h3>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-7">
-                    <div className="flex items-center gap-2">
-                      <Phone className="h-4 w-4 text-muted-foreground" />
-                      <div>
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <Phone className="h-4 w-4 text-muted-foreground" />
                         <p className="text-xs text-muted-foreground">Telefone</p>
+                      </div>
+                      {isEditing ? (
+                        <Input
+                          value={editFormData.phone || ''}
+                          onChange={(e) => handleEditChange('phone', e.target.value)}
+                          placeholder="Telefone"
+                          className="h-8"
+                          data-testid="input-edit-phone"
+                        />
+                      ) : (
                         <p className="font-medium" data-testid="text-detail-phone">{selectedCompany.phone}</p>
-                      </div>
+                      )}
                     </div>
-                    {selectedCompany.email && (
-                      <div className="flex items-center gap-2">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
                         <Mail className="h-4 w-4 text-muted-foreground" />
-                        <div>
-                          <p className="text-xs text-muted-foreground">E-mail</p>
-                          <p className="font-medium" data-testid="text-detail-email">{selectedCompany.email}</p>
-                        </div>
+                        <p className="text-xs text-muted-foreground">E-mail</p>
                       </div>
-                    )}
-                    {selectedCompany.website && (
-                      <div className="flex items-center gap-2">
+                      {isEditing ? (
+                        <Input
+                          value={editFormData.email || ''}
+                          onChange={(e) => handleEditChange('email', e.target.value)}
+                          placeholder="E-mail"
+                          className="h-8"
+                          data-testid="input-edit-email"
+                        />
+                      ) : (
+                        selectedCompany.email && <p className="font-medium" data-testid="text-detail-email">{selectedCompany.email}</p>
+                      )}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
                         <Globe className="h-4 w-4 text-muted-foreground" />
-                        <div>
-                          <p className="text-xs text-muted-foreground">Website</p>
-                          <p className="font-medium" data-testid="text-detail-website">{selectedCompany.website}</p>
-                        </div>
+                        <p className="text-xs text-muted-foreground">Website</p>
                       </div>
-                    )}
+                      {isEditing ? (
+                        <Input
+                          value={editFormData.website || ''}
+                          onChange={(e) => handleEditChange('website', e.target.value)}
+                          placeholder="Website"
+                          className="h-8"
+                          data-testid="input-edit-website"
+                        />
+                      ) : (
+                        selectedCompany.website && <p className="font-medium" data-testid="text-detail-website">{selectedCompany.website}</p>
+                      )}
+                    </div>
                   </div>
                 </div>
 
                 {/* Responsável */}
-                {selectedCompany.responsavelNome && (
+                {(selectedCompany.responsavelNome || isEditing) && (
                   <div className="space-y-3">
                     <div className="flex items-center gap-2 text-primary">
                       <User className="h-5 w-5" />
                       <h3 className="font-semibold">Responsável</h3>
                     </div>
                     <div className="pl-7">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-12 w-12">
-                          <AvatarImage src={selectedCompany.responsavelFoto || ""} />
-                          <AvatarFallback>
-                            {selectedCompany.responsavelNome.split(' ').map(n => n[0]).join('').substring(0, 2)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="font-medium" data-testid="text-detail-responsavel-nome">
-                            {selectedCompany.responsavelNome}
-                          </p>
-                          {selectedCompany.responsavelCargo && (
-                            <p className="text-sm text-muted-foreground" data-testid="text-detail-responsavel-cargo">
-                              {selectedCompany.responsavelCargo}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
-                        {selectedCompany.responsavelTelefone && (
-                          <div className="flex items-center gap-2">
-                            <Phone className="h-4 w-4 text-muted-foreground" />
+                      {isEditing ? (
+                        <div className="space-y-3">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div>
+                              <p className="text-xs text-muted-foreground">Nome</p>
+                              <Input
+                                value={editFormData.responsavelNome || ''}
+                                onChange={(e) => handleEditChange('responsavelNome', e.target.value)}
+                                placeholder="Nome do responsável"
+                                className="h-8"
+                                data-testid="input-edit-responsavelNome"
+                              />
+                            </div>
+                            <div>
+                              <p className="text-xs text-muted-foreground">Cargo</p>
+                              <Input
+                                value={editFormData.responsavelCargo || ''}
+                                onChange={(e) => handleEditChange('responsavelCargo', e.target.value)}
+                                placeholder="Cargo"
+                                className="h-8"
+                                data-testid="input-edit-responsavelCargo"
+                              />
+                            </div>
                             <div>
                               <p className="text-xs text-muted-foreground">Telefone</p>
-                              <p className="text-sm" data-testid="text-detail-responsavel-telefone">
-                                {selectedCompany.responsavelTelefone}
-                              </p>
+                              <Input
+                                value={editFormData.responsavelTelefone || ''}
+                                onChange={(e) => handleEditChange('responsavelTelefone', e.target.value)}
+                                placeholder="Telefone"
+                                className="h-8"
+                                data-testid="input-edit-responsavelTelefone"
+                              />
                             </div>
-                          </div>
-                        )}
-                        {selectedCompany.responsavelEmail && (
-                          <div className="flex items-center gap-2">
-                            <Mail className="h-4 w-4 text-muted-foreground" />
                             <div>
                               <p className="text-xs text-muted-foreground">E-mail</p>
-                              <p className="text-sm" data-testid="text-detail-responsavel-email">
-                                {selectedCompany.responsavelEmail}
-                              </p>
+                              <Input
+                                value={editFormData.responsavelEmail || ''}
+                                onChange={(e) => handleEditChange('responsavelEmail', e.target.value)}
+                                placeholder="E-mail"
+                                className="h-8"
+                                data-testid="input-edit-responsavelEmail"
+                              />
                             </div>
                           </div>
-                        )}
-                      </div>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-12 w-12">
+                              <AvatarImage src={selectedCompany.responsavelFoto || ""} />
+                              <AvatarFallback>
+                                {selectedCompany.responsavelNome.split(' ').map(n => n[0]).join('').substring(0, 2)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="font-medium" data-testid="text-detail-responsavel-nome">
+                                {selectedCompany.responsavelNome}
+                              </p>
+                              {selectedCompany.responsavelCargo && (
+                                <p className="text-sm text-muted-foreground" data-testid="text-detail-responsavel-cargo">
+                                  {selectedCompany.responsavelCargo}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+                            {selectedCompany.responsavelTelefone && (
+                              <div className="flex items-center gap-2">
+                                <Phone className="h-4 w-4 text-muted-foreground" />
+                                <div>
+                                  <p className="text-xs text-muted-foreground">Telefone</p>
+                                  <p className="text-sm" data-testid="text-detail-responsavel-telefone">
+                                    {selectedCompany.responsavelTelefone}
+                                  </p>
+                                </div>
+                              </div>
+                            )}
+                            {selectedCompany.responsavelEmail && (
+                              <div className="flex items-center gap-2">
+                                <Mail className="h-4 w-4 text-muted-foreground" />
+                                <div>
+                                  <p className="text-xs text-muted-foreground">E-mail</p>
+                                  <p className="text-sm" data-testid="text-detail-responsavel-email">
+                                    {selectedCompany.responsavelEmail}
+                                  </p>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </>
+                      )}
                     </div>
                   </div>
                 )}
@@ -440,253 +666,6 @@ export default function MinhaEmpresa() {
           </div>
         )}
       </div>
-
-      {/* Dialog de Edição */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Editar Informações da Empresa</DialogTitle>
-            <DialogDescription>
-              Atualize os dados cadastrais da empresa selecionada.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-6 py-4">
-            {/* Informações Básicas */}
-            <div className="space-y-4">
-              <h3 className="font-semibold text-sm text-primary">Informações Básicas</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="edit-tradeName">Nome Fantasia</Label>
-                  <Input
-                    id="edit-tradeName"
-                    value={editFormData.tradeName || ''}
-                    onChange={(e) => handleEditChange('tradeName', e.target.value)}
-                    data-testid="input-edit-tradeName"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="edit-legalName">Razão Social</Label>
-                  <Input
-                    id="edit-legalName"
-                    value={editFormData.legalName || ''}
-                    onChange={(e) => handleEditChange('legalName', e.target.value)}
-                    data-testid="input-edit-legalName"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="edit-cnpj">CNPJ</Label>
-                  <Input
-                    id="edit-cnpj"
-                    value={editFormData.cnpj || ''}
-                    onChange={(e) => handleEditChange('cnpj', e.target.value)}
-                    data-testid="input-edit-cnpj"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="edit-phone">Telefone</Label>
-                  <Input
-                    id="edit-phone"
-                    value={editFormData.phone || ''}
-                    onChange={(e) => handleEditChange('phone', e.target.value)}
-                    data-testid="input-edit-phone"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Dados Fiscais */}
-            <div className="space-y-4">
-              <h3 className="font-semibold text-sm text-primary">Dados Fiscais</h3>
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <Label htmlFor="edit-ie">Inscrição Estadual</Label>
-                  <Input
-                    id="edit-ie"
-                    value={editFormData.ie || ''}
-                    onChange={(e) => handleEditChange('ie', e.target.value)}
-                    data-testid="input-edit-ie"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="edit-im">Inscrição Municipal</Label>
-                  <Input
-                    id="edit-im"
-                    value={editFormData.im || ''}
-                    onChange={(e) => handleEditChange('im', e.target.value)}
-                    data-testid="input-edit-im"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="edit-dataAbertura">Data de Abertura</Label>
-                  <Input
-                    id="edit-dataAbertura"
-                    value={editFormData.dataAbertura || ''}
-                    onChange={(e) => handleEditChange('dataAbertura', e.target.value)}
-                    data-testid="input-edit-dataAbertura"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Endereço */}
-            <div className="space-y-4">
-              <h3 className="font-semibold text-sm text-primary">Endereço</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="col-span-2">
-                  <Label htmlFor="edit-logradouro">Logradouro</Label>
-                  <Input
-                    id="edit-logradouro"
-                    value={editFormData.logradouro || ''}
-                    onChange={(e) => handleEditChange('logradouro', e.target.value)}
-                    data-testid="input-edit-logradouro"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="edit-numero">Número</Label>
-                  <Input
-                    id="edit-numero"
-                    value={editFormData.numero || ''}
-                    onChange={(e) => handleEditChange('numero', e.target.value)}
-                    data-testid="input-edit-numero"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="edit-complemento">Complemento</Label>
-                  <Input
-                    id="edit-complemento"
-                    value={editFormData.complemento || ''}
-                    onChange={(e) => handleEditChange('complemento', e.target.value)}
-                    data-testid="input-edit-complemento"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="edit-bairro">Bairro</Label>
-                  <Input
-                    id="edit-bairro"
-                    value={editFormData.bairro || ''}
-                    onChange={(e) => handleEditChange('bairro', e.target.value)}
-                    data-testid="input-edit-bairro"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="edit-cidade">Cidade</Label>
-                  <Input
-                    id="edit-cidade"
-                    value={editFormData.cidade || ''}
-                    onChange={(e) => handleEditChange('cidade', e.target.value)}
-                    data-testid="input-edit-cidade"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="edit-uf">UF</Label>
-                  <Input
-                    id="edit-uf"
-                    value={editFormData.uf || ''}
-                    onChange={(e) => handleEditChange('uf', e.target.value)}
-                    data-testid="input-edit-uf"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="edit-cep">CEP</Label>
-                  <Input
-                    id="edit-cep"
-                    value={editFormData.cep || ''}
-                    onChange={(e) => handleEditChange('cep', e.target.value)}
-                    data-testid="input-edit-cep"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Contato */}
-            <div className="space-y-4">
-              <h3 className="font-semibold text-sm text-primary">Contato</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="edit-email">E-mail</Label>
-                  <Input
-                    id="edit-email"
-                    type="email"
-                    value={editFormData.email || ''}
-                    onChange={(e) => handleEditChange('email', e.target.value)}
-                    data-testid="input-edit-email"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="edit-website">Website</Label>
-                  <Input
-                    id="edit-website"
-                    value={editFormData.website || ''}
-                    onChange={(e) => handleEditChange('website', e.target.value)}
-                    data-testid="input-edit-website"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Responsável */}
-            <div className="space-y-4">
-              <h3 className="font-semibold text-sm text-primary">Responsável</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="edit-responsavelNome">Nome</Label>
-                  <Input
-                    id="edit-responsavelNome"
-                    value={editFormData.responsavelNome || ''}
-                    onChange={(e) => handleEditChange('responsavelNome', e.target.value)}
-                    data-testid="input-edit-responsavelNome"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="edit-responsavelCargo">Cargo</Label>
-                  <Input
-                    id="edit-responsavelCargo"
-                    value={editFormData.responsavelCargo || ''}
-                    onChange={(e) => handleEditChange('responsavelCargo', e.target.value)}
-                    data-testid="input-edit-responsavelCargo"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="edit-responsavelTelefone">Telefone</Label>
-                  <Input
-                    id="edit-responsavelTelefone"
-                    value={editFormData.responsavelTelefone || ''}
-                    onChange={(e) => handleEditChange('responsavelTelefone', e.target.value)}
-                    data-testid="input-edit-responsavelTelefone"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="edit-responsavelEmail">E-mail</Label>
-                  <Input
-                    id="edit-responsavelEmail"
-                    type="email"
-                    value={editFormData.responsavelEmail || ''}
-                    onChange={(e) => handleEditChange('responsavelEmail', e.target.value)}
-                    data-testid="input-edit-responsavelEmail"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-3 pt-4 border-t">
-            <Button
-              variant="outline"
-              onClick={() => setIsEditDialogOpen(false)}
-              data-testid="button-cancel-edit"
-            >
-              Cancelar
-            </Button>
-            <Button
-              onClick={handleSaveEdit}
-              data-testid="button-save-edit"
-            >
-              Salvar Alterações
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
