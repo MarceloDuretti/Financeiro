@@ -13,10 +13,10 @@ export default function HeroSection() {
               <img 
                 src={companyLogo} 
                 alt="SyncTime Logo" 
-                className="w-64 h-auto mb-4"
+                className="w-96 h-auto mb-6"
                 data-testid="img-company-logo"
               />
-              <h1 className="font-semibold tracking-tight md:text-5xl lg:text-6xl text-[50px] leading-tight">
+              <h1 className="font-semibold tracking-tight text-3xl md:text-4xl lg:text-5xl leading-tight">
                 <span className="bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
                   Organize suas finanças
                 </span>{" "}
