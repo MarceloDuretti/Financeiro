@@ -86,7 +86,7 @@ export default function MinhaEmpresa() {
 
       {/* Top Info Cards - Compact */}
       <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="bg-muted/30 shadow-sm border border-primary/20">
+        <Card className="border-0 bg-gradient-to-br from-card to-muted/20 shadow-sm">
           <CardContent className="p-3">
             <p className="text-xs text-muted-foreground mb-1">Regime Tributário</p>
             <Badge className="bg-green-500/10 text-green-600 border-green-500/20 font-semibold text-xs" data-testid="badge-tax-regime">
@@ -95,7 +95,7 @@ export default function MinhaEmpresa() {
           </CardContent>
         </Card>
 
-        <Card className="bg-muted/30 shadow-sm border border-primary/20">
+        <Card className="border-0 bg-gradient-to-br from-card to-muted/20 shadow-sm">
           <CardContent className="p-3">
             <p className="text-xs text-muted-foreground mb-1">Porte da Empresa</p>
             <Badge variant="secondary" className="font-semibold text-xs" data-testid="badge-company-size">
@@ -104,7 +104,7 @@ export default function MinhaEmpresa() {
           </CardContent>
         </Card>
 
-        <Card className="bg-muted/30 shadow-sm border border-primary/20">
+        <Card className="border-0 bg-gradient-to-br from-card to-muted/20 shadow-sm">
           <CardContent className="p-3">
             <p className="text-xs text-muted-foreground mb-1">Atividade Principal</p>
             <p className="font-semibold text-xs" data-testid="text-cnae">
