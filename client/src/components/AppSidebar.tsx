@@ -44,7 +44,10 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
+import { useQuery } from "@tanstack/react-query";
+import type { Company } from "@shared/schema";
 import sidebarLogo from "@assets/image_1761141217552.png";
 
 const menuItems = [
@@ -54,6 +57,7 @@ const menuItems = [
     url: "/dashboard",
     icon: Home,
     color: "from-blue-500 to-indigo-500",
+    requiresCompany: true,
   },
   {
     title: "Minha Empresa",
@@ -61,6 +65,7 @@ const menuItems = [
     url: "/dashboard/minha-empresa",
     icon: Building2,
     color: "from-pink-500 to-rose-500",
+    requiresCompany: false,
   },
   {
     title: "Cadastros",
@@ -68,6 +73,7 @@ const menuItems = [
     icon: FolderTree,
     color: "from-purple-500 to-violet-500",
     count: "127",
+    requiresCompany: true,
     items: [
       { title: "Clientes e Fornecedores", url: "/dashboard/clientes-fornecedores", icon: Users },
       { title: "Contas Bancárias", url: "/dashboard/contas-bancarias", icon: Landmark },
@@ -82,6 +88,7 @@ const menuItems = [
     icon: ArrowLeftRight,
     color: "from-green-500 to-emerald-500",
     badge: "12",
+    requiresCompany: true,
   },
   {
     title: "Metas",
@@ -89,6 +96,7 @@ const menuItems = [
     url: "/dashboard/metas",
     icon: Target,
     color: "from-orange-500 to-amber-500",
+    requiresCompany: true,
   },
   {
     title: "Documentos",
@@ -96,6 +104,7 @@ const menuItems = [
     icon: FileText,
     color: "from-indigo-500 to-purple-500",
     count: "12",
+    requiresCompany: true,
     items: [
       { title: "Recibos", url: "/dashboard/recibos", icon: Receipt },
       { title: "Relatórios", url: "/dashboard/relatorios", icon: FileText },
@@ -107,6 +116,7 @@ const menuItems = [
     description: "Configurações do sistema",
     icon: Settings,
     color: "from-gray-500 to-slate-600",
+    requiresCompany: true,
     items: [
       { title: "Parâmetros do Sistema", url: "/dashboard/parametros", icon: Settings },
       { title: "Exportação", url: "/dashboard/exportacao", icon: FileOutput },
@@ -120,6 +130,7 @@ const menuItems = [
     url: "/dashboard/ajuda",
     icon: HelpCircle,
     color: "from-cyan-500 to-teal-500",
+    requiresCompany: true,
   },
   {
     title: "Notificações",
@@ -128,6 +139,7 @@ const menuItems = [
     icon: Bell,
     color: "from-red-500 to-rose-500",
     badge: "23",
+    requiresCompany: true,
   },
 ];
 
@@ -140,6 +152,14 @@ const quickStats = [
 export function AppSidebar() {
   const [location] = useLocation();
   const { user } = useAuth();
+
+  // Fetch companies to determine if user has at least one
+  const { data: companies = [] } = useQuery<Company[]>({
+    queryKey: ['/api/companies'],
+    enabled: !!user,
+  });
+
+  const hasCompanies = companies.length > 0;
 
   // Get user initials for avatar fallback
   const getUserInitials = () => {
@@ -211,72 +231,125 @@ export function AppSidebar() {
             <SidebarMenu className="gap-1">
               {menuItems.map((item) => {
                 const Icon = item.icon;
+                const isDisabled = item.requiresCompany && !hasCompanies;
                 
                 if (item.items) {
+                  const menuButton = (
+                    <SidebarMenuButton
+                      className={`group/item h-auto py-3 px-3 ${!isDisabled ? 'hover-elevate' : 'cursor-not-allowed opacity-40'}`}
+                      data-testid={`button-menu-${item.title.toLowerCase()}`}
+                      disabled={isDisabled}
+                      onClick={(e) => {
+                        if (isDisabled) {
+                          e.preventDefault();
+                          e.stopPropagation();
+                        }
+                      }}
+                    >
+                      <div className="flex items-start gap-3 flex-1">
+                        <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${item.color} shadow-sm mt-0.5 ${isDisabled ? 'saturate-0' : ''}`}>
+                          <Icon className="h-4 w-4 text-white" strokeWidth={2.5} />
+                        </div>
+                        <div className="flex flex-col gap-0.5 flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="font-semibold text-sm truncate">{item.title}</span>
+                            {item.count && (
+                              <span className="text-xs font-semibold text-muted-foreground shrink-0">{item.count}</span>
+                            )}
+                          </div>
+                          <span className="text-xs text-muted-foreground truncate">{item.description}</span>
+                        </div>
+                        <ChevronDown className="h-4 w-4 shrink-0 mt-1 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-180" />
+                      </div>
+                    </SidebarMenuButton>
+                  );
+
                   return (
-                    <Collapsible key={item.title} asChild defaultOpen={true}>
+                    <Collapsible key={item.title} asChild defaultOpen={!isDisabled}>
                       <SidebarMenuItem>
                         <CollapsibleTrigger asChild>
-                          <SidebarMenuButton
-                            className="group/item h-auto py-3 px-3 hover-elevate"
-                            data-testid={`button-menu-${item.title.toLowerCase()}`}
-                          >
-                            <div className="flex items-start gap-3 flex-1">
-                              <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${item.color} shadow-sm mt-0.5`}>
-                                <Icon className="h-4 w-4 text-white" strokeWidth={2.5} />
-                              </div>
-                              <div className="flex flex-col gap-0.5 flex-1 min-w-0">
-                                <div className="flex items-center justify-between gap-2">
-                                  <span className="font-semibold text-sm truncate">{item.title}</span>
-                                  {item.count && (
-                                    <span className="text-xs font-semibold text-muted-foreground shrink-0">{item.count}</span>
-                                  )}
-                                </div>
-                                <span className="text-xs text-muted-foreground truncate">{item.description}</span>
-                              </div>
-                              <ChevronDown className="h-4 w-4 shrink-0 mt-1 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-180" />
-                            </div>
-                          </SidebarMenuButton>
+                          {isDisabled ? (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                {menuButton}
+                              </TooltipTrigger>
+                              <TooltipContent side="right">
+                                <p>Configure uma empresa primeiro</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          ) : (
+                            menuButton
+                          )}
                         </CollapsibleTrigger>
-                        <CollapsibleContent className="pb-1">
-                          <SidebarMenuSub className="ml-11 mt-1 space-y-0.5 border-l-2 border-border/30 pl-3">
-                            {item.items.map((subItem) => {
-                              const SubIcon = subItem.icon;
-                              return (
-                                <SidebarMenuSubItem key={subItem.title}>
-                                  <SidebarMenuSubButton
-                                    asChild
-                                    isActive={location === subItem.url}
-                                    className="hover-elevate py-2"
-                                  >
-                                    <Link href={subItem.url}>
-                                      <div
-                                        className="flex items-center gap-2 w-full"
-                                        data-testid={`link-submenu-${subItem.title.toLowerCase().replace(/\s+/g, '-')}`}
-                                      >
-                                        <ArrowRight className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                                        <span className="text-sm flex-1 truncate">{subItem.title}</span>
-                                      </div>
-                                    </Link>
-                                  </SidebarMenuSubButton>
-                                </SidebarMenuSubItem>
-                              );
-                            })}
-                          </SidebarMenuSub>
-                        </CollapsibleContent>
+                        {!isDisabled && (
+                          <CollapsibleContent className="pb-1">
+                            <SidebarMenuSub className="ml-11 mt-1 space-y-0.5 border-l-2 border-border/30 pl-3">
+                              {item.items.map((subItem) => {
+                                const SubIcon = subItem.icon;
+                                return (
+                                  <SidebarMenuSubItem key={subItem.title}>
+                                    <SidebarMenuSubButton
+                                      asChild
+                                      isActive={location === subItem.url}
+                                      className="hover-elevate py-2"
+                                    >
+                                      <Link href={subItem.url}>
+                                        <div
+                                          className="flex items-center gap-2 w-full"
+                                          data-testid={`link-submenu-${subItem.title.toLowerCase().replace(/\s+/g, '-')}`}
+                                        >
+                                          <ArrowRight className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                                          <span className="text-sm flex-1 truncate">{subItem.title}</span>
+                                        </div>
+                                      </Link>
+                                    </SidebarMenuSubButton>
+                                  </SidebarMenuSubItem>
+                                );
+                              })}
+                            </SidebarMenuSub>
+                          </CollapsibleContent>
+                        )}
                       </SidebarMenuItem>
                     </Collapsible>
                   );
                 }
 
-                return (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={location === item.url}
-                      className="group/item h-auto py-3 px-3 hover-elevate"
-                    >
-                      <Link href={item.url}>
+                const menuButton = (
+                  <SidebarMenuButton
+                    asChild={!isDisabled}
+                    isActive={!isDisabled && location === item.url}
+                    className={`group/item h-auto py-3 px-3 ${!isDisabled ? 'hover-elevate' : 'cursor-not-allowed opacity-40'}`}
+                    disabled={isDisabled}
+                  >
+                    {isDisabled ? (
+                      <div
+                        className="flex items-start gap-3 w-full"
+                        data-testid={`link-menu-${item.title.toLowerCase()}`}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                        }}
+                      >
+                        <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${item.color} shadow-sm mt-0.5 saturate-0`}>
+                          <Icon className="h-4 w-4 text-white" strokeWidth={2.5} />
+                        </div>
+                        <div className="flex flex-col gap-0.5 flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="font-semibold text-sm truncate">{item.title}</span>
+                            {item.badge && (
+                              <Badge
+                                variant="secondary"
+                                className="h-5 min-w-5 px-1.5 text-xs font-semibold bg-primary text-primary-foreground shrink-0"
+                              >
+                                {item.badge}
+                              </Badge>
+                            )}
+                          </div>
+                          <span className="text-xs text-muted-foreground truncate">{item.description}</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <Link href={item.url!}>
                         <div
                           className="flex items-start gap-3 w-full"
                           data-testid={`link-menu-${item.title.toLowerCase()}`}
@@ -300,7 +373,24 @@ export function AppSidebar() {
                           </div>
                         </div>
                       </Link>
-                    </SidebarMenuButton>
+                    )}
+                  </SidebarMenuButton>
+                );
+
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    {isDisabled ? (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          {menuButton}
+                        </TooltipTrigger>
+                        <TooltipContent side="right">
+                          <p>Configure uma empresa primeiro</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    ) : (
+                      menuButton
+                    )}
                   </SidebarMenuItem>
                 );
               })}
