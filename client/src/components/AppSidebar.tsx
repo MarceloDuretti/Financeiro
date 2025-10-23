@@ -44,6 +44,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { useAuth } from "@/hooks/useAuth";
 import sidebarLogo from "@assets/image_1761141217552.png";
 
 const menuItems = [
@@ -138,20 +139,50 @@ const quickStats = [
 
 export function AppSidebar() {
   const [location] = useLocation();
+  const { user } = useAuth();
+
+  // Get user initials for avatar fallback
+  const getUserInitials = () => {
+    if (!user) return "U";
+    const firstName = user.firstName || "";
+    const lastName = user.lastName || "";
+    if (firstName && lastName) {
+      return `${firstName[0]}${lastName[0]}`.toUpperCase();
+    }
+    if (firstName) return firstName[0].toUpperCase();
+    if (user.email) return user.email[0].toUpperCase();
+    return "U";
+  };
+
+  const getUserDisplayName = () => {
+    if (!user) return "Usuário";
+    const firstName = user.firstName || "";
+    const lastName = user.lastName || "";
+    if (firstName && lastName) {
+      return `${firstName} ${lastName}`;
+    }
+    if (firstName) return firstName;
+    if (user.email) return user.email;
+    return "Usuário";
+  };
 
   return (
     <Sidebar className="border-r bg-gradient-to-b from-background to-muted/20">
       <SidebarHeader className="border-b bg-gradient-to-br from-primary/5 to-transparent p-5">
         <div className="flex items-center gap-3 rounded-xl bg-gradient-to-br from-card to-muted/30 p-4 border shadow-sm hover-elevate cursor-pointer mb-5" data-testid="profile-card">
           <Avatar className="h-12 w-12 border-2 border-primary/20">
-            <AvatarImage src="" alt="User" />
+            <AvatarImage src={user?.profileImageUrl || ""} alt={getUserDisplayName()} />
             <AvatarFallback className="bg-gradient-to-br from-primary to-blue-600 text-white font-semibold text-sm">
-              JD
+              {getUserInitials()}
             </AvatarFallback>
           </Avatar>
           <div className="flex flex-col flex-1 min-w-0">
-            <span className="font-semibold text-sm truncate">João Silva</span>
-            <span className="text-xs text-muted-foreground truncate">Analista Financeiro</span>
+            <span className="font-semibold text-sm truncate" data-testid="text-user-name">
+              {getUserDisplayName()}
+            </span>
+            <span className="text-xs text-muted-foreground truncate">
+              {user?.email || ""}
+            </span>
           </div>
         </div>
 
