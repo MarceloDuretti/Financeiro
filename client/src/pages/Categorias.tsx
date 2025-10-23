@@ -97,7 +97,8 @@ export default function Categorias() {
 
   const createMutation = useMutation({
     mutationFn: async (data: CategoryFormData) => {
-      return await apiRequest<Category>('/api/categories', 'POST', data);
+      console.log("Creating category with data:", data);
+      return await apiRequest('POST', '/api/categories', data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/categories'] });
@@ -108,10 +109,11 @@ export default function Categorias() {
       setIsDialogOpen(false);
       form.reset();
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error("Error creating category:", error);
       toast({
         title: "Erro ao criar categoria",
-        description: "Ocorreu um erro ao criar a categoria.",
+        description: error?.message || "Ocorreu um erro ao criar a categoria.",
         variant: "destructive",
       });
     },
@@ -119,7 +121,7 @@ export default function Categorias() {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: CategoryFormData }) => {
-      return await apiRequest<Category>(`/api/categories/${id}`, 'PATCH', data);
+      return await apiRequest('PATCH', `/api/categories/${id}`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/categories'] });
@@ -142,7 +144,7 @@ export default function Categorias() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      return await apiRequest(`/api/categories/${id}`, 'DELETE');
+      return await apiRequest('DELETE', `/api/categories/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/categories'] });
@@ -180,6 +182,8 @@ export default function Categorias() {
   };
 
   const onSubmit = (data: CategoryFormData) => {
+    console.log("Form submitted with data:", data);
+    console.log("Editing category?", editingCategory);
     if (editingCategory) {
       updateMutation.mutate({ id: editingCategory.id, data });
     } else {
