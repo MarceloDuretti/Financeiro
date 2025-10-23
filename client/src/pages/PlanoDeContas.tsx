@@ -329,59 +329,107 @@ export default function PlanoContas() {
     }
   };
 
-  // Render tree node
-  const renderNode = (node: ChartAccountNode, depth: number = 0) => {
+  // Render tree node with modern visual hierarchy
+  const renderNode = (node: ChartAccountNode, depth: number = 0, isLast: boolean = false) => {
     const isExpanded = expandedNodes.has(node.id);
     const hasChildNodes = node.children.length > 0;
+    const indentSize = 32; // 32px per level for strong visual hierarchy
+    
+    // Typography hierarchy based on depth
+    const getTextSize = () => {
+      if (depth === 0) return "text-base font-semibold";
+      if (depth === 1) return "text-sm font-medium";
+      return "text-sm font-normal";
+    };
 
     return (
-      <div key={node.id} data-testid={`account-node-${node.id}`}>
+      <div key={node.id} data-testid={`account-node-${node.id}`} className="relative">
+        {/* Connector lines (VS Code style) */}
+        {depth > 0 && (
+          <>
+            {/* Vertical line from parent */}
+            <div 
+              className="absolute top-0 bottom-0 w-px bg-border"
+              style={{ left: `${(depth - 1) * indentSize + 12}px` }}
+            />
+            {/* Horizontal line to item */}
+            <div 
+              className="absolute top-5 w-5 h-px bg-border"
+              style={{ left: `${(depth - 1) * indentSize + 12}px` }}
+            />
+          </>
+        )}
+
+        {/* Account row with hover actions */}
         <div
-          className="flex items-center gap-2 py-2 px-3 hover-elevate rounded-md"
-          style={{ paddingLeft: `${depth * 1.5 + 0.75}rem` }}
+          className="group relative flex items-center gap-3 py-2.5 px-3 rounded-md hover-elevate transition-all"
+          style={{ paddingLeft: `${depth * indentSize + 12}px` }}
         >
           {/* Expand/collapse button */}
           <button
             onClick={() => toggleExpand(node.id)}
-            className="flex-shrink-0"
+            className="flex-shrink-0 hover:bg-accent rounded p-0.5 transition-colors"
             data-testid={`button-toggle-${node.id}`}
             disabled={!hasChildNodes}
           >
             {hasChildNodes ? (
               isExpanded ? (
-                <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                <ChevronDown className="h-5 w-5 text-muted-foreground" />
               ) : (
-                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                <ChevronRight className="h-5 w-5 text-muted-foreground" />
               )
             ) : (
-              <div className="w-4" />
+              <div className="w-5" />
             )}
           </button>
 
-          {/* Folder/File icon */}
-          <div className="flex-shrink-0 text-muted-foreground">
+          {/* Folder/File icon with color */}
+          <div className="flex-shrink-0">
             {hasChildNodes ? (
               isExpanded ? (
-                <FolderOpen className="h-4 w-4" />
+                <FolderOpen className={`h-5 w-5 ${
+                  node.type === "receita" ? "text-green-600 dark:text-green-400" :
+                  node.type === "despesa" ? "text-red-600 dark:text-red-400" :
+                  node.type === "ativo" ? "text-blue-600 dark:text-blue-400" :
+                  node.type === "passivo" ? "text-amber-600 dark:text-amber-400" :
+                  "text-violet-600 dark:text-violet-400"
+                }`} />
               ) : (
-                <Folder className="h-4 w-4" />
+                <Folder className={`h-5 w-5 ${
+                  node.type === "receita" ? "text-green-600 dark:text-green-400" :
+                  node.type === "despesa" ? "text-red-600 dark:text-red-400" :
+                  node.type === "ativo" ? "text-blue-600 dark:text-blue-400" :
+                  node.type === "passivo" ? "text-amber-600 dark:text-amber-400" :
+                  "text-violet-600 dark:text-violet-400"
+                }`} />
               )
             ) : (
-              getTypeIcon(node.type)
+              <div className={
+                node.type === "receita" ? "text-green-600 dark:text-green-400" :
+                node.type === "despesa" ? "text-red-600 dark:text-red-400" :
+                node.type === "ativo" ? "text-blue-600 dark:text-blue-400" :
+                node.type === "passivo" ? "text-amber-600 dark:text-amber-400" :
+                "text-violet-600 dark:text-violet-400"
+              }>
+                {getTypeIcon(node.type)}
+              </div>
             )}
           </div>
 
-          {/* Code */}
-          <span
-            className="font-mono text-sm text-muted-foreground min-w-[60px]"
-            data-testid={`text-code-${node.id}`}
-          >
-            {node.code}
-          </span>
+          {/* Code badge */}
+          <div className="flex-shrink-0">
+            <Badge 
+              variant="secondary" 
+              className="font-mono text-xs px-2 py-0.5"
+              data-testid={`text-code-${node.id}`}
+            >
+              {node.code}
+            </Badge>
+          </div>
 
-          {/* Name */}
+          {/* Name with hierarchical typography */}
           <span
-            className="font-medium flex-1"
+            className={`flex-1 ${getTextSize()}`}
             data-testid={`text-name-${node.id}`}
           >
             {node.name}
@@ -390,17 +438,18 @@ export default function PlanoContas() {
           {/* Type badge */}
           <Badge
             variant="outline"
-            className={getTypeColor(node.type)}
+            className={`${getTypeColor(node.type)} text-xs`}
             data-testid={`badge-type-${node.id}`}
           >
             {getTypeLabel(node.type)}
           </Badge>
 
-          {/* Action buttons */}
-          <div className="flex items-center gap-1">
+          {/* Action buttons - only visible on hover */}
+          <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
             <Button
               size="icon"
               variant="ghost"
+              className="h-8 w-8"
               onClick={() => openCreateChildDialog(node)}
               data-testid={`button-add-child-${node.id}`}
               title="Adicionar subconta"
@@ -410,6 +459,7 @@ export default function PlanoContas() {
             <Button
               size="icon"
               variant="ghost"
+              className="h-8 w-8"
               onClick={() => openEditDialog(node)}
               data-testid={`button-edit-${node.id}`}
               title="Editar"
@@ -419,6 +469,7 @@ export default function PlanoContas() {
             <Button
               size="icon"
               variant="ghost"
+              className="h-8 w-8"
               onClick={() => openDeleteDialog(node)}
               data-testid={`button-delete-${node.id}`}
               title="Excluir"
@@ -428,10 +479,12 @@ export default function PlanoContas() {
           </div>
         </div>
 
-        {/* Children */}
+        {/* Children with improved spacing */}
         {isExpanded && hasChildNodes && (
-          <div>
-            {node.children.map(child => renderNode(child, depth + 1))}
+          <div className="relative">
+            {node.children.map((child, index) => 
+              renderNode(child, depth + 1, index === node.children.length - 1)
+            )}
           </div>
         )}
       </div>
@@ -531,11 +584,15 @@ export default function PlanoContas() {
           </Card>
         )}
 
-        {/* Account tree */}
+        {/* Account tree with improved spacing */}
         {accounts.length > 0 && (
           <Card className="p-4">
-            <div className="space-y-1">
-              {accountTree.map(node => renderNode(node, 0))}
+            <div className="space-y-4">
+              {accountTree.map((node, index) => (
+                <div key={node.id} className={index > 0 ? "pt-4 border-t" : ""}>
+                  {renderNode(node, 0)}
+                </div>
+              ))}
             </div>
           </Card>
         )}
