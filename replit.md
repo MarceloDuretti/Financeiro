@@ -42,6 +42,15 @@ Preferred communication style: Simple, everyday language.
   - Responsive layout with TanStack Query for data fetching
   - localStorage persistence for selected company
   - Conditional sidebar state: menus disabled when no companies exist, enabled when at least one company is created
+  - **Tab Interface (Apple-style):** Informações (company details) and Equipe (team members)
+  - **Team Members Management (Equipe Tab):**
+    - Full CRUD: Add, edit, delete team members within each company
+    - Card-based layout with avatars, role badges, and status indicators
+    - Dialog forms with React Hook Form + Zod validation
+    - AlertDialog confirmation for deletions
+    - Empty state when no members ("Nenhum membro na equipe")
+    - Soft-delete implementation (deleted=true, version increment)
+    - Multi-tenant isolation (tenantId + companyId scoped)
   - Complete data-testid coverage for automated testing
 - **Usuarios (Users) Page:** Hierarchical user management (admin/collaborator), CRUD for collaborators, email invitations, granular company access. Table-based UI with status badges and action buttons.
 - **Accept Invite Page:** Public route for collaborators to set passwords and activate accounts.
@@ -71,6 +80,12 @@ Preferred communication style: Simple, everyday language.
     - `POST /api/collaborators/:id/resend-invite`: Resend invite (admin only).
     - `POST /api/accept-invite`: Collaborator accepts invite (public).
     - Email invites via Nodemailer, time-limited `nanoid` tokens.
+- **Company Members Management:**
+    - `GET /api/companies/:companyId/members`: List members (tenant-scoped).
+    - `POST /api/companies/:companyId/members`: Create member (auto-injects tenantId + companyId from URL).
+    - `PATCH /api/companies/:companyId/members/:id`: Update member (tenant-scoped).
+    - `DELETE /api/companies/:companyId/members/:id`: Soft-delete member (tenant-scoped).
+    - Schema omits tenantId/companyId for security (prevents client override).
 - Request logging middleware.
 
 **Storage Layer:** PostgreSQL-backed via Drizzle ORM with an `IStorage` abstraction implementing **multi-tenant isolation**. All company and user-company operations require `tenantId` parameter to ensure data is scoped to the authenticated user's tenant. Includes methods for user management (create, update, get by email/ID, list collaborators), company management (list, get, create, update, delete - all with tenantId), and user-company assignments (all with tenantId).
@@ -96,6 +111,7 @@ Preferred communication style: Simple, everyday language.
     - `users` table: User authentication, profile, roles ("admin", "collaborator"), status, invite tokens, hierarchical `adminId`.
     - `companies` table: Multi-company data with **tenantId** for isolation (3 seed records for bootstrap admin).
     - `user_companies` table: Many-to-many relationship with **tenantId** for isolation.
+    - `company_members` table: Team members per company with **tenantId + companyId** for isolation, follows mandatory architecture (updated_at, version, deleted, composite indexes).
     
 **Bootstrap Admin (Seed Data):**
 - ID: `00000000-0000-0000-0000-000000000001`
