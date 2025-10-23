@@ -58,15 +58,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         lastName: validatedData.lastName,
       });
 
-      // Auto-login after signup
-      req.logIn(newUser, (err) => {
+      // SECURITY: Re-fetch user from storage to ensure canonical data
+      // This prevents privilege escalation attacks by ensuring we only
+      // pass verified, sanitized data to req.logIn()
+      const storedUser = await storage.getUser(newUser.id);
+      if (!storedUser) {
+        return res.status(500).json({ message: "Erro ao criar conta" });
+      }
+
+      // SECURITY: Remove sensitive fields before login
+      const { password: _, ...sanitizedUser } = storedUser;
+
+      // Auto-login after signup with sanitized user object
+      req.logIn(sanitizedUser, (err) => {
         if (err) {
           return res.status(500).json({ message: "Conta criada, mas erro ao fazer login" });
         }
         
-        // Don't send password to client
-        const { password: _, ...userWithoutPassword } = newUser;
-        res.json(userWithoutPassword);
+        res.json(sanitizedUser);
       });
     } catch (error: any) {
       console.error("Error during signup:", error);

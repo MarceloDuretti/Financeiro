@@ -33,16 +33,25 @@ Preferred communication style: Simple, everyday language.
 - **Landing Page**: Marketing site with hero, features, testimonials, plans, contact sections
 - **Dashboard**: Authenticated application with sidebar navigation and multiple feature modules
 - **Routing Strategy**: Public landing (/) for non-authenticated users, protected dashboard (/dashboard/*) for authenticated users
-- **Authentication**: Replit Auth (OpenID Connect) with automatic login/signup pages
+- **Authentication**: Custom local authentication with Passport Local Strategy and email/password
+  - **Design Philosophy**: Integrated authentication pages that match the Apple-inspired design
+  - **Routes**: `/login`, `/signup`, `/forgot-password` (all public)
+  - **Auto-login**: After successful signup, user is automatically logged in
+  - **Session-based**: Sessions stored in PostgreSQL with connect-pg-simple
 
 **Key Features:**
 - Modular component architecture with reusable UI primitives
 - Chart visualizations using Recharts (LineChart, PieChart) and custom heatmap tables
-- Form handling with React Hook Form
+- Form handling with React Hook Form and Zod validation
 - Responsive sidebar layout for dashboard
-- Full authentication system with Replit Auth (login via Google, GitHub, X, Apple, email/password)
-- Protected routes with automatic redirect to login
-- User profile display with avatar and logout functionality
+- **Custom Local Authentication System (October 23, 2025)**:
+  - Email/password authentication with bcryptjs password hashing
+  - Integrated signup, login, and password recovery pages with Apple-inspired design
+  - Automatic user profile display in sidebar and header (firstName, lastName, email)
+  - Real-time user data binding (no hardcoded mock data)
+  - Protected routes with automatic redirect to landing page
+  - User avatar with initials fallback
+  - Logout functionality with session cleanup
 
 **Dashboard Design Decisions (Recent Updates - October 22, 2025):**
 - **KPI Cards**: 4 main metrics with Portuguese names (no acronyms), gradient backgrounds, colored icons in blur circles, sparklines - removed progress bars for cleaner look
@@ -86,11 +95,15 @@ Preferred communication style: Simple, everyday language.
 
 **API Design:**
 - RESTful API pattern with `/api` prefix for all routes
-- **Authentication**: Full Replit Auth (OpenID Connect) implementation
-  - Routes: `/api/login`, `/api/logout`, `/api/callback`, `/api/auth/user`
-  - Session-based authentication with PostgreSQL session storage
+- **Custom Local Authentication System (October 23, 2025)**:
+  - **POST /api/auth/signup**: Create new user with email/password (auto-login after signup)
+  - **POST /api/auth/login**: Login with email/password (Passport Local Strategy)
+  - **POST /api/auth/logout**: Logout and destroy session
+  - **GET /api/auth/user**: Get current authenticated user data
+  - Session-based authentication with PostgreSQL session storage (connect-pg-simple)
+  - Password hashing with bcryptjs (salt rounds: 10)
   - `isAuthenticated` middleware for protected routes
-  - Automatic token refresh for long-lived sessions
+  - Frontend-integrated auth pages (/login, /signup, /forgot-password)
 - Request logging middleware with performance tracking
 - JSON body parsing with raw body preservation for webhook support
 
@@ -98,8 +111,15 @@ Preferred communication style: Simple, everyday language.
 - **DatabaseStorage**: PostgreSQL-backed storage using Drizzle ORM
 - Storage abstraction (IStorage interface) for clean architecture
 - CRUD operations for users and companies
-- User operations: `getUser()`, `upsertUser()` (required for Replit Auth)
-- Company operations: `listCompanies()`, `getCompanyById()`, `createCompany()`, `updateCompany()`
+- **User operations** (for local authentication):
+  - `getUser(id)`: Get user by ID
+  - `getUserByEmail(email)`: Get user by email (for login)
+  - `createUser(userData)`: Create new user (for signup)
+- **Company operations**:
+  - `listCompanies()`: Get all companies
+  - `getCompanyById(id)`: Get company details
+  - `createCompany(company)`: Create new company
+  - `updateCompany(id, updates)`: Update company data
 
 **Development Setup:**
 - Vite dev server middleware integration for HMR
@@ -114,12 +134,13 @@ Preferred communication style: Simple, everyday language.
 - **Migrations**: Managed via Drizzle Kit (output to ./migrations)
 - **Schema Location**: Shared between client/server (./shared/schema.ts)
 
-**Current Schema (Updated October 22, 2025):**
-- **sessions table**: PostgreSQL-backed session storage (required for Replit Auth)
+**Current Schema (Updated October 23, 2025):**
+- **sessions table**: PostgreSQL-backed session storage (required for local authentication)
   - Fields: sid (PK), sess (jsonb), expire (timestamp with index)
-- **users table**: User authentication and profile data (Replit Auth)
-  - Fields: id (varchar PK with UUID default), email (unique), firstName, lastName, profileImageUrl, createdAt, updatedAt
-  - Type: `UpsertUser` for insertion, `User` for selection
+- **users table**: User authentication and profile data (Custom Local Auth)
+  - Fields: id (varchar PK with UUID default), email (unique, NOT NULL), password (varchar NOT NULL, bcrypt hashed), firstName, lastName, profileImageUrl, createdAt, updatedAt
+  - Type: `InsertUser` for insertion, `User` for selection
+  - Security: Passwords hashed with bcryptjs before storage
 - **companies table**: Multi-company management
   - Fields: id, code, tradeName, legalName, cnpj, phone, status, fiscal data, address, contact, responsible person
   - Type: `InsertCompany` for insertion, `Company` for selection
@@ -149,6 +170,11 @@ Preferred communication style: Simple, everyday language.
 - @neondatabase/serverless: Serverless PostgreSQL driver
 - connect-pg-simple: PostgreSQL session store for Express
 - Drizzle ORM: Type-safe database operations
+
+**Authentication:**
+- passport: Authentication middleware for Node.js
+- passport-local: Local username/password strategy
+- bcryptjs: Password hashing library
 
 **Developer Tools:**
 - @replit/vite-plugin-runtime-error-modal: Enhanced error reporting
