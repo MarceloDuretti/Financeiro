@@ -227,3 +227,47 @@ export const insertCategorySchema = createInsertSchema(categories).omit({
 
 export type InsertCategory = z.infer<typeof insertCategorySchema>;
 export type Category = typeof categories.$inferSelect;
+
+// Chart of Accounts - Hierarchical account tree structure optimized for BigData
+export const chartOfAccounts = pgTable("chart_of_accounts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  tenantId: varchar("tenant_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  parentId: varchar("parent_id"), // Self-reference for hierarchy (null for root accounts)
+  code: varchar("code").notNull(), // Hierarchical code: "1", "1.1", "1.1.1", "1.2", "2", etc.
+  name: text("name").notNull(),
+  description: text("description"),
+  type: text("type").notNull(), // "receita", "despesa", "ativo", "passivo", "patrimonio_liquido"
+  path: varchar("path").notNull(), // Materialized path for fast subtree queries (same as code for efficiency)
+  depth: integer("depth").notNull().default(0), // 0 for root, 1 for first level, etc.
+  fullPathName: text("full_path_name").notNull(), // Pre-computed full path: "Despesas > Operacionais > Aluguel"
+  updatedAt: timestamp("updated_at").notNull().defaultNow().$onUpdate(() => new Date()),
+  version: bigint("version", { mode: "number" }).notNull().default(1),
+  deleted: boolean("deleted").notNull().default(false),
+}, (table) => [
+  // Primary index for tenant + path (fastest subtree queries)
+  uniqueIndex("chart_accounts_tenant_path_unique").on(table.tenantId, table.path),
+  // Index for finding children of a parent
+  index("chart_accounts_tenant_parent_idx").on(table.tenantId, table.parentId, table.code),
+  // Index for filtering by depth (level queries)
+  index("chart_accounts_tenant_depth_idx").on(table.tenantId, table.deleted, table.depth),
+  // Index for filtering by type
+  index("chart_accounts_tenant_type_idx").on(table.tenantId, table.type, table.deleted),
+  // Index for updates/sync
+  index("chart_accounts_tenant_updated_idx").on(table.tenantId, table.updatedAt),
+  // Composite index for tenant-scoped queries
+  index("chart_accounts_tenant_deleted_idx").on(table.tenantId, table.deleted, table.id),
+]);
+
+export const insertChartAccountSchema = createInsertSchema(chartOfAccounts).omit({
+  id: true,
+  tenantId: true,
+  path: true, // Computed from code
+  depth: true, // Computed from parentId
+  fullPathName: true, // Computed from parent chain
+  updatedAt: true,
+  version: true,
+  deleted: true,
+});
+
+export type InsertChartAccount = z.infer<typeof insertChartAccountSchema>;
+export type ChartAccount = typeof chartOfAccounts.$inferSelect;
