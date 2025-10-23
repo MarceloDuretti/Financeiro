@@ -44,7 +44,6 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import type { Company } from "@shared/schema";
@@ -234,52 +233,38 @@ export function AppSidebar() {
                 const isDisabled = item.requiresCompany && !hasCompanies;
                 
                 if (item.items) {
-                  const menuButton = (
-                    <SidebarMenuButton
-                      className={`group/item h-auto py-3 px-3 ${!isDisabled ? 'hover-elevate' : 'cursor-not-allowed opacity-40'}`}
-                      data-testid={`button-menu-${item.title.toLowerCase()}`}
-                      disabled={isDisabled}
-                      onClick={(e) => {
-                        if (isDisabled) {
-                          e.preventDefault();
-                          e.stopPropagation();
-                        }
-                      }}
-                    >
-                      <div className="flex items-start gap-3 flex-1">
-                        <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${item.color} shadow-sm mt-0.5 ${isDisabled ? 'saturate-0' : ''}`}>
-                          <Icon className="h-4 w-4 text-white" strokeWidth={2.5} />
-                        </div>
-                        <div className="flex flex-col gap-0.5 flex-1 min-w-0">
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="font-semibold text-sm truncate">{item.title}</span>
-                            {item.count && (
-                              <span className="text-xs font-semibold text-muted-foreground shrink-0">{item.count}</span>
-                            )}
-                          </div>
-                          <span className="text-xs text-muted-foreground truncate">{item.description}</span>
-                        </div>
-                        <ChevronDown className="h-4 w-4 shrink-0 mt-1 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-180" />
-                      </div>
-                    </SidebarMenuButton>
-                  );
-
                   return (
                     <Collapsible key={item.title} asChild defaultOpen={!isDisabled}>
                       <SidebarMenuItem>
-                        <CollapsibleTrigger asChild>
-                          {isDisabled ? (
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                {menuButton}
-                              </TooltipTrigger>
-                              <TooltipContent side="right">
-                                <p>Configure uma empresa primeiro</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          ) : (
-                            menuButton
-                          )}
+                        <CollapsibleTrigger asChild disabled={isDisabled}>
+                          <SidebarMenuButton
+                            className={`group/item h-auto py-3 px-3 ${!isDisabled ? 'hover-elevate' : 'cursor-not-allowed opacity-40'}`}
+                            data-testid={`button-menu-${item.title.toLowerCase()}`}
+                            disabled={isDisabled}
+                            title={isDisabled ? "Configure uma empresa primeiro" : undefined}
+                            onClick={(e) => {
+                              if (isDisabled) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                              }
+                            }}
+                          >
+                            <div className="flex items-start gap-3 flex-1">
+                              <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${item.color} shadow-sm mt-0.5 ${isDisabled ? 'saturate-0' : ''}`}>
+                                <Icon className="h-4 w-4 text-white" strokeWidth={2.5} />
+                              </div>
+                              <div className="flex flex-col gap-0.5 flex-1 min-w-0">
+                                <div className="flex items-center justify-between gap-2">
+                                  <span className="font-semibold text-sm truncate">{item.title}</span>
+                                  {item.count && (
+                                    <span className="text-xs font-semibold text-muted-foreground shrink-0">{item.count}</span>
+                                  )}
+                                </div>
+                                <span className="text-xs text-muted-foreground truncate">{item.description}</span>
+                              </div>
+                              <ChevronDown className="h-4 w-4 shrink-0 mt-1 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-180" />
+                            </div>
+                          </SidebarMenuButton>
                         </CollapsibleTrigger>
                         {!isDisabled && (
                           <CollapsibleContent className="pb-1">
@@ -314,47 +299,27 @@ export function AppSidebar() {
                   );
                 }
 
-                const menuButton = (
-                  <SidebarMenuButton
-                    asChild={!isDisabled}
-                    isActive={!isDisabled && location === item.url}
-                    className={`group/item h-auto py-3 px-3 ${!isDisabled ? 'hover-elevate' : 'cursor-not-allowed opacity-40'}`}
-                    disabled={isDisabled}
-                  >
-                    {isDisabled ? (
-                      <div
-                        className="flex items-start gap-3 w-full"
-                        data-testid={`link-menu-${item.title.toLowerCase()}`}
-                        onClick={(e) => {
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      asChild={!isDisabled}
+                      isActive={!isDisabled && location === item.url}
+                      className={`group/item h-auto py-3 px-3 ${!isDisabled ? 'hover-elevate' : 'cursor-not-allowed opacity-40'}`}
+                      disabled={isDisabled}
+                      title={isDisabled ? "Configure uma empresa primeiro" : undefined}
+                      onClick={(e) => {
+                        if (isDisabled) {
                           e.preventDefault();
                           e.stopPropagation();
-                        }}
-                      >
-                        <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${item.color} shadow-sm mt-0.5 saturate-0`}>
-                          <Icon className="h-4 w-4 text-white" strokeWidth={2.5} />
-                        </div>
-                        <div className="flex flex-col gap-0.5 flex-1 min-w-0">
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="font-semibold text-sm truncate">{item.title}</span>
-                            {item.badge && (
-                              <Badge
-                                variant="secondary"
-                                className="h-5 min-w-5 px-1.5 text-xs font-semibold bg-primary text-primary-foreground shrink-0"
-                              >
-                                {item.badge}
-                              </Badge>
-                            )}
-                          </div>
-                          <span className="text-xs text-muted-foreground truncate">{item.description}</span>
-                        </div>
-                      </div>
-                    ) : (
-                      <Link href={item.url!}>
+                        }
+                      }}
+                    >
+                      {isDisabled ? (
                         <div
                           className="flex items-start gap-3 w-full"
                           data-testid={`link-menu-${item.title.toLowerCase()}`}
                         >
-                          <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${item.color} shadow-sm mt-0.5`}>
+                          <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${item.color} shadow-sm mt-0.5 saturate-0`}>
                             <Icon className="h-4 w-4 text-white" strokeWidth={2.5} />
                           </div>
                           <div className="flex flex-col gap-0.5 flex-1 min-w-0">
@@ -372,25 +337,33 @@ export function AppSidebar() {
                             <span className="text-xs text-muted-foreground truncate">{item.description}</span>
                           </div>
                         </div>
-                      </Link>
-                    )}
-                  </SidebarMenuButton>
-                );
-
-                return (
-                  <SidebarMenuItem key={item.title}>
-                    {isDisabled ? (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          {menuButton}
-                        </TooltipTrigger>
-                        <TooltipContent side="right">
-                          <p>Configure uma empresa primeiro</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    ) : (
-                      menuButton
-                    )}
+                      ) : (
+                        <Link href={item.url!}>
+                          <div
+                            className="flex items-start gap-3 w-full"
+                            data-testid={`link-menu-${item.title.toLowerCase()}`}
+                          >
+                            <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${item.color} shadow-sm mt-0.5`}>
+                              <Icon className="h-4 w-4 text-white" strokeWidth={2.5} />
+                            </div>
+                            <div className="flex flex-col gap-0.5 flex-1 min-w-0">
+                              <div className="flex items-center justify-between gap-2">
+                                <span className="font-semibold text-sm truncate">{item.title}</span>
+                                {item.badge && (
+                                  <Badge
+                                    variant="secondary"
+                                    className="h-5 min-w-5 px-1.5 text-xs font-semibold bg-primary text-primary-foreground shrink-0"
+                                  >
+                                    {item.badge}
+                                  </Badge>
+                                )}
+                              </div>
+                              <span className="text-xs text-muted-foreground truncate">{item.description}</span>
+                            </div>
+                          </div>
+                        </Link>
+                      )}
+                    </SidebarMenuButton>
                   </SidebarMenuItem>
                 );
               })}
