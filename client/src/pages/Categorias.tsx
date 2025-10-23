@@ -318,12 +318,14 @@ export default function Categorias() {
           </Select>
         </div>
 
-        <Dialog open={isDialogOpen} onOpenChange={handleCloseDialog}>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button data-testid="button-create-category">
-              <Plus className="mr-2 h-4 w-4" />
-              Nova Categoria
-            </Button>
+            {categories.length > 0 && (
+              <Button data-testid="button-create-category">
+                <Plus className="mr-2 h-4 w-4" />
+                Nova Categoria
+              </Button>
+            )}
           </DialogTrigger>
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
