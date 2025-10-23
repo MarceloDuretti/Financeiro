@@ -32,10 +32,17 @@ Preferred communication style: Simple, everyday language.
 - Modular component architecture.
 - Chart visualizations with Recharts (LineChart, PieChart) and custom heatmap tables.
 - Form handling with React Hook Form and Zod validation.
-- Responsive sidebar layout.
+- Responsive sidebar layout with conditional menu states.
 - **Custom Local Authentication:** Email/password with bcryptjs, user profile display, logout.
 - **Dashboard Design:** KPI cards with gradient backgrounds and sparklines, clean financial LineChart, heatmap table for department performance.
-- **Minha Empresa (My Company) Page:** Master-detail interface for managing multiple companies (CRUD operations), responsive layout, TanStack Query for data, localStorage for selected company persistence, data-testid for accessibility.
+- **Minha Empresa (My Company) Page:** 
+  - Master-detail interface for managing multiple companies
+  - Full CRUD operations: Create (Dialog with React Hook Form + Zod), Read (list + details), Update (inline edit mode), Delete (AlertDialog confirmation)
+  - Multi-tenant isolation with tenantId enforcement
+  - Responsive layout with TanStack Query for data fetching
+  - localStorage persistence for selected company
+  - Conditional sidebar state: menus disabled when no companies exist, enabled when at least one company is created
+  - Complete data-testid coverage for automated testing
 - **Usuarios (Users) Page:** Hierarchical user management (admin/collaborator), CRUD for collaborators, email invitations, granular company access. Table-based UI with status badges and action buttons.
 - **Accept Invite Page:** Public route for collaborators to set passwords and activate accounts.
 
@@ -50,6 +57,13 @@ Preferred communication style: Simple, everyday language.
     - `POST /api/auth/logout`: Logout.
     - `GET /api/auth/user`: Get current user.
     - Session-based authentication with PostgreSQL storage, bcryptjs for password hashing, `isAuthenticated` and `isAdmin` middleware.
+- **Company Management:**
+    - `GET /api/companies`: List companies (tenant-scoped).
+    - `GET /api/companies/:id`: Get company details (tenant-scoped).
+    - `POST /api/companies`: Create company (auto-injects tenantId).
+    - `PATCH /api/companies/:id`: Update company (tenant-scoped, strips tenantId from payload).
+    - `DELETE /api/companies/:id`: Delete company (tenant-scoped).
+    - All routes enforce multi-tenant isolation via `getTenantId()`.
 - **Collaborator Management:**
     - `GET /api/collaborators`: List collaborators (admin only).
     - `POST /api/collaborators`: Create and invite collaborator (admin only).
@@ -59,7 +73,7 @@ Preferred communication style: Simple, everyday language.
     - Email invites via Nodemailer, time-limited `nanoid` tokens.
 - Request logging middleware.
 
-**Storage Layer:** PostgreSQL-backed via Drizzle ORM with an `IStorage` abstraction implementing **multi-tenant isolation**. All company and user-company operations require `tenantId` parameter to ensure data is scoped to the authenticated user's tenant. Includes methods for user management (create, update, get by email/ID, list collaborators), company management (list, get, create, update - all with tenantId), and user-company assignments (all with tenantId).
+**Storage Layer:** PostgreSQL-backed via Drizzle ORM with an `IStorage` abstraction implementing **multi-tenant isolation**. All company and user-company operations require `tenantId` parameter to ensure data is scoped to the authenticated user's tenant. Includes methods for user management (create, update, get by email/ID, list collaborators), company management (list, get, create, update, delete - all with tenantId), and user-company assignments (all with tenantId).
 
 **Multi-Tenant Architecture (October 23, 2025):**
 - **Tenant Model**: Row-level multi-tenancy where each admin is a separate tenant
