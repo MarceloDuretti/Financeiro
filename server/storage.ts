@@ -3,12 +3,15 @@ import {
   users,
   companies,
   userCompanies,
+  companyMembers,
   type User,
   type InsertUser,
   type Company,
   type InsertCompany,
   type UserCompany,
   type InsertUserCompany,
+  type CompanyMember,
+  type InsertCompanyMember,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, inArray, sql } from "drizzle-orm";
@@ -39,6 +42,17 @@ export interface IStorage {
   deleteUserCompanies(tenantId: string, userId: string): Promise<void>;
   getUserCompanies(tenantId: string, userId: string): Promise<Company[]>;
   getCompanyUsers(tenantId: string, companyId: string): Promise<User[]>;
+
+  // Company Members operations - all require tenantId for multi-tenant isolation
+  listCompanyMembers(tenantId: string, companyId: string): Promise<CompanyMember[]>;
+  getCompanyMember(tenantId: string, id: string): Promise<CompanyMember | undefined>;
+  createCompanyMember(tenantId: string, member: Omit<InsertCompanyMember, 'tenantId'>): Promise<CompanyMember>;
+  updateCompanyMember(
+    tenantId: string,
+    id: string,
+    member: Partial<Omit<InsertCompanyMember, 'tenantId' | 'companyId'>>
+  ): Promise<CompanyMember | undefined>;
+  deleteCompanyMember(tenantId: string, id: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -204,6 +218,78 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(users)
       .where(inArray(users.id, userIds));
+  }
+
+  // Company Members operations - with tenant isolation
+
+  async listCompanyMembers(tenantId: string, companyId: string): Promise<CompanyMember[]> {
+    return await db
+      .select()
+      .from(companyMembers)
+      .where(and(
+        eq(companyMembers.tenantId, tenantId),
+        eq(companyMembers.companyId, companyId),
+        eq(companyMembers.deleted, false)
+      ));
+  }
+
+  async getCompanyMember(tenantId: string, id: string): Promise<CompanyMember | undefined> {
+    const [member] = await db
+      .select()
+      .from(companyMembers)
+      .where(and(
+        eq(companyMembers.tenantId, tenantId),
+        eq(companyMembers.id, id),
+        eq(companyMembers.deleted, false)
+      ));
+    return member;
+  }
+
+  async createCompanyMember(tenantId: string, memberData: Omit<InsertCompanyMember, 'tenantId'>): Promise<CompanyMember> {
+    const [member] = await db
+      .insert(companyMembers)
+      .values({ ...memberData, tenantId })
+      .returning();
+    return member;
+  }
+
+  async updateCompanyMember(
+    tenantId: string,
+    id: string,
+    updates: Partial<Omit<InsertCompanyMember, 'tenantId' | 'companyId'>>
+  ): Promise<CompanyMember | undefined> {
+    const [member] = await db
+      .update(companyMembers)
+      .set({
+        ...updates,
+        updatedAt: new Date(),
+        version: sql`${companyMembers.version} + 1`, // Atomic increment
+      })
+      .where(and(
+        eq(companyMembers.tenantId, tenantId),
+        eq(companyMembers.id, id),
+        eq(companyMembers.deleted, false)
+      ))
+      .returning();
+    return member;
+  }
+
+  async deleteCompanyMember(tenantId: string, id: string): Promise<boolean> {
+    // Soft-delete: mark as deleted instead of physically removing
+    const result = await db
+      .update(companyMembers)
+      .set({
+        deleted: true,
+        updatedAt: new Date(),
+        version: sql`${companyMembers.version} + 1`, // Atomic increment
+      })
+      .where(and(
+        eq(companyMembers.tenantId, tenantId),
+        eq(companyMembers.id, id),
+        eq(companyMembers.deleted, false) // Only delete if not already deleted
+      ))
+      .returning();
+    return result.length > 0;
   }
 }
 

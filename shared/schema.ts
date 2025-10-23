@@ -165,3 +165,31 @@ export const acceptInviteSchema = z.object({
 });
 
 export type AcceptInviteData = z.infer<typeof acceptInviteSchema>;
+
+// Company Members table - Team members within a specific company
+export const companyMembers = pgTable("company_members", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  tenantId: varchar("tenant_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  companyId: varchar("company_id").notNull().references(() => companies.id, { onDelete: 'cascade' }),
+  name: text("name").notNull(),
+  email: text("email").notNull(),
+  role: text("role").notNull(), // e.g., "Gerente Financeiro", "Assistente"
+  phone: text("phone"),
+  status: text("status").notNull().default("active"), // "active" or "inactive"
+  updatedAt: timestamp("updated_at").notNull().defaultNow().$onUpdate(() => new Date()),
+  version: bigint("version", { mode: "number" }).notNull().default(1),
+  deleted: boolean("deleted").notNull().default(false),
+}, (table) => [
+  index("company_members_tenant_company_idx").on(table.tenantId, table.companyId, table.deleted, table.id),
+  index("company_members_tenant_updated_idx").on(table.tenantId, table.updatedAt),
+]);
+
+export const insertCompanyMemberSchema = createInsertSchema(companyMembers).omit({
+  id: true,
+  updatedAt: true,
+  version: true,
+  deleted: true,
+});
+
+export type InsertCompanyMember = z.infer<typeof insertCompanyMemberSchema>;
+export type CompanyMember = typeof companyMembers.$inferSelect;
