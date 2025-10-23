@@ -3,7 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Building2, Phone, Mail, MapPin, FileText, Briefcase, Globe, User, X, ChevronRight, Edit2, Plus, Trash2 } from "lucide-react";
+import { Building2, Phone, Mail, MapPin, FileText, Briefcase, Globe, User, X, ChevronRight, Edit2, Plus, Trash2, Info, Users } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,10 +12,12 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { insertCompanySchema, type Company } from "@shared/schema";
 import type { InsertCompany } from "@shared/schema";
+import { TeamTab } from "@/components/TeamTab";
 
 const SELECTED_COMPANY_KEY = "fincontrol_selected_company_id";
 
@@ -615,8 +617,29 @@ export default function MinhaEmpresa() {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Dados Fiscais */}
+              <CardContent className="p-0">
+                <Tabs defaultValue="info" className="w-full">
+                  <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0">
+                    <TabsTrigger 
+                      value="info" 
+                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
+                      data-testid="tab-info"
+                    >
+                      <Info className="h-4 w-4 mr-2" />
+                      Informações
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="team" 
+                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
+                      data-testid="tab-team"
+                    >
+                      <Users className="h-4 w-4 mr-2" />
+                      Equipe
+                    </TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="info" className="p-6 space-y-6 mt-0">
+                    {/* Dados Fiscais */}
                 <div className="space-y-3">
                   <div className="flex items-center gap-2 text-primary">
                     <FileText className="h-5 w-5" />
@@ -944,6 +967,12 @@ export default function MinhaEmpresa() {
                     </div>
                   </div>
                 )}
+                  </TabsContent>
+
+                  <TabsContent value="team" className="p-6 mt-0">
+                    <TeamTab companyId={selectedCompany.id} companyName={selectedCompany.tradeName} />
+                  </TabsContent>
+                </Tabs>
               </CardContent>
             </Card>
           </div>
