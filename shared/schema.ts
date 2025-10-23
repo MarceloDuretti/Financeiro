@@ -65,9 +65,10 @@ export type User = typeof users.$inferSelect;
 export type LoginData = z.infer<typeof loginSchema>;
 export type SignupData = z.infer<typeof signupSchema>;
 
-// Companies table for multi-company management
+// Companies table for multi-company management with tenant isolation
 export const companies = pgTable("companies", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  tenantId: varchar("tenant_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
   code: text("code").notNull(),
   tradeName: text("trade_name").notNull(),
   legalName: text("legal_name").notNull(),
@@ -96,7 +97,10 @@ export const companies = pgTable("companies", {
   responsavelEmail: text("responsavel_email"),
   responsavelFoto: text("responsavel_foto"),
   isActive: boolean("is_active").default(false),
-});
+}, (table) => [
+  index("companies_tenant_idx").on(table.tenantId, table.id),
+  index("companies_tenant_code_idx").on(table.tenantId, table.code),
+]);
 
 export const insertCompanySchema = createInsertSchema(companies).omit({
   id: true,
@@ -105,13 +109,16 @@ export const insertCompanySchema = createInsertSchema(companies).omit({
 export type InsertCompany = z.infer<typeof insertCompanySchema>;
 export type Company = typeof companies.$inferSelect;
 
-// User-Company relationship table (which companies a collaborator can access)
+// User-Company relationship table (which companies a collaborator can access) with tenant isolation
 export const userCompanies = pgTable("user_companies", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull(),
-  companyId: varchar("company_id").notNull(),
+  tenantId: varchar("tenant_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  companyId: varchar("company_id").notNull().references(() => companies.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
-});
+}, (table) => [
+  index("user_companies_tenant_idx").on(table.tenantId, table.userId, table.companyId),
+]);
 
 export const insertUserCompanySchema = createInsertSchema(userCompanies).omit({
   id: true,
