@@ -4,6 +4,7 @@ import {
   companies,
   userCompanies,
   companyMembers,
+  categories,
   type User,
   type InsertUser,
   type Company,
@@ -12,6 +13,8 @@ import {
   type InsertUserCompany,
   type CompanyMember,
   type InsertCompanyMember,
+  type Category,
+  type InsertCategory,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, inArray, sql } from "drizzle-orm";
@@ -53,6 +56,17 @@ export interface IStorage {
     member: Partial<InsertCompanyMember>
   ): Promise<CompanyMember | undefined>;
   deleteCompanyMember(tenantId: string, id: string): Promise<boolean>;
+
+  // Categories operations - all require tenantId for multi-tenant isolation
+  listCategories(tenantId: string): Promise<Category[]>;
+  getCategoryById(tenantId: string, id: string): Promise<Category | undefined>;
+  createCategory(tenantId: string, category: InsertCategory): Promise<Category>;
+  updateCategory(
+    tenantId: string,
+    id: string,
+    category: Partial<InsertCategory>
+  ): Promise<Category | undefined>;
+  deleteCategory(tenantId: string, id: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -287,6 +301,77 @@ export class DatabaseStorage implements IStorage {
         eq(companyMembers.tenantId, tenantId),
         eq(companyMembers.id, id),
         eq(companyMembers.deleted, false) // Only delete if not already deleted
+      ))
+      .returning();
+    return result.length > 0;
+  }
+
+  // Categories operations - with tenant isolation
+
+  async listCategories(tenantId: string): Promise<Category[]> {
+    return await db
+      .select()
+      .from(categories)
+      .where(and(
+        eq(categories.tenantId, tenantId),
+        eq(categories.deleted, false)
+      ));
+  }
+
+  async getCategoryById(tenantId: string, id: string): Promise<Category | undefined> {
+    const [category] = await db
+      .select()
+      .from(categories)
+      .where(and(
+        eq(categories.tenantId, tenantId),
+        eq(categories.id, id),
+        eq(categories.deleted, false)
+      ));
+    return category;
+  }
+
+  async createCategory(tenantId: string, categoryData: InsertCategory): Promise<Category> {
+    const [category] = await db
+      .insert(categories)
+      .values({ ...categoryData, tenantId })
+      .returning();
+    return category;
+  }
+
+  async updateCategory(
+    tenantId: string,
+    id: string,
+    updates: Partial<InsertCategory>
+  ): Promise<Category | undefined> {
+    const [category] = await db
+      .update(categories)
+      .set({
+        ...updates,
+        updatedAt: new Date(),
+        version: sql`${categories.version} + 1`, // Atomic increment
+      })
+      .where(and(
+        eq(categories.tenantId, tenantId),
+        eq(categories.id, id),
+        eq(categories.deleted, false)
+      ))
+      .returning();
+    return category;
+  }
+
+  async deleteCategory(tenantId: string, id: string): Promise<boolean> {
+    // Soft-delete: mark as deleted instead of physically removing
+    const result = await db
+      .update(categories)
+      .set({
+        deleted: true,
+        updatedAt: new Date(),
+        version: sql`${categories.version} + 1`, // Atomic increment
+      })
+      .where(and(
+        eq(categories.tenantId, tenantId),
+        eq(categories.id, id),
+        eq(categories.deleted, false) // Only delete if not already deleted
       ))
       .returning();
     return result.length > 0;
