@@ -46,6 +46,12 @@ Preferred communication style: Simple, everyday language.
     - Larger colorful icons (h-5 w-5) with type-based colors (green for Receita, red for Despesa, blue for Ativo, amber for Passivo, violet for Patrimônio Líquido)
     - Code badges with monospace font
     - Smart spacing (more between root groups, less within groups)
+    - Description display under account name (truncated with tooltip)
+    - Differentiated subtle background for leaf accounts (final levels)
+  - **Smart Tree Controls:**
+    - "Expandir Tudo" button when tree is collapsed
+    - "Recolher Tudo" button when any node is expanded
+    - Conditional rendering for cleaner interface
   - Hierarchical tree structure (max 5 levels) with auto-generated codes (1, 1.1, 1.1.1) using advisory locks
   - Materialized path pattern for O(1) queries, full CRUD operations, expandable tree UI
   - Account types: Receita, Despesa, Ativo, Passivo, Patrimônio Líquido
