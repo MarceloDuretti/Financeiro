@@ -2,13 +2,13 @@
 
 ## Overview
 
-FinControl is a comprehensive financial management platform designed for individuals and businesses (including MEI). It features a modern, Apple-inspired minimalist landing page and a full-featured dashboard for managing financial transactions, accounts, categories, and generating reports. The application is a full-stack TypeScript solution utilizing a React frontend, Express backend, and PostgreSQL database with Drizzle ORM.
+FinControl is a comprehensive financial management platform for individuals and businesses (including MEI). It features a modern, Apple-inspired minimalist landing page and a full-featured dashboard for managing financial transactions, accounts, categories, and generating reports. The application is a full-stack TypeScript solution utilizing a React frontend, Express backend, and PostgreSQL database with Drizzle ORM.
 
-**Key Architectural Features:**
-- **True Multi-Tenant Architecture (Big Data)**: Single PostgreSQL database serves multiple isolated clients with row-level tenant isolation
-- **Hierarchical User System**: Admin/collaborator roles with email invitations and granular company access control
-- **Complete Data Isolation**: Each admin tenant can only see and manage their own data - zero cross-tenant data leakage
-- **Performance Optimized**: Composite indexes on (tenantId, id) for fast tenant-scoped queries
+Key capabilities include:
+- True Multi-Tenant Architecture with row-level tenant isolation.
+- Hierarchical User System with admin/collaborator roles and granular company access control.
+- Complete Data Isolation ensuring no cross-tenant data leakage.
+- Performance Optimized with composite indexes for fast tenant-scoped queries.
 
 ## User Preferences
 
@@ -20,166 +20,65 @@ Preferred communication style: Simple, everyday language.
 
 **Technology Stack:** React 18 with TypeScript, Wouter for routing, TanStack Query for state management, Radix UI and shadcn/ui for components, Tailwind CSS for styling, and Vite as the build tool.
 
-**Design System:** Apple-inspired minimalist aesthetic, mobile-first, custom color palette (blue primary, neutral grays), SF Pro Display typography, responsive breakpoints (mobile, tablet, desktop).
+**Design System:** Apple-inspired minimalist aesthetic, mobile-first, custom color palette (blue primary, neutral grays), SF Pro Display typography, responsive breakpoints.
 
-**Application Structure:**
-- **Landing Page:** Public marketing site.
-- **Dashboard:** Authenticated application with sidebar navigation and modular feature sets.
-- **Routing:** Public routes for landing and authentication, protected routes for the dashboard.
-- **Authentication:** Custom local email/password authentication using Passport Local Strategy, session-based (PostgreSQL), with integrated Apple-inspired login, signup, and password recovery pages. Auto-login on signup.
+**Application Structure:** Includes a public landing page and an authenticated dashboard with modular feature sets. Custom local email/password authentication (Passport Local Strategy) is implemented with session-based storage.
 
 **Key Features:**
 - Modular component architecture.
-- Chart visualizations with Recharts (LineChart, PieChart) and custom heatmap tables.
+- Chart visualizations (Recharts) and custom heatmap tables.
 - Form handling with React Hook Form and Zod validation.
-- Responsive sidebar layout with conditional menu states.
-- **Custom Local Authentication:** Email/password with bcryptjs, user profile display, logout.
-- **Dashboard Design:** KPI cards with gradient backgrounds and sparklines, clean financial LineChart, heatmap table for department performance.
-- **Minha Empresa (My Company) Page:** 
-  - Master-detail interface for managing multiple companies
-  - Full CRUD operations: Create (Dialog with React Hook Form + Zod), Read (list + details), Update (inline edit mode), Delete (AlertDialog confirmation)
-  - Multi-tenant isolation with tenantId enforcement
-  - Responsive layout with TanStack Query for data fetching
-  - localStorage persistence for selected company
-  - Conditional sidebar state: menus disabled when no companies exist, enabled when at least one company is created
-  - **Tab Interface (Apple-style):** Informações (company details) and Equipe (team members)
-  - **Team Members Management (Equipe Tab):**
-    - Full CRUD: Add, edit, delete team members within each company
-    - Card-based layout with avatars, role badges, and status indicators
-    - Dialog forms with React Hook Form + Zod validation
-    - AlertDialog confirmation for deletions
-    - Empty state when no members ("Nenhum membro na equipe")
-    - Soft-delete implementation (deleted=true, version increment)
-    - Multi-tenant isolation (tenantId + companyId scoped)
-  - Complete data-testid coverage for automated testing
-- **Usuarios (Users) Page:** Hierarchical user management (admin/collaborator), CRUD for collaborators, email invitations, granular company access. Table-based UI with status badges and action buttons.
-- **Accept Invite Page:** Public route for collaborators to set passwords and activate accounts.
-- **Categorias (Categories) Page:**
-  - Educational section explaining the purpose, examples, and benefits of categories
-  - Full CRUD operations: Create, Read, Update, Delete categories
-  - Category types: Receita (Revenue) or Despesa (Expense)
-  - Custom color selection for visual badges (10 preset colors)
-  - Card-based layout with TrendingUp/TrendingDown icons
-  - Real-time stats: Total categories, Receitas count, Despesas count
-  - Search and filter by type (all/receita/despesa)
-  - Dialog forms with React Hook Form + Zod validation
-  - AlertDialog confirmation for deletions
-  - Empty state with "Criar primeira categoria" CTA
-  - Soft-delete implementation (deleted=true, version increment)
-  - Multi-tenant isolation (tenantId scoped)
-  - Complete data-testid coverage for automated testing
-- **Plano de Contas (Chart of Accounts) Page:**
-  - Hierarchical tree structure with unlimited depth (max 5 levels)
-  - Auto-generated hierarchical codes (1, 1.1, 1.1.1) using advisory locks for thread-safety
-  - Materialized path pattern for O(1) subtree queries in BigData scenarios
-  - Full CRUD operations: Create root account, create subconta, edit, soft-delete
+- Responsive sidebar layout.
+- **Custom Local Authentication:** Email/password with bcryptjs, user profile, logout.
+- **Dashboard Design:** KPI cards, financial LineChart, heatmap table.
+- **Minha Empresa (My Company) Page:** Master-detail interface for managing multiple companies with full CRUD, multi-tenant isolation, and localStorage persistence for selected company. Includes an Apple-style tab interface for company details and team member management.
+- **Team Members Management (Equipe Tab):** Full CRUD for team members within each company, card-based layout, and soft-delete implementation.
+- **Usuarios (Users) Page:** Hierarchical user management (admin/collaborator), CRUD for collaborators, and email invitations.
+- **Accept Invite Page:** Public route for collaborators to activate accounts.
+- **Categorias (Categories) Page:** Educational section, full CRUD for categories (Revenue/Expense), custom color selection, and real-time stats.
+- **Plano de Contas (Chart of Accounts) Page:** 
+  - **Auto-Seed on First Access:** When accessing for the first time (empty state), automatically creates 5 default root accounts: Receitas (1), Despesas (2), Ativo (3), Passivo (4), Patrimônio Líquido (5). Provides immediate professional structure for users without accounting knowledge.
+  - Hierarchical tree structure (max 5 levels) with auto-generated codes (1, 1.1, 1.1.1) using advisory locks
+  - Materialized path pattern for O(1) queries, full CRUD operations, expandable tree UI
   - Account types: Receita, Despesa, Ativo, Passivo, Patrimônio Líquido
-  - Expandable tree with visual indentation and folder/file icons
-  - Dialog forms with React Hook Form + Zod validation
-  - Delete validation: prevents deletion of accounts with children
-  - Full-path names pre-computed (e.g., "Receitas > Vendas > Vendas à Vista")
-  - Educational empty state explaining chart of accounts concept
-  - Multi-tenant isolation (tenantId scoped) with RLS policies
-  - Complete data-testid coverage for automated testing
 
 ### Backend Architecture
 
 **Technology Stack:** Node.js with TypeScript, Express.js, Drizzle ORM, esbuild for production, tsx for development.
 
-**API Design:** RESTful API (`/api` prefix).
-- **Authentication:**
-    - `POST /api/auth/signup`: Create user (admin role, auto-login).
-    - `POST /api/auth/login`: Login (Passport Local Strategy).
-    - `POST /api/auth/logout`: Logout.
-    - `GET /api/auth/user`: Get current user.
-    - Session-based authentication with PostgreSQL storage, bcryptjs for password hashing, `isAuthenticated` and `isAdmin` middleware.
-- **Company Management:**
-    - `GET /api/companies`: List companies (tenant-scoped).
-    - `GET /api/companies/:id`: Get company details (tenant-scoped).
-    - `POST /api/companies`: Create company (auto-injects tenantId).
-    - `PATCH /api/companies/:id`: Update company (tenant-scoped, strips tenantId from payload).
-    - `DELETE /api/companies/:id`: Delete company (tenant-scoped).
-    - All routes enforce multi-tenant isolation via `getTenantId()`.
-- **Collaborator Management:**
-    - `GET /api/collaborators`: List collaborators (admin only).
-    - `POST /api/collaborators`: Create and invite collaborator (admin only).
-    - `PATCH /api/collaborators/:id/status`: Activate/deactivate (admin only).
-    - `POST /api/collaborators/:id/resend-invite`: Resend invite (admin only).
-    - `POST /api/accept-invite`: Collaborator accepts invite (public).
-    - Email invites via Nodemailer, time-limited `nanoid` tokens.
-- **Company Members Management:**
-    - `GET /api/companies/:companyId/members`: List members (tenant-scoped).
-    - `POST /api/companies/:companyId/members`: Create member (auto-injects tenantId + companyId from URL).
-    - `PATCH /api/companies/:companyId/members/:id`: Update member (tenant-scoped).
-    - `DELETE /api/companies/:companyId/members/:id`: Soft-delete member (tenant-scoped).
-    - Schema omits tenantId/companyId for security (prevents client override).
-- **Categories Management:**
-    - `GET /api/categories`: List categories (tenant-scoped).
-    - `POST /api/categories`: Create category (auto-injects tenantId).
-    - `PATCH /api/categories/:id`: Update category (tenant-scoped).
-    - `DELETE /api/categories/:id`: Soft-delete category (tenant-scoped).
-    - Validates category code uniqueness per tenant.
-- **Chart of Accounts Management:**
-    - `GET /api/chart-of-accounts`: List accounts (hierarchical tree, tenant-scoped).
-    - `POST /api/chart-of-accounts`: Create account (auto-injects tenantId, generates hierarchical code).
-    - `PATCH /api/chart-of-accounts/:id`: Update account (tenant-scoped, strips tenantId/parentId/code).
-    - `DELETE /api/chart-of-accounts/:id`: Soft-delete account (tenant-scoped, validates no children).
-    - Thread-safe code generation using PostgreSQL advisory locks.
-- Request logging middleware.
+**API Design:** RESTful API with `/api` prefix.
+- **Authentication:** Signup, login, logout, get current user, using Passport Local Strategy with session-based authentication.
+- **Management Endpoints:**
+    - `companies`: CRUD operations with multi-tenant isolation.
+    - `collaborators`: List, create, invite, activate/deactivate, resend invite, and accept invite (public).
+    - `company members`: List, create, update, soft-delete for members within a specific company, with multi-tenant and company-scoped isolation.
+    - `categories`: CRUD operations with tenant-scoped isolation.
+    - `chart-of-accounts`: CRUD operations for hierarchical accounts with tenant-scoped isolation, auto-code generation, delete validation. **GET endpoint auto-seeds 5 default root accounts on first access** (Receitas, Despesas, Ativo, Passivo, Patrimônio Líquido) via `seedDefaultChartAccounts(tenantId)` method.
 
-**Storage Layer:** PostgreSQL-backed via Drizzle ORM with an `IStorage` abstraction implementing **multi-tenant isolation**. All company and user-company operations require `tenantId` parameter to ensure data is scoped to the authenticated user's tenant. Includes methods for user management (create, update, get by email/ID, list collaborators), company management (list, get, create, update, delete - all with tenantId), and user-company assignments (all with tenantId).
+**Storage Layer:** PostgreSQL-backed via Drizzle ORM, implementing multi-tenant isolation through a `tenantId` parameter in all business data operations. This ensures data is scoped to the authenticated user's tenant.
 
-**Multi-Tenant Architecture (October 23, 2025):**
-- **Tenant Model**: Row-level multi-tenancy where each admin is a separate tenant
-- **Isolation Method**: `tenantId` column added to all business data tables (companies, user_companies)
-- **Security Helper**: `getTenantId(user)` extracts tenantId from authenticated user (admin uses own ID, collaborator inherits adminId)
-- **API Layer**: All routes automatically inject tenantId via `getTenantId()` - never accepts tenantId from client
-- **Storage Layer**: All methods enforce tenantId filtering using Drizzle ORM `and()` conditions
-- **Performance Optimizations (October 23, 2025)**:
-  - **Composite Indexes**: `(tenantId, id)`, `(tenantId, code)`, `(tenantId, updated_at)`, `(tenantId, deleted, id)` for fast queries
-  - **Versioning System**: All business tables have `updated_at`, `version` (atomic increment), `deleted` columns for incremental sync
-  - **Soft-Delete**: Records marked `deleted=true` instead of physical deletion, preserving audit trail
-  - **Row-Level Security (RLS)**: PostgreSQL RLS enabled on companies/user_companies with policies using `current_setting('app.tenant_id')`
-  - **Atomic Version Increment**: `version = version + 1` via SQL on all mutations (create/update/delete)
-- **Security**: PATCH routes explicitly strip tenantId from payloads to prevent tenant hijacking + RLS as double layer
+**Multi-Tenant Architecture:**
+- **Tenant Model**: Row-level multi-tenancy where each admin is a separate tenant.
+- **Isolation Method**: `tenantId` column in all business data tables.
+- **Security Helper**: `getTenantId(user)` extracts tenantId from the authenticated user.
+- **API Layer**: All routes automatically inject `tenantId` and never accept it from the client.
+- **Storage Layer**: All methods enforce `tenantId` filtering.
+- **Performance Optimizations**: Composite indexes on `(tenantId, id)`, `(tenantId, code)`, etc.
+- **Versioning System**: All business tables include `updated_at`, `version`, `deleted` columns for incremental sync and soft-deletion.
+- **Row-Level Security (RLS)**: PostgreSQL RLS enabled on sensitive tables using `current_setting('app.tenant_id')`.
+- **Atomic Version Increment**: `version = version + 1` via SQL on all mutations.
 
-**Automatic Code Generation System (October 23, 2025)**:
-- **Design**: Hybrid approach - integer storage (performance) + frontend formatting (UX)
-- **Database**: Code stored as `integer` type (1, 2, 3...) in companies and categories tables
-- **Frontend**: Formatters convert to user-friendly codes (EMP001, REC001, DES001)
-- **Thread-Safety**: PostgreSQL advisory locks (`pg_advisory_xact_lock`) prevent race conditions
-- **Atomicity**: Lock + SELECT MAX + INSERT executed in single transaction
-- **Unique Constraints**: 
-  - `companies`: uniqueIndex(tenantId, code) 
-  - `categories`: uniqueIndex(tenantId, code, type) - code is sequential per type
-- **Formatters** (client/src/lib/formatters.ts):
-  - `formatCompanyCode(1)` → "EMP001"
-  - `formatCategoryCode(1, "receita")` → "REC001"
-  - `formatCategoryCode(1, "despesa")` → "DES001"
-- **Storage Methods**:
-  - `createCompany`: Acquires advisory lock, gets next code, inserts (all in one transaction)
-  - `createCategory`: Same pattern but separate locks per tenant+type
-- **Migration**: Documented in `db/migrations/20251023_codigo_automatico.sql` - converts existing varchar codes to sequential integers
-- **Security**: Code never accepted from client - always auto-generated by backend
-- **Multi-Tenant**: Each tenant has independent code sequences starting at 1
-- **Categories**: Separate sequences for receita (REC) and despesa (DES) types
+**Automatic Code Generation System:**
+- **Design**: Hybrid approach using integer storage in the database for performance and frontend formatting for user experience.
+- **Thread-Safety**: PostgreSQL advisory locks prevent race conditions during code generation.
+- **Unique Constraints**: Implemented on `(tenantId, code)` for companies and `(tenantId, code, type)` for categories.
+- **Formatters**: Frontend functions convert integer codes to user-friendly formats (e.g., "EMP001", "REC001").
+- **Security**: Codes are always auto-generated by the backend.
+- **Multi-Tenant**: Each tenant has independent code sequences.
 
 **Data Storage Solutions:**
-- **Database:** Neon Serverless PostgreSQL, Drizzle ORM. Migrations via Drizzle Kit.
-- **Schema:** Shared between client/server with multi-tenant isolation.
-    - `sessions` table: PostgreSQL-backed session storage (global, no tenant).
-    - `users` table: User authentication, profile, roles ("admin", "collaborator"), status, invite tokens, hierarchical `adminId`.
-    - `companies` table: Multi-company data with **tenantId** for isolation (3 seed records for bootstrap admin).
-    - `user_companies` table: Many-to-many relationship with **tenantId** for isolation.
-    - `company_members` table: Team members per company with **tenantId + companyId** for isolation, follows mandatory architecture (updated_at, version, deleted, composite indexes).
-    - `categories` table: Financial categories (receita/despesa) with **tenantId** for isolation, custom colors, follows mandatory architecture (updated_at, version, deleted, composite indexes).
-    - `chart_of_accounts` table: Hierarchical chart of accounts with **tenantId** for isolation, self-referencing parentId, materialized path, auto-generated hierarchical codes (1, 1.1, 1.1.1), follows mandatory architecture with RLS policies and cycle detection triggers.
-    
-**Bootstrap Admin (Seed Data):**
-- ID: `00000000-0000-0000-0000-000000000001`
-- Email: `admin@fincontrol.com.br`
-- Password: `demo123`
-- Owns 3 seed companies: FinControl Matriz (001), FinControl Filial RJ (002), FinControl Labs (003)
+- **Database:** Neon Serverless PostgreSQL, Drizzle ORM for schema and migrations.
+- **Schema:** Shared between client/server, including tables for `sessions`, `users`, `companies`, `user_companies`, `company_members`, `categories`, and `chart_of_accounts`, all with appropriate `tenantId` and `companyId` for isolation.
 
 ## External Dependencies
 
