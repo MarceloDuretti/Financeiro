@@ -46,11 +46,11 @@ export interface IStorage {
   // Company Members operations - all require tenantId for multi-tenant isolation
   listCompanyMembers(tenantId: string, companyId: string): Promise<CompanyMember[]>;
   getCompanyMember(tenantId: string, id: string): Promise<CompanyMember | undefined>;
-  createCompanyMember(tenantId: string, member: Omit<InsertCompanyMember, 'tenantId'>): Promise<CompanyMember>;
+  createCompanyMember(tenantId: string, companyId: string, member: InsertCompanyMember): Promise<CompanyMember>;
   updateCompanyMember(
     tenantId: string,
     id: string,
-    member: Partial<Omit<InsertCompanyMember, 'tenantId' | 'companyId'>>
+    member: Partial<InsertCompanyMember>
   ): Promise<CompanyMember | undefined>;
   deleteCompanyMember(tenantId: string, id: string): Promise<boolean>;
 }
@@ -245,10 +245,10 @@ export class DatabaseStorage implements IStorage {
     return member;
   }
 
-  async createCompanyMember(tenantId: string, memberData: Omit<InsertCompanyMember, 'tenantId'>): Promise<CompanyMember> {
+  async createCompanyMember(tenantId: string, companyId: string, memberData: InsertCompanyMember): Promise<CompanyMember> {
     const [member] = await db
       .insert(companyMembers)
-      .values({ ...memberData, tenantId })
+      .values({ ...memberData, tenantId, companyId })
       .returning();
     return member;
   }

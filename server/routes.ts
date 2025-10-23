@@ -215,13 +215,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/companies/:companyId/members", isAuthenticated, async (req: any, res) => {
     try {
       const tenantId = getTenantId(req.user);
-      const memberData = insertCompanyMemberSchema.omit({ tenantId: true }).parse(req.body);
+      const memberData = insertCompanyMemberSchema.parse(req.body);
       
-      // Ensure companyId from URL is used (prevent mismatch)
-      const member = await storage.createCompanyMember(tenantId, {
-        ...memberData,
-        companyId: req.params.companyId,
-      });
+      // companyId comes from URL, tenantId from authenticated user
+      const member = await storage.createCompanyMember(tenantId, req.params.companyId, memberData);
       
       res.json(member);
     } catch (error: any) {
@@ -235,10 +232,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const tenantId = getTenantId(req.user);
       const updates = insertCompanyMemberSchema.partial().parse(req.body);
       
-      // SECURITY: Remove tenantId and companyId from updates
-      const { tenantId: _, companyId: __, ...safeUpdates } = updates;
-      
-      const member = await storage.updateCompanyMember(tenantId, req.params.id, safeUpdates);
+      // tenantId and companyId already omitted from schema, so no need to strip them
+      const member = await storage.updateCompanyMember(tenantId, req.params.id, updates);
       if (!member) {
         return res.status(404).json({ error: "Member not found" });
       }

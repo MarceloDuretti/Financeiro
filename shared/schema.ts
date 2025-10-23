@@ -186,6 +186,8 @@ export const companyMembers = pgTable("company_members", {
 
 export const insertCompanyMemberSchema = createInsertSchema(companyMembers).omit({
   id: true,
+  tenantId: true,
+  companyId: true,
   updatedAt: true,
   version: true,
   deleted: true,
