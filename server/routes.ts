@@ -143,7 +143,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/companies", isAuthenticated, async (req: any, res) => {
     try {
       const tenantId = getTenantId(req.user);
-      const companyData = insertCompanySchema.omit({ tenantId: true }).parse(req.body);
+      const companyData = insertCompanySchema.omit({ tenantId: true, code: true }).parse(req.body);
       
       const company = await storage.createCompany(tenantId, companyData);
       res.json(company);
@@ -289,7 +289,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/categories", isAuthenticated, async (req: any, res) => {
     try {
       const tenantId = getTenantId(req.user);
-      const categoryData = insertCategorySchema.parse(req.body);
+      const categoryData = insertCategorySchema.omit({ code: true }).parse(req.body);
       const category = await storage.createCategory(tenantId, categoryData);
       res.json(category);
     } catch (error: any) {

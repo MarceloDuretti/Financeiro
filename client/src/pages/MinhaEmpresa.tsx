@@ -18,6 +18,7 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import { insertCompanySchema, type Company } from "@shared/schema";
 import type { InsertCompany } from "@shared/schema";
 import { TeamTab } from "@/components/TeamTab";
+import { formatCompanyCode } from "@/lib/formatters";
 
 const SELECTED_COMPANY_KEY = "fincontrol_selected_company_id";
 
@@ -25,8 +26,8 @@ const SELECTED_COMPANY_KEY = "fincontrol_selected_company_id";
 const createCompanySchema = insertCompanySchema.omit({ 
   tenantId: true,
   isActive: true,
+  code: true,
 }).extend({
-  code: z.string().min(1, "Código é obrigatório"),
   tradeName: z.string().min(2, "Nome fantasia deve ter no mínimo 2 caracteres"),
   legalName: z.string().min(2, "Razão social deve ter no mínimo 2 caracteres"),
   cnpj: z.string().min(14, "CNPJ inválido"),
@@ -57,7 +58,6 @@ export default function MinhaEmpresa() {
   const form = useForm<CreateCompanyFormData>({
     resolver: zodResolver(createCompanySchema),
     defaultValues: {
-      code: "",
       tradeName: "",
       legalName: "",
       cnpj: "",
@@ -204,34 +204,19 @@ export default function MinhaEmpresa() {
                     </DialogHeader>
                     <Form {...form}>
                       <form onSubmit={form.handleSubmit(handleCreateSubmit)} className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <FormField
-                            control={form.control}
-                            name="code"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Código *</FormLabel>
-                                <FormControl>
-                                  <Input {...field} placeholder="001" data-testid="input-create-code" />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name="status"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Status</FormLabel>
-                                <FormControl>
-                                  <Input {...field} placeholder="Ativa" data-testid="input-create-status" />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
+                        <FormField
+                          control={form.control}
+                          name="status"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Status</FormLabel>
+                              <FormControl>
+                                <Input {...field} placeholder="Ativa" data-testid="input-create-status" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
 
                         <FormField
                           control={form.control}
@@ -432,7 +417,7 @@ export default function MinhaEmpresa() {
                                 className="text-sm font-semibold font-mono text-foreground"
                                 data-testid={`text-code-${company.id}`}
                               >
-                                #{company.code}
+                                {formatCompanyCode(company.code)}
                               </p>
                             </div>
 

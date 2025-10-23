@@ -17,7 +17,7 @@ import {
   type InsertCategory,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, inArray, sql } from "drizzle-orm";
+import { eq, and, inArray, sql, max } from "drizzle-orm";
 
 // Interface for storage operations
 export interface IStorage {
@@ -32,11 +32,11 @@ export interface IStorage {
   // Company operations - all require tenantId for multi-tenant isolation
   listCompanies(tenantId: string): Promise<Company[]>;
   getCompanyById(tenantId: string, id: string): Promise<Company | undefined>;
-  createCompany(tenantId: string, company: Omit<InsertCompany, 'tenantId'>): Promise<Company>;
+  createCompany(tenantId: string, company: Omit<InsertCompany, 'tenantId' | 'code'>): Promise<Company>;
   updateCompany(
     tenantId: string,
     id: string,
-    company: Partial<Omit<InsertCompany, 'tenantId'>>
+    company: Partial<Omit<InsertCompany, 'tenantId' | 'code'>>
   ): Promise<Company | undefined>;
   deleteCompany(tenantId: string, id: string): Promise<boolean>;
 
@@ -60,16 +60,27 @@ export interface IStorage {
   // Categories operations - all require tenantId for multi-tenant isolation
   listCategories(tenantId: string): Promise<Category[]>;
   getCategoryById(tenantId: string, id: string): Promise<Category | undefined>;
-  createCategory(tenantId: string, category: InsertCategory): Promise<Category>;
+  createCategory(tenantId: string, category: Omit<InsertCategory, 'code'>): Promise<Category>;
   updateCategory(
     tenantId: string,
     id: string,
-    category: Partial<InsertCategory>
+    category: Partial<Omit<InsertCategory, 'code'>>
   ): Promise<Category | undefined>;
   deleteCategory(tenantId: string, id: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
+  // Helper: Generate numeric hash from string for advisory lock
+  private hashStringToInt(str: string): number {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32bit integer
+    }
+    return Math.abs(hash);
+  }
+
   // User operations - for local authentication
 
   async getUser(id: string): Promise<User | undefined> {
@@ -110,6 +121,25 @@ export class DatabaseStorage implements IStorage {
 
   // Company operations - with tenant isolation
 
+  private async getNextCompanyCode(tenantId: string): Promise<number> {
+    // Use advisory lock to prevent race conditions
+    return await db.transaction(async (tx) => {
+      const lockKey = this.hashStringToInt(`company_${tenantId}`);
+      
+      // Acquire transactional advisory lock (auto-released on commit)
+      await tx.execute(sql`SELECT pg_advisory_xact_lock(${lockKey})`);
+      
+      // Now safely read max code
+      const result = await tx
+        .select({ maxCode: max(companies.code) })
+        .from(companies)
+        .where(eq(companies.tenantId, tenantId));
+      
+      const currentMax = result[0]?.maxCode || 0;
+      return currentMax + 1;
+    });
+  }
+
   async listCompanies(tenantId: string): Promise<Company[]> {
     return await db
       .select()
@@ -129,18 +159,37 @@ export class DatabaseStorage implements IStorage {
     return company;
   }
 
-  async createCompany(tenantId: string, insertCompany: Omit<InsertCompany, 'tenantId'>): Promise<Company> {
-    const [company] = await db
-      .insert(companies)
-      .values({ ...insertCompany, tenantId })
-      .returning();
-    return company;
+  async createCompany(tenantId: string, insertCompany: Omit<InsertCompany, 'tenantId' | 'code'>): Promise<Company> {
+    // Execute lock + code generation + insert in single transaction
+    return await db.transaction(async (tx) => {
+      const lockKey = this.hashStringToInt(`company_${tenantId}`);
+      
+      // Acquire advisory lock
+      await tx.execute(sql`SELECT pg_advisory_xact_lock(${lockKey})`);
+      
+      // Get next code
+      const result = await tx
+        .select({ maxCode: max(companies.code) })
+        .from(companies)
+        .where(eq(companies.tenantId, tenantId));
+      
+      const code = (result[0]?.maxCode || 0) + 1;
+      
+      // Insert with generated code (lock still held)
+      const [company] = await tx
+        .insert(companies)
+        .values({ ...insertCompany, code, tenantId })
+        .returning();
+      
+      return company;
+      // Lock auto-released on commit
+    });
   }
 
   async updateCompany(
     tenantId: string,
     id: string,
-    updates: Partial<Omit<InsertCompany, 'tenantId'>>
+    updates: Partial<Omit<InsertCompany, 'tenantId' | 'code'>>
   ): Promise<Company | undefined> {
     const [company] = await db
       .update(companies)
@@ -308,6 +357,28 @@ export class DatabaseStorage implements IStorage {
 
   // Categories operations - with tenant isolation
 
+  private async getNextCategoryCode(tenantId: string, type: string): Promise<number> {
+    // Use advisory lock to prevent race conditions (separate lock per tenant+type)
+    return await db.transaction(async (tx) => {
+      const lockKey = this.hashStringToInt(`category_${tenantId}_${type}`);
+      
+      // Acquire transactional advisory lock (auto-released on commit)
+      await tx.execute(sql`SELECT pg_advisory_xact_lock(${lockKey})`);
+      
+      // Now safely read max code for this tenant+type
+      const result = await tx
+        .select({ maxCode: max(categories.code) })
+        .from(categories)
+        .where(and(
+          eq(categories.tenantId, tenantId),
+          eq(categories.type, type)
+        ));
+      
+      const currentMax = result[0]?.maxCode || 0;
+      return currentMax + 1;
+    });
+  }
+
   async listCategories(tenantId: string): Promise<Category[]> {
     return await db
       .select()
@@ -330,18 +401,40 @@ export class DatabaseStorage implements IStorage {
     return category;
   }
 
-  async createCategory(tenantId: string, categoryData: InsertCategory): Promise<Category> {
-    const [category] = await db
-      .insert(categories)
-      .values({ ...categoryData, tenantId })
-      .returning();
-    return category;
+  async createCategory(tenantId: string, categoryData: Omit<InsertCategory, 'code'>): Promise<Category> {
+    // Execute lock + code generation + insert in single transaction
+    return await db.transaction(async (tx) => {
+      const lockKey = this.hashStringToInt(`category_${tenantId}_${categoryData.type}`);
+      
+      // Acquire advisory lock
+      await tx.execute(sql`SELECT pg_advisory_xact_lock(${lockKey})`);
+      
+      // Get next code for this tenant+type
+      const result = await tx
+        .select({ maxCode: max(categories.code) })
+        .from(categories)
+        .where(and(
+          eq(categories.tenantId, tenantId),
+          eq(categories.type, categoryData.type)
+        ));
+      
+      const code = (result[0]?.maxCode || 0) + 1;
+      
+      // Insert with generated code (lock still held)
+      const [category] = await tx
+        .insert(categories)
+        .values({ ...categoryData, code, tenantId })
+        .returning();
+      
+      return category;
+      // Lock auto-released on commit
+    });
   }
 
   async updateCategory(
     tenantId: string,
     id: string,
-    updates: Partial<InsertCategory>
+    updates: Partial<Omit<InsertCategory, 'code'>>
   ): Promise<Category | undefined> {
     const [category] = await db
       .update(categories)

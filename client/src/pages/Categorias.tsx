@@ -56,9 +56,9 @@ import {
   BarChart3,
 } from "lucide-react";
 import type { Category } from "@shared/schema";
+import { formatCategoryCode } from "@/lib/formatters";
 
 const categorySchema = z.object({
-  code: z.string().min(1, "Código é obrigatório").max(10, "Máximo 10 caracteres"),
   name: z.string().min(2, "Nome deve ter no mínimo 2 caracteres"),
   description: z.string().optional(),
   type: z.enum(["receita", "despesa"], { required_error: "Selecione o tipo" }),
@@ -83,7 +83,6 @@ export default function Categorias() {
   const form = useForm<CategoryFormData>({
     resolver: zodResolver(categorySchema),
     defaultValues: {
-      code: "",
       name: "",
       description: "",
       type: "despesa",
@@ -164,7 +163,6 @@ export default function Categorias() {
   const handleEdit = (category: Category) => {
     setEditingCategory(category);
     form.reset({
-      code: category.code,
       name: category.name,
       description: category.description || "",
       type: category.type as "receita" | "despesa",
@@ -188,8 +186,9 @@ export default function Categorias() {
   };
 
   const filteredCategories = categories.filter((cat) => {
+    const formattedCode = formatCategoryCode(cat.code, cat.type as 'receita' | 'despesa');
     const matchesSearch = cat.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      cat.code.toLowerCase().includes(searchTerm.toLowerCase());
+      formattedCode.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = typeFilter === "all" || cat.type === typeFilter;
     return matchesSearch && matchesType;
   });
@@ -340,29 +339,10 @@ export default function Categorias() {
 
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="code"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Código</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            placeholder="Ex: SAL"
-                            data-testid="input-category-code"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="type"
-                    render={({ field }) => (
+                <FormField
+                  control={form.control}
+                  name="type"
+                  render={({ field }) => (
                       <FormItem>
                         <FormLabel>Tipo</FormLabel>
                         <Select
@@ -383,7 +363,6 @@ export default function Categorias() {
                       </FormItem>
                     )}
                   />
-                </div>
 
                 <FormField
                   control={form.control}
@@ -516,7 +495,7 @@ export default function Categorias() {
                       style={{ backgroundColor: category.color }}
                       className="text-white shrink-0"
                     >
-                      {category.code}
+                      {formatCategoryCode(category.code, category.type as 'receita' | 'despesa')}
                     </Badge>
                     <div className="flex items-center gap-2 min-w-0 flex-1">
                       <CardTitle className="text-base truncate">

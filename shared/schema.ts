@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import {
   index,
+  uniqueIndex,
   jsonb,
   pgTable,
   text,
@@ -8,6 +9,7 @@ import {
   boolean,
   timestamp,
   bigint,
+  integer,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -70,7 +72,7 @@ export type SignupData = z.infer<typeof signupSchema>;
 export const companies = pgTable("companies", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   tenantId: varchar("tenant_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
-  code: text("code").notNull(),
+  code: integer("code").notNull(),
   tradeName: text("trade_name").notNull(),
   legalName: text("legal_name").notNull(),
   cnpj: text("cnpj").notNull(),
@@ -103,7 +105,7 @@ export const companies = pgTable("companies", {
   deleted: boolean("deleted").notNull().default(false),
 }, (table) => [
   index("companies_tenant_idx").on(table.tenantId, table.id),
-  index("companies_tenant_code_idx").on(table.tenantId, table.code),
+  uniqueIndex("companies_tenant_code_unique").on(table.tenantId, table.code),
   index("companies_tenant_updated_idx").on(table.tenantId, table.updatedAt),
   index("companies_tenant_deleted_idx").on(table.tenantId, table.deleted, table.id),
 ]);
@@ -200,7 +202,7 @@ export type CompanyMember = typeof companyMembers.$inferSelect;
 export const categories = pgTable("categories", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   tenantId: varchar("tenant_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
-  code: text("code").notNull(),
+  code: integer("code").notNull(),
   name: text("name").notNull(),
   description: text("description"),
   type: text("type").notNull(), // "receita" or "despesa"
@@ -210,7 +212,7 @@ export const categories = pgTable("categories", {
   deleted: boolean("deleted").notNull().default(false),
 }, (table) => [
   index("categories_tenant_idx").on(table.tenantId, table.deleted, table.id),
-  index("categories_tenant_code_idx").on(table.tenantId, table.code),
+  uniqueIndex("categories_tenant_code_type_unique").on(table.tenantId, table.code, table.type),
   index("categories_tenant_updated_idx").on(table.tenantId, table.updatedAt),
   index("categories_tenant_type_idx").on(table.tenantId, table.type, table.deleted),
 ]);
