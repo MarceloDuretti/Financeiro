@@ -28,8 +28,17 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     "--sidebar-width-icon": "3rem",
   };
 
-  const handleLogout = () => {
-    window.location.href = "/api/logout";
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+      window.location.href = "/";
+    } catch (error) {
+      console.error("Error logging out:", error);
+      window.location.href = "/";
+    }
   };
 
   // Get user initials for avatar fallback

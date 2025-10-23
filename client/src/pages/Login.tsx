@@ -1,0 +1,213 @@
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { loginSchema, type LoginData } from "@shared/schema";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Eye, EyeOff, ArrowLeft } from "lucide-react";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import headerLogo from "@assets/image_1761139734810.png";
+
+export default function Login() {
+  const [showPassword, setShowPassword] = useState(false);
+  const { toast } = useToast();
+
+  const form = useForm<LoginData>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
+
+  const loginMutation = useMutation({
+    mutationFn: async (data: LoginData) => {
+      const res = await apiRequest("POST", "/api/auth/login", data);
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      toast({
+        title: "Login realizado com sucesso!",
+        description: "Redirecionando para o dashboard...",
+      });
+      setTimeout(() => {
+        window.location.href = "/dashboard";
+      }, 500);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro ao fazer login",
+        description: error.message || "Email ou senha incorretos",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const onSubmit = (data: LoginData) => {
+    loginMutation.mutate(data);
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-background via-background to-muted/30">
+      {/* Header */}
+      <header className="p-4 md:p-6">
+        <div className="container mx-auto max-w-7xl">
+          <div className="flex items-center justify-between">
+            <a href="/" className="flex items-center gap-2" data-testid="link-back-home">
+              <img 
+                src={headerLogo} 
+                alt="SyncTime Logo" 
+                className="h-8 w-auto"
+                data-testid="img-logo"
+              />
+            </a>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => window.location.href = "/"}
+              data-testid="button-back"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Voltar
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="flex-1 flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          {/* Card */}
+          <div className="bg-card border shadow-lg rounded-2xl p-8 md:p-10">
+            {/* Header */}
+            <div className="text-center mb-8">
+              <h1 className="text-3xl md:text-4xl font-bold mb-2" data-testid="text-title">
+                Bem-vindo de volta
+              </h1>
+              <p className="text-muted-foreground" data-testid="text-subtitle">
+                Faça login para acessar sua conta
+              </p>
+            </div>
+
+            {/* Form */}
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          type="email"
+                          placeholder="seu@email.com"
+                          autoComplete="email"
+                          data-testid="input-email"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Senha</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            {...field}
+                            type={showPassword ? "text" : "password"}
+                            placeholder="Sua senha"
+                            autoComplete="current-password"
+                            data-testid="input-password"
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="absolute right-0 top-0 h-full hover:bg-transparent"
+                            onClick={() => setShowPassword(!showPassword)}
+                            data-testid="button-toggle-password"
+                          >
+                            {showPassword ? (
+                              <EyeOff className="h-4 w-4 text-muted-foreground" />
+                            ) : (
+                              <Eye className="h-4 w-4 text-muted-foreground" />
+                            )}
+                          </Button>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="flex items-center justify-end">
+                  <a
+                    href="/forgot-password"
+                    className="text-sm text-primary hover:underline"
+                    data-testid="link-forgot-password"
+                  >
+                    Esqueceu sua senha?
+                  </a>
+                </div>
+
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={loginMutation.isPending}
+                  data-testid="button-submit"
+                >
+                  {loginMutation.isPending ? "Entrando..." : "Entrar"}
+                </Button>
+              </form>
+            </Form>
+
+            {/* Footer */}
+            <div className="mt-8 text-center">
+              <p className="text-sm text-muted-foreground">
+                Ainda não tem uma conta?{" "}
+                <a
+                  href="/signup"
+                  className="text-primary font-medium hover:underline"
+                  data-testid="link-signup"
+                >
+                  Criar conta grátis
+                </a>
+              </p>
+            </div>
+          </div>
+
+          {/* Additional Info */}
+          <p className="text-center text-xs text-muted-foreground mt-8">
+            Ao fazer login, você concorda com nossos{" "}
+            <a href="#" className="hover:underline">
+              Termos de Serviço
+            </a>{" "}
+            e{" "}
+            <a href="#" className="hover:underline">
+              Política de Privacidade
+            </a>
+          </p>
+        </div>
+      </main>
+    </div>
+  );
+}

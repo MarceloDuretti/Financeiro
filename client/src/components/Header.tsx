@@ -35,7 +35,11 @@ export default function Header() {
   };
 
   const handleLogin = () => {
-    window.location.href = "/api/login";
+    window.location.href = "/login";
+  };
+
+  const handleSignup = () => {
+    window.location.href = "/signup";
   };
 
   return (
@@ -79,7 +83,7 @@ export default function Header() {
             </Button>
             <Button
               size="sm"
-              onClick={handleLogin}
+              onClick={handleSignup}
               className="hidden sm:inline-flex"
               data-testid="button-signup"
             >
@@ -126,7 +130,7 @@ export default function Header() {
               </Button>
               <Button 
                 onClick={() => {
-                  handleLogin();
+                  handleSignup();
                   setMobileMenuOpen(false);
                 }}
                 data-testid="button-mobile-signup"
