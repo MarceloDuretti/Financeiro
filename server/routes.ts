@@ -1,20 +1,93 @@
-// Integration: blueprint:javascript_log_in_with_replit (Replit Auth)
+// Local authentication system
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertCompanySchema } from "@shared/schema";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { insertCompanySchema, loginSchema, signupSchema } from "@shared/schema";
+import { setupAuth, isAuthenticated, hashPassword } from "./localAuth";
+import passport from "passport";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware - must be first
   await setupAuth(app);
 
-  // Auth routes
+  // Auth routes - Login
+  app.post("/api/auth/login", (req, res, next) => {
+    try {
+      const validatedData = loginSchema.parse(req.body);
+      
+      passport.authenticate("local", (err: any, user: any, info: any) => {
+        if (err) {
+          return res.status(500).json({ message: "Erro interno do servidor" });
+        }
+        
+        if (!user) {
+          return res.status(401).json({ message: info?.message || "Email ou senha incorretos" });
+        }
+        
+        req.logIn(user, (err) => {
+          if (err) {
+            return res.status(500).json({ message: "Erro ao fazer login" });
+          }
+          res.json(user);
+        });
+      })(req, res, next);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || "Dados inválidos" });
+    }
+  });
+
+  // Auth routes - Signup
+  app.post("/api/auth/signup", async (req, res) => {
+    try {
+      const validatedData = signupSchema.parse(req.body);
+      
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(validatedData.email);
+      if (existingUser) {
+        return res.status(400).json({ message: "Este email já está cadastrado" });
+      }
+
+      // Hash password
+      const hashedPassword = await hashPassword(validatedData.password);
+
+      // Create user
+      const newUser = await storage.createUser({
+        email: validatedData.email,
+        password: hashedPassword,
+        firstName: validatedData.firstName,
+        lastName: validatedData.lastName,
+      });
+
+      // Auto-login after signup
+      req.logIn(newUser, (err) => {
+        if (err) {
+          return res.status(500).json({ message: "Conta criada, mas erro ao fazer login" });
+        }
+        
+        // Don't send password to client
+        const { password: _, ...userWithoutPassword } = newUser;
+        res.json(userWithoutPassword);
+      });
+    } catch (error: any) {
+      console.error("Error during signup:", error);
+      res.status(400).json({ message: error.message || "Erro ao criar conta" });
+    }
+  });
+
+  // Auth routes - Logout
+  app.post("/api/auth/logout", (req, res) => {
+    req.logout((err) => {
+      if (err) {
+        return res.status(500).json({ message: "Erro ao fazer logout" });
+      }
+      res.json({ message: "Logout realizado com sucesso" });
+    });
+  });
+
+  // Auth routes - Get current user
   app.get("/api/auth/user", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      res.json(user);
+      res.json(req.user);
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
