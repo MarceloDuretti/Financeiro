@@ -1,16 +1,37 @@
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Building2, Phone, Mail, MapPin, FileText, Briefcase, Globe, User, X, ChevronRight, Edit2 } from "lucide-react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Building2, Phone, Mail, MapPin, FileText, Briefcase, Globe, User, X, ChevronRight, Edit2, Plus, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import type { Company } from "@shared/schema";
+import { insertCompanySchema, type Company } from "@shared/schema";
+import type { InsertCompany } from "@shared/schema";
 
 const SELECTED_COMPANY_KEY = "fincontrol_selected_company_id";
+
+// Zod schema para criação de empresa (campos obrigatórios)
+const createCompanySchema = insertCompanySchema.omit({ 
+  tenantId: true,
+  isActive: true,
+}).extend({
+  code: z.string().min(1, "Código é obrigatório"),
+  tradeName: z.string().min(2, "Nome fantasia deve ter no mínimo 2 caracteres"),
+  legalName: z.string().min(2, "Razão social deve ter no mínimo 2 caracteres"),
+  cnpj: z.string().min(14, "CNPJ inválido"),
+  phone: z.string().min(10, "Telefone inválido"),
+});
+
+type CreateCompanyFormData = z.infer<typeof createCompanySchema>;
 
 export default function MinhaEmpresa() {
   const { toast } = useToast();
@@ -19,14 +40,73 @@ export default function MinhaEmpresa() {
   });
   const [isEditing, setIsEditing] = useState(false);
   const [editFormData, setEditFormData] = useState<Partial<Company>>({});
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   const { data: companies = [], isLoading } = useQuery<Company[]>({
     queryKey: ["/api/companies"],
   });
 
   const { data: selectedCompany } = useQuery<Company>({
-    queryKey: [`/api/companies/${selectedCompanyId}`],
+    queryKey: ["/api/companies", selectedCompanyId],
     enabled: !!selectedCompanyId,
+  });
+
+  // Form para criação
+  const form = useForm<CreateCompanyFormData>({
+    resolver: zodResolver(createCompanySchema),
+    defaultValues: {
+      code: "",
+      tradeName: "",
+      legalName: "",
+      cnpj: "",
+      phone: "",
+      status: "Ativa",
+    },
+  });
+
+  // Mutation para criar empresa
+  const createMutation = useMutation({
+    mutationFn: async (data: CreateCompanyFormData) => {
+      return await apiRequest("POST", "/api/companies", data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/companies"] });
+      setIsCreateDialogOpen(false);
+      form.reset();
+      toast({
+        title: "Sucesso",
+        description: "Empresa criada com sucesso!",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro",
+        description: error.message || "Não foi possível criar a empresa.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Mutation para deletar empresa
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return await apiRequest("DELETE", `/api/companies/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/companies"] });
+      setSelectedCompanyId(null);
+      toast({
+        title: "Sucesso",
+        description: "Empresa excluída com sucesso!",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro",
+        description: error.message || "Não foi possível excluir a empresa.",
+        variant: "destructive",
+      });
+    },
   });
 
   useEffect(() => {
@@ -64,7 +144,7 @@ export default function MinhaEmpresa() {
       await apiRequest("PATCH", `/api/companies/${selectedCompanyId}`, editFormData);
 
       await queryClient.invalidateQueries({ queryKey: ["/api/companies"] });
-      await queryClient.invalidateQueries({ queryKey: [`/api/companies/${selectedCompanyId}`] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/companies", selectedCompanyId] });
 
       setIsEditing(false);
       toast({
@@ -80,6 +160,16 @@ export default function MinhaEmpresa() {
     }
   };
 
+  const handleCreateSubmit = (data: CreateCompanyFormData) => {
+    createMutation.mutate(data);
+  };
+
+  const handleDelete = () => {
+    if (selectedCompanyId) {
+      deleteMutation.mutate(selectedCompanyId);
+    }
+  };
+
   return (
     <div className="h-full overflow-hidden">
       <div className="flex flex-col md:flex-row gap-6 h-full p-6">
@@ -90,11 +180,194 @@ export default function MinhaEmpresa() {
           }`}
         >
           <Card className="h-full flex flex-col">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Building2 className="h-5 w-5" />
-                Empresas do Grupo
-              </CardTitle>
+            <CardHeader className="pb-4">
+              <div className="flex items-center justify-between gap-2">
+                <CardTitle className="flex items-center gap-2">
+                  <Building2 className="h-5 w-5" />
+                  Empresas do Grupo
+                </CardTitle>
+                <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button size="sm" data-testid="button-create-company">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Nova Empresa
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle>Nova Empresa</DialogTitle>
+                      <DialogDescription>
+                        Preencha os dados da nova empresa. Campos obrigatórios estão marcados com *.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <Form {...form}>
+                      <form onSubmit={form.handleSubmit(handleCreateSubmit)} className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <FormField
+                            control={form.control}
+                            name="code"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Código *</FormLabel>
+                                <FormControl>
+                                  <Input {...field} placeholder="001" data-testid="input-create-code" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="status"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Status</FormLabel>
+                                <FormControl>
+                                  <Input {...field} placeholder="Ativa" data-testid="input-create-status" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+
+                        <FormField
+                          control={form.control}
+                          name="tradeName"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Nome Fantasia *</FormLabel>
+                              <FormControl>
+                                <Input {...field} placeholder="Minha Empresa" data-testid="input-create-tradeName" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="legalName"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Razão Social *</FormLabel>
+                              <FormControl>
+                                <Input {...field} placeholder="Minha Empresa LTDA" data-testid="input-create-legalName" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <FormField
+                            control={form.control}
+                            name="cnpj"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>CNPJ *</FormLabel>
+                                <FormControl>
+                                  <Input {...field} placeholder="00.000.000/0000-00" data-testid="input-create-cnpj" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="phone"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Telefone *</FormLabel>
+                                <FormControl>
+                                  <Input {...field} placeholder="(11) 98888-8888" data-testid="input-create-phone" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <FormField
+                            control={form.control}
+                            name="ie"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Inscrição Estadual</FormLabel>
+                                <FormControl>
+                                  <Input {...field} placeholder="123.456.789.012" data-testid="input-create-ie" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="im"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Inscrição Municipal</FormLabel>
+                                <FormControl>
+                                  <Input {...field} placeholder="123456789" data-testid="input-create-im" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <FormField
+                            control={form.control}
+                            name="email"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Email</FormLabel>
+                                <FormControl>
+                                  <Input {...field} type="email" placeholder="contato@empresa.com" data-testid="input-create-email" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="website"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Website</FormLabel>
+                                <FormControl>
+                                  <Input {...field} placeholder="www.empresa.com" data-testid="input-create-website" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+
+                        <DialogFooter>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setIsCreateDialogOpen(false)}
+                            data-testid="button-cancel-create"
+                          >
+                            Cancelar
+                          </Button>
+                          <Button 
+                            type="submit" 
+                            disabled={createMutation.isPending}
+                            data-testid="button-submit-create"
+                          >
+                            {createMutation.isPending ? "Criando..." : "Criar Empresa"}
+                          </Button>
+                        </DialogFooter>
+                      </form>
+                    </Form>
+                  </DialogContent>
+                </Dialog>
+              </div>
             </CardHeader>
             <CardContent className="flex-1 overflow-auto p-4">
               {isLoading ? (
@@ -289,6 +562,36 @@ export default function MinhaEmpresa() {
                       </>
                     ) : (
                       <>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              data-testid="button-delete-company"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Excluir
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Esta ação não pode ser desfeita. A empresa "{selectedCompany.tradeName}" será permanentemente excluída.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel data-testid="button-cancel-delete">Cancelar</AlertDialogCancel>
+                              <AlertDialogAction 
+                                onClick={handleDelete}
+                                data-testid="button-confirm-delete"
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                Excluir
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                         <Button
                           variant="outline"
                           size="sm"
@@ -507,7 +810,7 @@ export default function MinhaEmpresa() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-7">
                     <div>
                       <div className="flex items-center gap-2 mb-1">
-                        <Phone className="h-4 w-4 text-muted-foreground" />
+                        <Phone className="h-3 w-3 text-muted-foreground" />
                         <p className="text-xs text-muted-foreground">Telefone</p>
                       </div>
                       {isEditing ? (
@@ -524,14 +827,14 @@ export default function MinhaEmpresa() {
                     </div>
                     <div>
                       <div className="flex items-center gap-2 mb-1">
-                        <Mail className="h-4 w-4 text-muted-foreground" />
-                        <p className="text-xs text-muted-foreground">E-mail</p>
+                        <Mail className="h-3 w-3 text-muted-foreground" />
+                        <p className="text-xs text-muted-foreground">Email</p>
                       </div>
                       {isEditing ? (
                         <Input
                           value={editFormData.email || ''}
                           onChange={(e) => handleEditChange('email', e.target.value)}
-                          placeholder="E-mail"
+                          placeholder="Email"
                           className="h-8"
                           data-testid="input-edit-email"
                         />
@@ -539,9 +842,9 @@ export default function MinhaEmpresa() {
                         selectedCompany.email && <p className="font-medium" data-testid="text-detail-email">{selectedCompany.email}</p>
                       )}
                     </div>
-                    <div>
+                    <div className="md:col-span-2">
                       <div className="flex items-center gap-2 mb-1">
-                        <Globe className="h-4 w-4 text-muted-foreground" />
+                        <Globe className="h-3 w-3 text-muted-foreground" />
                         <p className="text-xs text-muted-foreground">Website</p>
                       </div>
                       {isEditing ? (
@@ -553,7 +856,17 @@ export default function MinhaEmpresa() {
                           data-testid="input-edit-website"
                         />
                       ) : (
-                        selectedCompany.website && <p className="font-medium" data-testid="text-detail-website">{selectedCompany.website}</p>
+                        selectedCompany.website && (
+                          <a 
+                            href={selectedCompany.website} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="font-medium text-primary hover:underline"
+                            data-testid="link-detail-website"
+                          >
+                            {selectedCompany.website}
+                          </a>
+                        )
                       )}
                     </div>
                   </div>
@@ -566,96 +879,66 @@ export default function MinhaEmpresa() {
                       <User className="h-5 w-5" />
                       <h3 className="font-semibold">Responsável</h3>
                     </div>
-                    <div className="pl-7">
+                    <div className="pl-7 space-y-3">
                       {isEditing ? (
-                        <div className="space-y-3">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <div>
-                              <p className="text-xs text-muted-foreground">Nome</p>
-                              <Input
-                                value={editFormData.responsavelNome || ''}
-                                onChange={(e) => handleEditChange('responsavelNome', e.target.value)}
-                                placeholder="Nome do responsável"
-                                className="h-8"
-                                data-testid="input-edit-responsavelNome"
-                              />
-                            </div>
-                            <div>
-                              <p className="text-xs text-muted-foreground">Cargo</p>
-                              <Input
-                                value={editFormData.responsavelCargo || ''}
-                                onChange={(e) => handleEditChange('responsavelCargo', e.target.value)}
-                                placeholder="Cargo"
-                                className="h-8"
-                                data-testid="input-edit-responsavelCargo"
-                              />
-                            </div>
-                            <div>
-                              <p className="text-xs text-muted-foreground">Telefone</p>
-                              <Input
-                                value={editFormData.responsavelTelefone || ''}
-                                onChange={(e) => handleEditChange('responsavelTelefone', e.target.value)}
-                                placeholder="Telefone"
-                                className="h-8"
-                                data-testid="input-edit-responsavelTelefone"
-                              />
-                            </div>
-                            <div>
-                              <p className="text-xs text-muted-foreground">E-mail</p>
-                              <Input
-                                value={editFormData.responsavelEmail || ''}
-                                onChange={(e) => handleEditChange('responsavelEmail', e.target.value)}
-                                placeholder="E-mail"
-                                className="h-8"
-                                data-testid="input-edit-responsavelEmail"
-                              />
-                            </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <div>
+                            <p className="text-xs text-muted-foreground">Nome</p>
+                            <Input
+                              value={editFormData.responsavelNome || ''}
+                              onChange={(e) => handleEditChange('responsavelNome', e.target.value)}
+                              placeholder="Nome do responsável"
+                              className="h-8"
+                              data-testid="input-edit-responsavelNome"
+                            />
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground">Cargo</p>
+                            <Input
+                              value={editFormData.responsavelCargo || ''}
+                              onChange={(e) => handleEditChange('responsavelCargo', e.target.value)}
+                              placeholder="Cargo"
+                              className="h-8"
+                              data-testid="input-edit-responsavelCargo"
+                            />
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground">Telefone</p>
+                            <Input
+                              value={editFormData.responsavelTelefone || ''}
+                              onChange={(e) => handleEditChange('responsavelTelefone', e.target.value)}
+                              placeholder="Telefone"
+                              className="h-8"
+                              data-testid="input-edit-responsavelTelefone"
+                            />
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground">Email</p>
+                            <Input
+                              value={editFormData.responsavelEmail || ''}
+                              onChange={(e) => handleEditChange('responsavelEmail', e.target.value)}
+                              placeholder="Email"
+                              className="h-8"
+                              data-testid="input-edit-responsavelEmail"
+                            />
                           </div>
                         </div>
                       ) : (
                         <>
-                          <div className="flex items-center gap-3">
-                            <Avatar className="h-12 w-12">
-                              <AvatarImage src={selectedCompany.responsavelFoto || ""} />
-                              <AvatarFallback>
-                                {selectedCompany.responsavelNome.split(' ').map(n => n[0]).join('').substring(0, 2)}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <p className="font-medium" data-testid="text-detail-responsavel-nome">
-                                {selectedCompany.responsavelNome}
-                              </p>
-                              {selectedCompany.responsavelCargo && (
-                                <p className="text-sm text-muted-foreground" data-testid="text-detail-responsavel-cargo">
-                                  {selectedCompany.responsavelCargo}
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
-                            {selectedCompany.responsavelTelefone && (
-                              <div className="flex items-center gap-2">
-                                <Phone className="h-4 w-4 text-muted-foreground" />
-                                <div>
-                                  <p className="text-xs text-muted-foreground">Telefone</p>
-                                  <p className="text-sm" data-testid="text-detail-responsavel-telefone">
-                                    {selectedCompany.responsavelTelefone}
-                                  </p>
-                                </div>
-                              </div>
-                            )}
-                            {selectedCompany.responsavelEmail && (
-                              <div className="flex items-center gap-2">
-                                <Mail className="h-4 w-4 text-muted-foreground" />
-                                <div>
-                                  <p className="text-xs text-muted-foreground">E-mail</p>
-                                  <p className="text-sm" data-testid="text-detail-responsavel-email">
-                                    {selectedCompany.responsavelEmail}
-                                  </p>
-                                </div>
-                              </div>
-                            )}
-                          </div>
+                          <p className="font-medium" data-testid="text-detail-responsavel-nome">
+                            {selectedCompany.responsavelNome || ''}
+                            {selectedCompany.responsavelCargo && ` - ${selectedCompany.responsavelCargo}`}
+                          </p>
+                          {selectedCompany.responsavelTelefone && (
+                            <p className="text-sm text-muted-foreground" data-testid="text-detail-responsavel-telefone">
+                              Tel: {selectedCompany.responsavelTelefone}
+                            </p>
+                          )}
+                          {selectedCompany.responsavelEmail && (
+                            <p className="text-sm text-muted-foreground" data-testid="text-detail-responsavel-email">
+                              Email: {selectedCompany.responsavelEmail}
+                            </p>
+                          )}
                         </>
                       )}
                     </div>
