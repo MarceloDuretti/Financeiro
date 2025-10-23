@@ -32,6 +32,7 @@ export interface IStorage {
     id: string,
     company: Partial<Omit<InsertCompany, 'tenantId'>>
   ): Promise<Company | undefined>;
+  deleteCompany(tenantId: string, id: string): Promise<boolean>;
 
   // User-Company relationship operations - all require tenantId for multi-tenant isolation
   createUserCompany(tenantId: string, userCompany: Omit<InsertUserCompany, 'tenantId'>): Promise<UserCompany>;
@@ -115,6 +116,14 @@ export class DatabaseStorage implements IStorage {
       .where(and(eq(companies.tenantId, tenantId), eq(companies.id, id)))
       .returning();
     return company;
+  }
+
+  async deleteCompany(tenantId: string, id: string): Promise<boolean> {
+    const result = await db
+      .delete(companies)
+      .where(and(eq(companies.tenantId, tenantId), eq(companies.id, id)))
+      .returning();
+    return result.length > 0;
   }
 
   // User-Company relationship operations - with tenant isolation

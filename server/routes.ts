@@ -138,6 +138,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/companies", isAuthenticated, async (req: any, res) => {
+    try {
+      const tenantId = getTenantId(req.user);
+      const companyData = insertCompanySchema.omit({ tenantId: true }).parse(req.body);
+      
+      const company = await storage.createCompany(tenantId, companyData);
+      res.json(company);
+    } catch (error: any) {
+      console.error("Error creating company:", error);
+      res.status(400).json({ error: error.message || "Invalid company data" });
+    }
+  });
+
   app.get("/api/companies/:id", isAuthenticated, async (req: any, res) => {
     try {
       const tenantId = getTenantId(req.user);
@@ -168,6 +181,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating company:", error);
       res.status(400).json({ error: "Invalid company data" });
+    }
+  });
+
+  app.delete("/api/companies/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const tenantId = getTenantId(req.user);
+      const deleted = await storage.deleteCompany(tenantId, req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ error: "Company not found" });
+      }
+      res.json({ message: "Company deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting company:", error);
+      res.status(500).json({ error: "Failed to delete company" });
     }
   });
 
