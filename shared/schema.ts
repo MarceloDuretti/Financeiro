@@ -198,35 +198,34 @@ export const insertCompanyMemberSchema = createInsertSchema(companyMembers).omit
 export type InsertCompanyMember = z.infer<typeof insertCompanyMemberSchema>;
 export type CompanyMember = typeof companyMembers.$inferSelect;
 
-// Categories table - For categorizing transactions (receivables/payables)
-export const categories = pgTable("categories", {
+// Cost Centers table - For departmental/project cost allocation
+export const costCenters = pgTable("cost_centers", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   tenantId: varchar("tenant_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
   code: integer("code").notNull(),
   name: text("name").notNull(),
   description: text("description"),
-  type: text("type").notNull(), // "receita" or "despesa"
   color: text("color").notNull().default("#3B82F6"), // Hex color for visual badges
   updatedAt: timestamp("updated_at").notNull().defaultNow().$onUpdate(() => new Date()),
   version: bigint("version", { mode: "number" }).notNull().default(1),
   deleted: boolean("deleted").notNull().default(false),
 }, (table) => [
-  index("categories_tenant_idx").on(table.tenantId, table.deleted, table.id),
-  uniqueIndex("categories_tenant_code_type_unique").on(table.tenantId, table.code, table.type),
-  index("categories_tenant_updated_idx").on(table.tenantId, table.updatedAt),
-  index("categories_tenant_type_idx").on(table.tenantId, table.type, table.deleted),
+  index("cost_centers_tenant_idx").on(table.tenantId, table.deleted, table.id),
+  uniqueIndex("cost_centers_tenant_code_unique").on(table.tenantId, table.code),
+  index("cost_centers_tenant_updated_idx").on(table.tenantId, table.updatedAt),
 ]);
 
-export const insertCategorySchema = createInsertSchema(categories).omit({
+export const insertCostCenterSchema = createInsertSchema(costCenters).omit({
   id: true,
   tenantId: true,
+  code: true,
   updatedAt: true,
   version: true,
   deleted: true,
 });
 
-export type InsertCategory = z.infer<typeof insertCategorySchema>;
-export type Category = typeof categories.$inferSelect;
+export type InsertCostCenter = z.infer<typeof insertCostCenterSchema>;
+export type CostCenter = typeof costCenters.$inferSelect;
 
 // Chart of Accounts - Hierarchical account tree structure optimized for BigData
 export const chartOfAccounts = pgTable("chart_of_accounts", {

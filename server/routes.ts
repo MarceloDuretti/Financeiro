@@ -5,7 +5,7 @@ import { storage } from "./storage";
 import { 
   insertCompanySchema, 
   insertCompanyMemberSchema,
-  insertCategorySchema,
+  insertCostCenterSchema,
   insertChartAccountSchema,
   loginSchema, 
   signupSchema,
@@ -260,71 +260,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Categories routes - with tenant isolation
+  // Cost Centers routes - with tenant isolation
 
-  app.get("/api/categories", isAuthenticated, async (req: any, res) => {
+  app.get("/api/cost-centers", isAuthenticated, async (req: any, res) => {
     try {
       const tenantId = getTenantId(req.user);
-      const categories = await storage.listCategories(tenantId);
-      res.json(categories);
+      const costCenters = await storage.listCostCenters(tenantId);
+      res.json(costCenters);
     } catch (error) {
-      console.error("Error listing categories:", error);
-      res.status(500).json({ error: "Failed to list categories" });
+      console.error("Error listing cost centers:", error);
+      res.status(500).json({ error: "Failed to list cost centers" });
     }
   });
 
-  app.get("/api/categories/:id", isAuthenticated, async (req: any, res) => {
+  app.get("/api/cost-centers/:id", isAuthenticated, async (req: any, res) => {
     try {
       const tenantId = getTenantId(req.user);
-      const category = await storage.getCategoryById(tenantId, req.params.id);
-      if (!category) {
-        return res.status(404).json({ error: "Category not found" });
+      const costCenter = await storage.getCostCenterById(tenantId, req.params.id);
+      if (!costCenter) {
+        return res.status(404).json({ error: "Cost center not found" });
       }
-      res.json(category);
+      res.json(costCenter);
     } catch (error) {
-      console.error("Error getting category:", error);
-      res.status(500).json({ error: "Failed to get category" });
+      console.error("Error getting cost center:", error);
+      res.status(500).json({ error: "Failed to get cost center" });
     }
   });
 
-  app.post("/api/categories", isAuthenticated, async (req: any, res) => {
+  app.post("/api/cost-centers", isAuthenticated, async (req: any, res) => {
     try {
       const tenantId = getTenantId(req.user);
-      const categoryData = insertCategorySchema.omit({ code: true }).parse(req.body);
-      const category = await storage.createCategory(tenantId, categoryData);
-      res.json(category);
+      const costCenterData = insertCostCenterSchema.omit({ code: true }).parse(req.body);
+      const costCenter = await storage.createCostCenter(tenantId, costCenterData);
+      res.status(201).json(costCenter);
     } catch (error: any) {
-      console.error("Error creating category:", error);
-      res.status(400).json({ error: error.message || "Invalid category data" });
+      console.error("Error creating cost center:", error);
+      res.status(400).json({ error: error.message || "Invalid cost center data" });
     }
   });
 
-  app.patch("/api/categories/:id", isAuthenticated, async (req: any, res) => {
+  app.patch("/api/cost-centers/:id", isAuthenticated, async (req: any, res) => {
     try {
       const tenantId = getTenantId(req.user);
-      const updates = insertCategorySchema.partial().parse(req.body);
-      const category = await storage.updateCategory(tenantId, req.params.id, updates);
-      if (!category) {
-        return res.status(404).json({ error: "Category not found" });
+      const updates = insertCostCenterSchema.partial().parse(req.body);
+      const costCenter = await storage.updateCostCenter(tenantId, req.params.id, updates);
+      if (!costCenter) {
+        return res.status(404).json({ error: "Cost center not found" });
       }
-      res.json(category);
+      res.json(costCenter);
     } catch (error) {
-      console.error("Error updating category:", error);
-      res.status(400).json({ error: "Invalid category data" });
+      console.error("Error updating cost center:", error);
+      res.status(400).json({ error: "Invalid cost center data" });
     }
   });
 
-  app.delete("/api/categories/:id", isAuthenticated, async (req: any, res) => {
+  app.delete("/api/cost-centers/:id", isAuthenticated, async (req: any, res) => {
     try {
       const tenantId = getTenantId(req.user);
-      const deleted = await storage.deleteCategory(tenantId, req.params.id);
+      const deleted = await storage.deleteCostCenter(tenantId, req.params.id);
       if (!deleted) {
-        return res.status(404).json({ error: "Category not found" });
+        return res.status(404).json({ error: "Cost center not found" });
       }
-      res.json({ message: "Category deleted successfully" });
+      res.json({ message: "Cost center deleted successfully" });
     } catch (error) {
-      console.error("Error deleting category:", error);
-      res.status(500).json({ error: "Failed to delete category" });
+      console.error("Error deleting cost center:", error);
+      res.status(500).json({ error: "Failed to delete cost center" });
     }
   });
 

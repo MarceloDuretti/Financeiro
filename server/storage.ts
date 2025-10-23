@@ -4,7 +4,7 @@ import {
   companies,
   userCompanies,
   companyMembers,
-  categories,
+  costCenters,
   chartOfAccounts,
   type User,
   type InsertUser,
@@ -14,8 +14,8 @@ import {
   type InsertUserCompany,
   type CompanyMember,
   type InsertCompanyMember,
-  type Category,
-  type InsertCategory,
+  type CostCenter,
+  type InsertCostCenter,
   type ChartAccount,
   type InsertChartAccount,
 } from "@shared/schema";
@@ -60,16 +60,16 @@ export interface IStorage {
   ): Promise<CompanyMember | undefined>;
   deleteCompanyMember(tenantId: string, id: string): Promise<boolean>;
 
-  // Categories operations - all require tenantId for multi-tenant isolation
-  listCategories(tenantId: string): Promise<Category[]>;
-  getCategoryById(tenantId: string, id: string): Promise<Category | undefined>;
-  createCategory(tenantId: string, category: Omit<InsertCategory, 'code'>): Promise<Category>;
-  updateCategory(
+  // Cost Centers operations - all require tenantId for multi-tenant isolation
+  listCostCenters(tenantId: string): Promise<CostCenter[]>;
+  getCostCenterById(tenantId: string, id: string): Promise<CostCenter | undefined>;
+  createCostCenter(tenantId: string, costCenter: Omit<InsertCostCenter, 'code'>): Promise<CostCenter>;
+  updateCostCenter(
     tenantId: string,
     id: string,
-    category: Partial<Omit<InsertCategory, 'code'>>
-  ): Promise<Category | undefined>;
-  deleteCategory(tenantId: string, id: string): Promise<boolean>;
+    costCenter: Partial<Omit<InsertCostCenter, 'code'>>
+  ): Promise<CostCenter | undefined>;
+  deleteCostCenter(tenantId: string, id: string): Promise<boolean>;
 
   // Chart of Accounts operations - all require tenantId for multi-tenant isolation
   listChartOfAccounts(tenantId: string): Promise<ChartAccount[]>;
@@ -373,116 +373,110 @@ export class DatabaseStorage implements IStorage {
     return result.length > 0;
   }
 
-  // Categories operations - with tenant isolation
+  // Cost Centers operations - with tenant isolation
 
-  private async getNextCategoryCode(tenantId: string, type: string): Promise<number> {
-    // Use advisory lock to prevent race conditions (separate lock per tenant+type)
+  private async getNextCostCenterCode(tenantId: string): Promise<number> {
+    // Use advisory lock to prevent race conditions
     return await db.transaction(async (tx) => {
-      const lockKey = this.hashStringToInt(`category_${tenantId}_${type}`);
+      const lockKey = this.hashStringToInt(`cost_center_${tenantId}`);
       
       // Acquire transactional advisory lock (auto-released on commit)
       await tx.execute(sql`SELECT pg_advisory_xact_lock(${lockKey})`);
       
-      // Now safely read max code for this tenant+type
+      // Now safely read max code for this tenant
       const result = await tx
-        .select({ maxCode: max(categories.code) })
-        .from(categories)
-        .where(and(
-          eq(categories.tenantId, tenantId),
-          eq(categories.type, type)
-        ));
+        .select({ maxCode: max(costCenters.code) })
+        .from(costCenters)
+        .where(eq(costCenters.tenantId, tenantId));
       
       const currentMax = result[0]?.maxCode || 0;
       return currentMax + 1;
     });
   }
 
-  async listCategories(tenantId: string): Promise<Category[]> {
+  async listCostCenters(tenantId: string): Promise<CostCenter[]> {
     return await db
       .select()
-      .from(categories)
+      .from(costCenters)
       .where(and(
-        eq(categories.tenantId, tenantId),
-        eq(categories.deleted, false)
+        eq(costCenters.tenantId, tenantId),
+        eq(costCenters.deleted, false)
       ));
   }
 
-  async getCategoryById(tenantId: string, id: string): Promise<Category | undefined> {
-    const [category] = await db
+  async getCostCenterById(tenantId: string, id: string): Promise<CostCenter | undefined> {
+    const [costCenter] = await db
       .select()
-      .from(categories)
+      .from(costCenters)
       .where(and(
-        eq(categories.tenantId, tenantId),
-        eq(categories.id, id),
-        eq(categories.deleted, false)
+        eq(costCenters.tenantId, tenantId),
+        eq(costCenters.id, id),
+        eq(costCenters.deleted, false)
       ));
-    return category;
+    return costCenter;
   }
 
-  async createCategory(tenantId: string, categoryData: Omit<InsertCategory, 'code'>): Promise<Category> {
+  async createCostCenter(tenantId: string, costCenterData: Omit<InsertCostCenter, 'code'>): Promise<CostCenter> {
     // Execute lock + code generation + insert in single transaction
     return await db.transaction(async (tx) => {
-      const lockKey = this.hashStringToInt(`category_${tenantId}_${categoryData.type}`);
+      const lockKey = this.hashStringToInt(`cost_center_${tenantId}`);
       
       // Acquire advisory lock
       await tx.execute(sql`SELECT pg_advisory_xact_lock(${lockKey})`);
       
-      // Get next code for this tenant+type
+      // Get next code for this tenant
       const result = await tx
-        .select({ maxCode: max(categories.code) })
-        .from(categories)
-        .where(and(
-          eq(categories.tenantId, tenantId),
-          eq(categories.type, categoryData.type)
-        ));
+        .select({ maxCode: max(costCenters.code) })
+        .from(costCenters)
+        .where(eq(costCenters.tenantId, tenantId));
       
       const code = (result[0]?.maxCode || 0) + 1;
       
       // Insert with generated code (lock still held)
-      const [category] = await tx
-        .insert(categories)
-        .values({ ...categoryData, code, tenantId })
+      const [costCenter] = await tx
+        .insert(costCenters)
+        .values({ ...costCenterData, code, tenantId })
         .returning();
       
-      return category;
+      return costCenter;
       // Lock auto-released on commit
     });
   }
 
-  async updateCategory(
+  async updateCostCenter(
     tenantId: string,
     id: string,
-    updates: Partial<Omit<InsertCategory, 'code'>>
-  ): Promise<Category | undefined> {
-    const [category] = await db
-      .update(categories)
+    updates: Partial<Omit<InsertCostCenter, 'code'>>
+  ): Promise<CostCenter | undefined> {
+    const [costCenter] = await db
+      .update(costCenters)
       .set({
         ...updates,
         updatedAt: new Date(),
-        version: sql`${categories.version} + 1`, // Atomic increment
+        version: sql`${costCenters.version} + 1`, // Atomic increment
       })
       .where(and(
-        eq(categories.tenantId, tenantId),
-        eq(categories.id, id),
-        eq(categories.deleted, false)
+        eq(costCenters.tenantId, tenantId),
+        eq(costCenters.id, id),
+        eq(costCenters.deleted, false)
       ))
       .returning();
-    return category;
+    return costCenter;
   }
 
-  async deleteCategory(tenantId: string, id: string): Promise<boolean> {
+  async deleteCostCenter(tenantId: string, id: string): Promise<boolean> {
     // Soft-delete: mark as deleted instead of physically removing
     const result = await db
-      .update(categories)
+      .update(costCenters)
       .set({
         deleted: true,
         updatedAt: new Date(),
-        version: sql`${categories.version} + 1`, // Atomic increment
+        version: sql`${costCenters.version} + 1`, // Atomic increment
       })
       .where(and(
-        eq(categories.tenantId, tenantId),
-        eq(categories.id, id),
-        eq(categories.deleted, false) // Only delete if not already deleted
+        eq(costCenters.tenantId, tenantId),
+        eq(costCenters.id, id),
+        eq(costCenters.deleted, false) // Only delete if not already deleted
       ))
       .returning();
     return result.length > 0;
