@@ -21,6 +21,7 @@ import Metas from "@/pages/Metas";
 import ClientesFornecedores from "@/pages/ClientesFornecedores";
 import ContasBancarias from "@/pages/ContasBancarias";
 import Categorias from "@/pages/Categorias";
+import PlanoDeContas from "@/pages/PlanoDeContas";
 import FormasPagamento from "@/pages/FormasPagamento";
 import Parametros from "@/pages/Parametros";
 import Exportacao from "@/pages/Exportacao";
@@ -101,6 +102,12 @@ function Router() {
           <Route path="/dashboard/categorias">
             <DashboardLayout>
               <Categorias />
+            </DashboardLayout>
+          </Route>
+
+          <Route path="/dashboard/plano-de-contas">
+            <DashboardLayout>
+              <PlanoDeContas />
             </DashboardLayout>
           </Route>
 

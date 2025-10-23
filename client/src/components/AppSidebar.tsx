@@ -21,6 +21,7 @@ import {
   TrendingUp,
   Activity,
   Zap,
+  List,
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import {
@@ -74,10 +75,11 @@ const menuItems = [
     count: "127",
     requiresCompany: true,
     items: [
-      { title: "Clientes e Fornecedores", url: "/dashboard/clientes-fornecedores", icon: Users },
-      { title: "Contas Bancárias", url: "/dashboard/contas-bancarias", icon: Landmark },
       { title: "Categorias", url: "/dashboard/categorias", icon: FolderTree },
+      { title: "Plano de Contas", url: "/dashboard/plano-de-contas", icon: List },
+      { title: "Contas Bancárias", url: "/dashboard/contas-bancarias", icon: Landmark },
       { title: "Formas de Pagamento", url: "/dashboard/formas-pagamento", icon: CreditCard },
+      { title: "Clientes e Fornecedores", url: "/dashboard/clientes-fornecedores", icon: Users },
     ],
   },
   {
