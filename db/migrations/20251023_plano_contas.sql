@@ -110,7 +110,8 @@ CREATE POLICY chart_accounts_tenant_insert ON chart_of_accounts
 -- Policy: Users can only update their own tenant's data
 CREATE POLICY chart_accounts_tenant_update ON chart_of_accounts
   FOR UPDATE
-  USING (tenant_id = current_setting('app.tenant_id', TRUE)::VARCHAR);
+  USING (tenant_id = current_setting('app.tenant_id', TRUE)::VARCHAR)
+  WITH CHECK (tenant_id = current_setting('app.tenant_id', TRUE)::VARCHAR);
 
 -- Policy: Users can only delete their own tenant's data
 CREATE POLICY chart_accounts_tenant_delete ON chart_of_accounts

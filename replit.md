@@ -68,6 +68,19 @@ Preferred communication style: Simple, everyday language.
   - Soft-delete implementation (deleted=true, version increment)
   - Multi-tenant isolation (tenantId scoped)
   - Complete data-testid coverage for automated testing
+- **Plano de Contas (Chart of Accounts) Page:**
+  - Hierarchical tree structure with unlimited depth (max 5 levels)
+  - Auto-generated hierarchical codes (1, 1.1, 1.1.1) using advisory locks for thread-safety
+  - Materialized path pattern for O(1) subtree queries in BigData scenarios
+  - Full CRUD operations: Create root account, create subconta, edit, soft-delete
+  - Account types: Receita, Despesa, Ativo, Passivo, Patrimônio Líquido
+  - Expandable tree with visual indentation and folder/file icons
+  - Dialog forms with React Hook Form + Zod validation
+  - Delete validation: prevents deletion of accounts with children
+  - Full-path names pre-computed (e.g., "Receitas > Vendas > Vendas à Vista")
+  - Educational empty state explaining chart of accounts concept
+  - Multi-tenant isolation (tenantId scoped) with RLS policies
+  - Complete data-testid coverage for automated testing
 
 ### Backend Architecture
 
@@ -106,6 +119,12 @@ Preferred communication style: Simple, everyday language.
     - `PATCH /api/categories/:id`: Update category (tenant-scoped).
     - `DELETE /api/categories/:id`: Soft-delete category (tenant-scoped).
     - Validates category code uniqueness per tenant.
+- **Chart of Accounts Management:**
+    - `GET /api/chart-of-accounts`: List accounts (hierarchical tree, tenant-scoped).
+    - `POST /api/chart-of-accounts`: Create account (auto-injects tenantId, generates hierarchical code).
+    - `PATCH /api/chart-of-accounts/:id`: Update account (tenant-scoped, strips tenantId/parentId/code).
+    - `DELETE /api/chart-of-accounts/:id`: Soft-delete account (tenant-scoped, validates no children).
+    - Thread-safe code generation using PostgreSQL advisory locks.
 - Request logging middleware.
 
 **Storage Layer:** PostgreSQL-backed via Drizzle ORM with an `IStorage` abstraction implementing **multi-tenant isolation**. All company and user-company operations require `tenantId` parameter to ensure data is scoped to the authenticated user's tenant. Includes methods for user management (create, update, get by email/ID, list collaborators), company management (list, get, create, update, delete - all with tenantId), and user-company assignments (all with tenantId).
@@ -154,6 +173,7 @@ Preferred communication style: Simple, everyday language.
     - `user_companies` table: Many-to-many relationship with **tenantId** for isolation.
     - `company_members` table: Team members per company with **tenantId + companyId** for isolation, follows mandatory architecture (updated_at, version, deleted, composite indexes).
     - `categories` table: Financial categories (receita/despesa) with **tenantId** for isolation, custom colors, follows mandatory architecture (updated_at, version, deleted, composite indexes).
+    - `chart_of_accounts` table: Hierarchical chart of accounts with **tenantId** for isolation, self-referencing parentId, materialized path, auto-generated hierarchical codes (1, 1.1, 1.1.1), follows mandatory architecture with RLS policies and cycle detection triggers.
     
 **Bootstrap Admin (Seed Data):**
 - ID: `00000000-0000-0000-0000-000000000001`
