@@ -38,6 +38,14 @@ Preferred communication style: Simple, everyday language.
 - **Categorias (Categories) Page:** Educational section, full CRUD for categories (Revenue/Expense), custom color selection, and real-time stats.
 - **Plano de Contas (Chart of Accounts) Page:** 
   - **Auto-Seed on First Access:** When accessing for the first time (empty state), automatically creates 5 default root accounts: Receitas (1), Despesas (2), Ativo (3), Passivo (4), Patrimônio Líquido (5). Provides immediate professional structure for users without accounting knowledge.
+  - **Modern VS Code-Inspired UI:** 
+    - Connector lines (vertical and horizontal) showing parent-child relationships
+    - Progressive indentation (32px per level) for strong visual hierarchy
+    - Hierarchical typography (root: semibold, level 1: medium, level 2+: normal)
+    - Hover-only action buttons (add, edit, delete) for cleaner interface
+    - Larger colorful icons (h-5 w-5) with type-based colors (green for Receita, red for Despesa, blue for Ativo, amber for Passivo, violet for Patrimônio Líquido)
+    - Code badges with monospace font
+    - Smart spacing (more between root groups, less within groups)
   - Hierarchical tree structure (max 5 levels) with auto-generated codes (1, 1.1, 1.1.1) using advisory locks
   - Materialized path pattern for O(1) queries, full CRUD operations, expandable tree UI
   - Account types: Receita, Despesa, Ativo, Passivo, Patrimônio Líquido
