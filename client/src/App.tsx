@@ -54,7 +54,7 @@ function Router() {
           <Route component={NotFound} />
         </>
       ) : (
-        <WebSocketProvider>
+        <>
           {/* Redirect root to dashboard if authenticated */}
           <Route path="/">
             {() => {
@@ -173,7 +173,7 @@ function Router() {
           </Route>
 
           <Route component={NotFound} />
-        </WebSocketProvider>
+        </>
       )}
     </Switch>
   );
@@ -183,8 +183,10 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Toaster />
-        <Router />
+        <WebSocketProvider>
+          <Toaster />
+          <Router />
+        </WebSocketProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );
