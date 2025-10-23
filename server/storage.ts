@@ -5,6 +5,7 @@ import {
   userCompanies,
   companyMembers,
   categories,
+  chartOfAccounts,
   type User,
   type InsertUser,
   type Company,
@@ -15,6 +16,8 @@ import {
   type InsertCompanyMember,
   type Category,
   type InsertCategory,
+  type ChartAccount,
+  type InsertChartAccount,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, inArray, sql, max } from "drizzle-orm";
@@ -67,6 +70,20 @@ export interface IStorage {
     category: Partial<Omit<InsertCategory, 'code'>>
   ): Promise<Category | undefined>;
   deleteCategory(tenantId: string, id: string): Promise<boolean>;
+
+  // Chart of Accounts operations - all require tenantId for multi-tenant isolation
+  listChartOfAccounts(tenantId: string): Promise<ChartAccount[]>;
+  getChartAccount(tenantId: string, id: string): Promise<ChartAccount | undefined>;
+  createChartAccount(
+    tenantId: string,
+    account: Omit<InsertChartAccount, 'code'>
+  ): Promise<ChartAccount>;
+  updateChartAccount(
+    tenantId: string,
+    id: string,
+    account: Partial<Omit<InsertChartAccount, 'code' | 'parentId'>>
+  ): Promise<ChartAccount | undefined>;
+  deleteChartAccount(tenantId: string, id: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -465,6 +482,218 @@ export class DatabaseStorage implements IStorage {
         eq(categories.tenantId, tenantId),
         eq(categories.id, id),
         eq(categories.deleted, false) // Only delete if not already deleted
+      ))
+      .returning();
+    return result.length > 0;
+  }
+
+  // Chart of Accounts operations
+
+  async listChartOfAccounts(tenantId: string): Promise<ChartAccount[]> {
+    const accounts = await db
+      .select()
+      .from(chartOfAccounts)
+      .where(and(
+        eq(chartOfAccounts.tenantId, tenantId),
+        eq(chartOfAccounts.deleted, false)
+      ))
+      .orderBy(chartOfAccounts.path);
+    return accounts;
+  }
+
+  async getChartAccount(tenantId: string, id: string): Promise<ChartAccount | undefined> {
+    const [account] = await db
+      .select()
+      .from(chartOfAccounts)
+      .where(and(
+        eq(chartOfAccounts.tenantId, tenantId),
+        eq(chartOfAccounts.id, id),
+        eq(chartOfAccounts.deleted, false)
+      ));
+    return account;
+  }
+
+  async createChartAccount(
+    tenantId: string,
+    accountData: Omit<InsertChartAccount, 'code'>
+  ): Promise<ChartAccount> {
+    // Execute lock + code generation + insert in single transaction
+    return await db.transaction(async (tx) => {
+      const parentKey = accountData.parentId || 'root';
+      const lockKey = this.hashStringToInt(`chart_account_${tenantId}_${parentKey}`);
+      
+      // Acquire advisory lock
+      await tx.execute(sql`SELECT pg_advisory_xact_lock(${lockKey})`);
+      
+      let code: string;
+      let depth: number;
+      let fullPathName: string;
+      
+      if (!accountData.parentId) {
+        // Root account: get next root-level number
+        const result = await tx
+          .select({ maxPath: sql<string>`MAX(${chartOfAccounts.path})` })
+          .from(chartOfAccounts)
+          .where(and(
+            eq(chartOfAccounts.tenantId, tenantId),
+            eq(chartOfAccounts.depth, 0)
+          ));
+        
+        const maxPath = result[0]?.maxPath;
+        const nextNum = maxPath ? parseInt(maxPath) + 1 : 1;
+        code = nextNum.toString();
+        depth = 0;
+        fullPathName = accountData.name;
+      } else {
+        // Sub-account: get parent info
+        const [parent] = await tx
+          .select()
+          .from(chartOfAccounts)
+          .where(and(
+            eq(chartOfAccounts.tenantId, tenantId),
+            eq(chartOfAccounts.id, accountData.parentId),
+            eq(chartOfAccounts.deleted, false)
+          ));
+        
+        if (!parent) {
+          throw new Error('Parent account not found');
+        }
+        
+        // Get next child number under this parent
+        const result = await tx
+          .select({ maxPath: sql<string>`MAX(${chartOfAccounts.path})` })
+          .from(chartOfAccounts)
+          .where(and(
+            eq(chartOfAccounts.tenantId, tenantId),
+            eq(chartOfAccounts.parentId, accountData.parentId)
+          ));
+        
+        const siblings = result[0]?.maxPath;
+        let nextChildNum = 1;
+        
+        if (siblings) {
+          // Extract last segment: "1.2.3" -> "3"
+          const parts = siblings.split('.');
+          nextChildNum = parseInt(parts[parts.length - 1]) + 1;
+        }
+        
+        code = `${parent.path}.${nextChildNum}`;
+        depth = parent.depth + 1;
+        fullPathName = `${parent.fullPathName} > ${accountData.name}`;
+      }
+      
+      // Insert with computed fields (lock still held)
+      const [account] = await tx
+        .insert(chartOfAccounts)
+        .values({
+          ...accountData,
+          tenantId,
+          code,
+          path: code, // Path = code for this implementation
+          depth,
+          fullPathName,
+        })
+        .returning();
+      
+      return account;
+      // Lock auto-released on commit
+    });
+  }
+
+  async updateChartAccount(
+    tenantId: string,
+    id: string,
+    updates: Partial<Omit<InsertChartAccount, 'code' | 'parentId'>>
+  ): Promise<ChartAccount | undefined> {
+    // For now, we only allow updating name, description, type
+    // Moving accounts (changing parentId) requires recalculating all descendants
+    // That will be implemented in a future iteration if needed
+    
+    return await db.transaction(async (tx) => {
+      // Get current account
+      const [current] = await tx
+        .select()
+        .from(chartOfAccounts)
+        .where(and(
+          eq(chartOfAccounts.tenantId, tenantId),
+          eq(chartOfAccounts.id, id),
+          eq(chartOfAccounts.deleted, false)
+        ));
+      
+      if (!current) {
+        return undefined;
+      }
+      
+      let newFullPathName = current.fullPathName;
+      
+      // If name is being updated, recompute fullPathName
+      if (updates.name && updates.name !== current.name) {
+        if (!current.parentId) {
+          // Root account
+          newFullPathName = updates.name;
+        } else {
+          // Sub-account: get parent's fullPathName
+          const [parent] = await tx
+            .select()
+            .from(chartOfAccounts)
+            .where(and(
+              eq(chartOfAccounts.tenantId, tenantId),
+              eq(chartOfAccounts.id, current.parentId),
+              eq(chartOfAccounts.deleted, false)
+            ));
+          
+          if (parent) {
+            newFullPathName = `${parent.fullPathName} > ${updates.name}`;
+          }
+        }
+      }
+      
+      const [account] = await tx
+        .update(chartOfAccounts)
+        .set({
+          ...updates,
+          fullPathName: newFullPathName,
+          updatedAt: new Date(),
+          version: sql`${chartOfAccounts.version} + 1`,
+        })
+        .where(and(
+          eq(chartOfAccounts.tenantId, tenantId),
+          eq(chartOfAccounts.id, id),
+          eq(chartOfAccounts.deleted, false)
+        ))
+        .returning();
+      
+      return account;
+    });
+  }
+
+  async deleteChartAccount(tenantId: string, id: string): Promise<boolean> {
+    // Check if account has children
+    const children = await db
+      .select()
+      .from(chartOfAccounts)
+      .where(and(
+        eq(chartOfAccounts.tenantId, tenantId),
+        eq(chartOfAccounts.parentId, id),
+        eq(chartOfAccounts.deleted, false)
+      ));
+    
+    if (children.length > 0) {
+      throw new Error('Cannot delete account with children. Delete children first.');
+    }
+    
+    // Soft-delete: mark as deleted instead of physically removing
+    const result = await db
+      .update(chartOfAccounts)
+      .set({
+        deleted: true,
+        updatedAt: new Date(),
+        version: sql`${chartOfAccounts.version} + 1`,
+      })
+      .where(and(
+        eq(chartOfAccounts.tenantId, tenantId),
+        eq(chartOfAccounts.id, id),
+        eq(chartOfAccounts.deleted, false)
       ))
       .returning();
     return result.length > 0;
