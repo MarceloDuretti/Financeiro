@@ -195,3 +195,33 @@ export const insertCompanyMemberSchema = createInsertSchema(companyMembers).omit
 
 export type InsertCompanyMember = z.infer<typeof insertCompanyMemberSchema>;
 export type CompanyMember = typeof companyMembers.$inferSelect;
+
+// Categories table - For categorizing transactions (receivables/payables)
+export const categories = pgTable("categories", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  tenantId: varchar("tenant_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  code: text("code").notNull(),
+  name: text("name").notNull(),
+  description: text("description"),
+  type: text("type").notNull(), // "receita" or "despesa"
+  color: text("color").notNull().default("#3B82F6"), // Hex color for visual badges
+  updatedAt: timestamp("updated_at").notNull().defaultNow().$onUpdate(() => new Date()),
+  version: bigint("version", { mode: "number" }).notNull().default(1),
+  deleted: boolean("deleted").notNull().default(false),
+}, (table) => [
+  index("categories_tenant_idx").on(table.tenantId, table.deleted, table.id),
+  index("categories_tenant_code_idx").on(table.tenantId, table.code),
+  index("categories_tenant_updated_idx").on(table.tenantId, table.updatedAt),
+  index("categories_tenant_type_idx").on(table.tenantId, table.type, table.deleted),
+]);
+
+export const insertCategorySchema = createInsertSchema(categories).omit({
+  id: true,
+  tenantId: true,
+  updatedAt: true,
+  version: true,
+  deleted: true,
+});
+
+export type InsertCategory = z.infer<typeof insertCategorySchema>;
+export type Category = typeof categories.$inferSelect;
