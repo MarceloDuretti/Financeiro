@@ -11,6 +11,7 @@ import {
 } from "@shared/schema";
 import { setupAuth, isAuthenticated, hashPassword } from "./localAuth";
 import { initializeEmailService, sendInviteEmail } from "./emailService";
+import { getTenantId } from "./tenantUtils";
 import passport from "passport";
 import { nanoid } from "nanoid";
 
@@ -125,10 +126,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Protected companies routes
-  app.get("/api/companies", isAuthenticated, async (req, res) => {
+  // Protected companies routes - with tenant isolation
+  app.get("/api/companies", isAuthenticated, async (req: any, res) => {
     try {
-      const companies = await storage.listCompanies();
+      const tenantId = getTenantId(req.user);
+      const companies = await storage.listCompanies(tenantId);
       res.json(companies);
     } catch (error) {
       console.error("Error listing companies:", error);
@@ -136,9 +138,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/companies/:id", isAuthenticated, async (req, res) => {
+  app.get("/api/companies/:id", isAuthenticated, async (req: any, res) => {
     try {
-      const company = await storage.getCompanyById(req.params.id);
+      const tenantId = getTenantId(req.user);
+      const company = await storage.getCompanyById(tenantId, req.params.id);
       if (!company) {
         return res.status(404).json({ error: "Company not found" });
       }
@@ -149,10 +152,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/companies/:id", isAuthenticated, async (req, res) => {
+  app.patch("/api/companies/:id", isAuthenticated, async (req: any, res) => {
     try {
+      const tenantId = getTenantId(req.user);
       const updates = insertCompanySchema.partial().parse(req.body);
-      const company = await storage.updateCompany(req.params.id, updates);
+      const company = await storage.updateCompany(tenantId, req.params.id, updates);
       if (!company) {
         return res.status(404).json({ error: "Company not found" });
       }
@@ -165,16 +169,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Collaborators routes (admin only)
 
-  // List collaborators
+  // List collaborators - with tenant isolation
   app.get("/api/collaborators", isAuthenticated, isAdmin, async (req: any, res) => {
     try {
-      const adminId = req.user.id;
-      const collaborators = await storage.listCollaborators(adminId);
+      const tenantId = getTenantId(req.user);
+      const collaborators = await storage.listCollaborators(tenantId);
       
-      // Get companies for each collaborator
+      // Get companies for each collaborator (using tenantId for isolation)
       const collaboratorsWithCompanies = await Promise.all(
         collaborators.map(async (collab) => {
-          const companies = await storage.getUserCompanies(collab.id);
+          const companies = await storage.getUserCompanies(tenantId, collab.id);
           const { password: _, inviteToken: __, inviteTokenExpiry: ___, ...sanitizedCollab } = collab;
           return {
             ...sanitizedCollab,
@@ -220,10 +224,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         inviteTokenExpiry,
       });
 
-      // Create user-company relationships
+      // Create user-company relationships (with tenant isolation)
       await Promise.all(
         validatedData.companyIds.map(async (companyId) => {
-          await storage.createUserCompany({
+          await storage.createUserCompany(adminId, {
             userId: collaborator.id,
             companyId,
           });
