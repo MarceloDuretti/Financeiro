@@ -54,6 +54,20 @@ Preferred communication style: Simple, everyday language.
   - Complete data-testid coverage for automated testing
 - **Usuarios (Users) Page:** Hierarchical user management (admin/collaborator), CRUD for collaborators, email invitations, granular company access. Table-based UI with status badges and action buttons.
 - **Accept Invite Page:** Public route for collaborators to set passwords and activate accounts.
+- **Categorias (Categories) Page:**
+  - Educational section explaining the purpose, examples, and benefits of categories
+  - Full CRUD operations: Create, Read, Update, Delete categories
+  - Category types: Receita (Revenue) or Despesa (Expense)
+  - Custom color selection for visual badges (10 preset colors)
+  - Card-based layout with TrendingUp/TrendingDown icons
+  - Real-time stats: Total categories, Receitas count, Despesas count
+  - Search and filter by type (all/receita/despesa)
+  - Dialog forms with React Hook Form + Zod validation
+  - AlertDialog confirmation for deletions
+  - Empty state with "Criar primeira categoria" CTA
+  - Soft-delete implementation (deleted=true, version increment)
+  - Multi-tenant isolation (tenantId scoped)
+  - Complete data-testid coverage for automated testing
 
 ### Backend Architecture
 
@@ -86,6 +100,12 @@ Preferred communication style: Simple, everyday language.
     - `PATCH /api/companies/:companyId/members/:id`: Update member (tenant-scoped).
     - `DELETE /api/companies/:companyId/members/:id`: Soft-delete member (tenant-scoped).
     - Schema omits tenantId/companyId for security (prevents client override).
+- **Categories Management:**
+    - `GET /api/categories`: List categories (tenant-scoped).
+    - `POST /api/categories`: Create category (auto-injects tenantId).
+    - `PATCH /api/categories/:id`: Update category (tenant-scoped).
+    - `DELETE /api/categories/:id`: Soft-delete category (tenant-scoped).
+    - Validates category code uniqueness per tenant.
 - Request logging middleware.
 
 **Storage Layer:** PostgreSQL-backed via Drizzle ORM with an `IStorage` abstraction implementing **multi-tenant isolation**. All company and user-company operations require `tenantId` parameter to ensure data is scoped to the authenticated user's tenant. Includes methods for user management (create, update, get by email/ID, list collaborators), company management (list, get, create, update, delete - all with tenantId), and user-company assignments (all with tenantId).
@@ -112,6 +132,7 @@ Preferred communication style: Simple, everyday language.
     - `companies` table: Multi-company data with **tenantId** for isolation (3 seed records for bootstrap admin).
     - `user_companies` table: Many-to-many relationship with **tenantId** for isolation.
     - `company_members` table: Team members per company with **tenantId + companyId** for isolation, follows mandatory architecture (updated_at, version, deleted, composite indexes).
+    - `categories` table: Financial categories (receita/despesa) with **tenantId** for isolation, custom colors, follows mandatory architecture (updated_at, version, deleted, composite indexes).
     
 **Bootstrap Admin (Seed Data):**
 - ID: `00000000-0000-0000-0000-000000000001`

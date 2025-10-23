@@ -97,7 +97,6 @@ export default function Categorias() {
 
   const createMutation = useMutation({
     mutationFn: async (data: CategoryFormData) => {
-      console.log("Creating category with data:", data);
       return await apiRequest('POST', '/api/categories', data);
     },
     onSuccess: () => {
@@ -109,11 +108,10 @@ export default function Categorias() {
       setIsDialogOpen(false);
       form.reset();
     },
-    onError: (error: any) => {
-      console.error("Error creating category:", error);
+    onError: () => {
       toast({
         title: "Erro ao criar categoria",
-        description: error?.message || "Ocorreu um erro ao criar a categoria.",
+        description: "Ocorreu um erro ao criar a categoria.",
         variant: "destructive",
       });
     },
@@ -182,8 +180,6 @@ export default function Categorias() {
   };
 
   const onSubmit = (data: CategoryFormData) => {
-    console.log("Form submitted with data:", data);
-    console.log("Editing category?", editingCategory);
     if (editingCategory) {
       updateMutation.mutate({ id: editingCategory.id, data });
     } else {
