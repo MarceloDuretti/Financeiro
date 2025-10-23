@@ -67,7 +67,7 @@ import { useToast } from "@/hooks/use-toast";
 
 type FormValues = z.infer<typeof insertChartAccountSchema>;
 
-export default function PlanoContas() {
+export default function PlanoDeContas() {
   const { toast } = useToast();
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
   
