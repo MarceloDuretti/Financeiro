@@ -84,6 +84,7 @@ export interface IStorage {
     account: Partial<Omit<InsertChartAccount, 'code' | 'parentId'>>
   ): Promise<ChartAccount | undefined>;
   deleteChartAccount(tenantId: string, id: string): Promise<boolean>;
+  seedDefaultChartAccounts(tenantId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -697,6 +698,26 @@ export class DatabaseStorage implements IStorage {
       ))
       .returning();
     return result.length > 0;
+  }
+
+  // Seed default chart of accounts structure (5 root accounts)
+  async seedDefaultChartAccounts(tenantId: string): Promise<void> {
+    const defaultAccounts = [
+      { name: 'Receitas', type: 'receita', description: 'Todas as receitas da empresa' },
+      { name: 'Despesas', type: 'despesa', description: 'Todas as despesas da empresa' },
+      { name: 'Ativo', type: 'ativo', description: 'Bens e direitos da empresa' },
+      { name: 'Passivo', type: 'passivo', description: 'Obrigações da empresa' },
+      { name: 'Patrimônio Líquido', type: 'patrimonio_liquido', description: 'Capital e reservas da empresa' },
+    ];
+
+    for (const account of defaultAccounts) {
+      await this.createChartAccount(tenantId, {
+        name: account.name,
+        type: account.type,
+        description: account.description,
+        parentId: null, // Root accounts
+      });
+    }
   }
 }
 

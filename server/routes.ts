@@ -532,7 +532,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/chart-of-accounts", isAuthenticated, async (req, res) => {
     try {
       const tenantId = getTenantId((req as any).user);
-      const accounts = await storage.listChartOfAccounts(tenantId);
+      let accounts = await storage.listChartOfAccounts(tenantId);
+      
+      // Auto-seed default structure on first access (when empty)
+      if (accounts.length === 0) {
+        await storage.seedDefaultChartAccounts(tenantId);
+        accounts = await storage.listChartOfAccounts(tenantId);
+      }
+      
       res.json(accounts);
     } catch (error) {
       console.error("Error listing chart of accounts:", error);
