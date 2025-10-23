@@ -1,14 +1,34 @@
 // Local authentication system
-import type { Express } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertCompanySchema, loginSchema, signupSchema } from "@shared/schema";
+import { 
+  insertCompanySchema, 
+  loginSchema, 
+  signupSchema,
+  createCollaboratorSchema,
+  acceptInviteSchema,
+} from "@shared/schema";
 import { setupAuth, isAuthenticated, hashPassword } from "./localAuth";
+import { initializeEmailService, sendInviteEmail } from "./emailService";
 import passport from "passport";
+import { nanoid } from "nanoid";
+
+// Middleware to check if user is admin
+const isAdmin = (req: Request, res: Response, next: NextFunction) => {
+  const user = (req as any).user;
+  if (!user || user.role !== "admin") {
+    return res.status(403).json({ message: "Acesso negado. Apenas administradores podem executar esta ação." });
+  }
+  next();
+};
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware - must be first
   await setupAuth(app);
+  
+  // Initialize email service
+  initializeEmailService();
 
   // Auth routes - Login
   app.post("/api/auth/login", (req, res, next) => {
@@ -50,12 +70,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Hash password
       const hashedPassword = await hashPassword(validatedData.password);
 
-      // Create user
+      // Create user as admin (users who self-register are admins)
       const newUser = await storage.createUser({
         email: validatedData.email,
         password: hashedPassword,
         firstName: validatedData.firstName,
         lastName: validatedData.lastName,
+        role: "admin",
+        status: "active",
       });
 
       // SECURITY: Re-fetch user from storage to ensure canonical data
@@ -138,6 +160,204 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating company:", error);
       res.status(400).json({ error: "Invalid company data" });
+    }
+  });
+
+  // Collaborators routes (admin only)
+
+  // List collaborators
+  app.get("/api/collaborators", isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const adminId = req.user.id;
+      const collaborators = await storage.listCollaborators(adminId);
+      
+      // Get companies for each collaborator
+      const collaboratorsWithCompanies = await Promise.all(
+        collaborators.map(async (collab) => {
+          const companies = await storage.getUserCompanies(collab.id);
+          const { password: _, inviteToken: __, inviteTokenExpiry: ___, ...sanitizedCollab } = collab;
+          return {
+            ...sanitizedCollab,
+            companies,
+          };
+        })
+      );
+      
+      res.json(collaboratorsWithCompanies);
+    } catch (error) {
+      console.error("Error listing collaborators:", error);
+      res.status(500).json({ error: "Failed to list collaborators" });
+    }
+  });
+
+  // Create collaborator (with invite email)
+  app.post("/api/collaborators", isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const adminId = req.user.id;
+      const validatedData = createCollaboratorSchema.parse(req.body);
+      
+      // Check if email already exists
+      const existingUser = await storage.getUserByEmail(validatedData.email);
+      if (existingUser) {
+        return res.status(400).json({ message: "Este email já está cadastrado" });
+      }
+
+      // Generate invite token
+      const inviteToken = nanoid(32);
+      const inviteTokenExpiry = new Date();
+      inviteTokenExpiry.setDate(inviteTokenExpiry.getDate() + 7); // 7 days expiry
+
+      // Create collaborator (without password - will be set on first access)
+      const collaborator = await storage.createUser({
+        email: validatedData.email,
+        password: undefined as any, // Will be set when they accept invite
+        firstName: validatedData.firstName,
+        lastName: validatedData.lastName,
+        role: "collaborator",
+        adminId,
+        status: "pending_first_access",
+        inviteToken,
+        inviteTokenExpiry,
+      });
+
+      // Create user-company relationships
+      await Promise.all(
+        validatedData.companyIds.map(async (companyId) => {
+          await storage.createUserCompany({
+            userId: collaborator.id,
+            companyId,
+          });
+        })
+      );
+
+      // Send invite email
+      const inviteLink = `${req.protocol}://${req.get("host")}/accept-invite/${inviteToken}`;
+      const adminName = `${req.user.firstName} ${req.user.lastName || ""}`.trim();
+      
+      const emailSent = await sendInviteEmail(
+        validatedData.email,
+        validatedData.firstName,
+        inviteLink,
+        adminName
+      );
+
+      if (!emailSent) {
+        console.warn("⚠️ Failed to send invite email, but user was created");
+      }
+
+      const { password: _, inviteToken: __, inviteTokenExpiry: ___, ...sanitizedCollab } = collaborator;
+      res.json({
+        ...sanitizedCollab,
+        emailSent,
+      });
+    } catch (error: any) {
+      console.error("Error creating collaborator:", error);
+      res.status(400).json({ message: error.message || "Failed to create collaborator" });
+    }
+  });
+
+  // Update collaborator status (activate/deactivate)
+  app.patch("/api/collaborators/:id/status", isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+
+      if (!["active", "inactive"].includes(status)) {
+        return res.status(400).json({ message: "Status deve ser 'active' ou 'inactive'" });
+      }
+
+      // Verify collaborator belongs to this admin
+      const collaborator = await storage.getUser(id);
+      if (!collaborator || collaborator.adminId !== req.user.id) {
+        return res.status(404).json({ message: "Colaborador não encontrado" });
+      }
+
+      const updatedUser = await storage.updateUser(id, { status });
+      const { password: _, inviteToken: __, inviteTokenExpiry: ___, ...sanitized } = updatedUser!;
+      res.json(sanitized);
+    } catch (error) {
+      console.error("Error updating collaborator status:", error);
+      res.status(500).json({ error: "Failed to update status" });
+    }
+  });
+
+  // Resend invite email
+  app.post("/api/collaborators/:id/resend-invite", isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+
+      // Verify collaborator belongs to this admin
+      const collaborator = await storage.getUser(id);
+      if (!collaborator || collaborator.adminId !== req.user.id) {
+        return res.status(404).json({ message: "Colaborador não encontrado" });
+      }
+
+      if (collaborator.status !== "pending_first_access") {
+        return res.status(400).json({ message: "Colaborador já ativou a conta" });
+      }
+
+      // Generate new invite token
+      const inviteToken = nanoid(32);
+      const inviteTokenExpiry = new Date();
+      inviteTokenExpiry.setDate(inviteTokenExpiry.getDate() + 7);
+
+      await storage.updateUser(id, {
+        inviteToken,
+        inviteTokenExpiry,
+      });
+
+      // Send invite email
+      const inviteLink = `${req.protocol}://${req.get("host")}/accept-invite/${inviteToken}`;
+      const adminName = `${req.user.firstName} ${req.user.lastName || ""}`.trim();
+      
+      const emailSent = await sendInviteEmail(
+        collaborator.email,
+        collaborator.firstName || "",
+        inviteLink,
+        adminName
+      );
+
+      res.json({
+        message: emailSent ? "Convite reenviado com sucesso" : "Erro ao enviar email",
+        emailSent,
+      });
+    } catch (error) {
+      console.error("Error resending invite:", error);
+      res.status(500).json({ error: "Failed to resend invite" });
+    }
+  });
+
+  // Accept invite (public route - no auth required)
+  app.post("/api/accept-invite", async (req, res) => {
+    try {
+      const validatedData = acceptInviteSchema.parse(req.body);
+      
+      // Find user by invite token
+      const user = await storage.getUserByInviteToken(validatedData.token);
+      if (!user) {
+        return res.status(404).json({ message: "Convite inválido ou expirado" });
+      }
+
+      // Check if token is expired
+      if (user.inviteTokenExpiry && new Date() > new Date(user.inviteTokenExpiry)) {
+        return res.status(400).json({ message: "Convite expirado. Solicite um novo convite ao administrador." });
+      }
+
+      // Hash password
+      const hashedPassword = await hashPassword(validatedData.password);
+
+      // Update user: set password, activate, clear token
+      await storage.updateUser(user.id, {
+        password: hashedPassword,
+        status: "active",
+        inviteToken: null as any,
+        inviteTokenExpiry: null as any,
+      });
+
+      res.json({ message: "Senha definida com sucesso. Você já pode fazer login." });
+    } catch (error: any) {
+      console.error("Error accepting invite:", error);
+      res.status(400).json({ message: error.message || "Failed to accept invite" });
     }
   });
 

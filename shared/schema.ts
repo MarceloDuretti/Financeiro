@@ -23,14 +23,19 @@ export const sessions = pgTable(
   (table) => [index("IDX_session_expire").on(table.expire)]
 );
 
-// User storage table for local authentication
+// User storage table for local authentication with admin/collaborator structure
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   email: varchar("email").unique().notNull(),
-  password: varchar("password").notNull(),
+  password: varchar("password"),
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
+  role: varchar("role").notNull().default("collaborator"), // "admin" or "collaborator"
+  adminId: varchar("admin_id"), // ID of the admin who created this user (null for admins)
+  status: varchar("status").notNull().default("active"), // "active", "inactive", "pending_first_access"
+  inviteToken: varchar("invite_token"), // Token for first-time password setup
+  inviteTokenExpiry: timestamp("invite_token_expiry"), // Token expiration
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -99,3 +104,41 @@ export const insertCompanySchema = createInsertSchema(companies).omit({
 
 export type InsertCompany = z.infer<typeof insertCompanySchema>;
 export type Company = typeof companies.$inferSelect;
+
+// User-Company relationship table (which companies a collaborator can access)
+export const userCompanies = pgTable("user_companies", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(),
+  companyId: varchar("company_id").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertUserCompanySchema = createInsertSchema(userCompanies).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertUserCompany = z.infer<typeof insertUserCompanySchema>;
+export type UserCompany = typeof userCompanies.$inferSelect;
+
+// Schema for creating a collaborator
+export const createCollaboratorSchema = z.object({
+  email: z.string().email("Email inválido"),
+  firstName: z.string().min(2, "Nome deve ter no mínimo 2 caracteres"),
+  lastName: z.string().optional(),
+  companyIds: z.array(z.string()).min(1, "Selecione pelo menos uma empresa"),
+});
+
+export type CreateCollaboratorData = z.infer<typeof createCollaboratorSchema>;
+
+// Schema for accepting invite (collaborator sets password)
+export const acceptInviteSchema = z.object({
+  token: z.string(),
+  password: z.string().min(6, "Senha deve ter no mínimo 6 caracteres"),
+  confirmPassword: z.string(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "As senhas não coincidem",
+  path: ["confirmPassword"],
+});
+
+export type AcceptInviteData = z.infer<typeof acceptInviteSchema>;
