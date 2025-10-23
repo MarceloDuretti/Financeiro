@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
+import { useRealtimeQuery } from "@/hooks/useRealtimeQuery";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertChartAccountSchema } from "@shared/schema";
@@ -78,9 +79,10 @@ export default function PlanoContas() {
   const [selectedAccount, setSelectedAccount] = useState<ChartAccount | null>(null);
   const [parentAccount, setParentAccount] = useState<ChartAccount | null>(null);
 
-  // Fetch accounts
-  const { data: accounts = [], isLoading } = useQuery<ChartAccount[]>({
+  // Fetch accounts with real-time updates
+  const { data: accounts = [], isLoading } = useRealtimeQuery<ChartAccount[]>({
     queryKey: ["/api/chart-of-accounts"],
+    resource: "chart-of-accounts",
   });
 
   // Build tree structure

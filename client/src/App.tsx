@@ -5,6 +5,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
+import { WebSocketProvider } from "@/contexts/WebSocketContext";
 import Home from "@/pages/Home";
 import Login from "@/pages/Login";
 import Signup from "@/pages/Signup";
@@ -53,7 +54,7 @@ function Router() {
           <Route component={NotFound} />
         </>
       ) : (
-        <>
+        <WebSocketProvider>
           {/* Redirect root to dashboard if authenticated */}
           <Route path="/">
             {() => {
@@ -172,7 +173,7 @@ function Router() {
           </Route>
 
           <Route component={NotFound} />
-        </>
+        </WebSocketProvider>
       )}
     </Switch>
   );

@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
+import { useRealtimeQuery } from "@/hooks/useRealtimeQuery";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -79,8 +80,9 @@ export default function CentroDeCusto() {
     },
   });
 
-  const { data: costCenters = [], isLoading } = useQuery<CostCenter[]>({
+  const { data: costCenters = [], isLoading } = useRealtimeQuery<CostCenter[]>({
     queryKey: ['/api/cost-centers'],
+    resource: 'cost-centers',
   });
 
   const createMutation = useMutation({

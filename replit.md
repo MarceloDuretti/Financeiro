@@ -71,6 +71,26 @@ Preferred communication style: Simple, everyday language.
 
 **Storage Layer:** PostgreSQL-backed via Drizzle ORM, implementing multi-tenant isolation through a `tenantId` parameter in all business data operations. This ensures data is scoped to the authenticated user's tenant.
 
+**Real-Time Updates System:**
+- **WebSocket Server**: Integrated with Express on the same HTTP server (ws://localhost:5000/ws)
+- **Session-Based Authentication**: WebSocket connections use the same session cookies as HTTP requests
+- **Tenant Isolation**: Each WebSocket connection is assigned to a tenant "room" based on user's tenantId
+- **Automatic Broadcasts**: Server automatically sends notifications when data changes (CREATE/UPDATE/DELETE)
+- **Frontend Integration**: `useRealtimeQuery` hook combines TanStack Query with WebSocket for automatic UI updates
+- **Multi-User Support**: Multiple users in the same tenant see changes instantly without page reload
+- **Auto-Reconnection**: WebSocket client automatically reconnects with exponential backoff if connection is lost
+- **Zero Configuration**: No additional infrastructure needed - uses existing session and server
+- **Message Format**:
+  ```json
+  {
+    "type": "data:change",
+    "resource": "cost-centers" | "chart-of-accounts",
+    "action": "created" | "updated" | "deleted",
+    "data": {...},
+    "timestamp": "ISO 8601"
+  }
+  ```
+
 **Multi-Tenant Architecture:**
 - **Tenant Model**: Row-level multi-tenancy where each admin is a separate tenant.
 - **Isolation Method**: `tenantId` column in all business data tables.

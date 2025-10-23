@@ -15,6 +15,7 @@ import {
 import { setupAuth, isAuthenticated, hashPassword } from "./localAuth";
 import { initializeEmailService, sendInviteEmail } from "./emailService";
 import { getTenantId } from "./tenantUtils";
+import { broadcastDataChange } from "./websocket";
 import passport from "passport";
 import { nanoid } from "nanoid";
 
@@ -292,6 +293,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const tenantId = getTenantId(req.user);
       const costCenterData = insertCostCenterSchema.omit({ code: true }).parse(req.body);
       const costCenter = await storage.createCostCenter(tenantId, costCenterData);
+      
+      // Broadcast to all clients in this tenant
+      broadcastDataChange(tenantId, "cost-centers", "created", costCenter);
+      
       res.status(201).json(costCenter);
     } catch (error: any) {
       console.error("Error creating cost center:", error);
@@ -307,6 +312,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!costCenter) {
         return res.status(404).json({ error: "Cost center not found" });
       }
+      
+      // Broadcast to all clients in this tenant
+      broadcastDataChange(tenantId, "cost-centers", "updated", costCenter);
+      
       res.json(costCenter);
     } catch (error) {
       console.error("Error updating cost center:", error);
@@ -321,6 +330,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!deleted) {
         return res.status(404).json({ error: "Cost center not found" });
       }
+      
+      // Broadcast to all clients in this tenant
+      broadcastDataChange(tenantId, "cost-centers", "deleted", { id: req.params.id });
+      
       res.json({ message: "Cost center deleted successfully" });
     } catch (error) {
       console.error("Error deleting cost center:", error);
@@ -554,6 +567,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const validatedData = insertChartAccountSchema.parse(req.body);
       
       const account = await storage.createChartAccount(tenantId, validatedData);
+      
+      // Broadcast to all clients in this tenant
+      broadcastDataChange(tenantId, "chart-of-accounts", "created", account);
+      
       res.status(201).json(account);
     } catch (error: any) {
       console.error("Error creating chart account:", error);
@@ -575,6 +592,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Conta não encontrada" });
       }
       
+      // Broadcast to all clients in this tenant
+      broadcastDataChange(tenantId, "chart-of-accounts", "updated", account);
+      
       res.json(account);
     } catch (error: any) {
       console.error("Error updating chart account:", error);
@@ -592,6 +612,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!success) {
         return res.status(404).json({ message: "Conta não encontrada" });
       }
+      
+      // Broadcast to all clients in this tenant
+      broadcastDataChange(tenantId, "chart-of-accounts", "deleted", { id });
       
       res.json({ message: "Conta excluída com sucesso" });
     } catch (error: any) {
