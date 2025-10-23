@@ -2,7 +2,13 @@
 
 ## Overview
 
-FinControl is a comprehensive financial management platform designed for individuals and businesses (including MEI). It features a modern, Apple-inspired minimalist landing page and a full-featured dashboard for managing financial transactions, accounts, categories, and generating reports. The application is a full-stack TypeScript solution utilizing a React frontend, Express backend, and PostgreSQL database with Drizzle ORM. Key capabilities include multi-company management and a hierarchical user system with collaborator invitations and granular access control.
+FinControl is a comprehensive financial management platform designed for individuals and businesses (including MEI). It features a modern, Apple-inspired minimalist landing page and a full-featured dashboard for managing financial transactions, accounts, categories, and generating reports. The application is a full-stack TypeScript solution utilizing a React frontend, Express backend, and PostgreSQL database with Drizzle ORM.
+
+**Key Architectural Features:**
+- **True Multi-Tenant Architecture (Big Data)**: Single PostgreSQL database serves multiple isolated clients with row-level tenant isolation
+- **Hierarchical User System**: Admin/collaborator roles with email invitations and granular company access control
+- **Complete Data Isolation**: Each admin tenant can only see and manage their own data - zero cross-tenant data leakage
+- **Performance Optimized**: Composite indexes on (tenantId, id) for fast tenant-scoped queries
 
 ## User Preferences
 
@@ -53,15 +59,30 @@ Preferred communication style: Simple, everyday language.
     - Email invites via Nodemailer, time-limited `nanoid` tokens.
 - Request logging middleware.
 
-**Storage Layer:** PostgreSQL-backed via Drizzle ORM with an `IStorage` abstraction. CRUD operations for users, companies, and user-company relationships. Includes methods for user management (create, update, get by email/ID, list collaborators), company management (list, get, create, update), and user-company assignments.
+**Storage Layer:** PostgreSQL-backed via Drizzle ORM with an `IStorage` abstraction implementing **multi-tenant isolation**. All company and user-company operations require `tenantId` parameter to ensure data is scoped to the authenticated user's tenant. Includes methods for user management (create, update, get by email/ID, list collaborators), company management (list, get, create, update - all with tenantId), and user-company assignments (all with tenantId).
+
+**Multi-Tenant Architecture (October 23, 2025):**
+- **Tenant Model**: Row-level multi-tenancy where each admin is a separate tenant
+- **Isolation Method**: `tenantId` column added to all business data tables (companies, user_companies)
+- **Security Helper**: `getTenantId(user)` extracts tenantId from authenticated user (admin uses own ID, collaborator inherits adminId)
+- **API Layer**: All routes automatically inject tenantId via `getTenantId()` - never accepts tenantId from client
+- **Storage Layer**: All methods enforce tenantId filtering using Drizzle ORM `and()` conditions
+- **Performance**: Composite indexes on `(tenantId, id)` and `(tenantId, code)` for optimized queries
+- **Security**: PATCH routes explicitly strip tenantId from payloads to prevent tenant hijacking
 
 **Data Storage Solutions:**
 - **Database:** Neon Serverless PostgreSQL, Drizzle ORM. Migrations via Drizzle Kit.
-- **Schema:** Shared between client/server.
-    - `sessions` table: PostgreSQL-backed session storage.
+- **Schema:** Shared between client/server with multi-tenant isolation.
+    - `sessions` table: PostgreSQL-backed session storage (global, no tenant).
     - `users` table: User authentication, profile, roles ("admin", "collaborator"), status, invite tokens, hierarchical `adminId`.
-    - `companies` table: Multi-company data (seeded with 3 records).
-    - `user_companies` table: Many-to-many relationship for user-company access.
+    - `companies` table: Multi-company data with **tenantId** for isolation (3 seed records for bootstrap admin).
+    - `user_companies` table: Many-to-many relationship with **tenantId** for isolation.
+    
+**Bootstrap Admin (Seed Data):**
+- ID: `00000000-0000-0000-0000-000000000001`
+- Email: `admin@fincontrol.com.br`
+- Password: `demo123`
+- Owns 3 seed companies: FinControl Matriz (001), FinControl Filial RJ (002), FinControl Labs (003)
 
 ## External Dependencies
 
