@@ -9,6 +9,7 @@ import Home from "@/pages/Home";
 import Login from "@/pages/Login";
 import Signup from "@/pages/Signup";
 import ForgotPassword from "@/pages/ForgotPassword";
+import AcceptInvite from "@/pages/AcceptInvite";
 import NotFound from "@/pages/not-found";
 import DashboardLayout from "@/layouts/DashboardLayout";
 
@@ -40,6 +41,7 @@ function Router() {
       <Route path="/login" component={Login} />
       <Route path="/signup" component={Signup} />
       <Route path="/forgot-password" component={ForgotPassword} />
+      <Route path="/accept-invite/:token" component={AcceptInvite} />
 
       {/* Show landing page if not authenticated or still loading */}
       {isLoading || !isAuthenticated ? (
