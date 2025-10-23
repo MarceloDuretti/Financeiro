@@ -11,7 +11,7 @@ import {
   type InsertUserCompany,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, inArray } from "drizzle-orm";
+import { eq, and, inArray, sql } from "drizzle-orm";
 
 // Interface for storage operations
 export interface IStorage {
@@ -116,7 +116,11 @@ export class DatabaseStorage implements IStorage {
   ): Promise<Company | undefined> {
     const [company] = await db
       .update(companies)
-      .set(updates)
+      .set({
+        ...updates,
+        updatedAt: new Date(),
+        version: sql`${companies.version} + 1`, // Atomic increment
+      })
       .where(and(eq(companies.tenantId, tenantId), eq(companies.id, id)))
       .returning();
     return company;
@@ -129,6 +133,7 @@ export class DatabaseStorage implements IStorage {
       .set({ 
         deleted: true,
         updatedAt: new Date(),
+        version: sql`${companies.version} + 1`, // Atomic increment
       })
       .where(and(
         eq(companies.tenantId, tenantId),
