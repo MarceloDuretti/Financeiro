@@ -5,6 +5,7 @@ import { storage } from "./storage";
 import { 
   insertCompanySchema, 
   insertCompanyMemberSchema,
+  insertCategorySchema,
   loginSchema, 
   signupSchema,
   createCollaboratorSchema,
@@ -255,6 +256,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting company member:", error);
       res.status(500).json({ error: "Failed to delete company member" });
+    }
+  });
+
+  // Categories routes - with tenant isolation
+
+  app.get("/api/categories", isAuthenticated, async (req: any, res) => {
+    try {
+      const tenantId = getTenantId(req.user);
+      const categories = await storage.listCategories(tenantId);
+      res.json(categories);
+    } catch (error) {
+      console.error("Error listing categories:", error);
+      res.status(500).json({ error: "Failed to list categories" });
+    }
+  });
+
+  app.get("/api/categories/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const tenantId = getTenantId(req.user);
+      const category = await storage.getCategoryById(tenantId, req.params.id);
+      if (!category) {
+        return res.status(404).json({ error: "Category not found" });
+      }
+      res.json(category);
+    } catch (error) {
+      console.error("Error getting category:", error);
+      res.status(500).json({ error: "Failed to get category" });
+    }
+  });
+
+  app.post("/api/categories", isAuthenticated, async (req: any, res) => {
+    try {
+      const tenantId = getTenantId(req.user);
+      const categoryData = insertCategorySchema.parse(req.body);
+      const category = await storage.createCategory(tenantId, categoryData);
+      res.json(category);
+    } catch (error: any) {
+      console.error("Error creating category:", error);
+      res.status(400).json({ error: error.message || "Invalid category data" });
+    }
+  });
+
+  app.patch("/api/categories/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const tenantId = getTenantId(req.user);
+      const updates = insertCategorySchema.partial().parse(req.body);
+      const category = await storage.updateCategory(tenantId, req.params.id, updates);
+      if (!category) {
+        return res.status(404).json({ error: "Category not found" });
+      }
+      res.json(category);
+    } catch (error) {
+      console.error("Error updating category:", error);
+      res.status(400).json({ error: "Invalid category data" });
+    }
+  });
+
+  app.delete("/api/categories/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const tenantId = getTenantId(req.user);
+      const deleted = await storage.deleteCategory(tenantId, req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ error: "Category not found" });
+      }
+      res.json({ message: "Category deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting category:", error);
+      res.status(500).json({ error: "Failed to delete category" });
     }
   });
 
