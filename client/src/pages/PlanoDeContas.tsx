@@ -382,7 +382,9 @@ export default function PlanoContas() {
 
         {/* Account row with hover actions */}
         <div
-          className="group relative flex items-center gap-3 py-2.5 px-3 rounded-md hover-elevate transition-all"
+          className={`group relative flex items-center gap-3 py-2.5 px-3 rounded-md hover-elevate transition-all ${
+            !hasChildNodes ? 'bg-muted/30 dark:bg-muted/20' : ''
+          }`}
           style={{ paddingLeft: `${depth * indentSize + 12}px` }}
         >
           {/* Expand/collapse button */}
@@ -557,7 +559,7 @@ export default function PlanoContas() {
           </div>
           <div className="flex items-center gap-2">
             {accounts.length > 0 && (
-              <>
+              expandedNodes.size === 0 ? (
                 <Button 
                   variant="outline" 
                   onClick={expandAll}
@@ -567,6 +569,7 @@ export default function PlanoContas() {
                   <ChevronDown className="h-4 w-4 mr-2" />
                   Expandir Tudo
                 </Button>
+              ) : (
                 <Button 
                   variant="outline" 
                   onClick={collapseAll}
@@ -576,7 +579,7 @@ export default function PlanoContas() {
                   <ChevronRight className="h-4 w-4 mr-2" />
                   Recolher Tudo
                 </Button>
-              </>
+              )
             )}
             <Button onClick={openCreateRootDialog} data-testid="button-create-root">
               <Plus className="h-4 w-4 mr-2" />
