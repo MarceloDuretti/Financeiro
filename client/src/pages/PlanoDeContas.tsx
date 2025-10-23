@@ -199,6 +199,26 @@ export default function PlanoContas() {
     });
   };
 
+  // Expand all nodes
+  const expandAll = () => {
+    const allIds = new Set<string>();
+    const collectIds = (nodes: ChartAccountNode[]) => {
+      nodes.forEach(node => {
+        allIds.add(node.id);
+        if (node.children.length > 0) {
+          collectIds(node.children);
+        }
+      });
+    };
+    collectIds(accountTree);
+    setExpandedNodes(allIds);
+  };
+
+  // Collapse all nodes
+  const collapseAll = () => {
+    setExpandedNodes(new Set());
+  };
+
   // Open create root dialog
   const openCreateRootDialog = () => {
     createRootForm.reset({
@@ -427,18 +447,29 @@ export default function PlanoContas() {
             </Badge>
           </div>
 
-          {/* Name with hierarchical typography */}
-          <span
-            className={`flex-1 ${getTextSize()}`}
-            data-testid={`text-name-${node.id}`}
-          >
-            {node.name}
-          </span>
+          {/* Name and description with hierarchical typography */}
+          <div className="flex-1 min-w-0">
+            <div
+              className={`${getTextSize()}`}
+              data-testid={`text-name-${node.id}`}
+            >
+              {node.name}
+            </div>
+            {node.description && (
+              <div 
+                className="text-xs text-muted-foreground mt-0.5 truncate"
+                data-testid={`text-description-${node.id}`}
+                title={node.description}
+              >
+                {node.description}
+              </div>
+            )}
+          </div>
 
           {/* Type badge */}
           <Badge
             variant="outline"
-            className={`${getTypeColor(node.type)} text-xs`}
+            className={`${getTypeColor(node.type)} text-xs flex-shrink-0`}
             data-testid={`badge-type-${node.id}`}
           >
             {getTypeLabel(node.type)}
@@ -524,10 +555,34 @@ export default function PlanoContas() {
               Estrutura hierárquica de contas contábeis
             </p>
           </div>
-          <Button onClick={openCreateRootDialog} data-testid="button-create-root">
-            <Plus className="h-4 w-4 mr-2" />
-            Nova Conta Raiz
-          </Button>
+          <div className="flex items-center gap-2">
+            {accounts.length > 0 && (
+              <>
+                <Button 
+                  variant="outline" 
+                  onClick={expandAll}
+                  data-testid="button-expand-all"
+                  title="Expandir tudo"
+                >
+                  <ChevronDown className="h-4 w-4 mr-2" />
+                  Expandir Tudo
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={collapseAll}
+                  data-testid="button-collapse-all"
+                  title="Recolher tudo"
+                >
+                  <ChevronRight className="h-4 w-4 mr-2" />
+                  Recolher Tudo
+                </Button>
+              </>
+            )}
+            <Button onClick={openCreateRootDialog} data-testid="button-create-root">
+              <Plus className="h-4 w-4 mr-2" />
+              Nova Conta Raiz
+            </Button>
+          </div>
         </div>
 
         {/* Educational section (only show when no accounts) */}
