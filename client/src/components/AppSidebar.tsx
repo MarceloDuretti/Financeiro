@@ -75,7 +75,7 @@ const menuItems = [
     count: "127",
     requiresCompany: true,
     items: [
-      { title: "Categorias", url: "/dashboard/categorias", icon: FolderTree },
+      { title: "Centro de Custo", url: "/dashboard/centro-de-custo", icon: FolderTree },
       { title: "Plano de Contas", url: "/dashboard/plano-de-contas", icon: List },
       { title: "Contas Bancárias", url: "/dashboard/contas-bancarias", icon: Landmark },
       { title: "Formas de Pagamento", url: "/dashboard/formas-pagamento", icon: CreditCard },

@@ -20,7 +20,7 @@ import Lancamentos from "@/pages/Lancamentos";
 import Metas from "@/pages/Metas";
 import ClientesFornecedores from "@/pages/ClientesFornecedores";
 import ContasBancarias from "@/pages/ContasBancarias";
-import Categorias from "@/pages/Categorias";
+import CentroDeCusto from "@/pages/CentroDeCusto";
 import PlanoDeContas from "@/pages/PlanoDeContas";
 import FormasPagamento from "@/pages/FormasPagamento";
 import Parametros from "@/pages/Parametros";
@@ -99,9 +99,9 @@ function Router() {
             </DashboardLayout>
           </Route>
 
-          <Route path="/dashboard/categorias">
+          <Route path="/dashboard/centro-de-custo">
             <DashboardLayout>
-              <Categorias />
+              <CentroDeCusto />
             </DashboardLayout>
           </Route>
 

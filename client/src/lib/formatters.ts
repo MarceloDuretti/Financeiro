@@ -6,3 +6,7 @@ export function formatCategoryCode(code: number, type: 'receita' | 'despesa'): s
   const prefix = type === 'receita' ? 'REC' : 'DES';
   return `${prefix}${code.toString().padStart(3, '0')}`;
 }
+
+export function formatCostCenterCode(code: number): string {
+  return `CC${code.toString().padStart(3, '0')}`;
+}
