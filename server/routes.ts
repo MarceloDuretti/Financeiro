@@ -6,6 +6,7 @@ import {
   insertCompanySchema, 
   insertCompanyMemberSchema,
   insertCategorySchema,
+  insertChartAccountSchema,
   loginSchema, 
   signupSchema,
   createCollaboratorSchema,
@@ -522,6 +523,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error("Error accepting invite:", error);
       res.status(400).json({ message: error.message || "Failed to accept invite" });
+    }
+  });
+
+  // Chart of Accounts routes (authenticated + multi-tenant)
+  
+  // List all accounts (hierarchical tree)
+  app.get("/api/chart-of-accounts", isAuthenticated, async (req, res) => {
+    try {
+      const tenantId = getTenantId((req as any).user);
+      const accounts = await storage.listChartOfAccounts(tenantId);
+      res.json(accounts);
+    } catch (error) {
+      console.error("Error listing chart of accounts:", error);
+      res.status(500).json({ error: "Failed to list chart of accounts" });
+    }
+  });
+
+  // Create new account
+  app.post("/api/chart-of-accounts", isAuthenticated, async (req, res) => {
+    try {
+      const tenantId = getTenantId((req as any).user);
+      const validatedData = insertChartAccountSchema.parse(req.body);
+      
+      const account = await storage.createChartAccount(tenantId, validatedData);
+      res.status(201).json(account);
+    } catch (error: any) {
+      console.error("Error creating chart account:", error);
+      res.status(400).json({ message: error.message || "Failed to create account" });
+    }
+  });
+
+  // Update account
+  app.patch("/api/chart-of-accounts/:id", isAuthenticated, async (req, res) => {
+    try {
+      const tenantId = getTenantId((req as any).user);
+      const { id } = req.params;
+      
+      // Strip tenantId, code, parentId from payload (security)
+      const { tenantId: _, code: __, parentId: ___, ...updates } = req.body;
+      
+      const account = await storage.updateChartAccount(tenantId, id, updates);
+      if (!account) {
+        return res.status(404).json({ message: "Conta não encontrada" });
+      }
+      
+      res.json(account);
+    } catch (error: any) {
+      console.error("Error updating chart account:", error);
+      res.status(400).json({ message: error.message || "Failed to update account" });
+    }
+  });
+
+  // Delete account (soft-delete)
+  app.delete("/api/chart-of-accounts/:id", isAuthenticated, async (req, res) => {
+    try {
+      const tenantId = getTenantId((req as any).user);
+      const { id } = req.params;
+      
+      const success = await storage.deleteChartAccount(tenantId, id);
+      if (!success) {
+        return res.status(404).json({ message: "Conta não encontrada" });
+      }
+      
+      res.json({ message: "Conta excluída com sucesso" });
+    } catch (error: any) {
+      console.error("Error deleting chart account:", error);
+      res.status(400).json({ message: error.message || "Failed to delete account" });
     }
   });
 
