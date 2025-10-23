@@ -23,20 +23,21 @@ export interface IStorage {
   updateUser(id: string, updates: Partial<InsertUser>): Promise<User | undefined>;
   listCollaborators(adminId: string): Promise<User[]>;
 
-  // Company operations
-  listCompanies(): Promise<Company[]>;
-  getCompanyById(id: string): Promise<Company | undefined>;
-  createCompany(company: InsertCompany): Promise<Company>;
+  // Company operations - all require tenantId for multi-tenant isolation
+  listCompanies(tenantId: string): Promise<Company[]>;
+  getCompanyById(tenantId: string, id: string): Promise<Company | undefined>;
+  createCompany(tenantId: string, company: Omit<InsertCompany, 'tenantId'>): Promise<Company>;
   updateCompany(
+    tenantId: string,
     id: string,
-    company: Partial<InsertCompany>
+    company: Partial<Omit<InsertCompany, 'tenantId'>>
   ): Promise<Company | undefined>;
 
-  // User-Company relationship operations
-  createUserCompany(userCompany: InsertUserCompany): Promise<UserCompany>;
-  deleteUserCompanies(userId: string): Promise<void>;
-  getUserCompanies(userId: string): Promise<Company[]>;
-  getCompanyUsers(companyId: string): Promise<User[]>;
+  // User-Company relationship operations - all require tenantId for multi-tenant isolation
+  createUserCompany(tenantId: string, userCompany: Omit<InsertUserCompany, 'tenantId'>): Promise<UserCompany>;
+  deleteUserCompanies(tenantId: string, userId: string): Promise<void>;
+  getUserCompanies(tenantId: string, userId: string): Promise<Company[]>;
+  getCompanyUsers(tenantId: string, companyId: string): Promise<User[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -78,59 +79,65 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(users).where(eq(users.adminId, adminId));
   }
 
-  // Company operations
+  // Company operations - with tenant isolation
 
-  async listCompanies(): Promise<Company[]> {
-    return await db.select().from(companies);
+  async listCompanies(tenantId: string): Promise<Company[]> {
+    return await db
+      .select()
+      .from(companies)
+      .where(eq(companies.tenantId, tenantId));
   }
 
-  async getCompanyById(id: string): Promise<Company | undefined> {
+  async getCompanyById(tenantId: string, id: string): Promise<Company | undefined> {
     const [company] = await db
       .select()
       .from(companies)
-      .where(eq(companies.id, id));
+      .where(and(eq(companies.tenantId, tenantId), eq(companies.id, id)));
     return company;
   }
 
-  async createCompany(insertCompany: InsertCompany): Promise<Company> {
+  async createCompany(tenantId: string, insertCompany: Omit<InsertCompany, 'tenantId'>): Promise<Company> {
     const [company] = await db
       .insert(companies)
-      .values(insertCompany)
+      .values({ ...insertCompany, tenantId })
       .returning();
     return company;
   }
 
   async updateCompany(
+    tenantId: string,
     id: string,
-    updates: Partial<InsertCompany>
+    updates: Partial<Omit<InsertCompany, 'tenantId'>>
   ): Promise<Company | undefined> {
     const [company] = await db
       .update(companies)
       .set(updates)
-      .where(eq(companies.id, id))
+      .where(and(eq(companies.tenantId, tenantId), eq(companies.id, id)))
       .returning();
     return company;
   }
 
-  // User-Company relationship operations
+  // User-Company relationship operations - with tenant isolation
 
-  async createUserCompany(userCompanyData: InsertUserCompany): Promise<UserCompany> {
+  async createUserCompany(tenantId: string, userCompanyData: Omit<InsertUserCompany, 'tenantId'>): Promise<UserCompany> {
     const [userCompany] = await db
       .insert(userCompanies)
-      .values(userCompanyData)
+      .values({ ...userCompanyData, tenantId })
       .returning();
     return userCompany;
   }
 
-  async deleteUserCompanies(userId: string): Promise<void> {
-    await db.delete(userCompanies).where(eq(userCompanies.userId, userId));
+  async deleteUserCompanies(tenantId: string, userId: string): Promise<void> {
+    await db.delete(userCompanies).where(
+      and(eq(userCompanies.tenantId, tenantId), eq(userCompanies.userId, userId))
+    );
   }
 
-  async getUserCompanies(userId: string): Promise<Company[]> {
+  async getUserCompanies(tenantId: string, userId: string): Promise<Company[]> {
     const userCompaniesList = await db
       .select()
       .from(userCompanies)
-      .where(eq(userCompanies.userId, userId));
+      .where(and(eq(userCompanies.tenantId, tenantId), eq(userCompanies.userId, userId)));
     
     if (userCompaniesList.length === 0) {
       return [];
@@ -140,14 +147,14 @@ export class DatabaseStorage implements IStorage {
     return await db
       .select()
       .from(companies)
-      .where(inArray(companies.id, companyIds));
+      .where(and(eq(companies.tenantId, tenantId), inArray(companies.id, companyIds)));
   }
 
-  async getCompanyUsers(companyId: string): Promise<User[]> {
+  async getCompanyUsers(tenantId: string, companyId: string): Promise<User[]> {
     const userCompaniesList = await db
       .select()
       .from(userCompanies)
-      .where(eq(userCompanies.companyId, companyId));
+      .where(and(eq(userCompanies.tenantId, tenantId), eq(userCompanies.companyId, companyId)));
     
     if (userCompaniesList.length === 0) {
       return [];
