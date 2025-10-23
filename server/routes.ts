@@ -156,7 +156,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const tenantId = getTenantId(req.user);
       const updates = insertCompanySchema.partial().parse(req.body);
-      const company = await storage.updateCompany(tenantId, req.params.id, updates);
+      
+      // SECURITY: Remove tenantId from updates to prevent tenant hijacking
+      const { tenantId: _, ...safeUpdates } = updates;
+      
+      const company = await storage.updateCompany(tenantId, req.params.id, safeUpdates);
       if (!company) {
         return res.status(404).json({ error: "Company not found" });
       }
