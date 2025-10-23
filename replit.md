@@ -81,8 +81,13 @@ Preferred communication style: Simple, everyday language.
 - **Security Helper**: `getTenantId(user)` extracts tenantId from authenticated user (admin uses own ID, collaborator inherits adminId)
 - **API Layer**: All routes automatically inject tenantId via `getTenantId()` - never accepts tenantId from client
 - **Storage Layer**: All methods enforce tenantId filtering using Drizzle ORM `and()` conditions
-- **Performance**: Composite indexes on `(tenantId, id)` and `(tenantId, code)` for optimized queries
-- **Security**: PATCH routes explicitly strip tenantId from payloads to prevent tenant hijacking
+- **Performance Optimizations (October 23, 2025)**:
+  - **Composite Indexes**: `(tenantId, id)`, `(tenantId, code)`, `(tenantId, updated_at)`, `(tenantId, deleted, id)` for fast queries
+  - **Versioning System**: All business tables have `updated_at`, `version` (atomic increment), `deleted` columns for incremental sync
+  - **Soft-Delete**: Records marked `deleted=true` instead of physical deletion, preserving audit trail
+  - **Row-Level Security (RLS)**: PostgreSQL RLS enabled on companies/user_companies with policies using `current_setting('app.tenant_id')`
+  - **Atomic Version Increment**: `version = version + 1` via SQL on all mutations (create/update/delete)
+- **Security**: PATCH routes explicitly strip tenantId from payloads to prevent tenant hijacking + RLS as double layer
 
 **Data Storage Solutions:**
 - **Database:** Neon Serverless PostgreSQL, Drizzle ORM. Migrations via Drizzle Kit.
