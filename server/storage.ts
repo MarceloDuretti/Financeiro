@@ -86,14 +86,18 @@ export class DatabaseStorage implements IStorage {
     return await db
       .select()
       .from(companies)
-      .where(eq(companies.tenantId, tenantId));
+      .where(and(eq(companies.tenantId, tenantId), eq(companies.deleted, false)));
   }
 
   async getCompanyById(tenantId: string, id: string): Promise<Company | undefined> {
     const [company] = await db
       .select()
       .from(companies)
-      .where(and(eq(companies.tenantId, tenantId), eq(companies.id, id)));
+      .where(and(
+        eq(companies.tenantId, tenantId),
+        eq(companies.id, id),
+        eq(companies.deleted, false)
+      ));
     return company;
   }
 
@@ -119,9 +123,18 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteCompany(tenantId: string, id: string): Promise<boolean> {
+    // Soft-delete: mark as deleted instead of physically removing
     const result = await db
-      .delete(companies)
-      .where(and(eq(companies.tenantId, tenantId), eq(companies.id, id)))
+      .update(companies)
+      .set({ 
+        deleted: true,
+        updatedAt: new Date(),
+      })
+      .where(and(
+        eq(companies.tenantId, tenantId),
+        eq(companies.id, id),
+        eq(companies.deleted, false) // Only delete if not already deleted
+      ))
       .returning();
     return result.length > 0;
   }
@@ -146,7 +159,11 @@ export class DatabaseStorage implements IStorage {
     const userCompaniesList = await db
       .select()
       .from(userCompanies)
-      .where(and(eq(userCompanies.tenantId, tenantId), eq(userCompanies.userId, userId)));
+      .where(and(
+        eq(userCompanies.tenantId, tenantId),
+        eq(userCompanies.userId, userId),
+        eq(userCompanies.deleted, false)
+      ));
     
     if (userCompaniesList.length === 0) {
       return [];
@@ -156,14 +173,22 @@ export class DatabaseStorage implements IStorage {
     return await db
       .select()
       .from(companies)
-      .where(and(eq(companies.tenantId, tenantId), inArray(companies.id, companyIds)));
+      .where(and(
+        eq(companies.tenantId, tenantId),
+        inArray(companies.id, companyIds),
+        eq(companies.deleted, false)
+      ));
   }
 
   async getCompanyUsers(tenantId: string, companyId: string): Promise<User[]> {
     const userCompaniesList = await db
       .select()
       .from(userCompanies)
-      .where(and(eq(userCompanies.tenantId, tenantId), eq(userCompanies.companyId, companyId)));
+      .where(and(
+        eq(userCompanies.tenantId, tenantId),
+        eq(userCompanies.companyId, companyId),
+        eq(userCompanies.deleted, false)
+      ));
     
     if (userCompaniesList.length === 0) {
       return [];

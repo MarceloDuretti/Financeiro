@@ -7,6 +7,7 @@ import {
   varchar,
   boolean,
   timestamp,
+  bigint,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -97,13 +98,21 @@ export const companies = pgTable("companies", {
   responsavelEmail: text("responsavel_email"),
   responsavelFoto: text("responsavel_foto"),
   isActive: boolean("is_active").default(false),
+  updatedAt: timestamp("updated_at").notNull().defaultNow().$onUpdate(() => new Date()),
+  version: bigint("version", { mode: "number" }).notNull().default(1),
+  deleted: boolean("deleted").notNull().default(false),
 }, (table) => [
   index("companies_tenant_idx").on(table.tenantId, table.id),
   index("companies_tenant_code_idx").on(table.tenantId, table.code),
+  index("companies_tenant_updated_idx").on(table.tenantId, table.updatedAt),
+  index("companies_tenant_deleted_idx").on(table.tenantId, table.deleted, table.id),
 ]);
 
 export const insertCompanySchema = createInsertSchema(companies).omit({
   id: true,
+  updatedAt: true,
+  version: true,
+  deleted: true,
 });
 
 export type InsertCompany = z.infer<typeof insertCompanySchema>;
@@ -116,13 +125,20 @@ export const userCompanies = pgTable("user_companies", {
   userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
   companyId: varchar("company_id").notNull().references(() => companies.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow().$onUpdate(() => new Date()),
+  version: bigint("version", { mode: "number" }).notNull().default(1),
+  deleted: boolean("deleted").notNull().default(false),
 }, (table) => [
   index("user_companies_tenant_idx").on(table.tenantId, table.userId, table.companyId),
+  index("user_companies_tenant_updated_idx").on(table.tenantId, table.updatedAt),
 ]);
 
 export const insertUserCompanySchema = createInsertSchema(userCompanies).omit({
   id: true,
   createdAt: true,
+  updatedAt: true,
+  version: true,
+  deleted: true,
 });
 
 export type InsertUserCompany = z.infer<typeof insertUserCompanySchema>;

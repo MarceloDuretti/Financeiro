@@ -1,0 +1,193 @@
+1) Desenho geral (alto nível)
+
+Cliente (web/app PWA): IndexedDB (web) / SQLite (mobile) para cache local + Service Worker. Bibliotecas que ajudam: Dexie.js (leve) ou RxDB/WatermelonDB (mais completas).
+
+API stateless (Node/FastAPI no Replit): Endpoints REST/GraphQL com rota de /sync que usa cursores/versões (ETag/since).
+
+Banco (PostgreSQL do Replit):
+
+Multi-tenant em single schema com coluna tenant_id em todas as tabelas + Row-Level Security (RLS).
+
+Tabelas de mudanças (outbox/change log) para gerar deltas por usuário/tenant.
+
+Particionamento por tempo nas tabelas grandes (quando necessário).
+
+Mensageria leve (opcional): LISTEN/NOTIFY do próprio Postgres para push de mudanças recentes aos clientes conectados (WebSocket/SSE), sem precisar de um broker externo.
+
+Cache & CDN (edge): HTTP caching com ETag/If-None-Match + Cache-Control nas consultas de leitura pesada; se usar domínio próprio, colocar na frente um CDN (ex.: Cloudflare) barateia e acelera.
+
+2) Offline-first & Sync incremental (como funciona)
+
+Cada registro tem metadados de versão:
+
+updated_at (timestamptz), version (bigint que só sobe), deleted (bool).
+
+Triggers de INSERT/UPDATE/DELETE escrevem na tabela changes (outbox):
+
+changes(id, table_name, row_pk, version, op, tenant_id, changed_at, payload_delta)
+
+Isso permite /sync?since=VERSAO devolver só o que mudou.
+
+Protocolo de sync:
+
+Cliente envia: tenant_id, last_version_seen, e opcionalmente filtros (ex.: “apenas minhas contas do mês”).
+
+Servidor responde com: { data: [...], last_version: N, tombstones: [...] }.
+
+Conflitos: para finanças, prefira servidor-autoridade com “last-writer-wins por versão” (e log de auditoria). Se precisar colaboração em tempo real, considere CRDT (ex.: Y.js) só nos campos colaborativos (notas, descrições), não nos valores financeiros.
+
+Tombstones: não delete físico imediato; marque deleted=true. O cliente remove do cache local ao receber o tombstone.
+
+Atualizações do cliente:
+
+Envie mutations transacionais (POST/PUT/DELETE) com base_version → servidor valida que a versão não mudou desde a leitura; se mudou, retorna 409 com payload atualizado.
+
+3) Multi-tenant seguro com RLS
+
+Use RLS para garantir isolamento por cliente/empresa (e por usuário, se necessário).
+
+-- Exemplo de uma tabela multi-tenant
+CREATE TABLE lancamentos (
+  id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id     uuid NOT NULL,
+  usuario_id    uuid NOT NULL,
+  data          date NOT NULL,
+  conta_id      uuid NOT NULL,
+  valor_cent    bigint NOT NULL,  -- armazene valores em centavos (inteiro)
+  categoria     text,
+  descricao     text,
+  updated_at    timestamptz NOT NULL DEFAULT now(),
+  version       bigserial NOT NULL,
+  deleted       boolean NOT NULL DEFAULT false
+);
+
+ALTER TABLE lancamentos ENABLE ROW LEVEL SECURITY;
+
+-- Policy: usuário só vê o próprio tenant
+CREATE POLICY p_lancamentos_isolamento
+  ON lancamentos
+  USING (tenant_id = current_setting('app.tenant_id')::uuid)
+  WITH CHECK (tenant_id = current_setting('app.tenant_id')::uuid);
+
+
+Na conexão do app, defina o tenant:
+
+SELECT set_config('app.tenant_id', '<TENANT-UUID>', false);
+
+4) Change log (CDC simples com triggers)
+CREATE TABLE changes (
+  id           bigserial PRIMARY KEY,
+  table_name   text NOT NULL,
+  row_pk       uuid NOT NULL,
+  op           text NOT NULL,          -- 'I'|'U'|'D'
+  tenant_id    uuid NOT NULL,
+  version      bigint NOT NULL,
+  changed_at   timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE OR REPLACE FUNCTION f_log_change() RETURNS trigger AS $$
+BEGIN
+  INSERT INTO changes(table_name, row_pk, op, tenant_id, version)
+  VALUES (TG_TABLE_NAME,
+          COALESCE(NEW.id, OLD.id),
+          TG_OP::text,
+          COALESCE(NEW.tenant_id, OLD.tenant_id),
+          COALESCE(NEW.version, OLD.version));
+  RETURN COALESCE(NEW, OLD);
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_lancamentos_cdc
+AFTER INSERT OR UPDATE OR DELETE ON lancamentos
+FOR EACH ROW EXECUTE FUNCTION f_log_change();
+
+
+Endpoint de sync (conceito):
+
+GET /sync?since=12345&tables=lancamentos,contas
+
+No SQL: buscar em changes onde version > :since e tenant_id = current_setting('app.tenant_id'), agrupar por table_name/row_pk, buscar os registros atuais nessas tabelas (incluindo deleted).
+
+5) Particionamento & índices (quando crescer)
+
+Particione por tempo tabelas que explodem (ex.: lancamentos_2025_10), com check constraints e índices por partição. Buscas por período ficam muito rápidas.
+
+Índices compostos pensados na consulta do dia a dia:
+
+CREATE INDEX ON lancamentos (tenant_id, data DESC);
+
+CREATE INDEX ON lancamentos (tenant_id, conta_id, data DESC);
+
+CREATE INDEX ON lancamentos (tenant_id, updated_at DESC); (acelera sync)
+
+Materialized views para relatórios pesados (fluxo de caixa por mês, DRE): atualize sob demanda (botão “Atualizar”) ou por job agendado.
+
+6) Performance sem servidor “monstro”
+
+Pooling: habilite connection pooling (pgBouncer) se o Replit suportar; senão, reuse conexões no app.
+
+Paginação sempre (cursor/keyset), nunca “carregar tudo”.
+
+Campos numéricos: valores monetários em inteiro (centavos) para evitar NUMERIC em massa.
+
+Compressão de payload (gzip/br) + projeções enxutas (selecione só colunas necessárias).
+
+Cache HTTP: coloque ETag nas listas (contas, categorias) que quase não mudam; o cliente revalida barato.
+
+CDN para assets/SPA e até api caching de GETs idempotentes.
+
+7) Segurança essencial (com pouco custo)
+
+RLS ativo em todas as tabelas de dados de negócio.
+
+Roles: uma role só de leitura e outra de leitura/escrita para o app (sem permissões de DDL).
+
+Prepared statements / parâmetros → nada de SQL string concat.
+
+Auditoria: tabela de audit trail (quem alterou, quando, antes/depois) para disputas financeiras.
+
+Criptografia: dados sensíveis (ex.: chaves de API, tokens) em secrets do Replit; se precisar, criptografe colunas com libs no app antes de gravar.
+
+8) Backups e arquivamento (barato)
+
+Dump diário (pg_dump) para um object storage barato (R2/S3 compatível).
+
+Camadas hot/warm/cold:
+
+Hot (12–24 meses) no Postgres.
+
+Warm (2–5 anos) em tabelas particionadas de “arquivo”.
+
+Cold em Parquet no storage (consultas exploratórias podem usar DuckDB local para BI, sem custo de servidor).
+
+9) Escalonamento “sem dor”
+
+Quando/Se o Postgres do Replit ficar no limite, você mantém o mesmo protocolo de sync e migra o banco para um Postgres gerenciado (Neon, Supabase, RDS). O cliente e a API praticamente não mudam.
+
+Se precisar de busca textual pesada, considere um índice GIN com to_tsvector no próprio Postgres antes de pensar em motores externos.
+
+10) Checklist prático para você implementar agora
+
+Adicionar colunas updated_at, version, deleted em todas as tabelas de negócio.
+
+Criar RLS com tenant_id + policies.
+
+Criar changes + triggers de CDC.
+
+Implementar /sync:
+
+Entrada: since, tables[] (opcional), filtros.
+
+Saída: data[], tombstones[], last_version.
+
+PWA + IndexedDB com Dexie.js:
+
+Cache por tabela, last_version por tabela ou global.
+
+Replays de mutations offline → fila local com retry.
+
+Paginação por cursor + ETag nos GETs grandes.
+
+Backups automáticos (script no Replit Deployments/cron do próprio app).
+
+Relatórios pesados em materialized views, com botão “Atualizar”.
