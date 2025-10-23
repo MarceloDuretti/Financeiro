@@ -4,6 +4,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { 
   insertCompanySchema, 
+  insertCompanyMemberSchema,
   loginSchema, 
   signupSchema,
   createCollaboratorSchema,
@@ -195,6 +196,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting company:", error);
       res.status(500).json({ error: "Failed to delete company" });
+    }
+  });
+
+  // Company Members routes - with tenant isolation
+
+  app.get("/api/companies/:companyId/members", isAuthenticated, async (req: any, res) => {
+    try {
+      const tenantId = getTenantId(req.user);
+      const members = await storage.listCompanyMembers(tenantId, req.params.companyId);
+      res.json(members);
+    } catch (error) {
+      console.error("Error listing company members:", error);
+      res.status(500).json({ error: "Failed to list company members" });
+    }
+  });
+
+  app.post("/api/companies/:companyId/members", isAuthenticated, async (req: any, res) => {
+    try {
+      const tenantId = getTenantId(req.user);
+      const memberData = insertCompanyMemberSchema.omit({ tenantId: true }).parse(req.body);
+      
+      // Ensure companyId from URL is used (prevent mismatch)
+      const member = await storage.createCompanyMember(tenantId, {
+        ...memberData,
+        companyId: req.params.companyId,
+      });
+      
+      res.json(member);
+    } catch (error: any) {
+      console.error("Error creating company member:", error);
+      res.status(400).json({ error: error.message || "Invalid member data" });
+    }
+  });
+
+  app.patch("/api/companies/:companyId/members/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const tenantId = getTenantId(req.user);
+      const updates = insertCompanyMemberSchema.partial().parse(req.body);
+      
+      // SECURITY: Remove tenantId and companyId from updates
+      const { tenantId: _, companyId: __, ...safeUpdates } = updates;
+      
+      const member = await storage.updateCompanyMember(tenantId, req.params.id, safeUpdates);
+      if (!member) {
+        return res.status(404).json({ error: "Member not found" });
+      }
+      res.json(member);
+    } catch (error) {
+      console.error("Error updating company member:", error);
+      res.status(400).json({ error: "Invalid member data" });
+    }
+  });
+
+  app.delete("/api/companies/:companyId/members/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const tenantId = getTenantId(req.user);
+      const deleted = await storage.deleteCompanyMember(tenantId, req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ error: "Member not found" });
+      }
+      res.json({ message: "Member deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting company member:", error);
+      res.status(500).json({ error: "Failed to delete company member" });
     }
   });
 
