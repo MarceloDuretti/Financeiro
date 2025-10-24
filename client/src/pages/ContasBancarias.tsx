@@ -713,46 +713,40 @@ export default function ContasBancarias() {
 
                         <Separator />
 
-                        <div>
-                          <h3 className="text-sm font-medium text-muted-foreground mb-2">Saldos</h3>
-                          <div className="grid grid-cols-3 gap-x-4 gap-y-2">
-                            <div>
-                              <span className="text-xs text-muted-foreground">Saldo Atual</span>
-                              <p className="text-lg font-semibold">{formatCurrency(selectedAccount.currentBalance)}</p>
-                            </div>
-                            <div>
-                              <span className="text-xs text-muted-foreground">Saldo Inicial</span>
-                              <p className="text-sm font-medium">{formatCurrency(selectedAccount.initialBalance)}</p>
-                            </div>
-                            {selectedAccount.allowsNegativeBalance && (
-                              <div>
-                                <span className="text-xs text-muted-foreground">Limite de Crédito</span>
-                                <p className="text-sm font-medium">{formatCurrency(selectedAccount.creditLimit || 0)}</p>
-                              </div>
-                            )}
+                        <div className="grid grid-cols-3 gap-x-4 gap-y-2">
+                          <div>
+                            <span className="text-xs text-muted-foreground">Saldo Atual</span>
+                            <p className="text-lg font-semibold">{formatCurrency(selectedAccount.currentBalance)}</p>
                           </div>
+                          <div>
+                            <span className="text-xs text-muted-foreground">Saldo Inicial</span>
+                            <p className="text-sm font-medium">{formatCurrency(selectedAccount.initialBalance)}</p>
+                          </div>
+                          {selectedAccount.allowsNegativeBalance && (
+                            <div>
+                              <span className="text-xs text-muted-foreground">Limite de Crédito</span>
+                              <p className="text-sm font-medium">{formatCurrency(selectedAccount.creditLimit || 0)}</p>
+                            </div>
+                          )}
                         </div>
 
                         <Separator />
 
-                        <div>
-                          <h3 className="text-sm font-medium text-muted-foreground mb-2">Status</h3>
-                          <div className="grid grid-cols-3 gap-x-4 gap-y-2">
-                            <div>
-                              <span className="text-xs text-muted-foreground">Permite Saldo Negativo</span>
-                              <div className="mt-1">
-                                {selectedAccount.allowsNegativeBalance ? (
-                                  <Badge variant="default">Sim</Badge>
-                                ) : (
-                                  <Badge variant="secondary">Não</Badge>
-                                )}
-                              </div>
+                        <div className="grid grid-cols-3 gap-x-4 gap-y-2">
+                          <div>
+                            <span className="text-xs text-muted-foreground">Permite Saldo Negativo</span>
+                            <div className="mt-1">
+                              {selectedAccount.allowsNegativeBalance ? (
+                                <Badge variant="default">Sim</Badge>
+                              ) : (
+                                <Badge variant="secondary">Não</Badge>
+                              )}
                             </div>
-                            <div>
-                              <span className="text-xs text-muted-foreground">Status</span>
-                              <div className="mt-1">
-                                <Badge variant="default">{selectedAccount.status || "Ativa"}</Badge>
-                              </div>
+                          </div>
+                          <div>
+                            <span className="text-xs text-muted-foreground">Status</span>
+                            <div className="mt-1">
+                              <Badge variant="default">{selectedAccount.status || "Ativa"}</Badge>
                             </div>
                           </div>
                         </div>
