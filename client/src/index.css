@@ -374,7 +374,7 @@
   .form-floating > label {
     @apply absolute left-3 px-1.5 text-xs font-normal pointer-events-none transition-all;
     @apply bg-background text-muted-foreground;
-    top: -0.35rem;
+    top: -0.7rem;
     line-height: 1;
     z-index: 10;
   }
