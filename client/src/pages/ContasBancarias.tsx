@@ -702,6 +702,12 @@ export default function ContasBancarias() {
                               <span className="text-xs text-muted-foreground">Conta</span>
                               <p className="text-sm font-medium">{selectedAccount.accountNumber}</p>
                             </div>
+                            <div>
+                              <span className="text-xs text-muted-foreground">Data Saldo Inicial</span>
+                              <p className="text-sm font-medium">
+                                {selectedAccount.initialBalanceDate ? format(new Date(selectedAccount.initialBalanceDate), 'dd/MM/yyyy', { locale: ptBR }) : "N/A"}
+                              </p>
+                            </div>
                           </div>
                         </div>
 
@@ -717,12 +723,6 @@ export default function ContasBancarias() {
                             <div>
                               <span className="text-xs text-muted-foreground">Saldo Inicial</span>
                               <p className="text-sm font-medium">{formatCurrency(selectedAccount.initialBalance)}</p>
-                            </div>
-                            <div>
-                              <span className="text-xs text-muted-foreground">Data Saldo Inicial</span>
-                              <p className="text-sm font-medium">
-                                {selectedAccount.initialBalanceDate ? format(new Date(selectedAccount.initialBalanceDate), 'dd/MM/yyyy', { locale: ptBR }) : "N/A"}
-                              </p>
                             </div>
                             {selectedAccount.allowsNegativeBalance && (
                               <div>
