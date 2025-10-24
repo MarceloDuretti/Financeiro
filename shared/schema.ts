@@ -411,3 +411,99 @@ export const togglePaymentMethodSchema = z.object({
 }).strict(); // strict() ensures no extra fields
 
 export type TogglePaymentMethod = z.infer<typeof togglePaymentMethodSchema>;
+
+// Customers and Suppliers table - Unified entity that can be both customer AND supplier
+export const customersSuppliers = pgTable("customers_suppliers", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  tenantId: varchar("tenant_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  code: integer("code").notNull(), // Auto-generated: CLI001, CLI002, etc.
+  
+  // Type flags - Same entity can be both customer and supplier
+  isCustomer: boolean("is_customer").notNull().default(false),
+  isSupplier: boolean("is_supplier").notNull().default(false),
+  
+  // Identification
+  name: text("name").notNull(), // Company name or person name
+  documentType: text("document_type"), // "cpf", "cnpj", "foreign", "none"
+  document: text("document"), // CPF, CNPJ, or foreign ID
+  
+  // Contact information
+  phone: text("phone"),
+  whatsapp: text("whatsapp"), // Can be same as phone or different
+  email: text("email"),
+  website: text("website"),
+  
+  // Address
+  zipCode: text("zip_code"), // CEP
+  street: text("street"),
+  number: text("number"),
+  complement: text("complement"),
+  neighborhood: text("neighborhood"),
+  city: text("city"),
+  state: text("state"),
+  country: text("country").default("Brasil"),
+  
+  // Banking information (for future bank reconciliation)
+  bankName: text("bank_name"),
+  accountAgency: text("account_agency"),
+  accountNumber: text("account_number"),
+  pixKey: text("pix_key"),
+  pixKeyType: text("pix_key_type"), // "cpf", "cnpj", "email", "phone", "random"
+  
+  // Additional data
+  imageUrl: text("image_url"), // Circular avatar
+  notes: text("notes"), // General observations
+  
+  // Status and control
+  isActive: boolean("is_active").notNull().default(true),
+  updatedAt: timestamp("updated_at").notNull().defaultNow().$onUpdate(() => new Date()),
+  version: bigint("version", { mode: "number" }).notNull().default(1),
+  deleted: boolean("deleted").notNull().default(false),
+}, (table) => [
+  // Primary tenant index for fast queries
+  index("customers_suppliers_tenant_idx").on(table.tenantId, table.deleted, table.id),
+  // Unique code per tenant
+  uniqueIndex("customers_suppliers_tenant_code_unique").on(table.tenantId, table.code),
+  // Index for filtering by type
+  index("customers_suppliers_tenant_type_idx").on(table.tenantId, table.isCustomer, table.isSupplier, table.deleted),
+  // Index for updates/sync
+  index("customers_suppliers_tenant_updated_idx").on(table.tenantId, table.updatedAt),
+  // Index for status filtering
+  index("customers_suppliers_tenant_status_idx").on(table.tenantId, table.isActive, table.deleted),
+  // Index for document lookups
+  index("customers_suppliers_tenant_document_idx").on(table.tenantId, table.document, table.deleted),
+]);
+
+export const insertCustomerSupplierSchema = createInsertSchema(customersSuppliers).omit({
+  id: true,
+  tenantId: true,
+  code: true, // Auto-generated
+  updatedAt: true,
+  version: true,
+  deleted: true,
+}).extend({
+  // Custom validations
+  isCustomer: z.boolean().refine(
+    (val) => val !== undefined,
+    { message: "Defina se é cliente" }
+  ),
+  isSupplier: z.boolean().refine(
+    (val) => val !== undefined,
+    { message: "Defina se é fornecedor" }
+  ),
+  name: z.string().min(2, "Nome deve ter no mínimo 2 caracteres"),
+  email: z.string().email("Email inválido").optional().or(z.literal("")),
+  phone: z.string().optional(),
+  whatsapp: z.string().optional(),
+  document: z.string().optional(),
+  documentType: z.enum(["cpf", "cnpj", "foreign", "none"]).optional(),
+}).refine(
+  (data) => data.isCustomer || data.isSupplier,
+  {
+    message: "O registro deve ser Cliente, Fornecedor ou ambos",
+    path: ["isCustomer"],
+  }
+);
+
+export type InsertCustomerSupplier = z.infer<typeof insertCustomerSupplierSchema>;
+export type CustomerSupplier = typeof customersSuppliers.$inferSelect;

@@ -9,6 +9,7 @@ import {
   bankAccounts,
   pixKeys,
   paymentMethods,
+  customersSuppliers,
   type User,
   type InsertUser,
   type Company,
@@ -27,6 +28,8 @@ import {
   type InsertPixKey,
   type PaymentMethod,
   type InsertPaymentMethod,
+  type CustomerSupplier,
+  type InsertCustomerSupplier,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, inArray, sql, max } from "drizzle-orm";
@@ -121,6 +124,17 @@ export interface IStorage {
   listPaymentMethods(tenantId: string): Promise<PaymentMethod[]>;
   togglePaymentMethod(tenantId: string, id: string, isActive: boolean): Promise<PaymentMethod | undefined>;
   seedDefaultPaymentMethods(tenantId: string): Promise<void>;
+
+  // Customers/Suppliers operations - all require tenantId for multi-tenant isolation
+  listCustomersSuppliers(tenantId: string): Promise<CustomerSupplier[]>;
+  getCustomerSupplier(tenantId: string, id: string): Promise<CustomerSupplier | undefined>;
+  createCustomerSupplier(tenantId: string, entity: InsertCustomerSupplier): Promise<CustomerSupplier>;
+  updateCustomerSupplier(
+    tenantId: string,
+    id: string,
+    entity: Partial<InsertCustomerSupplier>
+  ): Promise<CustomerSupplier | undefined>;
+  deleteCustomerSupplier(tenantId: string, id: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1051,6 +1065,131 @@ export class DatabaseStorage implements IStorage {
           isActive: false, // Start with all disabled
         }))
       );
+    });
+  }
+
+  // Customers/Suppliers operations - all require tenantId for multi-tenant isolation
+
+  async listCustomersSuppliers(tenantId: string): Promise<CustomerSupplier[]> {
+    return await db
+      .select()
+      .from(customersSuppliers)
+      .where(
+        and(
+          eq(customersSuppliers.tenantId, tenantId),
+          eq(customersSuppliers.deleted, false)
+        )
+      )
+      .orderBy(customersSuppliers.code);
+  }
+
+  async getCustomerSupplier(tenantId: string, id: string): Promise<CustomerSupplier | undefined> {
+    const [entity] = await db
+      .select()
+      .from(customersSuppliers)
+      .where(
+        and(
+          eq(customersSuppliers.tenantId, tenantId),
+          eq(customersSuppliers.id, id),
+          eq(customersSuppliers.deleted, false)
+        )
+      );
+    return entity;
+  }
+
+  async createCustomerSupplier(
+    tenantId: string,
+    entityData: InsertCustomerSupplier
+  ): Promise<CustomerSupplier> {
+    return await db.transaction(async (tx) => {
+      // Use advisory lock to ensure thread-safe code generation
+      const lockKey = this.hashStringToInt(`customer_supplier_code_${tenantId}`);
+      await tx.execute(sql`SELECT pg_advisory_xact_lock(${lockKey})`);
+
+      // Get the next code number for this tenant
+      const result = await tx
+        .select({ maxCode: max(customersSuppliers.code) })
+        .from(customersSuppliers)
+        .where(eq(customersSuppliers.tenantId, tenantId));
+
+      const nextCode = (result[0]?.maxCode ?? 0) + 1;
+
+      // Insert with auto-generated code
+      const [entity] = await tx
+        .insert(customersSuppliers)
+        .values({
+          ...entityData,
+          tenantId,
+          code: nextCode,
+        })
+        .returning();
+
+      return entity;
+    });
+  }
+
+  async updateCustomerSupplier(
+    tenantId: string,
+    id: string,
+    entityData: Partial<InsertCustomerSupplier>
+  ): Promise<CustomerSupplier | undefined> {
+    return await db.transaction(async (tx) => {
+      // Get current version for optimistic locking
+      const [current] = await tx
+        .select()
+        .from(customersSuppliers)
+        .where(
+          and(
+            eq(customersSuppliers.tenantId, tenantId),
+            eq(customersSuppliers.id, id),
+            eq(customersSuppliers.deleted, false)
+          )
+        );
+
+      if (!current) {
+        return undefined;
+      }
+
+      // Update with version check (optimistic concurrency)
+      const [updated] = await tx
+        .update(customersSuppliers)
+        .set({
+          ...entityData,
+          version: sql`${customersSuppliers.version} + 1`,
+          updatedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(customersSuppliers.tenantId, tenantId),
+            eq(customersSuppliers.id, id),
+            eq(customersSuppliers.version, current.version)
+          )
+        )
+        .returning();
+
+      return updated;
+    });
+  }
+
+  async deleteCustomerSupplier(tenantId: string, id: string): Promise<boolean> {
+    return await db.transaction(async (tx) => {
+      // Soft delete
+      const [deleted] = await tx
+        .update(customersSuppliers)
+        .set({
+          deleted: true,
+          updatedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(customersSuppliers.tenantId, tenantId),
+            eq(customersSuppliers.id, id),
+            eq(customersSuppliers.deleted, false)
+          )
+        )
+        .returning();
+
+      return !!deleted;
     });
   }
 }
