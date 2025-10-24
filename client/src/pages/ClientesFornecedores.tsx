@@ -289,18 +289,19 @@ export default function ClientesFornecedores() {
 
   const [isTogglingActive, setIsTogglingActive] = useState(false);
   
-  const handleToggleActive = async () => {
-    if (!selectedEntity) return;
+  const handleToggleActive = async (entity?: EntityWithStats) => {
+    const targetEntity = entity || selectedEntity;
+    if (!targetEntity) return;
 
     setIsTogglingActive(true);
     try {
-      await apiRequest("PATCH", `/api/customers-suppliers/${selectedEntity.id}/toggle-active`, {});
+      await apiRequest("PATCH", `/api/customers-suppliers/${targetEntity.id}/toggle-active`, {});
 
       queryClient.invalidateQueries({ queryKey: ["/api/customers-suppliers"] });
 
       toast({
         title: "Sucesso!",
-        description: `Cliente/Fornecedor ${selectedEntity.isActive ? "desativado" : "ativado"} com sucesso`,
+        description: `Cliente/Fornecedor ${targetEntity.isActive ? "desativado" : "ativado"} com sucesso`,
       });
     } catch (error: any) {
       toast({
@@ -424,78 +425,82 @@ export default function ClientesFornecedores() {
                 )}
 
                 <Card
-                  className={`h-full cursor-pointer transition-all hover-elevate ${
+                  className={`h-full transition-all hover-elevate ${
                     selectedEntity?.id === entity.id ? "ring-2 ring-primary" : ""
                   } ${entity.isActive ? "bg-accent/70 shadow-lg" : ""}`}
-                  onClick={() => handleCardClick(entity)}
                   data-testid={`card-entity-${entity.id}`}
                 >
                   <CardContent className="p-4 h-full">
-                    <div className="flex flex-col h-full justify-between gap-4">
-                      <div className="flex flex-col gap-3">
-                        {/* Avatar and Status Badge */}
-                        <div className="flex items-start justify-between">
-                          <Avatar className={`h-14 w-14 transition-all ${
-                            entity.isActive ? "ring-2 ring-primary/20" : "opacity-50"
-                          }`}>
+                    <div className="flex flex-col h-full justify-between gap-3">
+                      <div className="flex flex-col gap-2">
+                        {/* Header: Avatar + Info + Status */}
+                        <div className="flex items-start gap-3">
+                          <Avatar 
+                            className={`h-12 w-12 flex-shrink-0 transition-all cursor-pointer ${
+                              entity.isActive ? "ring-2 ring-primary/20" : "opacity-50"
+                            }`}
+                            onClick={() => handleCardClick(entity)}
+                          >
                             <AvatarImage src={entity.imageUrl || undefined} alt={entity.name} />
-                            <AvatarFallback className="bg-primary/10 text-primary font-bold text-lg">
+                            <AvatarFallback className="bg-primary/10 text-primary font-bold text-base">
                               {getInitials(entity.name)}
                             </AvatarFallback>
                           </Avatar>
+
+                          <div className="flex-1 min-w-0 space-y-0.5">
+                            {/* Code */}
+                            <span 
+                              className={`text-xs font-mono block transition-all ${
+                                entity.isActive 
+                                  ? "text-muted-foreground" 
+                                  : "text-muted-foreground/50"
+                              }`}
+                              data-testid={`text-code-${entity.id}`}
+                            >
+                              {formatCode(entity.code)}
+                            </span>
+                            
+                            {/* Type Badge */}
+                            <Badge className={`${getTypeBadgeColor(entity)} text-xs w-fit`}>
+                              {getTypeLabel(entity)}
+                            </Badge>
+                            
+                            {/* Name */}
+                            <h3 
+                              className={`text-sm transition-all cursor-pointer ${
+                                entity.isActive 
+                                  ? "font-bold text-foreground" 
+                                  : "font-semibold opacity-50"
+                              }`}
+                              onClick={() => handleCardClick(entity)}
+                              data-testid={`text-name-${entity.id}`}
+                            >
+                              {entity.name}
+                            </h3>
+                          </div>
+
+                          {/* Status Badge */}
                           {entity.isActive && (
-                            <Badge variant="default" className="gap-1 text-xs px-2 py-0">
+                            <Badge variant="default" className="gap-1 text-xs px-2 py-0 flex-shrink-0">
                               <Check className="h-3 w-3" />
                               Ativo
                             </Badge>
                           )}
                         </div>
 
-                        {/* Code and Type Badge */}
-                        <div className="flex flex-col gap-1.5">
-                          <span 
-                            className={`text-xs font-mono transition-all ${
-                              entity.isActive 
-                                ? "text-muted-foreground" 
-                                : "text-muted-foreground/50"
-                            }`}
-                            data-testid={`text-code-${entity.id}`}
-                          >
-                            {formatCode(entity.code)}
-                          </span>
-                          <Badge className={`${getTypeBadgeColor(entity)} text-xs w-fit`}>
-                            {getTypeLabel(entity)}
-                          </Badge>
-                        </div>
-
-                        {/* Name and Document */}
-                        <div className="space-y-1">
-                          <h3 
-                            className={`text-sm transition-all ${
-                              entity.isActive 
-                                ? "font-bold text-foreground" 
-                                : "font-semibold opacity-50"
-                            }`}
-                            data-testid={`text-name-${entity.id}`}
-                          >
-                            {entity.name}
-                          </h3>
-                          {entity.document && (
-                            <p className={`text-xs font-mono transition-opacity ${
-                              entity.isActive ? "text-muted-foreground" : "text-muted-foreground/50"
-                            }`}>
-                              {entity.document}
-                            </p>
-                          )}
-                        </div>
-
-                        {/* Contact Info */}
-                        {(entity.phone || entity.email) && (
-                          <div className={`space-y-1.5 text-xs transition-opacity ${
+                        {/* Contact Info - Compact */}
+                        {(entity.document || entity.phone || entity.email) && (
+                          <div className={`space-y-1 text-xs transition-opacity ${
                             entity.isActive ? "opacity-100" : "opacity-50"
                           }`}>
+                            {entity.document && (
+                              <div className="flex items-center gap-1.5">
+                                <FileText className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                                <span className="font-mono truncate">{entity.document}</span>
+                              </div>
+                            )}
                             {entity.phone && (
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-1.5">
                                 <Phone className="h-3 w-3 text-muted-foreground flex-shrink-0" />
                                 <span className="truncate">{entity.phone}</span>
                                 {entity.whatsapp && (
@@ -504,16 +509,16 @@ export default function ClientesFornecedores() {
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     onClick={(e) => e.stopPropagation()}
-                                    className="ml-auto flex-shrink-0"
+                                    className="ml-1 flex-shrink-0"
                                     data-testid={`link-whatsapp-${entity.id}`}
                                   >
-                                    <SiWhatsapp className="h-4 w-4 text-green-500 hover:text-green-600 transition-colors" />
+                                    <SiWhatsapp className="h-3.5 w-3.5 text-green-500 hover:text-green-600 transition-colors" />
                                   </a>
                                 )}
                               </div>
                             )}
                             {entity.email && (
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-1.5">
                                 <Mail className="h-3 w-3 text-muted-foreground flex-shrink-0" />
                                 <span className="truncate">{entity.email}</span>
                               </div>
@@ -522,12 +527,38 @@ export default function ClientesFornecedores() {
                         )}
                       </div>
 
-                      {/* Action at bottom - Click to view details */}
-                      <div className={`text-center text-xs transition-opacity ${
-                        entity.isActive ? "text-primary" : "text-muted-foreground/50"
-                      }`}>
-                        Clique para ver detalhes
-                      </div>
+                      {/* Action - Always aligned at bottom */}
+                      {entity.isActive ? (
+                        <button
+                          onClick={() => handleToggleActive(entity)}
+                          disabled={isTogglingActive}
+                          className="text-xs text-destructive underline hover:text-destructive/80 transition-colors text-center disabled:opacity-50"
+                          data-testid={`button-toggle-${entity.id}`}
+                        >
+                          {isTogglingActive ? "Desativando..." : "Desativar"}
+                        </button>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full h-8"
+                          onClick={() => handleToggleActive(entity)}
+                          disabled={isTogglingActive}
+                          data-testid={`button-toggle-${entity.id}`}
+                        >
+                          {isTogglingActive ? (
+                            <>
+                              <Loader2 className="h-3 w-3 mr-1.5 animate-spin" />
+                              <span className="text-xs">Ativando...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Plus className="h-3 w-3 mr-1.5" />
+                              <span className="text-xs">Ativar</span>
+                            </>
+                          )}
+                        </Button>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -577,7 +608,7 @@ export default function ClientesFornecedores() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={handleToggleActive}
+                      onClick={() => handleToggleActive()}
                       disabled={isTogglingActive}
                       data-testid="button-toggle-active"
                     >
