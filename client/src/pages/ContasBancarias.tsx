@@ -567,7 +567,7 @@ export default function ContasBancarias() {
               <Card 
                 key={account.id}
                 className={`cursor-pointer transition-all hover-elevate ${
-                  selectedAccountId === account.id ? 'ring-2 ring-primary' : ''
+                  selectedAccountId === account.id ? 'bg-accent shadow-lg scale-[1.02] border-primary/20' : ''
                 }`}
                 onClick={() => handleSelectAccount(account.id)}
                 data-testid={`card-account-${account.id}`}
