@@ -84,7 +84,7 @@ export default function CobrancaTab({ companyId }: CobrancaTabProps) {
   // Form setup
   const form = useForm<InsertBankBillingConfig>({
     resolver: zodResolver(insertBankBillingConfigSchema),
-    defaultValues: existingConfig || {
+    defaultValues: {
       companyId: companyId,
       bankCode: selectedBankCode || "",
       bankName: selectedBank?.name || "",
@@ -96,7 +96,7 @@ export default function CobrancaTab({ companyId }: CobrancaTabProps) {
       wallet: "",
       walletVariation: "",
       ourNumberStart: "",
-      environment: "sandbox",
+      environment: "sandbox" as "sandbox" | "production",
       isActive: false,
       notes: "",
     },
