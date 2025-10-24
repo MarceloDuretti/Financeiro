@@ -38,6 +38,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 const SELECTED_ACCOUNT_KEY = "fincontrol_selected_bank_account_id";
+const SELECTED_COMPANY_KEY = "fincontrol_selected_company_id";
 
 // Schema para criar conta bancária
 const createBankAccountSchema = insertBankAccountSchema;
@@ -57,6 +58,9 @@ export default function ContasBancarias() {
   const [editFormData, setEditFormData] = useState<Partial<BankAccount>>({});
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isCreatePixDialogOpen, setIsCreatePixDialogOpen] = useState(false);
+  
+  // Get selected company ID from localStorage
+  const selectedCompanyId = localStorage.getItem(SELECTED_COMPANY_KEY);
 
   const { data: accounts = [], isLoading } = useQuery<BankAccount[]>({
     queryKey: ["/api/bank-accounts"],
@@ -76,6 +80,7 @@ export default function ContasBancarias() {
   const form = useForm<CreateBankAccountFormData>({
     resolver: zodResolver(createBankAccountSchema),
     defaultValues: {
+      companyId: selectedCompanyId || "",
       description: "",
       bankName: "",
       bankCode: "",
