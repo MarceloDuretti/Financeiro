@@ -5,8 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useRealtimeQuery } from "@/hooks/useRealtimeQuery";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import type { BankBillingConfig, InsertBankBillingConfig } from "@shared/schema";
-import { insertBankBillingConfigSchema } from "@shared/schema";
+import type { BankBillingConfig, InsertBankBillingConfig, BankAccount } from "@shared/schema";
+import { insertBankBillingConfigSchema, SUPPORTED_BANKS } from "@shared/schema";
 import {
   Building2,
   Check,
@@ -42,46 +42,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-
-// Supported banks with their metadata
-const SUPPORTED_BANKS = [
-  {
-    code: "001",
-    name: "Banco do Brasil",
-    shortName: "BB",
-    color: "text-yellow-700 bg-yellow-50",
-  },
-  {
-    code: "104",
-    name: "Caixa Econômica Federal",
-    shortName: "CEF",
-    color: "text-blue-700 bg-blue-50",
-  },
-  {
-    code: "237",
-    name: "Bradesco",
-    shortName: "Bradesco",
-    color: "text-red-700 bg-red-50",
-  },
-  {
-    code: "341",
-    name: "Itaú",
-    shortName: "Itaú",
-    color: "text-orange-700 bg-orange-50",
-  },
-  {
-    code: "033",
-    name: "Santander",
-    shortName: "Santander",
-    color: "text-red-600 bg-red-50",
-  },
-  {
-    code: "756",
-    name: "Sicoob",
-    shortName: "Sicoob",
-    color: "text-green-700 bg-green-50",
-  },
-];
+import { Switch } from "@/components/ui/switch";
 
 interface CobrancaTabProps {
   companyId: string;
@@ -99,6 +60,22 @@ export default function CobrancaTab({ companyId }: CobrancaTabProps) {
     queryKey: ["/api/bank-billing-configs", { companyId }],
     resource: "bank-billing-configs",
   });
+
+  // Fetch bank accounts to check which banks have accounts registered
+  const { data: bankAccounts = [] } = useRealtimeQuery<BankAccount[]>({
+    queryKey: ["/api/bank-accounts"],
+    resource: "bank-accounts",
+  });
+
+  // Filter bank accounts for this company and get their bank codes
+  const companyBankCodes = bankAccounts
+    .filter((account) => account.companyId === companyId && !account.deleted)
+    .map((account) => account.bankCode);
+
+  // Check if a bank has an account registered
+  const hasBankAccount = (bankCode: string) => {
+    return companyBankCodes.includes(bankCode);
+  };
 
   // Find the selected bank
   const selectedBank = SUPPORTED_BANKS.find((b) => b.code === selectedBankCode);
@@ -275,6 +252,7 @@ export default function CobrancaTab({ companyId }: CobrancaTabProps) {
           const config = configMap.get(bank.code);
           const isConfigured = !!config;
           const isDeleting = loadingBank === bank.code;
+          const hasAccount = hasBankAccount(bank.code);
 
           return (
             <Card
@@ -329,6 +307,11 @@ export default function CobrancaTab({ companyId }: CobrancaTabProps) {
                       >
                         Código: {bank.code}
                       </p>
+                      {!hasAccount && !isConfigured && (
+                        <Badge variant="secondary" className="text-xs mt-1 opacity-70">
+                          Sem conta cadastrada
+                        </Badge>
+                      )}
                       {isConfigured && config && (
                         <div className="text-xs text-muted-foreground mt-1 space-y-0.5">
                           {config.covenant && <p>Convênio: {config.covenant}</p>}
@@ -372,10 +355,11 @@ export default function CobrancaTab({ companyId }: CobrancaTabProps) {
                       size="sm"
                       className="w-full h-8"
                       onClick={() => handleConfigure(bank.code)}
+                      disabled={!hasAccount}
                       data-testid={`button-configure-${bank.code}`}
                     >
                       <Plus className="h-3 w-3 mr-1.5" />
-                      <span className="text-xs">Configurar</span>
+                      <span className="text-xs">{hasAccount ? "Configurar" : "Sem conta"}</span>
                     </Button>
                   )}
                 </div>
