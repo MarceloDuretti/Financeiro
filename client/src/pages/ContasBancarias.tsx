@@ -573,7 +573,9 @@ export default function ContasBancarias() {
                 data-testid={`card-account-${account.id}`}
               >
                 <CardContent className="p-3">
-                  <div className="space-y-2">
+                  <div className={`space-y-2 transition-opacity ${
+                    selectedAccountId === account.id ? 'opacity-100' : 'opacity-60'
+                  }`}>
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex items-center gap-2 min-w-0 flex-1">
                         <CreditCard className="h-4 w-4 text-primary flex-shrink-0" />
