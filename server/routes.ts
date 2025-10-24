@@ -919,6 +919,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Toggle customer/supplier active status
+  app.patch("/api/customers-suppliers/:id/toggle-active", isAuthenticated, async (req, res) => {
+    try {
+      const tenantId = getTenantId((req as any).user);
+      const { id } = req.params;
+      
+      const entity = await storage.toggleCustomerSupplierActive(tenantId, id);
+      if (!entity) {
+        return res.status(404).json({ message: "Cliente/Fornecedor não encontrado" });
+      }
+      
+      // Broadcast to all clients in this tenant
+      broadcastDataChange(tenantId, "customers-suppliers", "updated", entity);
+      
+      res.json(entity);
+    } catch (error: any) {
+      console.error("Error toggling customer/supplier:", error);
+      res.status(400).json({ message: error.message || "Erro ao alterar status" });
+    }
+  });
+
   // Payment Methods routes (authenticated + multi-tenant)
 
   // List all payment methods (auto-seed on first access)

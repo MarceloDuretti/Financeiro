@@ -135,6 +135,7 @@ export interface IStorage {
     entity: Partial<InsertCustomerSupplier>
   ): Promise<CustomerSupplier | undefined>;
   deleteCustomerSupplier(tenantId: string, id: string): Promise<boolean>;
+  toggleCustomerSupplierActive(tenantId: string, id: string): Promise<CustomerSupplier | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1190,6 +1191,45 @@ export class DatabaseStorage implements IStorage {
         .returning();
 
       return !!deleted;
+    });
+  }
+
+  async toggleCustomerSupplierActive(
+    tenantId: string,
+    id: string
+  ): Promise<CustomerSupplier | undefined> {
+    return await db.transaction(async (tx) => {
+      // First, verify the record exists and belongs to this tenant
+      const [existing] = await tx
+        .select()
+        .from(customersSuppliers)
+        .where(and(
+          eq(customersSuppliers.tenantId, tenantId),
+          eq(customersSuppliers.id, id),
+          eq(customersSuppliers.deleted, false)
+        ));
+      
+      if (!existing) {
+        return undefined; // Not found or doesn't belong to tenant
+      }
+      
+      // Toggle isActive status with optimistic concurrency control
+      const [entity] = await tx
+        .update(customersSuppliers)
+        .set({
+          isActive: !existing.isActive,
+          updatedAt: new Date(),
+          version: sql`${customersSuppliers.version} + 1`,
+        })
+        .where(and(
+          eq(customersSuppliers.tenantId, tenantId),
+          eq(customersSuppliers.id, id),
+          eq(customersSuppliers.version, existing.version), // Optimistic lock
+          eq(customersSuppliers.deleted, false)
+        ))
+        .returning();
+      
+      return entity;
     });
   }
 }
