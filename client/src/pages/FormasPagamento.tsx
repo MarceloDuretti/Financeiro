@@ -180,8 +180,10 @@ export default function FormasPagamento() {
                     {/* Name and Description */}
                     <div className="space-y-1">
                       <h3 
-                        className={`font-semibold text-base transition-opacity ${
-                          method.isActive ? "opacity-100" : "opacity-50"
+                        className={`text-base transition-all ${
+                          method.isActive 
+                            ? "font-bold text-foreground" 
+                            : "font-semibold opacity-50"
                         }`}
                         data-testid={`text-method-name-${method.id}`}
                       >
