@@ -369,107 +369,111 @@ export default function MinhaEmpresa() {
               ) : (
                 <div className={`grid gap-4 ${selectedCompanyId ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-2'}`}>
                   {companies.map((company) => (
-                    <div
+                    <Card
                       key={company.id}
-                      data-testid={`row-company-${company.id}`}
-                      onClick={() => setSelectedCompanyId(company.id)}
-                      className={`group relative rounded-xl border transition-all duration-200 cursor-pointer hover-elevate active-elevate-2 overflow-hidden ${
-                        selectedCompanyId === company.id 
-                          ? 'bg-gradient-to-br from-primary/10 to-primary/5 border-primary/30 shadow-md' 
-                          : 'bg-card border-border hover:border-primary/20 hover:shadow-sm'
+                      className={`h-full transition-all hover-elevate ${
+                        selectedCompanyId === company.id ? "ring-2 ring-primary shadow-lg" : ""
                       }`}
+                      data-testid={`card-company-${company.id}`}
                     >
-                      {/* Header do Card */}
-                      <div className="p-4 pb-3 border-b border-border/50">
-                        <div className="flex items-center justify-between gap-3">
-                          <div className="flex items-center gap-3 flex-1 min-w-0">
-                            <Avatar className="h-14 w-14 border-2 border-primary/20 shadow-sm">
-                              <AvatarImage src="" alt={company.tradeName} />
-                              <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary font-bold text-lg">
-                                {company.tradeName.substring(0, 2).toUpperCase()}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1 min-w-0">
-                              <h3 
-                                className="font-bold text-base text-foreground truncate"
-                                data-testid={`text-name-${company.id}`}
+                      <CardContent className="p-4 h-full">
+                        <div className="flex flex-col h-full justify-between gap-3">
+                          <div className="flex flex-col gap-2">
+                            {/* Header: Avatar + Info + Status */}
+                            <div className="flex items-start gap-3">
+                              <Avatar 
+                                className="h-12 w-12 flex-shrink-0 transition-all cursor-pointer ring-2 ring-primary/20"
+                                onClick={() => setSelectedCompanyId(company.id)}
                               >
-                                {company.tradeName}
-                              </h3>
-                              <p className="text-xs text-muted-foreground truncate">
-                                {company.legalName}
-                              </p>
-                            </div>
-                          </div>
-                          <ChevronRight className={`h-5 w-5 flex-shrink-0 text-muted-foreground transition-all ${
-                            selectedCompanyId === company.id ? 'text-primary rotate-90' : 'group-hover:translate-x-1'
-                          }`} />
-                        </div>
-                      </div>
+                                <AvatarImage src="" alt={company.tradeName} />
+                                <AvatarFallback className="bg-primary/10 text-primary font-bold text-base">
+                                  {company.tradeName.substring(0, 2).toUpperCase()}
+                                </AvatarFallback>
+                              </Avatar>
 
-                      {/* Body do Card - Grid de informações */}
-                      {!selectedCompanyId && (
-                        <div className="p-4 pt-3 space-y-3">
-                          <div className="grid grid-cols-2 gap-3">
-                            {/* Código */}
-                            <div className="space-y-1">
-                              <p className="text-xs text-muted-foreground">Código</p>
-                              <p 
-                                className="text-sm font-semibold font-mono text-foreground"
-                                data-testid={`text-code-${company.id}`}
-                              >
-                                {formatCompanyCode(company.code)}
-                              </p>
-                            </div>
+                              <div className="flex-1 min-w-0 space-y-1">
+                                {/* Code - Status Badge */}
+                                <div className="flex items-center gap-2">
+                                  <span 
+                                    className="text-xs font-mono text-muted-foreground"
+                                    data-testid={`text-code-${company.id}`}
+                                  >
+                                    {formatCompanyCode(company.code)}
+                                  </span>
+                                </div>
+                                
+                                {/* Name */}
+                                <h3 
+                                  className="text-sm font-bold text-foreground"
+                                  data-testid={`text-name-${company.id}`}
+                                >
+                                  {company.tradeName}
+                                </h3>
+                                <p className="text-xs text-muted-foreground truncate">
+                                  {company.legalName}
+                                </p>
+                              </div>
 
-                            {/* Status */}
-                            <div className="space-y-1">
-                              <p className="text-xs text-muted-foreground">Status</p>
+                              {/* Status Badge */}
                               <Badge 
                                 variant={company.status === "Ativa" ? "default" : "secondary"}
-                                className="text-xs w-fit"
-                                data-testid={`text-status-${company.id}`}
+                                className="gap-1 text-xs px-2 py-0 flex-shrink-0"
+                                data-testid={`badge-status-${company.id}`}
                               >
                                 {company.status}
                               </Badge>
                             </div>
 
-                            {/* CNPJ */}
-                            <div className="space-y-1">
-                              <p className="text-xs text-muted-foreground flex items-center gap-1">
-                                <FileText className="h-3 w-3" />
-                                CNPJ
-                              </p>
-                              <p 
-                                className="text-sm font-medium text-foreground"
-                                data-testid={`text-cnpj-${company.id}`}
-                              >
-                                {company.cnpj}
-                              </p>
-                            </div>
+                            {/* Contact Info - Compact */}
+                            <div className="space-y-1 text-xs">
+                              {/* CNPJ */}
+                              <div className="flex items-center justify-between gap-2">
+                                <div className="flex items-center gap-1.5 min-w-0">
+                                  <FileText className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                                  <span className="font-mono truncate" data-testid={`text-cnpj-${company.id}`}>
+                                    {company.cnpj}
+                                  </span>
+                                </div>
+                                {/* Ver Detalhes Link */}
+                                <button
+                                  onClick={() => setSelectedCompanyId(company.id)}
+                                  className="text-xs underline text-primary hover:text-primary/80 transition-colors flex-shrink-0"
+                                  data-testid={`link-details-${company.id}`}
+                                >
+                                  Ver detalhes
+                                </button>
+                              </div>
 
-                            {/* Telefone */}
-                            <div className="space-y-1">
-                              <p className="text-xs text-muted-foreground flex items-center gap-1">
-                                <Phone className="h-3 w-3" />
-                                Telefone
-                              </p>
-                              <p 
-                                className="text-sm font-medium text-foreground"
-                                data-testid={`text-phone-${company.id}`}
-                              >
-                                {company.phone}
-                              </p>
+                              {/* Telefone */}
+                              {company.phone && (
+                                <div className="flex items-center gap-1.5">
+                                  <Phone className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                                  <span className="truncate" data-testid={`text-phone-${company.id}`}>
+                                    {company.phone}
+                                  </span>
+                                </div>
+                              )}
+
+                              {/* Email */}
+                              {company.email && (
+                                <div className="flex items-center gap-1.5">
+                                  <Mail className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                                  <span className="truncate">{company.email}</span>
+                                </div>
+                              )}
                             </div>
                           </div>
-                        </div>
-                      )}
 
-                      {/* Indicador de seleção */}
-                      {selectedCompanyId === company.id && (
-                        <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-primary via-primary to-primary/50" />
-                      )}
-                    </div>
+                          {/* Indicador de seleção */}
+                          {selectedCompanyId === company.id && (
+                            <div className="flex items-center justify-center gap-2 pt-2 border-t text-xs text-primary font-medium">
+                              <ChevronRight className="h-4 w-4 rotate-90" />
+                              Selecionada
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
                   ))}
                 </div>
               )}
