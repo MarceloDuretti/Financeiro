@@ -188,36 +188,38 @@ export default function FormasPagamento() {
                     </div>
                   </div>
 
-                  {/* Action Button - Always aligned at bottom */}
-                  <Button
-                    variant={method.isActive ? "destructive" : "outline"}
-                    size="sm"
-                    className="w-full"
-                    onClick={() => handleToggle(method)}
-                    disabled={isToggling}
-                    data-testid={`button-toggle-${method.id}`}
-                  >
-                    {isToggling ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        {method.isActive ? "Desativando..." : "Ativando..."}
-                      </>
-                    ) : (
-                      <>
-                        {method.isActive ? (
-                          <>
-                            <Check className="h-4 w-4 mr-2" />
-                            Desativar
-                          </>
-                        ) : (
-                          <>
-                            <Plus className="h-4 w-4 mr-2" />
-                            Ativar
-                          </>
-                        )}
-                      </>
-                    )}
-                  </Button>
+                  {/* Action - Always aligned at bottom */}
+                  {method.isActive ? (
+                    <button
+                      onClick={() => handleToggle(method)}
+                      disabled={isToggling}
+                      className="text-sm text-destructive underline hover:text-destructive/80 transition-colors text-center disabled:opacity-50"
+                      data-testid={`button-toggle-${method.id}`}
+                    >
+                      {isToggling ? "Desativando..." : "Desativar"}
+                    </button>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => handleToggle(method)}
+                      disabled={isToggling}
+                      data-testid={`button-toggle-${method.id}`}
+                    >
+                      {isToggling ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Ativando...
+                        </>
+                      ) : (
+                        <>
+                          <Plus className="h-4 w-4 mr-2" />
+                          Ativar
+                        </>
+                      )}
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>
