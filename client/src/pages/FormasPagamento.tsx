@@ -190,7 +190,7 @@ export default function FormasPagamento() {
 
                   {/* Action Button - Always aligned at bottom */}
                   <Button
-                    variant={method.isActive ? "default" : "outline"}
+                    variant={method.isActive ? "destructive" : "outline"}
                     size="sm"
                     className="w-full"
                     onClick={() => handleToggle(method)}
