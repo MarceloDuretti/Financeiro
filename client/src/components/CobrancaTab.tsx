@@ -5,14 +5,43 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useRealtimeQuery } from "@/hooks/useRealtimeQuery";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import type { BankBillingConfig } from "@shared/schema";
+import type { BankBillingConfig, InsertBankBillingConfig } from "@shared/schema";
+import { insertBankBillingConfigSchema } from "@shared/schema";
 import {
   Building2,
   Check,
   Plus,
   Loader2,
   Settings,
+  X,
 } from "lucide-react";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 // Supported banks with their metadata
 const SUPPORTED_BANKS = [
@@ -56,8 +85,10 @@ const SUPPORTED_BANKS = [
 
 export default function CobrancaTab() {
   const { toast } = useToast();
-  const [selectedBank, setSelectedBank] = useState<string | null>(null);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [selectedBankCode, setSelectedBankCode] = useState<string | null>(null);
   const [loadingBank, setLoadingBank] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Fetch bank billing configs with real-time updates
   const { data: configs, isLoading } = useRealtimeQuery<BankBillingConfig[]>({
@@ -65,13 +96,109 @@ export default function CobrancaTab() {
     resource: "bank-billing-configs",
   });
 
+  // Find the selected bank
+  const selectedBank = SUPPORTED_BANKS.find((b) => b.code === selectedBankCode);
+  const existingConfig = configs?.find((c) => c.bankCode === selectedBankCode);
+
+  // Form setup
+  const form = useForm<InsertBankBillingConfig>({
+    resolver: zodResolver(insertBankBillingConfigSchema),
+    defaultValues: existingConfig || {
+      bankCode: selectedBankCode || "",
+      bankName: selectedBank?.name || "",
+      agency: "",
+      agencyDigit: "",
+      account: "",
+      accountDigit: "",
+      covenant: "",
+      wallet: "",
+      walletVariation: "",
+      ourNumberStart: "",
+      environment: "sandbox",
+      isActive: false,
+      notes: "",
+    },
+  });
+
   const handleConfigure = (bankCode: string) => {
-    setSelectedBank(bankCode);
-    // TODO: Open drawer with configuration form
-    toast({
-      title: "Em desenvolvimento",
-      description: "Configuração de boleto em breve disponível",
-    });
+    const bank = SUPPORTED_BANKS.find((b) => b.code === bankCode);
+    const config = configs?.find((c) => c.bankCode === bankCode);
+
+    setSelectedBankCode(bankCode);
+
+    // Reset form with existing config or defaults
+    if (config) {
+      form.reset({
+        bankCode: config.bankCode,
+        bankName: config.bankName,
+        agency: config.agency,
+        agencyDigit: config.agencyDigit,
+        account: config.account,
+        accountDigit: config.accountDigit,
+        covenant: config.covenant,
+        wallet: config.wallet,
+        walletVariation: config.walletVariation,
+        ourNumberStart: config.ourNumberStart,
+        environment: (config.environment === "production" ? "production" : "sandbox") as "sandbox" | "production",
+        isActive: config.isActive,
+        notes: config.notes,
+      });
+    } else {
+      form.reset({
+        bankCode: bankCode,
+        bankName: bank?.name || "",
+        agency: "",
+        agencyDigit: "",
+        account: "",
+        accountDigit: "",
+        covenant: "",
+        wallet: "",
+        walletVariation: "",
+        ourNumberStart: "",
+        environment: "sandbox" as "sandbox" | "production",
+        isActive: false,
+        notes: "",
+      });
+    }
+
+    setIsDrawerOpen(true);
+  };
+
+  const handleSave = async (data: InsertBankBillingConfig) => {
+    setIsSaving(true);
+    try {
+      const response = await apiRequest("POST", "/api/bank-billing-configs", data);
+      const savedConfig = (await response.json()) as BankBillingConfig;
+
+      // Update cache
+      queryClient.setQueryData<BankBillingConfig[]>(
+        ["/api/bank-billing-configs"],
+        (old) => {
+          if (!old) return [savedConfig];
+          const exists = old.some((c) => c.bankCode === savedConfig.bankCode);
+          if (exists) {
+            return old.map((c) => (c.bankCode === savedConfig.bankCode ? savedConfig : c));
+          }
+          return [...old, savedConfig];
+        }
+      );
+
+      toast({
+        title: "Configuração salva",
+        description: "A configuração bancária foi salva com sucesso.",
+      });
+
+      setIsDrawerOpen(false);
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: error.message || "Não foi possível salvar a configuração",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/bank-billing-configs"] });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleDelete = async (bankCode: string) => {
@@ -267,6 +394,290 @@ export default function CobrancaTab() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Configuration Drawer */}
+      <Sheet open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
+        <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle className="text-2xl flex items-center gap-2">
+              <Building2 className="h-6 w-6" />
+              {existingConfig ? "Editar" : "Configurar"} {selectedBank?.name}
+            </SheetTitle>
+            <SheetDescription>
+              Preencha os dados fornecidos pelo banco para emissão de boletos bancários.
+            </SheetDescription>
+          </SheetHeader>
+
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleSave)} className="space-y-6 mt-6">
+              {/* Bank Info (readonly) */}
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="bankCode"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Código do Banco</FormLabel>
+                      <FormControl>
+                        <Input {...field} disabled data-testid="input-bank-code" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="bankName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nome do Banco</FormLabel>
+                      <FormControl>
+                        <Input {...field} disabled data-testid="input-bank-name" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Agency and Account */}
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="agency"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Agência *</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="0001" data-testid="input-agency" />
+                      </FormControl>
+                      <FormDescription>Sem dígito verificador</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="agencyDigit"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Dígito da Agência</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          value={field.value || ""}
+                          placeholder="X"
+                          maxLength={1}
+                          data-testid="input-agency-digit"
+                        />
+                      </FormControl>
+                      <FormDescription>Opcional</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="account"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Conta *</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="12345" data-testid="input-account" />
+                      </FormControl>
+                      <FormDescription>Sem dígito verificador</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="accountDigit"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Dígito da Conta *</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          placeholder="6"
+                          maxLength={2}
+                          data-testid="input-account-digit"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Boleto-specific fields */}
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="covenant"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Convênio / Código Cedente</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          value={field.value || ""}
+                          placeholder="Ex: 123456"
+                          data-testid="input-covenant"
+                        />
+                      </FormControl>
+                      <FormDescription>Fornecido pelo banco</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="wallet"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Carteira</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          value={field.value || ""}
+                          placeholder="Ex: 18"
+                          data-testid="input-wallet"
+                        />
+                      </FormControl>
+                      <FormDescription>Tipo de cobrança</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="walletVariation"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Variação da Carteira</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          value={field.value || ""}
+                          placeholder="Ex: 019"
+                          data-testid="input-wallet-variation"
+                        />
+                      </FormControl>
+                      <FormDescription>Se aplicável</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="ourNumberStart"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nosso Número Inicial</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          value={field.value || ""}
+                          placeholder="Ex: 1"
+                          data-testid="input-our-number-start"
+                        />
+                      </FormControl>
+                      <FormDescription>Sequencial de boletos</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Environment */}
+              <FormField
+                control={form.control}
+                name="environment"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Ambiente *</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger data-testid="select-environment">
+                          <SelectValue placeholder="Selecione o ambiente" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="sandbox">Sandbox (Testes)</SelectItem>
+                        <SelectItem value="production">Produção</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      Use Sandbox para testes antes de ativar em Produção
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Notes */}
+              <FormField
+                control={form.control}
+                name="notes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Observações</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        {...field}
+                        value={field.value || ""}
+                        placeholder="Anotações internas sobre esta configuração..."
+                        rows={3}
+                        data-testid="textarea-notes"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Actions */}
+              <div className="flex gap-3 pt-4 border-t">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsDrawerOpen(false)}
+                  className="flex-1"
+                  data-testid="button-cancel"
+                >
+                  <X className="h-4 w-4 mr-2" />
+                  Cancelar
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={isSaving}
+                  className="flex-1"
+                  data-testid="button-save"
+                >
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Salvando...
+                    </>
+                  ) : (
+                    <>
+                      <Check className="h-4 w-4 mr-2" />
+                      Salvar Configuração
+                    </>
+                  )}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
