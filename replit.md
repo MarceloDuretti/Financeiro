@@ -32,7 +32,15 @@ Key features include:
     - Hierarchical tree structure (max 5 levels) with auto-generated codes using advisory locks and a materialized path pattern.
 - **Contas Bancárias (Bank Accounts) Page:** Master-detail interface for managing bank accounts (full CRUD), including financial control fields (initial balance, credit limit), and PIX keys management. Prepared for future Open Banking integration with reconciliation fields.
 - **Formas de Pagamento (Payment Methods) Page:** Pre-defined selection system of 12 payment methods that users can activate/deactivate (no creation/editing), auto-seeded on first access.
-- **Clientes e Fornecedores (Customers & Suppliers) Page:** Supports dual-role entities (customer, supplier, or both) with auto-code generation, responsive grid layout, floating percentage badges, WhatsApp integration, and a multi-step wizard form for creation.
+- **Clientes e Fornecedores (Customers & Suppliers) Page:** 
+    - Dual-role entities support (customer, supplier, or both) with auto-code generation
+    - Responsive grid layout with floating percentage badges and WhatsApp integration
+    - Multi-step wizard form for creation only (5 steps: Basic Info, Address, Banking, Additional, Review)
+    - Dual-mode drawer: Read-only view mode and inline editing mode
+    - Active/Inactive status management with visual indicators (opacity-60 for inactive cards, status badges)
+    - Inline editing within drawer (no wizard reopening for edits)
+    - Toggle active/inactive functionality with optimistic concurrency control
+    - Real-time WebSocket updates for all CRUD operations including status changes
 
 ### Backend Architecture
 
