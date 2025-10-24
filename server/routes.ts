@@ -9,6 +9,7 @@ import {
   insertChartAccountSchema,
   insertBankAccountSchema,
   insertPixKeySchema,
+  togglePaymentMethodSchema,
   loginSchema, 
   signupSchema,
   createCollaboratorSchema,
@@ -809,6 +810,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error("Error deleting PIX key:", error);
       res.status(400).json({ message: error.message || "Failed to delete PIX key" });
+    }
+  });
+
+  // Payment Methods routes (authenticated + multi-tenant)
+
+  // List all payment methods (auto-seed on first access)
+  app.get("/api/payment-methods", isAuthenticated, async (req, res) => {
+    try {
+      const tenantId = getTenantId((req as any).user);
+      
+      // Auto-seed if no payment methods exist
+      await storage.seedDefaultPaymentMethods(tenantId);
+      
+      const methods = await storage.listPaymentMethods(tenantId);
+      res.json(methods);
+    } catch (error) {
+      console.error("Error listing payment methods:", error);
+      res.status(500).json({ error: "Failed to list payment methods" });
+    }
+  });
+
+  // Toggle payment method (activate/deactivate)
+  app.patch("/api/payment-methods/:id/toggle", isAuthenticated, async (req, res) => {
+    try {
+      const tenantId = getTenantId((req as any).user);
+      const { id } = req.params;
+      
+      // Validate and strip extra fields using Zod (security)
+      const validatedData = togglePaymentMethodSchema.parse(req.body);
+      
+      const method = await storage.togglePaymentMethod(tenantId, id, validatedData.isActive);
+      if (!method) {
+        return res.status(404).json({ message: "Forma de pagamento não encontrada" });
+      }
+      
+      // Broadcast to all clients in this tenant
+      broadcastDataChange(tenantId, "payment-methods", "updated", method);
+      
+      res.json(method);
+    } catch (error: any) {
+      console.error("Error toggling payment method:", error);
+      res.status(400).json({ message: error.message || "Não foi possível atualizar a forma de pagamento" });
     }
   });
 

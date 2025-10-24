@@ -64,6 +64,17 @@ Preferred communication style: Simple, everyday language.
   - **Real-Time Updates:** WebSocket broadcasts ensure instant UI updates across all users when bank accounts or PIX keys are created/updated/deleted
   - **Form Validation:** React Hook Form with Zod schemas, string-based monetary values to avoid float precision issues, date coercion for cross-format compatibility
   - **Color Coding:** Visual identification with customizable account colors
+- **Formas de Pagamento (Payment Methods) Page:**
+  - **Pre-Defined Selection System:** 12 pre-configured payment methods that users can activate/deactivate (no creation/editing)
+  - **Auto-Seed on First Access:** Automatically creates all 12 default payment methods on first API call
+  - **Payment Methods:** Dinheiro, Pix, Cartão de Crédito, Cartão de Débito, Cheque, Boleto, Transferência TED, Transferência DOC, DREX, Carteira Digital, Débito Automático, Crédito em Loja
+  - **Responsive Grid Layout:** Cards displayed in 1-4 columns (mobile to desktop) with colorful icons and descriptions
+  - **Visual Design:** Each card has unique color scheme, icon from Lucide React, name, and description
+  - **Toggle Functionality:** One-click activation/deactivation with immediate UI feedback
+  - **Active State Indication:** Selected methods show with ring border, accent background, and active badge
+  - **Real-Time Updates:** WebSocket broadcasts ensure instant synchronization across all users
+  - **Loading States:** Skeleton loading and per-card loading indicators during toggle operations
+  - **Purpose:** Only active payment methods are available for financial transactions
 
 ### Backend Architecture
 
@@ -79,6 +90,7 @@ Preferred communication style: Simple, everyday language.
     - `chart-of-accounts`: CRUD operations for hierarchical accounts with tenant-scoped isolation, auto-code generation, delete validation. **GET endpoint auto-seeds 5 default root accounts on first access** (Receitas, Despesas, Ativo, Passivo, Patrimônio Líquido) via `seedDefaultChartAccounts(tenantId)` method.
     - `bank-accounts`: CRUD operations for bank accounts with tenant-scoped isolation. Includes fields for reconciliation (initialBalance, initialBalanceDate, lastReconciliationDate) and future Open Banking integration (autoSyncEnabled, lastSyncAt, syncFrequency).
     - `pix-keys`: CRUD operations for PIX keys (1:N relationship with bank accounts), unique constraint on (tenantId, keyValue) to prevent duplicate keys within a tenant.
+    - `payment-methods`: GET endpoint lists all payment methods (auto-seeds 12 default methods on first access), PATCH /:id/toggle endpoint activates/deactivates methods with tenant-scoped isolation.
 
 **Storage Layer:** PostgreSQL-backed via Drizzle ORM, implementing multi-tenant isolation through a `tenantId` parameter in all business data operations. This ensures data is scoped to the authenticated user's tenant.
 
@@ -95,7 +107,7 @@ Preferred communication style: Simple, everyday language.
   ```json
   {
     "type": "data:change",
-    "resource": "cost-centers" | "chart-of-accounts" | "bank-accounts" | "pix-keys",
+    "resource": "cost-centers" | "chart-of-accounts" | "bank-accounts" | "pix-keys" | "payment-methods",
     "action": "created" | "updated" | "deleted",
     "data": {...},
     "timestamp": "ISO 8601"
@@ -123,7 +135,7 @@ Preferred communication style: Simple, everyday language.
 
 **Data Storage Solutions:**
 - **Database:** Neon Serverless PostgreSQL, Drizzle ORM for schema and migrations.
-- **Schema:** Shared between client/server, including tables for `sessions`, `users`, `companies`, `user_companies`, `company_members`, `cost_centers`, `chart_of_accounts`, `bank_accounts`, and `pix_keys`, all with appropriate `tenantId` and `companyId` for isolation.
+- **Schema:** Shared between client/server, including tables for `sessions`, `users`, `companies`, `user_companies`, `company_members`, `cost_centers`, `chart_of_accounts`, `bank_accounts`, `pix_keys`, and `payment_methods`, all with appropriate `tenantId` and `companyId` for isolation.
 - **Monetary Values:** Stored as text/string to avoid JavaScript floating-point precision issues, parsed to numbers only when needed for calculations.
 
 ## External Dependencies

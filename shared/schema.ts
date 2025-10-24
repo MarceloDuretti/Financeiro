@@ -372,3 +372,42 @@ export const insertPixKeySchema = createInsertSchema(pixKeys).omit({
 
 export type InsertPixKey = z.infer<typeof insertPixKeySchema>;
 export type PixKey = typeof pixKeys.$inferSelect;
+
+// Payment Methods table - Pre-defined payment methods that users can activate/deactivate
+export const paymentMethods = pgTable("payment_methods", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  tenantId: varchar("tenant_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  code: integer("code").notNull(), // Unique code within tenant
+  name: text("name").notNull(), // "Dinheiro", "Pix", "Cartão de Crédito", etc
+  description: text("description").notNull(), // Brief description
+  icon: text("icon").notNull(), // Icon name from lucide-react
+  isActive: boolean("is_active").notNull().default(false), // Whether this payment method is active for the tenant
+  updatedAt: timestamp("updated_at").notNull().defaultNow().$onUpdate(() => new Date()),
+  version: bigint("version", { mode: "number" }).notNull().default(1),
+  deleted: boolean("deleted").notNull().default(false),
+}, (table) => [
+  index("payment_methods_tenant_idx").on(table.tenantId, table.id),
+  uniqueIndex("payment_methods_tenant_code_unique").on(table.tenantId, table.code),
+  index("payment_methods_tenant_updated_idx").on(table.tenantId, table.updatedAt),
+  index("payment_methods_tenant_deleted_idx").on(table.tenantId, table.deleted, table.id),
+  index("payment_methods_tenant_active_idx").on(table.tenantId, table.isActive, table.deleted),
+]);
+
+export const insertPaymentMethodSchema = createInsertSchema(paymentMethods).omit({
+  id: true,
+  tenantId: true,
+  code: true,
+  updatedAt: true,
+  version: true,
+  deleted: true,
+});
+
+export type InsertPaymentMethod = z.infer<typeof insertPaymentMethodSchema>;
+export type PaymentMethod = typeof paymentMethods.$inferSelect;
+
+// Schema for toggling payment method active status
+export const togglePaymentMethodSchema = z.object({
+  isActive: z.boolean(),
+}).strict(); // strict() ensures no extra fields
+
+export type TogglePaymentMethod = z.infer<typeof togglePaymentMethodSchema>;

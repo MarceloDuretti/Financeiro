@@ -8,6 +8,7 @@ import {
   chartOfAccounts,
   bankAccounts,
   pixKeys,
+  paymentMethods,
   type User,
   type InsertUser,
   type Company,
@@ -24,6 +25,8 @@ import {
   type InsertBankAccount,
   type PixKey,
   type InsertPixKey,
+  type PaymentMethod,
+  type InsertPaymentMethod,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, inArray, sql, max } from "drizzle-orm";
@@ -113,6 +116,11 @@ export interface IStorage {
     pixKey: Partial<InsertPixKey>
   ): Promise<PixKey | undefined>;
   deletePixKey(tenantId: string, id: string): Promise<boolean>;
+
+  // Payment Methods operations - all require tenantId for multi-tenant isolation
+  listPaymentMethods(tenantId: string): Promise<PaymentMethod[]>;
+  togglePaymentMethod(tenantId: string, id: string, isActive: boolean): Promise<PaymentMethod | undefined>;
+  seedDefaultPaymentMethods(tenantId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -940,6 +948,110 @@ export class DatabaseStorage implements IStorage {
       ))
       .returning();
     return result.length > 0;
+  }
+
+  // Payment Methods operations
+
+  async listPaymentMethods(tenantId: string): Promise<PaymentMethod[]> {
+    return await db
+      .select()
+      .from(paymentMethods)
+      .where(and(
+        eq(paymentMethods.tenantId, tenantId),
+        eq(paymentMethods.deleted, false)
+      ))
+      .orderBy(paymentMethods.code);
+  }
+
+  async togglePaymentMethod(
+    tenantId: string,
+    id: string,
+    isActive: boolean
+  ): Promise<PaymentMethod | undefined> {
+    return await db.transaction(async (tx) => {
+      // First, verify the record exists and belongs to this tenant
+      const [existing] = await tx
+        .select()
+        .from(paymentMethods)
+        .where(and(
+          eq(paymentMethods.tenantId, tenantId),
+          eq(paymentMethods.id, id),
+          eq(paymentMethods.deleted, false)
+        ));
+      
+      if (!existing) {
+        return undefined; // Not found or doesn't belong to tenant
+      }
+      
+      // Update with optimistic concurrency control (check version)
+      const [paymentMethod] = await tx
+        .update(paymentMethods)
+        .set({
+          isActive,
+          updatedAt: new Date(),
+          version: sql`${paymentMethods.version} + 1`,
+        })
+        .where(and(
+          eq(paymentMethods.tenantId, tenantId),
+          eq(paymentMethods.id, id),
+          eq(paymentMethods.version, existing.version), // Optimistic lock
+          eq(paymentMethods.deleted, false)
+        ))
+        .returning();
+      
+      return paymentMethod;
+    });
+  }
+
+  async seedDefaultPaymentMethods(tenantId: string): Promise<void> {
+    // Use advisory lock for thread-safe seeding (similar to other seed methods)
+    const lockId = this.hashStringToInt(`payment_methods_seed_${tenantId}`);
+    
+    await db.transaction(async (tx) => {
+      // Acquire advisory lock
+      await tx.execute(sql`SELECT pg_advisory_xact_lock(${lockId})`);
+      
+      // Check if already seeded (inside transaction with lock)
+      const existing = await tx
+        .select()
+        .from(paymentMethods)
+        .where(and(
+          eq(paymentMethods.tenantId, tenantId),
+          eq(paymentMethods.deleted, false)
+        ))
+        .limit(1);
+
+      if (existing.length > 0) {
+        return; // Already seeded
+      }
+
+      // Default payment methods with descriptions and icons
+      const defaultMethods = [
+        { code: 1, name: "Dinheiro", description: "Pagamento em espécie", icon: "Banknote" },
+        { code: 2, name: "Pix", description: "Transferência instantânea via Pix", icon: "Zap" },
+        { code: 3, name: "Cartão de Crédito", description: "Pagamento com cartão de crédito", icon: "CreditCard" },
+        { code: 4, name: "Cartão de Débito", description: "Pagamento com cartão de débito", icon: "CreditCard" },
+        { code: 5, name: "Cheque", description: "Pagamento via cheque bancário", icon: "FileText" },
+        { code: 6, name: "Boleto", description: "Pagamento via boleto bancário", icon: "Receipt" },
+        { code: 7, name: "Transferência TED", description: "Transferência Eletrônica Disponível", icon: "ArrowRightLeft" },
+        { code: 8, name: "Transferência DOC", description: "Documento de Ordem de Crédito", icon: "ArrowRightLeft" },
+        { code: 9, name: "DREX", description: "Moeda digital do Banco Central", icon: "Coins" },
+        { code: 10, name: "Carteira Digital", description: "PicPay, Mercado Pago, PayPal, etc", icon: "Smartphone" },
+        { code: 11, name: "Débito Automático", description: "Pagamentos recorrentes automáticos", icon: "RefreshCw" },
+        { code: 12, name: "Crédito em Loja", description: "Carnê ou parcelamento direto", icon: "Store" },
+      ];
+
+      await tx.insert(paymentMethods).values(
+        defaultMethods.map((method) => ({
+          tenantId,
+          code: method.code,
+          name: method.name,
+          description: method.description,
+          icon: method.icon,
+          isActive: false, // Start with all disabled
+        }))
+      );
+    });
   }
 }
 
