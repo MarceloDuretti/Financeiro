@@ -132,10 +132,7 @@ export default function ClientesFornecedores() {
 
   const onSubmit = async (data: InsertCustomerSupplier) => {
     try {
-      await apiRequest("/api/customers-suppliers", {
-        method: "POST",
-        body: JSON.stringify(data),
-      });
+      await apiRequest("POST", "/api/customers-suppliers", data);
 
       queryClient.invalidateQueries({ queryKey: ["/api/customers-suppliers"] });
 
@@ -164,9 +161,7 @@ export default function ClientesFornecedores() {
 
     setIsDeleting(true);
     try {
-      await apiRequest(`/api/customers-suppliers/${selectedEntity.id}`, {
-        method: "DELETE",
-      });
+      await apiRequest("DELETE", `/api/customers-suppliers/${selectedEntity.id}`);
 
       queryClient.invalidateQueries({ queryKey: ["/api/customers-suppliers"] });
 
@@ -768,7 +763,7 @@ export default function ClientesFornecedores() {
                       <FormItem>
                         <FormLabel>Website</FormLabel>
                         <FormControl>
-                          <Input {...field} placeholder="https://" data-testid="input-website" />
+                          <Input {...field} value={field.value || ""} placeholder="https://" data-testid="input-website" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -789,7 +784,7 @@ export default function ClientesFornecedores() {
                       <FormItem>
                         <FormLabel>CEP</FormLabel>
                         <FormControl>
-                          <Input {...field} placeholder="00000-000" data-testid="input-zipcode" />
+                          <Input {...field} value={field.value || ""} placeholder="00000-000" data-testid="input-zipcode" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -804,7 +799,7 @@ export default function ClientesFornecedores() {
                         <FormItem className="col-span-2">
                           <FormLabel>Rua/Logradouro</FormLabel>
                           <FormControl>
-                            <Input {...field} data-testid="input-street" />
+                            <Input {...field} value={field.value || ""} data-testid="input-street" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -818,7 +813,7 @@ export default function ClientesFornecedores() {
                         <FormItem>
                           <FormLabel>Número</FormLabel>
                           <FormControl>
-                            <Input {...field} data-testid="input-number" />
+                            <Input {...field} value={field.value || ""} data-testid="input-number" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -833,7 +828,7 @@ export default function ClientesFornecedores() {
                       <FormItem>
                         <FormLabel>Complemento</FormLabel>
                         <FormControl>
-                          <Input {...field} data-testid="input-complement" />
+                          <Input {...field} value={field.value || ""} data-testid="input-complement" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -847,7 +842,7 @@ export default function ClientesFornecedores() {
                       <FormItem>
                         <FormLabel>Bairro</FormLabel>
                         <FormControl>
-                          <Input {...field} data-testid="input-neighborhood" />
+                          <Input {...field} value={field.value || ""} data-testid="input-neighborhood" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -862,7 +857,7 @@ export default function ClientesFornecedores() {
                         <FormItem>
                           <FormLabel>Cidade</FormLabel>
                           <FormControl>
-                            <Input {...field} data-testid="input-city" />
+                            <Input {...field} value={field.value || ""} data-testid="input-city" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -876,7 +871,7 @@ export default function ClientesFornecedores() {
                         <FormItem>
                           <FormLabel>Estado (UF)</FormLabel>
                           <FormControl>
-                            <Input {...field} maxLength={2} data-testid="input-state" />
+                            <Input {...field} value={field.value || ""} maxLength={2} data-testid="input-state" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -901,7 +896,7 @@ export default function ClientesFornecedores() {
                       <FormItem>
                         <FormLabel>Banco</FormLabel>
                         <FormControl>
-                          <Input {...field} data-testid="input-bank-name" />
+                          <Input {...field} value={field.value || ""} data-testid="input-bank-name" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -916,7 +911,7 @@ export default function ClientesFornecedores() {
                         <FormItem>
                           <FormLabel>Agência</FormLabel>
                           <FormControl>
-                            <Input {...field} data-testid="input-account-agency" />
+                            <Input {...field} value={field.value || ""} data-testid="input-account-agency" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -930,7 +925,7 @@ export default function ClientesFornecedores() {
                         <FormItem>
                           <FormLabel>Conta</FormLabel>
                           <FormControl>
-                            <Input {...field} data-testid="input-account-number" />
+                            <Input {...field} value={field.value || ""} data-testid="input-account-number" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -944,7 +939,7 @@ export default function ClientesFornecedores() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Tipo de Chave PIX</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value || undefined}>
                           <FormControl>
                             <SelectTrigger data-testid="select-pix-key-type">
                               <SelectValue placeholder="Selecione o tipo" />
@@ -970,7 +965,7 @@ export default function ClientesFornecedores() {
                       <FormItem>
                         <FormLabel>Chave PIX</FormLabel>
                         <FormControl>
-                          <Input {...field} data-testid="input-pix-key" />
+                          <Input {...field} value={field.value || ""} data-testid="input-pix-key" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -991,7 +986,7 @@ export default function ClientesFornecedores() {
                       <FormItem>
                         <FormLabel>Observações</FormLabel>
                         <FormControl>
-                          <Textarea {...field} rows={4} data-testid="input-notes" />
+                          <Textarea {...field} value={field.value || ""} rows={4} data-testid="input-notes" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
