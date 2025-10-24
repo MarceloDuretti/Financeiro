@@ -73,6 +73,8 @@ export default function ClientesFornecedores() {
   const [wizardStep, setWizardStep] = useState(1);
   const [isDeleting, setIsDeleting] = useState(false);
   const [editingEntity, setEditingEntity] = useState<EntityWithStats | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Fetch entities with real-time updates
   const { data: entities = [], isLoading } = useRealtimeQuery<EntityWithStats[]>({
@@ -127,7 +129,7 @@ export default function ClientesFornecedores() {
   const handleEdit = () => {
     if (!selectedEntity) return;
     
-    setEditingEntity(selectedEntity);
+    // Populate form with current values for inline editing
     form.reset({
       isCustomer: selectedEntity.isCustomer,
       isSupplier: selectedEntity.isSupplier,
@@ -155,9 +157,44 @@ export default function ClientesFornecedores() {
       notes: selectedEntity.notes || "",
       isActive: selectedEntity.isActive,
     });
-    setWizardStep(1);
-    setIsDrawerOpen(false);
-    setIsWizardOpen(true);
+    
+    // Enable inline editing mode
+    setIsEditing(true);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    form.reset();
+  };
+
+  const handleSaveEdit = async () => {
+    if (!selectedEntity) return;
+
+    try {
+      setIsSaving(true);
+      const formData = form.getValues();
+      
+      await apiRequest("PATCH", `/api/customers-suppliers/${selectedEntity.id}`, {
+        ...formData,
+        version: selectedEntity.version,
+      });
+
+      toast({
+        title: "Sucesso",
+        description: "Cliente/Fornecedor atualizado com sucesso",
+      });
+
+      setIsEditing(false);
+      queryClient.invalidateQueries({ queryKey: ["/api/customers-suppliers"] });
+    } catch (error: any) {
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao atualizar",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleWizardNext = () => {
@@ -432,7 +469,7 @@ export default function ClientesFornecedores() {
       <Sheet open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
         <SheetContent className="w-full sm:max-w-xl overflow-y-auto">
           {selectedEntity && (
-            <>
+            <Form {...form}>
               <SheetHeader>
                 <div className="flex items-center gap-4">
                   <Avatar className="h-16 w-16">
@@ -442,7 +479,9 @@ export default function ClientesFornecedores() {
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
-                    <SheetTitle className="text-2xl">{selectedEntity.name}</SheetTitle>
+                    <SheetTitle className="text-2xl">
+                      {isEditing ? "Editando" : selectedEntity.name}
+                    </SheetTitle>
                     <SheetDescription>
                       {formatCode(selectedEntity.code)} • {getTypeLabel(selectedEntity)}
                     </SheetDescription>
@@ -452,180 +491,612 @@ export default function ClientesFornecedores() {
 
               <div className="mt-6 space-y-6">
                 {/* Status and Type */}
-                <div className="flex gap-2">
-                  <Badge className={getTypeBadgeColor(selectedEntity)}>
-                    {getTypeLabel(selectedEntity)}
-                  </Badge>
-                  <Badge variant={selectedEntity.isActive ? "default" : "secondary"}>
-                    {selectedEntity.isActive ? "Ativo" : "Inativo"}
-                  </Badge>
-                </div>
-
-                {/* Identification */}
-                {selectedEntity.document && (
-                  <div className="space-y-2">
-                    <h4 className="text-sm font-semibold text-muted-foreground">Identificação</h4>
-                    <div className="bg-muted/50 rounded-lg p-4">
-                      <div className="flex items-center gap-2">
-                        <FileText className="h-4 w-4 text-muted-foreground" />
-                        <div>
-                          <div className="text-xs text-muted-foreground">
-                            {selectedEntity.documentType?.toUpperCase() || "Documento"}
-                          </div>
-                          <div className="font-mono">{selectedEntity.document}</div>
-                        </div>
-                      </div>
+                {!isEditing ? (
+                  <div className="flex gap-2">
+                    <Badge className={getTypeBadgeColor(selectedEntity)} data-testid="badge-type">
+                      {getTypeLabel(selectedEntity)}
+                    </Badge>
+                    <Badge variant={selectedEntity.isActive ? "default" : "secondary"} data-testid="badge-status">
+                      {selectedEntity.isActive ? "Ativo" : "Inativo"}
+                    </Badge>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <h4 className="text-sm font-semibold text-muted-foreground">Tipo</h4>
+                    <div className="flex gap-4">
+                      <FormField
+                        control={form.control}
+                        name="isCustomer"
+                        render={({ field }) => (
+                          <FormItem className="flex-1">
+                            <div className="flex items-center space-x-2">
+                              <FormControl>
+                                <Checkbox
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                  data-testid="checkbox-is-customer"
+                                />
+                              </FormControl>
+                              <FormLabel>É Cliente?</FormLabel>
+                            </div>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="isSupplier"
+                        render={({ field }) => (
+                          <FormItem className="flex-1">
+                            <div className="flex items-center space-x-2">
+                              <FormControl>
+                                <Checkbox
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                  data-testid="checkbox-is-supplier"
+                                />
+                              </FormControl>
+                              <FormLabel>É Fornecedor?</FormLabel>
+                            </div>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                     </div>
+                    <FormField
+                      control={form.control}
+                      name="isActive"
+                      render={({ field }) => (
+                        <FormItem>
+                          <div className="flex items-center space-x-2">
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                                data-testid="checkbox-is-active"
+                              />
+                            </FormControl>
+                            <FormLabel>Cadastro ativo</FormLabel>
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   </div>
                 )}
+
+                {/* Identification */}
+                <div className="space-y-2">
+                  <h4 className="text-sm font-semibold text-muted-foreground">Identificação</h4>
+                  {!isEditing ? (
+                    <>
+                      {selectedEntity.name && (
+                        <div className="bg-muted/50 rounded-lg p-4">
+                          <div className="flex items-center gap-2">
+                            <User className="h-4 w-4 text-muted-foreground" />
+                            <div>
+                              <div className="text-xs text-muted-foreground">Nome / Razão Social</div>
+                              <div data-testid="text-name">{selectedEntity.name}</div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      {selectedEntity.document && (
+                        <div className="bg-muted/50 rounded-lg p-4">
+                          <div className="flex items-center gap-2">
+                            <FileText className="h-4 w-4 text-muted-foreground" />
+                            <div>
+                              <div className="text-xs text-muted-foreground">
+                                {selectedEntity.documentType?.toUpperCase() || "Documento"}
+                              </div>
+                              <div className="font-mono" data-testid="text-document">{selectedEntity.document}</div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="space-y-4">
+                      <FormField
+                        control={form.control}
+                        name="name"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Nome / Razão Social *</FormLabel>
+                            <FormControl>
+                              <Input {...field} data-testid="input-name" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="documentType"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Tipo de Documento</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value || "none"}>
+                              <FormControl>
+                                <SelectTrigger data-testid="select-document-type">
+                                  <SelectValue />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="none">Sem documento</SelectItem>
+                                <SelectItem value="cpf">CPF</SelectItem>
+                                <SelectItem value="cnpj">CNPJ</SelectItem>
+                                <SelectItem value="foreign">Estrangeiro</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="document"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Número do Documento</FormLabel>
+                            <FormControl>
+                              <Input {...field} value={field.value || ""} data-testid="input-document" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  )}
+                </div>
 
                 {/* Contact */}
                 <div className="space-y-2">
                   <h4 className="text-sm font-semibold text-muted-foreground">Contato</h4>
-                  <div className="bg-muted/50 rounded-lg p-4 space-y-3">
-                    {selectedEntity.phone && (
-                      <div className="flex items-center gap-3">
-                        <Phone className="h-4 w-4 text-muted-foreground" />
-                        <div className="flex-1">
-                          <div className="text-xs text-muted-foreground">Telefone</div>
-                          <div>{selectedEntity.phone}</div>
+                  {!isEditing ? (
+                    <div className="bg-muted/50 rounded-lg p-4 space-y-3">
+                      {selectedEntity.phone && (
+                        <div className="flex items-center gap-3">
+                          <Phone className="h-4 w-4 text-muted-foreground" />
+                          <div className="flex-1">
+                            <div className="text-xs text-muted-foreground">Telefone</div>
+                            <div data-testid="text-phone">{selectedEntity.phone}</div>
+                          </div>
+                          {selectedEntity.whatsapp && (
+                            <a
+                              href={formatWhatsAppLink(selectedEntity.whatsapp)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              data-testid="link-whatsapp-detail"
+                            >
+                              <Button size="sm" variant="outline">
+                                <SiWhatsapp className="h-4 w-4 mr-2 text-green-500" />
+                                WhatsApp
+                              </Button>
+                            </a>
+                          )}
                         </div>
-                        {selectedEntity.whatsapp && (
-                          <a
-                            href={formatWhatsAppLink(selectedEntity.whatsapp)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            data-testid="link-whatsapp-detail"
-                          >
-                            <Button size="sm" variant="outline">
-                              <SiWhatsapp className="h-4 w-4 mr-2 text-green-500" />
-                              WhatsApp
-                            </Button>
-                          </a>
+                      )}
+                      {selectedEntity.email && (
+                        <div className="flex items-center gap-3">
+                          <Mail className="h-4 w-4 text-muted-foreground" />
+                          <div>
+                            <div className="text-xs text-muted-foreground">Email</div>
+                            <div data-testid="text-email">{selectedEntity.email}</div>
+                          </div>
+                        </div>
+                      )}
+                      {selectedEntity.website && (
+                        <div className="flex items-center gap-3">
+                          <Globe className="h-4 w-4 text-muted-foreground" />
+                          <div>
+                            <div className="text-xs text-muted-foreground">Website</div>
+                            <a
+                              href={selectedEntity.website}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-primary hover:underline"
+                              data-testid="text-website"
+                            >
+                              {selectedEntity.website}
+                            </a>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <FormField
+                        control={form.control}
+                        name="phone"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Telefone</FormLabel>
+                            <FormControl>
+                              <Input {...field} value={field.value || ""} placeholder="(11) 99999-9999" data-testid="input-phone" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
                         )}
-                      </div>
-                    )}
-                    {selectedEntity.email && (
-                      <div className="flex items-center gap-3">
-                        <Mail className="h-4 w-4 text-muted-foreground" />
-                        <div>
-                          <div className="text-xs text-muted-foreground">Email</div>
-                          <div>{selectedEntity.email}</div>
-                        </div>
-                      </div>
-                    )}
-                    {selectedEntity.website && (
-                      <div className="flex items-center gap-3">
-                        <Globe className="h-4 w-4 text-muted-foreground" />
-                        <div>
-                          <div className="text-xs text-muted-foreground">Website</div>
-                          <a
-                            href={selectedEntity.website}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-primary hover:underline"
-                          >
-                            {selectedEntity.website}
-                          </a>
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                      />
+                      <FormField
+                        control={form.control}
+                        name="whatsapp"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>WhatsApp</FormLabel>
+                            <FormControl>
+                              <Input {...field} value={field.value || ""} placeholder="(11) 99999-9999" data-testid="input-whatsapp" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Email</FormLabel>
+                            <FormControl>
+                              <Input {...field} value={field.value || ""} type="email" data-testid="input-email" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="website"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Website</FormLabel>
+                            <FormControl>
+                              <Input {...field} value={field.value || ""} placeholder="https://" data-testid="input-website" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  )}
                 </div>
 
                 {/* Address */}
-                {(selectedEntity.street || selectedEntity.city) && (
-                  <div className="space-y-2">
-                    <h4 className="text-sm font-semibold text-muted-foreground">Endereço</h4>
-                    <div className="bg-muted/50 rounded-lg p-4">
-                      <div className="flex items-start gap-3">
-                        <MapPin className="h-4 w-4 text-muted-foreground mt-1" />
-                        <div>
-                          {selectedEntity.street && (
-                            <div>
-                              {selectedEntity.street}
-                              {selectedEntity.number && `, ${selectedEntity.number}`}
+                <div className="space-y-2">
+                  <h4 className="text-sm font-semibold text-muted-foreground">Endereço</h4>
+                  {!isEditing ? (
+                    <>
+                      {(selectedEntity.street || selectedEntity.city) && (
+                        <div className="bg-muted/50 rounded-lg p-4">
+                          <div className="flex items-start gap-3">
+                            <MapPin className="h-4 w-4 text-muted-foreground mt-1" />
+                            <div data-testid="text-address">
+                              {selectedEntity.street && (
+                                <div>
+                                  {selectedEntity.street}
+                                  {selectedEntity.number && `, ${selectedEntity.number}`}
+                                </div>
+                              )}
+                              {selectedEntity.complement && (
+                                <div className="text-sm text-muted-foreground">{selectedEntity.complement}</div>
+                              )}
+                              {selectedEntity.neighborhood && <div className="text-sm">{selectedEntity.neighborhood}</div>}
+                              <div>
+                                {selectedEntity.city}
+                                {selectedEntity.state && ` - ${selectedEntity.state}`}
+                              </div>
+                              {selectedEntity.zipCode && (
+                                <div className="text-sm text-muted-foreground">CEP: {selectedEntity.zipCode}</div>
+                              )}
                             </div>
-                          )}
-                          {selectedEntity.complement && (
-                            <div className="text-sm text-muted-foreground">{selectedEntity.complement}</div>
-                          )}
-                          {selectedEntity.neighborhood && <div className="text-sm">{selectedEntity.neighborhood}</div>}
-                          <div>
-                            {selectedEntity.city}
-                            {selectedEntity.state && ` - ${selectedEntity.state}`}
                           </div>
-                          {selectedEntity.zipCode && (
-                            <div className="text-sm text-muted-foreground">CEP: {selectedEntity.zipCode}</div>
-                          )}
                         </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="space-y-4">
+                      <FormField
+                        control={form.control}
+                        name="zipCode"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>CEP</FormLabel>
+                            <FormControl>
+                              <Input {...field} value={field.value || ""} placeholder="00000-000" data-testid="input-zipcode" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <div className="grid grid-cols-3 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="street"
+                          render={({ field }) => (
+                            <FormItem className="col-span-2">
+                              <FormLabel>Rua/Logradouro</FormLabel>
+                              <FormControl>
+                                <Input {...field} value={field.value || ""} data-testid="input-street" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="number"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Número</FormLabel>
+                              <FormControl>
+                                <Input {...field} value={field.value || ""} data-testid="input-number" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
                       </div>
+                      <FormField
+                        control={form.control}
+                        name="complement"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Complemento</FormLabel>
+                            <FormControl>
+                              <Input {...field} value={field.value || ""} data-testid="input-complement" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="neighborhood"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Bairro</FormLabel>
+                            <FormControl>
+                              <Input {...field} value={field.value || ""} data-testid="input-neighborhood" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="city"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Cidade</FormLabel>
+                              <FormControl>
+                                <Input {...field} value={field.value || ""} data-testid="input-city" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="state"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Estado (UF)</FormLabel>
+                              <FormControl>
+                                <Input {...field} value={field.value || ""} maxLength={2} data-testid="input-state" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <FormField
+                        control={form.control}
+                        name="country"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>País</FormLabel>
+                            <FormControl>
+                              <Input {...field} value={field.value || ""} data-testid="input-country" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
 
                 {/* Banking Info */}
-                {(selectedEntity.bankName || selectedEntity.pixKey) && (
-                  <div className="space-y-2">
-                    <h4 className="text-sm font-semibold text-muted-foreground">Dados Bancários</h4>
-                    <div className="bg-muted/50 rounded-lg p-4 space-y-3">
-                      {selectedEntity.bankName && (
-                        <div className="flex items-center gap-3">
-                          <CreditCard className="h-4 w-4 text-muted-foreground" />
-                          <div>
-                            <div className="text-xs text-muted-foreground">Banco</div>
-                            <div>{selectedEntity.bankName}</div>
-                            {selectedEntity.accountAgency && selectedEntity.accountNumber && (
-                              <div className="text-sm text-muted-foreground">
-                                Ag: {selectedEntity.accountAgency} • Conta: {selectedEntity.accountNumber}
+                <div className="space-y-2">
+                  <h4 className="text-sm font-semibold text-muted-foreground">Dados Bancários</h4>
+                  {!isEditing ? (
+                    <>
+                      {(selectedEntity.bankName || selectedEntity.pixKey) && (
+                        <div className="bg-muted/50 rounded-lg p-4 space-y-3">
+                          {selectedEntity.bankName && (
+                            <div className="flex items-center gap-3">
+                              <CreditCard className="h-4 w-4 text-muted-foreground" />
+                              <div>
+                                <div className="text-xs text-muted-foreground">Banco</div>
+                                <div data-testid="text-bank">{selectedEntity.bankName}</div>
+                                {selectedEntity.accountAgency && selectedEntity.accountNumber && (
+                                  <div className="text-sm text-muted-foreground">
+                                    Ag: {selectedEntity.accountAgency} • Conta: {selectedEntity.accountNumber}
+                                  </div>
+                                )}
                               </div>
-                            )}
-                          </div>
+                            </div>
+                          )}
+                          {selectedEntity.pixKey && (
+                            <div>
+                              <div className="text-xs text-muted-foreground">
+                                Chave PIX ({selectedEntity.pixKeyType?.toUpperCase()})
+                              </div>
+                              <div className="font-mono text-sm" data-testid="text-pix">{selectedEntity.pixKey}</div>
+                            </div>
+                          )}
                         </div>
                       )}
-                      {selectedEntity.pixKey && (
-                        <div>
-                          <div className="text-xs text-muted-foreground">
-                            Chave PIX ({selectedEntity.pixKeyType?.toUpperCase()})
-                          </div>
-                          <div className="font-mono text-sm">{selectedEntity.pixKey}</div>
-                        </div>
-                      )}
+                    </>
+                  ) : (
+                    <div className="space-y-4">
+                      <FormField
+                        control={form.control}
+                        name="bankName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Banco</FormLabel>
+                            <FormControl>
+                              <Input {...field} value={field.value || ""} data-testid="input-bank-name" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="accountAgency"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Agência</FormLabel>
+                              <FormControl>
+                                <Input {...field} value={field.value || ""} data-testid="input-account-agency" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="accountNumber"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Conta</FormLabel>
+                              <FormControl>
+                                <Input {...field} value={field.value || ""} data-testid="input-account-number" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <FormField
+                        control={form.control}
+                        name="pixKeyType"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Tipo de Chave PIX</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value || undefined}>
+                              <FormControl>
+                                <SelectTrigger data-testid="select-pix-key-type">
+                                  <SelectValue placeholder="Selecione o tipo" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="cpf">CPF</SelectItem>
+                                <SelectItem value="cnpj">CNPJ</SelectItem>
+                                <SelectItem value="email">Email</SelectItem>
+                                <SelectItem value="phone">Telefone</SelectItem>
+                                <SelectItem value="random">Aleatória</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="pixKey"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Chave PIX</FormLabel>
+                            <FormControl>
+                              <Input {...field} value={field.value || ""} data-testid="input-pix-key" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
 
                 {/* Notes */}
-                {selectedEntity.notes && (
-                  <div className="space-y-2">
-                    <h4 className="text-sm font-semibold text-muted-foreground">Observações</h4>
-                    <div className="bg-muted/50 rounded-lg p-4">
-                      <p className="text-sm whitespace-pre-wrap">{selectedEntity.notes}</p>
-                    </div>
-                  </div>
-                )}
+                <div className="space-y-2">
+                  <h4 className="text-sm font-semibold text-muted-foreground">Observações</h4>
+                  {!isEditing ? (
+                    <>
+                      {selectedEntity.notes && (
+                        <div className="bg-muted/50 rounded-lg p-4">
+                          <p className="text-sm whitespace-pre-wrap" data-testid="text-notes">{selectedEntity.notes}</p>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <FormField
+                      control={form.control}
+                      name="notes"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Textarea {...field} value={field.value || ""} rows={4} data-testid="input-notes" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+                </div>
 
                 {/* Actions */}
-                <div className="flex gap-2 pt-4">
-                  <Button variant="outline" className="flex-1" onClick={handleEdit} data-testid="button-edit">
-                    <Edit className="h-4 w-4 mr-2" />
-                    Editar
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    onClick={handleDelete}
-                    disabled={isDeleting}
-                    data-testid="button-delete"
-                  >
-                    {isDeleting ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Trash2 className="h-4 w-4" />
-                    )}
-                  </Button>
-                </div>
+                {!isEditing ? (
+                  <div className="flex gap-2 pt-4">
+                    <Button variant="outline" className="flex-1" onClick={handleEdit} data-testid="button-edit">
+                      <Edit className="h-4 w-4 mr-2" />
+                      Editar
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      onClick={handleDelete}
+                      disabled={isDeleting}
+                      data-testid="button-delete"
+                    >
+                      {isDeleting ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Trash2 className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex gap-2 pt-4">
+                    <Button
+                      variant="outline"
+                      className="flex-1"
+                      onClick={handleCancelEdit}
+                      disabled={isSaving}
+                      data-testid="button-cancel"
+                    >
+                      Cancelar
+                    </Button>
+                    <Button
+                      className="flex-1"
+                      onClick={handleSaveEdit}
+                      disabled={isSaving}
+                      data-testid="button-save"
+                    >
+                      {isSaving ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : null}
+                      Salvar
+                    </Button>
+                  </div>
+                )}
               </div>
-            </>
+            </Form>
           )}
         </SheetContent>
       </Sheet>
