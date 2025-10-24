@@ -644,7 +644,7 @@ export default function ClientesFornecedores() {
                       )}
                     </div>
                   ) : (
-                    <div className="space-y-2">
+                    <div className="space-y-4">
                       {/* Checkboxes in a compact row */}
                       <div className="flex gap-4">
                         <FormField
@@ -809,7 +809,7 @@ export default function ClientesFornecedores() {
                       )}
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <FormField
                         control={form.control}
                         name="phone"
@@ -916,7 +916,7 @@ export default function ClientesFornecedores() {
                       )}
                     </>
                   ) : (
-                    <div className="space-y-2">
+                    <div className="space-y-4">
                       <div className="grid grid-cols-3 gap-2">
                         <FormField
                           control={form.control}
@@ -1068,21 +1068,21 @@ export default function ClientesFornecedores() {
                       )}
                     </>
                   ) : (
-                    <div className="space-y-2">
-                      <FormField
-                        control={form.control}
-                        name="bankName"
-                        render={({ field }) => (
-                          <FormItem className="form-floating">
-                            <FormControl>
-                              <Input {...field} value={field.value || ""} placeholder=" " data-testid="input-bank-name" />
-                            </FormControl>
-                            <FormLabel>Banco</FormLabel>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-3 gap-2">
+                        <FormField
+                          control={form.control}
+                          name="bankName"
+                          render={({ field }) => (
+                            <FormItem className="form-floating">
+                              <FormControl>
+                                <Input {...field} value={field.value || ""} placeholder=" " data-testid="input-bank-name" />
+                              </FormControl>
+                              <FormLabel>Banco</FormLabel>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
                         <FormField
                           control={form.control}
                           name="accountAgency"

@@ -363,8 +363,10 @@
   }
   
   .form-floating > label {
-    @apply absolute left-3 top-0 -translate-y-1/2 px-1.5 text-xs font-medium pointer-events-none transition-all;
+    @apply absolute left-3 px-1.5 text-xs font-normal pointer-events-none transition-all;
     @apply bg-background text-muted-foreground z-10;
+    top: -1px;
+    transform: translateY(-50%);
   }
   
   .form-floating > input:focus ~ label,
@@ -373,7 +375,7 @@
   .form-floating > select:not([value=""]) ~ label,
   .form-floating > textarea:focus ~ label,
   .form-floating > textarea:not(:placeholder-shown) ~ label {
-    @apply text-primary text-xs;
+    @apply text-muted-foreground;
   }
   
   .form-floating > input::placeholder,
