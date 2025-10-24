@@ -618,19 +618,19 @@ export default function ContasBancarias() {
               </div>
             </CardHeader>
 
-            <CardContent className="flex-1 overflow-auto p-6">
+            <CardContent className="flex-1 overflow-auto p-4">
               <Tabs defaultValue="details" className="h-full">
                 <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="details" data-testid="tab-details">
                     Detalhes
                   </TabsTrigger>
-                  <TabsTrigger value="pix" data-testid="tab-pix">
+                  <TabsTrigger value="pix" data-testid="tab-pix-keys">
                     Chaves PIX
                   </TabsTrigger>
                 </TabsList>
 
                 {/* Tab Detalhes */}
-                <TabsContent value="details" className="space-y-6 mt-4">
+                <TabsContent value="details" className="space-y-3 mt-3">
                   {!isEditing ? (
                     <>
                       <div className="flex justify-end gap-2">
@@ -674,76 +674,80 @@ export default function ContasBancarias() {
                         </AlertDialog>
                       </div>
 
-                      <div className="space-y-4">
+                      <div className="space-y-3">
                         <div>
-                          <h3 className="text-sm font-medium text-muted-foreground mb-3">Informações Gerais</h3>
-                          <div className="space-y-3">
-                            <div className="flex justify-between">
-                              <span className="text-sm text-muted-foreground">Descrição:</span>
-                              <span className="text-sm font-medium">{selectedAccount.description}</span>
+                          <h3 className="text-sm font-medium text-muted-foreground mb-2">Informações Gerais</h3>
+                          <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                            <div>
+                              <span className="text-xs text-muted-foreground">Descrição</span>
+                              <p className="text-sm font-medium">{selectedAccount.description}</p>
                             </div>
-                            <div className="flex justify-between">
-                              <span className="text-sm text-muted-foreground">Banco:</span>
-                              <span className="text-sm font-medium">{selectedAccount.bankName}</span>
+                            <div>
+                              <span className="text-xs text-muted-foreground">Banco</span>
+                              <p className="text-sm font-medium">{selectedAccount.bankName}</p>
                             </div>
-                            <div className="flex justify-between">
-                              <span className="text-sm text-muted-foreground">Tipo:</span>
-                              <Badge variant="secondary">
+                            <div>
+                              <span className="text-xs text-muted-foreground">Tipo</span>
+                              <Badge variant="secondary" className="mt-1">
                                 {selectedAccount.accountType === "corrente" ? "Conta Corrente" : 
                                  selectedAccount.accountType === "poupanca" ? "Poupança" : "Investimento"}
                               </Badge>
                             </div>
-                            <div className="flex justify-between">
-                              <span className="text-sm text-muted-foreground">Agência:</span>
-                              <span className="text-sm font-medium">{selectedAccount.agencyNumber || "N/A"}</span>
+                            <div>
+                              <span className="text-xs text-muted-foreground">Agência</span>
+                              <p className="text-sm font-medium">{selectedAccount.agencyNumber || "N/A"}</p>
                             </div>
-                            <div className="flex justify-between">
-                              <span className="text-sm text-muted-foreground">Conta:</span>
-                              <span className="text-sm font-medium">{selectedAccount.accountNumber}</span>
+                            <div>
+                              <span className="text-xs text-muted-foreground">Conta</span>
+                              <p className="text-sm font-medium">{selectedAccount.accountNumber}</p>
                             </div>
                           </div>
                         </div>
 
                         <div>
-                          <h3 className="text-sm font-medium text-muted-foreground mb-3">Saldos</h3>
-                          <div className="space-y-3">
-                            <div className="flex justify-between">
-                              <span className="text-sm text-muted-foreground">Saldo Atual:</span>
-                              <span className="text-lg font-semibold">{formatCurrency(selectedAccount.currentBalance)}</span>
+                          <h3 className="text-sm font-medium text-muted-foreground mb-2">Saldos</h3>
+                          <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                            <div>
+                              <span className="text-xs text-muted-foreground">Saldo Atual</span>
+                              <p className="text-lg font-semibold">{formatCurrency(selectedAccount.currentBalance)}</p>
                             </div>
-                            <div className="flex justify-between">
-                              <span className="text-sm text-muted-foreground">Saldo Inicial:</span>
-                              <span className="text-sm font-medium">{formatCurrency(selectedAccount.initialBalance)}</span>
+                            <div>
+                              <span className="text-xs text-muted-foreground">Saldo Inicial</span>
+                              <p className="text-sm font-medium">{formatCurrency(selectedAccount.initialBalance)}</p>
                             </div>
-                            <div className="flex justify-between">
-                              <span className="text-sm text-muted-foreground">Data Saldo Inicial:</span>
-                              <span className="text-sm font-medium">
+                            <div>
+                              <span className="text-xs text-muted-foreground">Data Saldo Inicial</span>
+                              <p className="text-sm font-medium">
                                 {selectedAccount.initialBalanceDate ? format(new Date(selectedAccount.initialBalanceDate), 'dd/MM/yyyy', { locale: ptBR }) : "N/A"}
-                              </span>
+                              </p>
                             </div>
                             {selectedAccount.allowsNegativeBalance && (
-                              <div className="flex justify-between">
-                                <span className="text-sm text-muted-foreground">Limite de Crédito:</span>
-                                <span className="text-sm font-medium">{formatCurrency(selectedAccount.creditLimit || 0)}</span>
+                              <div>
+                                <span className="text-xs text-muted-foreground">Limite de Crédito</span>
+                                <p className="text-sm font-medium">{formatCurrency(selectedAccount.creditLimit || 0)}</p>
                               </div>
                             )}
                           </div>
                         </div>
 
                         <div>
-                          <h3 className="text-sm font-medium text-muted-foreground mb-3">Status</h3>
-                          <div className="space-y-3">
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-muted-foreground">Permite Saldo Negativo:</span>
-                              {selectedAccount.allowsNegativeBalance ? (
-                                <Badge variant="default">Sim</Badge>
-                              ) : (
-                                <Badge variant="secondary">Não</Badge>
-                              )}
+                          <h3 className="text-sm font-medium text-muted-foreground mb-2">Status</h3>
+                          <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                            <div>
+                              <span className="text-xs text-muted-foreground">Permite Saldo Negativo</span>
+                              <div className="mt-1">
+                                {selectedAccount.allowsNegativeBalance ? (
+                                  <Badge variant="default">Sim</Badge>
+                                ) : (
+                                  <Badge variant="secondary">Não</Badge>
+                                )}
+                              </div>
                             </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-muted-foreground">Status:</span>
-                              <Badge variant="default">{selectedAccount.status || "Ativa"}</Badge>
+                            <div>
+                              <span className="text-xs text-muted-foreground">Status</span>
+                              <div className="mt-1">
+                                <Badge variant="default">{selectedAccount.status || "Ativa"}</Badge>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -830,7 +834,7 @@ export default function ContasBancarias() {
                 </TabsContent>
 
                 {/* Tab Chaves PIX */}
-                <TabsContent value="pix" className="space-y-4 mt-4">
+                <TabsContent value="pix" className="space-y-3 mt-3">
                   <div className="flex justify-end">
                     <Dialog open={isCreatePixDialogOpen} onOpenChange={setIsCreatePixDialogOpen}>
                       <Button 
