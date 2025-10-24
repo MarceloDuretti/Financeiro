@@ -55,6 +55,15 @@ Preferred communication style: Simple, everyday language.
   - Hierarchical tree structure (max 5 levels) with auto-generated codes (1, 1.1, 1.1.1) using advisory locks
   - Materialized path pattern for O(1) queries, full CRUD operations, expandable tree UI
   - Account types: Receita, Despesa, Ativo, Passivo, Patrimônio Líquido
+- **Contas Bancárias (Bank Accounts) Page:**
+  - **Master-Detail Interface:** Card-based list view on the left, detailed panel on the right (similar to Minha Empresa pattern)
+  - **Complete Bank Account Management:** Full CRUD for bank accounts with fields: description, bank name, account type (corrente/poupanca/investimento), agency number, account number, holder name, holder document (CPF/CNPJ)
+  - **Financial Control Fields:** Initial balance, initial balance date (critical for reconciliation), credit limit, allows negative balance flag
+  - **PIX Keys Management:** Separate tab for managing multiple PIX keys per account, supports types (CPF, CNPJ, email, telefone, aleatoria), default key flag
+  - **Reconciliation Ready:** Fields for last reconciliation date and auto-sync settings preparing for future Open Banking integration
+  - **Real-Time Updates:** WebSocket broadcasts ensure instant UI updates across all users when bank accounts or PIX keys are created/updated/deleted
+  - **Form Validation:** React Hook Form with Zod schemas, string-based monetary values to avoid float precision issues, date coercion for cross-format compatibility
+  - **Color Coding:** Visual identification with customizable account colors
 
 ### Backend Architecture
 
@@ -68,6 +77,8 @@ Preferred communication style: Simple, everyday language.
     - `company members`: List, create, update, soft-delete for members within a specific company, with multi-tenant and company-scoped isolation.
     - `cost-centers`: CRUD operations with tenant-scoped isolation, auto-code generation (CC001, CC002, etc.).
     - `chart-of-accounts`: CRUD operations for hierarchical accounts with tenant-scoped isolation, auto-code generation, delete validation. **GET endpoint auto-seeds 5 default root accounts on first access** (Receitas, Despesas, Ativo, Passivo, Patrimônio Líquido) via `seedDefaultChartAccounts(tenantId)` method.
+    - `bank-accounts`: CRUD operations for bank accounts with tenant-scoped isolation. Includes fields for reconciliation (initialBalance, initialBalanceDate, lastReconciliationDate) and future Open Banking integration (autoSyncEnabled, lastSyncAt, syncFrequency).
+    - `pix-keys`: CRUD operations for PIX keys (1:N relationship with bank accounts), unique constraint on (tenantId, keyValue) to prevent duplicate keys within a tenant.
 
 **Storage Layer:** PostgreSQL-backed via Drizzle ORM, implementing multi-tenant isolation through a `tenantId` parameter in all business data operations. This ensures data is scoped to the authenticated user's tenant.
 
@@ -84,7 +95,7 @@ Preferred communication style: Simple, everyday language.
   ```json
   {
     "type": "data:change",
-    "resource": "cost-centers" | "chart-of-accounts",
+    "resource": "cost-centers" | "chart-of-accounts" | "bank-accounts" | "pix-keys",
     "action": "created" | "updated" | "deleted",
     "data": {...},
     "timestamp": "ISO 8601"
@@ -112,7 +123,8 @@ Preferred communication style: Simple, everyday language.
 
 **Data Storage Solutions:**
 - **Database:** Neon Serverless PostgreSQL, Drizzle ORM for schema and migrations.
-- **Schema:** Shared between client/server, including tables for `sessions`, `users`, `companies`, `user_companies`, `company_members`, `cost_centers`, and `chart_of_accounts`, all with appropriate `tenantId` and `companyId` for isolation.
+- **Schema:** Shared between client/server, including tables for `sessions`, `users`, `companies`, `user_companies`, `company_members`, `cost_centers`, `chart_of_accounts`, `bank_accounts`, and `pix_keys`, all with appropriate `tenantId` and `companyId` for isolation.
+- **Monetary Values:** Stored as text/string to avoid JavaScript floating-point precision issues, parsed to numbers only when needed for calculations.
 
 ## External Dependencies
 
