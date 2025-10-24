@@ -357,16 +357,26 @@
   .form-floating > input,
   .form-floating > select,
   .form-floating > textarea {
-    @apply w-full px-3 pt-5 pb-2 text-sm border rounded-md outline-none transition-all;
+    @apply w-full px-3 pt-5 pb-2 text-sm border rounded-md transition-all;
     @apply border-input bg-background text-foreground;
-    @apply focus:border-primary focus:ring-1 focus:ring-primary;
+    outline: none !important;
+    box-shadow: none !important;
+  }
+  
+  .form-floating > input:focus,
+  .form-floating > select:focus,
+  .form-floating > textarea:focus {
+    @apply border-primary;
+    outline: none !important;
+    box-shadow: none !important;
   }
   
   .form-floating > label {
     @apply absolute left-3 px-1.5 text-xs font-normal pointer-events-none transition-all;
-    @apply bg-background text-muted-foreground z-10;
-    top: -1px;
+    @apply bg-background text-muted-foreground;
+    top: 0;
     transform: translateY(-50%);
+    z-index: 10;
   }
   
   .form-floating > input:focus ~ label,
