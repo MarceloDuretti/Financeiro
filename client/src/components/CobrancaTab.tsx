@@ -307,11 +307,6 @@ export default function CobrancaTab({ companyId }: CobrancaTabProps) {
                       >
                         Código: {bank.code}
                       </p>
-                      {!hasAccount && !isConfigured && (
-                        <Badge variant="secondary" className="text-xs mt-1 opacity-70">
-                          Sem conta cadastrada
-                        </Badge>
-                      )}
                       {isConfigured && config && (
                         <div className="text-xs text-muted-foreground mt-1 space-y-0.5">
                           {config.covenant && <p>Convênio: {config.covenant}</p>}
