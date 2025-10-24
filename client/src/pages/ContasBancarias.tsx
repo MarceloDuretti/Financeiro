@@ -592,7 +592,14 @@ export default function ContasBancarias() {
                         {account.accountType === "corrente" ? "C/C" : account.accountType === "poupanca" ? "Poupança" : "Investimento"}
                       </div>
                     </div>
-                    <div className="text-lg font-bold" data-testid={`text-balance-${account.id}`}>
+                    <div 
+                      className={`text-lg font-bold transition-all ${
+                        selectedAccountId === account.id 
+                          ? 'bg-primary/10 text-primary px-3 py-1.5 rounded-md inline-block' 
+                          : ''
+                      }`}
+                      data-testid={`text-balance-${account.id}`}
+                    >
                       {formatCurrency(account.currentBalance)}
                     </div>
                   </div>
