@@ -2,13 +2,7 @@
 
 ## Overview
 
-FinControl is a comprehensive financial management platform for individuals and businesses (including MEI). It features a modern, Apple-inspired minimalist landing page and a full-featured dashboard for managing financial transactions, accounts, cost centers, and generating reports. The application is a full-stack TypeScript solution utilizing a React frontend, Express backend, and PostgreSQL database with Drizzle ORM.
-
-Key capabilities include:
-- True Multi-Tenant Architecture with row-level tenant isolation.
-- Hierarchical User System with admin/collaborator roles and granular company access control.
-- Complete Data Isolation ensuring no cross-tenant data leakage.
-- Performance Optimized with composite indexes for fast tenant-scoped queries.
+FinControl is a comprehensive financial management platform designed for individuals and businesses (including MEI). It offers a modern, Apple-inspired user interface and a full-featured dashboard for managing financial transactions, accounts, cost centers, and generating reports. The application is built as a full-stack TypeScript solution, leveraging a React frontend, Express backend, and PostgreSQL database with Drizzle ORM. Key capabilities include a true multi-tenant architecture with row-level isolation, a hierarchical user system with granular access control, complete data isolation, and performance optimizations for tenant-scoped queries.
 
 ## User Preferences
 
@@ -18,127 +12,42 @@ Preferred communication style: Simple, everyday language.
 
 ### Frontend Architecture
 
-**Technology Stack:** React 18 with TypeScript, Wouter for routing, TanStack Query for state management, Radix UI and shadcn/ui for components, Tailwind CSS for styling, and Vite as the build tool.
+The frontend uses React 18 with TypeScript, Wouter for routing, TanStack Query for state management, Radix UI and shadcn/ui for components, Tailwind CSS for styling, and Vite for building. The design follows an Apple-inspired minimalist aesthetic, emphasizing mobile-first responsiveness, custom color palettes, and SF Pro Display typography. It includes a public landing page and an authenticated dashboard with custom local email/password authentication and session-based storage.
 
-**Design System:** Apple-inspired minimalist aesthetic, mobile-first, custom color palette (blue primary, neutral grays), SF Pro Display typography, responsive breakpoints.
-
-**Application Structure:** Includes a public landing page and an authenticated dashboard with modular feature sets. Custom local email/password authentication (Passport Local Strategy) is implemented with session-based storage.
-
-**Key Features:**
-- Modular component architecture.
-- Chart visualizations (Recharts) and custom heatmap tables.
+Key features include:
+- Modular component architecture with chart visualizations (Recharts) and custom heatmap tables.
 - Form handling with React Hook Form and Zod validation.
 - Responsive sidebar layout.
 - **Custom Local Authentication:** Email/password with bcryptjs, user profile, logout.
 - **Dashboard Design:** KPI cards, financial LineChart, heatmap table.
-- **Minha Empresa (My Company) Page:** Master-detail interface for managing multiple companies with full CRUD, multi-tenant isolation, and localStorage persistence for selected company. Includes an Apple-style tab interface for company details and team member management.
-- **Team Members Management (Equipe Tab):** Full CRUD for team members within each company, card-based layout, and soft-delete implementation.
+- **Minha Empresa (My Company) Page:** Master-detail interface for managing multiple companies with full CRUD, multi-tenant isolation, and team member management.
+- **Team Members Management:** Full CRUD for team members within each company, including soft-delete.
 - **Usuarios (Users) Page:** Hierarchical user management (admin/collaborator), CRUD for collaborators, and email invitations.
-- **Accept Invite Page:** Public route for collaborators to activate accounts.
-- **Centro de Custo (Cost Centers) Page:** Educational section explaining departmental/project classification ("WHO/WHERE" spent money), full CRUD for cost centers, custom color selection, and real-time stats. Complementary to Chart of Accounts (which tracks "WHAT" was spent).
-- **Plano de Contas (Chart of Accounts) Page:** 
-  - **Auto-Seed on First Access:** When accessing for the first time (empty state), automatically creates 5 default root accounts: Receitas (1), Despesas (2), Ativo (3), Passivo (4), Patrimônio Líquido (5). Provides immediate professional structure for users without accounting knowledge.
-  - **Modern VS Code-Inspired UI:** 
-    - Connector lines (vertical and horizontal) showing parent-child relationships
-    - Progressive indentation (32px per level) for strong visual hierarchy
-    - Hierarchical typography (root: semibold, level 1: medium, level 2+: normal)
-    - Hover-only action buttons (add, edit, delete) for cleaner interface
-    - Larger colorful icons (h-5 w-5) with type-based colors (green for Receita, red for Despesa, blue for Ativo, amber for Passivo, violet for Patrimônio Líquido)
-    - Code badges with monospace font
-    - Smart spacing (more between root groups, less within groups)
-    - Description display under account name (truncated with tooltip)
-    - Differentiated subtle background for leaf accounts (final levels)
-  - **Smart Tree Controls:**
-    - "Expandir Tudo" button when tree is collapsed
-    - "Recolher Tudo" button when any node is expanded
-    - Conditional rendering for cleaner interface
-  - Hierarchical tree structure (max 5 levels) with auto-generated codes (1, 1.1, 1.1.1) using advisory locks
-  - Materialized path pattern for O(1) queries, full CRUD operations, expandable tree UI
-  - Account types: Receita, Despesa, Ativo, Passivo, Patrimônio Líquido
-- **Contas Bancárias (Bank Accounts) Page:**
-  - **Master-Detail Interface:** Card-based list view on the left, detailed panel on the right (similar to Minha Empresa pattern)
-  - **Complete Bank Account Management:** Full CRUD for bank accounts with fields: description, bank name, account type (corrente/poupanca/investimento), agency number, account number, holder name, holder document (CPF/CNPJ)
-  - **Financial Control Fields:** Initial balance, initial balance date (critical for reconciliation), credit limit, allows negative balance flag
-  - **PIX Keys Management:** Separate tab for managing multiple PIX keys per account, supports types (CPF, CNPJ, email, telefone, aleatoria), default key flag
-  - **Reconciliation Ready:** Fields for last reconciliation date and auto-sync settings preparing for future Open Banking integration
-  - **Real-Time Updates:** WebSocket broadcasts ensure instant UI updates across all users when bank accounts or PIX keys are created/updated/deleted
-  - **Form Validation:** React Hook Form with Zod schemas, string-based monetary values to avoid float precision issues, date coercion for cross-format compatibility
-  - **Color Coding:** Visual identification with customizable account colors
-- **Formas de Pagamento (Payment Methods) Page:**
-  - **Pre-Defined Selection System:** 12 pre-configured payment methods that users can activate/deactivate (no creation/editing)
-  - **Auto-Seed on First Access:** Automatically creates all 12 default payment methods on first API call
-  - **Payment Methods:** Dinheiro, Pix, Cartão de Crédito, Cartão de Débito, Cheque, Boleto, Transferência TED, Transferência DOC, DREX, Carteira Digital, Débito Automático, Crédito em Loja
-  - **Responsive Grid Layout:** Cards displayed in 1-4 columns (mobile to desktop) with colorful icons and descriptions
-  - **Visual Design:** Each card has unique color scheme, icon from Lucide React, name, and description
-  - **Toggle Functionality:** One-click activation/deactivation with immediate UI feedback
-  - **Active State Indication:** Selected methods show with ring border, accent background, and active badge
-  - **Real-Time Updates:** WebSocket broadcasts ensure instant synchronization across all users
-  - **Loading States:** Skeleton loading and per-card loading indicators during toggle operations
-  - **Purpose:** Only active payment methods are available for financial transactions
+- **Accept Invite Page:** Public route for collaborator account activation.
+- **Centro de Custo (Cost Centers) Page:** Full CRUD for cost centers with auto-code generation and real-time stats.
+- **Plano de Contas (Chart of Accounts) Page:**
+    - Auto-seeds 5 default root accounts on first access for immediate professional structure.
+    - Modern VS Code-inspired UI with connector lines, progressive indentation, hierarchical typography, and hover-only action buttons.
+    - Smart tree controls (Expand/Collapse All).
+    - Hierarchical tree structure (max 5 levels) with auto-generated codes using advisory locks and a materialized path pattern.
+- **Contas Bancárias (Bank Accounts) Page:** Master-detail interface for managing bank accounts (full CRUD), including financial control fields (initial balance, credit limit), and PIX keys management. Prepared for future Open Banking integration with reconciliation fields.
+- **Formas de Pagamento (Payment Methods) Page:** Pre-defined selection system of 12 payment methods that users can activate/deactivate (no creation/editing), auto-seeded on first access.
+- **Clientes e Fornecedores (Customers & Suppliers) Page:** Supports dual-role entities (customer, supplier, or both) with auto-code generation, responsive grid layout, floating percentage badges, WhatsApp integration, and a multi-step wizard form for creation.
 
 ### Backend Architecture
 
-**Technology Stack:** Node.js with TypeScript, Express.js, Drizzle ORM, esbuild for production, tsx for development.
+The backend utilizes Node.js with TypeScript, Express.js, Drizzle ORM, esbuild for production, and tsx for development. It provides a RESTful API with `/api` prefix, handling authentication, and various management endpoints.
 
-**API Design:** RESTful API with `/api` prefix.
-- **Authentication:** Signup, login, logout, get current user, using Passport Local Strategy with session-based authentication.
-- **Management Endpoints:**
-    - `companies`: CRUD operations with multi-tenant isolation.
-    - `collaborators`: List, create, invite, activate/deactivate, resend invite, and accept invite (public).
-    - `company members`: List, create, update, soft-delete for members within a specific company, with multi-tenant and company-scoped isolation.
-    - `cost-centers`: CRUD operations with tenant-scoped isolation, auto-code generation (CC001, CC002, etc.).
-    - `chart-of-accounts`: CRUD operations for hierarchical accounts with tenant-scoped isolation, auto-code generation, delete validation. **GET endpoint auto-seeds 5 default root accounts on first access** (Receitas, Despesas, Ativo, Passivo, Patrimônio Líquido) via `seedDefaultChartAccounts(tenantId)` method.
-    - `bank-accounts`: CRUD operations for bank accounts with tenant-scoped isolation. Includes fields for reconciliation (initialBalance, initialBalanceDate, lastReconciliationDate) and future Open Banking integration (autoSyncEnabled, lastSyncAt, syncFrequency).
-    - `pix-keys`: CRUD operations for PIX keys (1:N relationship with bank accounts), unique constraint on (tenantId, keyValue) to prevent duplicate keys within a tenant.
-    - `payment-methods`: GET endpoint lists all payment methods (auto-seeds 12 default methods on first access), PATCH /:id/toggle endpoint activates/deactivates methods with tenant-scoped isolation.
+Key architectural decisions include:
+- **Authentication:** Signup, login, logout, and user management using Passport Local Strategy with session-based authentication.
+- **Management Endpoints:** CRUD operations for `companies`, `collaborators`, `company_members`, `cost-centers`, `chart-of-accounts`, `bank-accounts`, `pix-keys`, `payment-methods`, and `customers-suppliers`, all enforcing multi-tenant isolation.
+- **Storage Layer:** PostgreSQL with Drizzle ORM, implementing multi-tenant isolation via a `tenantId` column in all business data tables.
+- **Real-Time Updates System:** Integrated WebSocket server using session-based authentication and tenant isolation. It broadcasts automatic notifications for data changes (CREATE/UPDATE/DELETE) to connected clients, supporting multi-user environments with instant UI updates and auto-reconnection.
+- **Multi-Tenant Architecture:** Row-level multi-tenancy enforced by `tenantId` in all business data, with security helpers at the API layer and `tenantId` filtering in the storage layer. Performance is optimized with composite indexes, and PostgreSQL Row-Level Security (RLS) is enabled. Versioning and soft-deletion are supported through `updated_at`, `version`, and `deleted` columns.
+- **Automatic Code Generation System:** Hybrid approach using integer storage in the database and frontend formatting. Thread-safe code generation uses PostgreSQL advisory locks. Unique constraints are applied on `(tenantId, code)`, and codes are always auto-generated by the backend, independent per tenant.
+- **Data Storage Solutions:** Neon Serverless PostgreSQL with Drizzle ORM for schema and migrations. Monetary values are stored as text/string to prevent floating-point precision issues.
 
-**Storage Layer:** PostgreSQL-backed via Drizzle ORM, implementing multi-tenant isolation through a `tenantId` parameter in all business data operations. This ensures data is scoped to the authenticated user's tenant.
-
-**Real-Time Updates System:**
-- **WebSocket Server**: Integrated with Express on the same HTTP server (ws://localhost:5000/ws)
-- **Session-Based Authentication**: WebSocket connections use the same session cookies as HTTP requests
-- **Tenant Isolation**: Each WebSocket connection is assigned to a tenant "room" based on user's tenantId
-- **Automatic Broadcasts**: Server automatically sends notifications when data changes (CREATE/UPDATE/DELETE)
-- **Frontend Integration**: `useRealtimeQuery` hook combines TanStack Query with WebSocket for automatic UI updates
-- **Multi-User Support**: Multiple users in the same tenant see changes instantly without page reload
-- **Auto-Reconnection**: WebSocket client automatically reconnects with exponential backoff if connection is lost
-- **Zero Configuration**: No additional infrastructure needed - uses existing session and server
-- **Message Format**:
-  ```json
-  {
-    "type": "data:change",
-    "resource": "cost-centers" | "chart-of-accounts" | "bank-accounts" | "pix-keys" | "payment-methods",
-    "action": "created" | "updated" | "deleted",
-    "data": {...},
-    "timestamp": "ISO 8601"
-  }
-  ```
-
-**Multi-Tenant Architecture:**
-- **Tenant Model**: Row-level multi-tenancy where each admin is a separate tenant.
-- **Isolation Method**: `tenantId` column in all business data tables.
-- **Security Helper**: `getTenantId(user)` extracts tenantId from the authenticated user.
-- **API Layer**: All routes automatically inject `tenantId` and never accept it from the client.
-- **Storage Layer**: All methods enforce `tenantId` filtering.
-- **Performance Optimizations**: Composite indexes on `(tenantId, id)`, `(tenantId, code)`, etc.
-- **Versioning System**: All business tables include `updated_at`, `version`, `deleted` columns for incremental sync and soft-deletion.
-- **Row-Level Security (RLS)**: PostgreSQL RLS enabled on sensitive tables using `current_setting('app.tenant_id')`.
-- **Atomic Version Increment**: `version = version + 1` via SQL on all mutations.
-
-**Automatic Code Generation System:**
-- **Design**: Hybrid approach using integer storage in the database for performance and frontend formatting for user experience.
-- **Thread-Safety**: PostgreSQL advisory locks prevent race conditions during code generation.
-- **Unique Constraints**: Implemented on `(tenantId, code)` for companies and cost centers.
-- **Formatters**: Frontend functions convert integer codes to user-friendly formats (e.g., "EMP001" for companies, "CC001" for cost centers).
-- **Security**: Codes are always auto-generated by the backend.
-- **Multi-Tenant**: Each tenant has independent code sequences.
-
-**Data Storage Solutions:**
-- **Database:** Neon Serverless PostgreSQL, Drizzle ORM for schema and migrations.
-- **Schema:** Shared between client/server, including tables for `sessions`, `users`, `companies`, `user_companies`, `company_members`, `cost_centers`, `chart_of_accounts`, `bank_accounts`, `pix_keys`, and `payment_methods`, all with appropriate `tenantId` and `companyId` for isolation.
-- **Monetary Values:** Stored as text/string to avoid JavaScript floating-point precision issues, parsed to numbers only when needed for calculations.
-
-## External Dependencies
+### External Dependencies
 
 **UI Component Library:**
 - Radix UI (primitives)
