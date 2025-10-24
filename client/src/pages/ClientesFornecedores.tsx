@@ -72,6 +72,7 @@ export default function ClientesFornecedores() {
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [wizardStep, setWizardStep] = useState(1);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [editingEntity, setEditingEntity] = useState<EntityWithStats | null>(null);
 
   // Fetch entities with real-time updates
   const { data: entities = [], isLoading } = useRealtimeQuery<EntityWithStats[]>({
@@ -117,8 +118,45 @@ export default function ClientesFornecedores() {
   };
 
   const handleCreateNew = () => {
+    setEditingEntity(null);
     form.reset();
     setWizardStep(1);
+    setIsWizardOpen(true);
+  };
+
+  const handleEdit = () => {
+    if (!selectedEntity) return;
+    
+    setEditingEntity(selectedEntity);
+    form.reset({
+      isCustomer: selectedEntity.isCustomer,
+      isSupplier: selectedEntity.isSupplier,
+      name: selectedEntity.name,
+      documentType: (selectedEntity.documentType as "cpf" | "cnpj" | "foreign" | "none" | undefined) || "none",
+      document: selectedEntity.document || "",
+      phone: selectedEntity.phone || "",
+      whatsapp: selectedEntity.whatsapp || "",
+      email: selectedEntity.email || "",
+      website: selectedEntity.website || "",
+      zipCode: selectedEntity.zipCode || "",
+      street: selectedEntity.street || "",
+      number: selectedEntity.number || "",
+      complement: selectedEntity.complement || "",
+      neighborhood: selectedEntity.neighborhood || "",
+      city: selectedEntity.city || "",
+      state: selectedEntity.state || "",
+      country: selectedEntity.country || "Brasil",
+      bankName: selectedEntity.bankName || "",
+      accountAgency: selectedEntity.accountAgency || "",
+      accountNumber: selectedEntity.accountNumber || "",
+      pixKey: selectedEntity.pixKey || "",
+      pixKeyType: selectedEntity.pixKeyType || undefined,
+      imageUrl: selectedEntity.imageUrl || "",
+      notes: selectedEntity.notes || "",
+      isActive: selectedEntity.isActive,
+    });
+    setWizardStep(1);
+    setIsDrawerOpen(false);
     setIsWizardOpen(true);
   };
 
@@ -132,21 +170,36 @@ export default function ClientesFornecedores() {
 
   const onSubmit = async (data: InsertCustomerSupplier) => {
     try {
-      await apiRequest("POST", "/api/customers-suppliers", data);
+      if (editingEntity) {
+        // Update existing entity
+        await apiRequest("PATCH", `/api/customers-suppliers/${editingEntity.id}`, {
+          ...data,
+          version: editingEntity.version,
+        });
+
+        toast({
+          title: "Sucesso!",
+          description: "Cliente/Fornecedor atualizado com sucesso",
+        });
+      } else {
+        // Create new entity
+        await apiRequest("POST", "/api/customers-suppliers", data);
+
+        toast({
+          title: "Sucesso!",
+          description: "Cliente/Fornecedor criado com sucesso",
+        });
+      }
 
       queryClient.invalidateQueries({ queryKey: ["/api/customers-suppliers"] });
 
-      toast({
-        title: "Sucesso!",
-        description: "Cliente/Fornecedor criado com sucesso",
-      });
-
       setIsWizardOpen(false);
+      setEditingEntity(null);
       form.reset();
     } catch (error: any) {
       toast({
         title: "Erro",
-        description: error.message || "Não foi possível criar o registro",
+        description: error.message || `Não foi possível ${editingEntity ? "atualizar" : "criar"} o registro`,
         variant: "destructive",
       });
     }
@@ -554,7 +607,7 @@ export default function ClientesFornecedores() {
 
                 {/* Actions */}
                 <div className="flex gap-2 pt-4">
-                  <Button variant="outline" className="flex-1" disabled>
+                  <Button variant="outline" className="flex-1" onClick={handleEdit} data-testid="button-edit">
                     <Edit className="h-4 w-4 mr-2" />
                     Editar
                   </Button>
@@ -581,7 +634,7 @@ export default function ClientesFornecedores() {
       <Dialog open={isWizardOpen} onOpenChange={setIsWizardOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Novo Cliente/Fornecedor</DialogTitle>
+            <DialogTitle>{editingEntity ? "Editar Cliente/Fornecedor" : "Novo Cliente/Fornecedor"}</DialogTitle>
             <DialogDescription>
               Etapa {wizardStep} de 5 - Preencha as informações
             </DialogDescription>
