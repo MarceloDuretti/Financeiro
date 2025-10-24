@@ -562,7 +562,7 @@ export default function ContasBancarias() {
             </div>
           </Card>
         ) : (
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 gap-3">
             {accounts.map((account) => (
               <Card 
                 key={account.id}
