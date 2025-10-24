@@ -348,4 +348,41 @@
   .border.hover-elevate:not(.no-hover-interaction-elevate)::after {
     inset: -1px;
   }
+
+  /* Floating Label Inputs - Apple/Material Design Style */
+  .form-floating {
+    @apply relative;
+  }
+  
+  .form-floating > input,
+  .form-floating > select,
+  .form-floating > textarea {
+    @apply w-full px-3 pt-5 pb-2 text-sm border rounded-md outline-none transition-all;
+    @apply border-input bg-background text-foreground;
+    @apply focus:border-primary focus:ring-1 focus:ring-primary;
+  }
+  
+  .form-floating > label {
+    @apply absolute left-3 top-0 -translate-y-1/2 px-1.5 text-xs font-medium pointer-events-none transition-all;
+    @apply bg-background text-muted-foreground z-10;
+  }
+  
+  .form-floating > input:focus ~ label,
+  .form-floating > input:not(:placeholder-shown) ~ label,
+  .form-floating > select:focus ~ label,
+  .form-floating > select:not([value=""]) ~ label,
+  .form-floating > textarea:focus ~ label,
+  .form-floating > textarea:not(:placeholder-shown) ~ label {
+    @apply text-primary text-xs;
+  }
+  
+  .form-floating > input::placeholder,
+  .form-floating > textarea::placeholder {
+    @apply opacity-0;
+  }
+  
+  .form-floating > input:focus::placeholder,
+  .form-floating > textarea:focus::placeholder {
+    @apply opacity-50;
+  }
 }

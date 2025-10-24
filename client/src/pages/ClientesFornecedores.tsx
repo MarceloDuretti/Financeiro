@@ -644,7 +644,8 @@ export default function ClientesFornecedores() {
                       )}
                     </div>
                   ) : (
-                    <div className="space-y-4">
+                    <div className="space-y-2">
+                      {/* Checkboxes in a compact row */}
                       <div className="flex gap-4">
                         <FormField
                           control={form.control}
@@ -659,9 +660,8 @@ export default function ClientesFornecedores() {
                                     data-testid="checkbox-is-customer"
                                   />
                                 </FormControl>
-                                <FormLabel>É Cliente?</FormLabel>
+                                <FormLabel className="text-xs">Cliente</FormLabel>
                               </div>
-                              <FormMessage />
                             </FormItem>
                           )}
                         />
@@ -678,9 +678,8 @@ export default function ClientesFornecedores() {
                                     data-testid="checkbox-is-supplier"
                                   />
                                 </FormControl>
-                                <FormLabel>É Fornecedor?</FormLabel>
+                                <FormLabel className="text-xs">Fornecedor</FormLabel>
                               </div>
-                              <FormMessage />
                             </FormItem>
                           )}
                         />
@@ -697,36 +696,37 @@ export default function ClientesFornecedores() {
                                     data-testid="checkbox-is-active"
                                   />
                                 </FormControl>
-                                <FormLabel>Ativo</FormLabel>
+                                <FormLabel className="text-xs">Ativo</FormLabel>
                               </div>
-                              <FormMessage />
                             </FormItem>
                           )}
                         />
                       </div>
+                      
+                      {/* Floating label inputs */}
                       <FormField
                         control={form.control}
                         name="name"
                         render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Nome / Razão Social *</FormLabel>
+                          <FormItem className="form-floating">
                             <FormControl>
-                              <Input {...field} data-testid="input-name" />
+                              <Input {...field} placeholder=" " data-testid="input-name" className="peer" />
                             </FormControl>
+                            <FormLabel>Nome / Razão Social *</FormLabel>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
-                      <div className="grid grid-cols-2 gap-4">
+                      
+                      <div className="grid grid-cols-2 gap-2">
                         <FormField
                           control={form.control}
                           name="documentType"
                           render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Tipo de Documento</FormLabel>
+                            <FormItem className="form-floating">
                               <Select onValueChange={field.onChange} value={field.value || "none"}>
                                 <FormControl>
-                                  <SelectTrigger data-testid="select-document-type">
+                                  <SelectTrigger data-testid="select-document-type" className="pt-5 pb-2">
                                     <SelectValue />
                                   </SelectTrigger>
                                 </FormControl>
@@ -737,6 +737,7 @@ export default function ClientesFornecedores() {
                                   <SelectItem value="foreign">Estrangeiro</SelectItem>
                                 </SelectContent>
                               </Select>
+                              <FormLabel>Tipo</FormLabel>
                               <FormMessage />
                             </FormItem>
                           )}
@@ -745,11 +746,11 @@ export default function ClientesFornecedores() {
                           control={form.control}
                           name="document"
                           render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Número do Documento</FormLabel>
+                            <FormItem className="form-floating">
                               <FormControl>
-                                <Input {...field} value={field.value || ""} data-testid="input-document" />
+                                <Input {...field} value={field.value || ""} placeholder=" " data-testid="input-document" />
                               </FormControl>
+                              <FormLabel>Número</FormLabel>
                               <FormMessage />
                             </FormItem>
                           )}
@@ -808,16 +809,16 @@ export default function ClientesFornecedores() {
                       )}
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                       <FormField
                         control={form.control}
                         name="phone"
                         render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Telefone</FormLabel>
+                          <FormItem className="form-floating">
                             <FormControl>
-                              <Input {...field} value={field.value || ""} placeholder="(11) 99999-9999" data-testid="input-phone" />
+                              <Input {...field} value={field.value || ""} placeholder=" " data-testid="input-phone" />
                             </FormControl>
+                            <FormLabel>Telefone</FormLabel>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -826,11 +827,11 @@ export default function ClientesFornecedores() {
                         control={form.control}
                         name="whatsapp"
                         render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>WhatsApp</FormLabel>
+                          <FormItem className="form-floating">
                             <FormControl>
-                              <Input {...field} value={field.value || ""} placeholder="(11) 99999-9999" data-testid="input-whatsapp" />
+                              <Input {...field} value={field.value || ""} placeholder=" " data-testid="input-whatsapp" />
                             </FormControl>
+                            <FormLabel>WhatsApp</FormLabel>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -839,11 +840,11 @@ export default function ClientesFornecedores() {
                         control={form.control}
                         name="email"
                         render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Email</FormLabel>
+                          <FormItem className="form-floating">
                             <FormControl>
-                              <Input {...field} value={field.value || ""} type="email" data-testid="input-email" />
+                              <Input {...field} value={field.value || ""} type="email" placeholder=" " data-testid="input-email" />
                             </FormControl>
+                            <FormLabel>Email</FormLabel>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -852,11 +853,11 @@ export default function ClientesFornecedores() {
                         control={form.control}
                         name="website"
                         render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Website</FormLabel>
+                          <FormItem className="form-floating">
                             <FormControl>
-                              <Input {...field} value={field.value || ""} placeholder="https://" data-testid="input-website" />
+                              <Input {...field} value={field.value || ""} placeholder=" " data-testid="input-website" />
                             </FormControl>
+                            <FormLabel>Website</FormLabel>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -915,17 +916,17 @@ export default function ClientesFornecedores() {
                       )}
                     </>
                   ) : (
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <div className="grid grid-cols-3 gap-2">
                         <FormField
                           control={form.control}
                           name="zipCode"
                           render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>CEP</FormLabel>
+                            <FormItem className="form-floating">
                               <FormControl>
-                                <Input {...field} value={field.value || ""} placeholder="00000-000" data-testid="input-zipcode" />
+                                <Input {...field} value={field.value || ""} placeholder=" " data-testid="input-zipcode" />
                               </FormControl>
+                              <FormLabel>CEP</FormLabel>
                               <FormMessage />
                             </FormItem>
                           )}
@@ -934,11 +935,11 @@ export default function ClientesFornecedores() {
                           control={form.control}
                           name="street"
                           render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Rua/Logradouro</FormLabel>
+                            <FormItem className="form-floating">
                               <FormControl>
-                                <Input {...field} value={field.value || ""} data-testid="input-street" />
+                                <Input {...field} value={field.value || ""} placeholder=" " data-testid="input-street" />
                               </FormControl>
+                              <FormLabel>Rua</FormLabel>
                               <FormMessage />
                             </FormItem>
                           )}
@@ -947,26 +948,26 @@ export default function ClientesFornecedores() {
                           control={form.control}
                           name="number"
                           render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Número</FormLabel>
+                            <FormItem className="form-floating">
                               <FormControl>
-                                <Input {...field} value={field.value || ""} data-testid="input-number" />
+                                <Input {...field} value={field.value || ""} placeholder=" " data-testid="input-number" />
                               </FormControl>
+                              <FormLabel>Nº</FormLabel>
                               <FormMessage />
                             </FormItem>
                           )}
                         />
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-2 gap-2">
                         <FormField
                           control={form.control}
                           name="complement"
                           render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Complemento</FormLabel>
+                            <FormItem className="form-floating">
                               <FormControl>
-                                <Input {...field} value={field.value || ""} data-testid="input-complement" />
+                                <Input {...field} value={field.value || ""} placeholder=" " data-testid="input-complement" />
                               </FormControl>
+                              <FormLabel>Complemento</FormLabel>
                               <FormMessage />
                             </FormItem>
                           )}
@@ -975,26 +976,26 @@ export default function ClientesFornecedores() {
                           control={form.control}
                           name="neighborhood"
                           render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Bairro</FormLabel>
+                            <FormItem className="form-floating">
                               <FormControl>
-                                <Input {...field} value={field.value || ""} data-testid="input-neighborhood" />
+                                <Input {...field} value={field.value || ""} placeholder=" " data-testid="input-neighborhood" />
                               </FormControl>
+                              <FormLabel>Bairro</FormLabel>
                               <FormMessage />
                             </FormItem>
                           )}
                         />
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="grid grid-cols-3 gap-2">
                         <FormField
                           control={form.control}
                           name="city"
                           render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Cidade</FormLabel>
+                            <FormItem className="form-floating">
                               <FormControl>
-                                <Input {...field} value={field.value || ""} data-testid="input-city" />
+                                <Input {...field} value={field.value || ""} placeholder=" " data-testid="input-city" />
                               </FormControl>
+                              <FormLabel>Cidade</FormLabel>
                               <FormMessage />
                             </FormItem>
                           )}
@@ -1003,11 +1004,11 @@ export default function ClientesFornecedores() {
                           control={form.control}
                           name="state"
                           render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Estado (UF)</FormLabel>
+                            <FormItem className="form-floating">
                               <FormControl>
-                                <Input {...field} value={field.value || ""} maxLength={2} data-testid="input-state" />
+                                <Input {...field} value={field.value || ""} maxLength={2} placeholder=" " data-testid="input-state" />
                               </FormControl>
+                              <FormLabel>UF</FormLabel>
                               <FormMessage />
                             </FormItem>
                           )}
@@ -1016,11 +1017,11 @@ export default function ClientesFornecedores() {
                           control={form.control}
                           name="country"
                           render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>País</FormLabel>
+                            <FormItem className="form-floating">
                               <FormControl>
-                                <Input {...field} value={field.value || ""} data-testid="input-country" />
+                                <Input {...field} value={field.value || ""} placeholder=" " data-testid="input-country" />
                               </FormControl>
+                              <FormLabel>País</FormLabel>
                               <FormMessage />
                             </FormItem>
                           )}
@@ -1067,30 +1068,30 @@ export default function ClientesFornecedores() {
                       )}
                     </>
                   ) : (
-                    <div className="space-y-4">
+                    <div className="space-y-2">
                       <FormField
                         control={form.control}
                         name="bankName"
                         render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Banco</FormLabel>
+                          <FormItem className="form-floating">
                             <FormControl>
-                              <Input {...field} value={field.value || ""} data-testid="input-bank-name" />
+                              <Input {...field} value={field.value || ""} placeholder=" " data-testid="input-bank-name" />
                             </FormControl>
+                            <FormLabel>Banco</FormLabel>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-2 gap-2">
                         <FormField
                           control={form.control}
                           name="accountAgency"
                           render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Agência</FormLabel>
+                            <FormItem className="form-floating">
                               <FormControl>
-                                <Input {...field} value={field.value || ""} data-testid="input-account-agency" />
+                                <Input {...field} value={field.value || ""} placeholder=" " data-testid="input-account-agency" />
                               </FormControl>
+                              <FormLabel>Agência</FormLabel>
                               <FormMessage />
                             </FormItem>
                           )}
@@ -1099,27 +1100,26 @@ export default function ClientesFornecedores() {
                           control={form.control}
                           name="accountNumber"
                           render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Conta</FormLabel>
+                            <FormItem className="form-floating">
                               <FormControl>
-                                <Input {...field} value={field.value || ""} data-testid="input-account-number" />
+                                <Input {...field} value={field.value || ""} placeholder=" " data-testid="input-account-number" />
                               </FormControl>
+                              <FormLabel>Conta</FormLabel>
                               <FormMessage />
                             </FormItem>
                           )}
                         />
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-2 gap-2">
                         <FormField
                           control={form.control}
                           name="pixKeyType"
                           render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Tipo de Chave PIX</FormLabel>
+                            <FormItem className="form-floating">
                               <Select onValueChange={field.onChange} value={field.value || undefined}>
                                 <FormControl>
-                                  <SelectTrigger data-testid="select-pix-key-type">
-                                    <SelectValue placeholder="Selecione o tipo" />
+                                  <SelectTrigger data-testid="select-pix-key-type" className="pt-5 pb-2">
+                                    <SelectValue placeholder="Tipo" />
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
@@ -1130,6 +1130,7 @@ export default function ClientesFornecedores() {
                                   <SelectItem value="random">Aleatória</SelectItem>
                                 </SelectContent>
                               </Select>
+                              <FormLabel>Tipo PIX</FormLabel>
                               <FormMessage />
                             </FormItem>
                           )}
@@ -1138,11 +1139,11 @@ export default function ClientesFornecedores() {
                           control={form.control}
                           name="pixKey"
                           render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Chave PIX</FormLabel>
+                            <FormItem className="form-floating">
                               <FormControl>
-                                <Input {...field} value={field.value || ""} data-testid="input-pix-key" />
+                                <Input {...field} value={field.value || ""} placeholder=" " data-testid="input-pix-key" />
                               </FormControl>
+                              <FormLabel>Chave PIX</FormLabel>
                               <FormMessage />
                             </FormItem>
                           )}
@@ -1168,10 +1169,11 @@ export default function ClientesFornecedores() {
                       control={form.control}
                       name="notes"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem className="form-floating">
                           <FormControl>
-                            <Textarea {...field} value={field.value || ""} rows={3} placeholder="Digite observações adicionais..." data-testid="input-notes" />
+                            <Textarea {...field} value={field.value || ""} rows={3} placeholder=" " data-testid="input-notes" />
                           </FormControl>
+                          <FormLabel>Observações</FormLabel>
                           <FormMessage />
                         </FormItem>
                       )}
