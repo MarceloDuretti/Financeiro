@@ -102,11 +102,11 @@ export default function FormasPagamento() {
     
     return (
       <div
-        className={`w-14 h-14 rounded-xl flex items-center justify-center transition-all ${
+        className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all ${
           isActive ? `${colorScheme} animate-pulse` : "bg-muted/50 text-muted-foreground/50"
         }`}
       >
-        <IconComponent className={`h-7 w-7 transition-transform ${isActive ? "scale-110" : ""}`} />
+        <IconComponent className={`h-5 w-5 transition-transform ${isActive ? "scale-110" : ""}`} />
       </div>
     );
   };
@@ -163,14 +163,14 @@ export default function FormasPagamento() {
               }`}
               data-testid={`card-payment-method-${method.id}`}
             >
-              <CardContent className="p-5 h-full">
-                <div className="flex flex-col h-full justify-between gap-4">
-                  <div className="flex flex-col gap-4">
+              <CardContent className="p-4 h-full">
+                <div className="flex flex-col h-full justify-between gap-3">
+                  <div className="flex flex-col gap-3">
                     {/* Icon and Status */}
                     <div className="flex items-start justify-between">
                       {renderIcon(method.icon, method.isActive, colorScheme)}
                       {method.isActive && (
-                        <Badge variant="default" className="gap-1">
+                        <Badge variant="default" className="gap-1 text-xs px-2 py-0">
                           <Check className="h-3 w-3" />
                           Ativo
                         </Badge>
@@ -178,9 +178,9 @@ export default function FormasPagamento() {
                     </div>
 
                     {/* Name and Description */}
-                    <div className="space-y-1">
+                    <div className="space-y-0.5">
                       <h3 
-                        className={`text-base transition-all ${
+                        className={`text-sm transition-all ${
                           method.isActive 
                             ? "font-bold text-foreground" 
                             : "font-semibold opacity-50"
@@ -189,7 +189,7 @@ export default function FormasPagamento() {
                       >
                         {method.name}
                       </h3>
-                      <p className={`text-sm text-muted-foreground line-clamp-2 transition-opacity ${
+                      <p className={`text-xs text-muted-foreground line-clamp-2 transition-opacity ${
                         method.isActive ? "opacity-100" : "opacity-50"
                       }`}>
                         {method.description}
@@ -202,7 +202,7 @@ export default function FormasPagamento() {
                     <button
                       onClick={() => handleToggle(method)}
                       disabled={isToggling}
-                      className="text-sm text-destructive underline hover:text-destructive/80 transition-colors text-center disabled:opacity-50"
+                      className="text-xs text-destructive underline hover:text-destructive/80 transition-colors text-center disabled:opacity-50"
                       data-testid={`button-toggle-${method.id}`}
                     >
                       {isToggling ? "Desativando..." : "Desativar"}
@@ -211,20 +211,20 @@ export default function FormasPagamento() {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="w-full"
+                      className="w-full h-8"
                       onClick={() => handleToggle(method)}
                       disabled={isToggling}
                       data-testid={`button-toggle-${method.id}`}
                     >
                       {isToggling ? (
                         <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          Ativando...
+                          <Loader2 className="h-3 w-3 mr-1.5 animate-spin" />
+                          <span className="text-xs">Ativando...</span>
                         </>
                       ) : (
                         <>
-                          <Plus className="h-4 w-4 mr-2" />
-                          Ativar
+                          <Plus className="h-3 w-3 mr-1.5" />
+                          <span className="text-xs">Ativar</span>
                         </>
                       )}
                     </Button>
