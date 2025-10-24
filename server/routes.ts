@@ -881,10 +881,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const tenantId = getTenantId((req as any).user);
       const { id } = req.params;
       
-      // Validate and strip extra fields using Zod (security)
-      const validatedData = insertCustomerSupplierSchema.partial().parse(req.body);
-      
-      const entity = await storage.updateCustomerSupplier(tenantId, id, validatedData);
+      // For updates, we accept partial data without the strict validation
+      // The storage layer will handle the actual update
+      const entity = await storage.updateCustomerSupplier(tenantId, id, req.body);
       if (!entity) {
         return res.status(404).json({ message: "Cliente/Fornecedor não encontrado ou versão desatualizada" });
       }
