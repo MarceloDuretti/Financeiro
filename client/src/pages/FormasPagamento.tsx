@@ -179,10 +179,17 @@ export default function FormasPagamento() {
 
                     {/* Name and Description */}
                     <div className="space-y-1">
-                      <h3 className="font-semibold text-base" data-testid={`text-method-name-${method.id}`}>
+                      <h3 
+                        className={`font-semibold text-base transition-opacity ${
+                          method.isActive ? "opacity-100" : "opacity-50"
+                        }`}
+                        data-testid={`text-method-name-${method.id}`}
+                      >
                         {method.name}
                       </h3>
-                      <p className="text-sm text-muted-foreground line-clamp-2">
+                      <p className={`text-sm text-muted-foreground line-clamp-2 transition-opacity ${
+                        method.isActive ? "opacity-100" : "opacity-50"
+                      }`}>
                         {method.description}
                       </p>
                     </div>
