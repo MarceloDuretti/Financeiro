@@ -7,6 +7,8 @@ import {
   insertCompanyMemberSchema,
   insertCostCenterSchema,
   insertChartAccountSchema,
+  insertBankAccountSchema,
+  insertPixKeySchema,
   loginSchema, 
   signupSchema,
   createCollaboratorSchema,
@@ -291,7 +293,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/cost-centers", isAuthenticated, async (req: any, res) => {
     try {
       const tenantId = getTenantId(req.user);
-      const costCenterData = insertCostCenterSchema.omit({ code: true }).parse(req.body);
+      const costCenterData = insertCostCenterSchema.parse(req.body);
       const costCenter = await storage.createCostCenter(tenantId, costCenterData);
       
       // Broadcast to all clients in this tenant
@@ -620,6 +622,193 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error("Error deleting chart account:", error);
       res.status(400).json({ message: error.message || "Failed to delete account" });
+    }
+  });
+
+  // Bank Accounts routes (authenticated + multi-tenant)
+
+  // List all bank accounts
+  app.get("/api/bank-accounts", isAuthenticated, async (req, res) => {
+    try {
+      const tenantId = getTenantId((req as any).user);
+      const accounts = await storage.listBankAccounts(tenantId);
+      res.json(accounts);
+    } catch (error) {
+      console.error("Error listing bank accounts:", error);
+      res.status(500).json({ error: "Failed to list bank accounts" });
+    }
+  });
+
+  // Get single bank account
+  app.get("/api/bank-accounts/:id", isAuthenticated, async (req, res) => {
+    try {
+      const tenantId = getTenantId((req as any).user);
+      const { id } = req.params;
+      
+      const account = await storage.getBankAccount(tenantId, id);
+      if (!account) {
+        return res.status(404).json({ message: "Conta bancária não encontrada" });
+      }
+      
+      res.json(account);
+    } catch (error) {
+      console.error("Error getting bank account:", error);
+      res.status(500).json({ error: "Failed to get bank account" });
+    }
+  });
+
+  // Create new bank account
+  app.post("/api/bank-accounts", isAuthenticated, async (req, res) => {
+    try {
+      const tenantId = getTenantId((req as any).user);
+      const validatedData = insertBankAccountSchema.parse(req.body);
+      
+      const account = await storage.createBankAccount(tenantId, validatedData);
+      
+      // Broadcast to all clients in this tenant
+      broadcastDataChange(tenantId, "bank-accounts", "created", account);
+      
+      res.status(201).json(account);
+    } catch (error: any) {
+      console.error("Error creating bank account:", error);
+      res.status(400).json({ message: error.message || "Failed to create bank account" });
+    }
+  });
+
+  // Update bank account
+  app.patch("/api/bank-accounts/:id", isAuthenticated, async (req, res) => {
+    try {
+      const tenantId = getTenantId((req as any).user);
+      const { id } = req.params;
+      
+      // Strip tenantId from payload (security)
+      const { tenantId: _, ...updates } = req.body;
+      
+      const account = await storage.updateBankAccount(tenantId, id, updates);
+      if (!account) {
+        return res.status(404).json({ message: "Conta bancária não encontrada" });
+      }
+      
+      // Broadcast to all clients in this tenant
+      broadcastDataChange(tenantId, "bank-accounts", "updated", account);
+      
+      res.json(account);
+    } catch (error: any) {
+      console.error("Error updating bank account:", error);
+      res.status(400).json({ message: error.message || "Failed to update bank account" });
+    }
+  });
+
+  // Delete bank account (soft-delete)
+  app.delete("/api/bank-accounts/:id", isAuthenticated, async (req, res) => {
+    try {
+      const tenantId = getTenantId((req as any).user);
+      const { id } = req.params;
+      
+      const success = await storage.deleteBankAccount(tenantId, id);
+      if (!success) {
+        return res.status(404).json({ message: "Conta bancária não encontrada" });
+      }
+      
+      // Broadcast to all clients in this tenant
+      broadcastDataChange(tenantId, "bank-accounts", "deleted", { id });
+      
+      res.json({ message: "Conta bancária excluída com sucesso" });
+    } catch (error: any) {
+      console.error("Error deleting bank account:", error);
+      res.status(400).json({ message: error.message || "Failed to delete bank account" });
+    }
+  });
+
+  // PIX Keys routes (authenticated + multi-tenant)
+
+  // List all PIX keys for a bank account
+  app.get("/api/bank-accounts/:bankAccountId/pix-keys", isAuthenticated, async (req, res) => {
+    try {
+      const tenantId = getTenantId((req as any).user);
+      const { bankAccountId } = req.params;
+      
+      // Verify bank account belongs to this tenant
+      const account = await storage.getBankAccount(tenantId, bankAccountId);
+      if (!account) {
+        return res.status(404).json({ message: "Conta bancária não encontrada" });
+      }
+      
+      const pixKeys = await storage.listPixKeysByAccount(tenantId, bankAccountId);
+      res.json(pixKeys);
+    } catch (error) {
+      console.error("Error listing PIX keys:", error);
+      res.status(500).json({ error: "Failed to list PIX keys" });
+    }
+  });
+
+  // Create new PIX key
+  app.post("/api/bank-accounts/:bankAccountId/pix-keys", isAuthenticated, async (req, res) => {
+    try {
+      const tenantId = getTenantId((req as any).user);
+      const { bankAccountId } = req.params;
+      
+      // Verify bank account belongs to this tenant
+      const account = await storage.getBankAccount(tenantId, bankAccountId);
+      if (!account) {
+        return res.status(404).json({ message: "Conta bancária não encontrada" });
+      }
+      
+      const validatedData = insertPixKeySchema.parse(req.body);
+      const pixKey = await storage.createPixKey(tenantId, bankAccountId, validatedData);
+      
+      // Broadcast to all clients in this tenant
+      broadcastDataChange(tenantId, "pix-keys", "created", pixKey);
+      
+      res.status(201).json(pixKey);
+    } catch (error: any) {
+      console.error("Error creating PIX key:", error);
+      res.status(400).json({ message: error.message || "Failed to create PIX key" });
+    }
+  });
+
+  // Update PIX key
+  app.patch("/api/pix-keys/:id", isAuthenticated, async (req, res) => {
+    try {
+      const tenantId = getTenantId((req as any).user);
+      const { id } = req.params;
+      
+      // Strip tenantId and bankAccountId from payload (security)
+      const { tenantId: _, bankAccountId: __, ...updates } = req.body;
+      
+      const pixKey = await storage.updatePixKey(tenantId, id, updates);
+      if (!pixKey) {
+        return res.status(404).json({ message: "Chave PIX não encontrada" });
+      }
+      
+      // Broadcast to all clients in this tenant
+      broadcastDataChange(tenantId, "pix-keys", "updated", pixKey);
+      
+      res.json(pixKey);
+    } catch (error: any) {
+      console.error("Error updating PIX key:", error);
+      res.status(400).json({ message: error.message || "Failed to update PIX key" });
+    }
+  });
+
+  // Delete PIX key (soft-delete)
+  app.delete("/api/pix-keys/:id", isAuthenticated, async (req, res) => {
+    try {
+      const tenantId = getTenantId((req as any).user);
+      const { id } = req.params;
+      
+      const success = await storage.deletePixKey(tenantId, id);
+      if (!success) {
+        return res.status(404).json({ message: "Chave PIX não encontrada" });
+      }
+      
+      // Broadcast to all clients in this tenant
+      broadcastDataChange(tenantId, "pix-keys", "deleted", { id });
+      
+      res.json({ message: "Chave PIX excluída com sucesso" });
+    } catch (error: any) {
+      console.error("Error deleting PIX key:", error);
+      res.status(400).json({ message: error.message || "Failed to delete PIX key" });
     }
   });
 
