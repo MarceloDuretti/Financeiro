@@ -10,6 +10,7 @@ import {
   pixKeys,
   paymentMethods,
   customersSuppliers,
+  bankBillingConfigs,
   type User,
   type InsertUser,
   type Company,
@@ -30,6 +31,8 @@ import {
   type InsertPaymentMethod,
   type CustomerSupplier,
   type InsertCustomerSupplier,
+  type BankBillingConfig,
+  type InsertBankBillingConfig,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, inArray, sql, max } from "drizzle-orm";
@@ -136,6 +139,15 @@ export interface IStorage {
   ): Promise<CustomerSupplier | undefined>;
   deleteCustomerSupplier(tenantId: string, id: string): Promise<boolean>;
   toggleCustomerSupplierActive(tenantId: string, id: string): Promise<CustomerSupplier | undefined>;
+
+  // Bank Billing Configs operations - all require tenantId for multi-tenant isolation
+  listBankBillingConfigs(tenantId: string): Promise<BankBillingConfig[]>;
+  getBankBillingConfig(tenantId: string, bankCode: string): Promise<BankBillingConfig | undefined>;
+  upsertBankBillingConfig(
+    tenantId: string,
+    config: InsertBankBillingConfig
+  ): Promise<BankBillingConfig>;
+  deleteBankBillingConfig(tenantId: string, bankCode: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1230,6 +1242,111 @@ export class DatabaseStorage implements IStorage {
         .returning();
       
       return entity;
+    });
+  }
+
+  // Bank Billing Configs operations - all require tenantId for multi-tenant isolation
+  async listBankBillingConfigs(tenantId: string): Promise<BankBillingConfig[]> {
+    const configs = await db
+      .select()
+      .from(bankBillingConfigs)
+      .where(
+        and(
+          eq(bankBillingConfigs.tenantId, tenantId),
+          eq(bankBillingConfigs.deleted, false)
+        )
+      )
+      .orderBy(bankBillingConfigs.bankName);
+    
+    return configs;
+  }
+
+  async getBankBillingConfig(tenantId: string, bankCode: string): Promise<BankBillingConfig | undefined> {
+    const [config] = await db
+      .select()
+      .from(bankBillingConfigs)
+      .where(
+        and(
+          eq(bankBillingConfigs.tenantId, tenantId),
+          eq(bankBillingConfigs.bankCode, bankCode),
+          eq(bankBillingConfigs.deleted, false)
+        )
+      );
+    
+    return config;
+  }
+
+  async upsertBankBillingConfig(
+    tenantId: string,
+    configData: InsertBankBillingConfig
+  ): Promise<BankBillingConfig> {
+    return await db.transaction(async (tx) => {
+      // Check if config already exists for this bank
+      const [existing] = await tx
+        .select()
+        .from(bankBillingConfigs)
+        .where(
+          and(
+            eq(bankBillingConfigs.tenantId, tenantId),
+            eq(bankBillingConfigs.bankCode, configData.bankCode),
+            eq(bankBillingConfigs.deleted, false)
+          )
+        );
+
+      if (existing) {
+        // Update existing config
+        const [updated] = await tx
+          .update(bankBillingConfigs)
+          .set({
+            ...configData,
+            updatedAt: new Date(),
+            version: sql`${bankBillingConfigs.version} + 1`,
+          })
+          .where(
+            and(
+              eq(bankBillingConfigs.tenantId, tenantId),
+              eq(bankBillingConfigs.bankCode, configData.bankCode),
+              eq(bankBillingConfigs.version, existing.version), // Optimistic lock
+              eq(bankBillingConfigs.deleted, false)
+            )
+          )
+          .returning();
+
+        return updated;
+      } else {
+        // Create new config
+        const [created] = await tx
+          .insert(bankBillingConfigs)
+          .values({
+            ...configData,
+            tenantId,
+          })
+          .returning();
+
+        return created;
+      }
+    });
+  }
+
+  async deleteBankBillingConfig(tenantId: string, bankCode: string): Promise<boolean> {
+    return await db.transaction(async (tx) => {
+      // Soft delete
+      const [deleted] = await tx
+        .update(bankBillingConfigs)
+        .set({
+          deleted: true,
+          updatedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(bankBillingConfigs.tenantId, tenantId),
+            eq(bankBillingConfigs.bankCode, bankCode),
+            eq(bankBillingConfigs.deleted, false)
+          )
+        )
+        .returning();
+
+      return !!deleted;
     });
   }
 }

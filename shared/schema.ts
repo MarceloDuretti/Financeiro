@@ -507,3 +507,69 @@ export const insertCustomerSupplierSchema = createInsertSchema(customersSupplier
 
 export type InsertCustomerSupplier = z.infer<typeof insertCustomerSupplierSchema>;
 export type CustomerSupplier = typeof customersSuppliers.$inferSelect;
+
+// Bank Billing Configs table - Bank-specific configurations for boleto/billing generation
+export const bankBillingConfigs = pgTable("bank_billing_configs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  tenantId: varchar("tenant_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  
+  // Bank identification
+  bankCode: text("bank_code").notNull(), // "001" (BB), "104" (CEF), "237" (Bradesco), "341" (Itaú), "033" (Santander), "756" (Sicoob)
+  bankName: text("bank_name").notNull(), // Full bank name
+  
+  // Bank account data
+  agency: text("agency").notNull(), // Agência (com ou sem dígito)
+  agencyDigit: text("agency_digit"), // Dígito da agência (alguns bancos)
+  account: text("account").notNull(), // Conta
+  accountDigit: text("account_digit").notNull(), // Dígito da conta
+  
+  // Boleto-specific fields
+  covenant: text("covenant"), // Convênio / Código do Cedente (obrigatório BB, CEF)
+  wallet: text("wallet"), // Carteira (ex: "18", "17", "09")
+  walletVariation: text("wallet_variation"), // Variação da carteira (alguns bancos)
+  ourNumberStart: text("our_number_start"), // Nosso Número inicial
+  
+  // Environment and status
+  environment: text("environment").notNull().default("sandbox"), // "sandbox" or "production"
+  isActive: boolean("is_active").notNull().default(false), // Configuration is active
+  
+  // Additional settings (JSON for bank-specific fields)
+  additionalSettings: jsonb("additional_settings"), // Flexibility for bank-specific configs
+  
+  // Notes
+  notes: text("notes"), // Internal notes about the configuration
+  
+  // Metadata
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow().$onUpdate(() => new Date()),
+  version: bigint("version", { mode: "number" }).notNull().default(1),
+  deleted: boolean("deleted").notNull().default(false),
+}, (table) => [
+  index("bank_billing_configs_tenant_idx").on(table.tenantId, table.id),
+  // Ensure only one active config per bank per tenant
+  uniqueIndex("bank_billing_configs_tenant_bank_unique").on(table.tenantId, table.bankCode),
+  index("bank_billing_configs_tenant_updated_idx").on(table.tenantId, table.updatedAt),
+  index("bank_billing_configs_tenant_deleted_idx").on(table.tenantId, table.deleted, table.id),
+  index("bank_billing_configs_tenant_active_idx").on(table.tenantId, table.isActive, table.deleted),
+]);
+
+export const insertBankBillingConfigSchema = createInsertSchema(bankBillingConfigs).omit({
+  id: true,
+  tenantId: true,
+  createdAt: true,
+  updatedAt: true,
+  version: true,
+  deleted: true,
+}).extend({
+  bankCode: z.string().min(1, "Código do banco é obrigatório"),
+  bankName: z.string().min(1, "Nome do banco é obrigatório"),
+  agency: z.string().min(1, "Agência é obrigatória"),
+  account: z.string().min(1, "Conta é obrigatória"),
+  accountDigit: z.string().min(1, "Dígito da conta é obrigatório"),
+  environment: z.enum(["sandbox", "production"], {
+    errorMap: () => ({ message: "Ambiente inválido" })
+  }),
+});
+
+export type InsertBankBillingConfig = z.infer<typeof insertBankBillingConfigSchema>;
+export type BankBillingConfig = typeof bankBillingConfigs.$inferSelect;

@@ -11,6 +11,7 @@ import {
   insertPixKeySchema,
   togglePaymentMethodSchema,
   insertCustomerSupplierSchema,
+  insertBankBillingConfigSchema,
   loginSchema, 
   signupSchema,
   createCollaboratorSchema,
@@ -937,6 +938,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error("Error toggling customer/supplier:", error);
       res.status(400).json({ message: error.message || "Erro ao alterar status" });
+    }
+  });
+
+  // Bank Billing Configs routes (authenticated + multi-tenant)
+
+  // List all bank billing configs
+  app.get("/api/bank-billing-configs", isAuthenticated, async (req, res) => {
+    try {
+      const tenantId = getTenantId((req as any).user);
+      const configs = await storage.listBankBillingConfigs(tenantId);
+      res.json(configs);
+    } catch (error) {
+      console.error("Error listing bank billing configs:", error);
+      res.status(500).json({ error: "Erro ao listar configurações bancárias" });
+    }
+  });
+
+  // Get single bank billing config by bank code
+  app.get("/api/bank-billing-configs/:bankCode", isAuthenticated, async (req, res) => {
+    try {
+      const tenantId = getTenantId((req as any).user);
+      const { bankCode } = req.params;
+      
+      const config = await storage.getBankBillingConfig(tenantId, bankCode);
+      if (!config) {
+        return res.status(404).json({ message: "Configuração bancária não encontrada" });
+      }
+      
+      res.json(config);
+    } catch (error) {
+      console.error("Error getting bank billing config:", error);
+      res.status(500).json({ error: "Erro ao buscar configuração bancária" });
+    }
+  });
+
+  // Create or update bank billing config (upsert)
+  app.post("/api/bank-billing-configs", isAuthenticated, async (req, res) => {
+    try {
+      const tenantId = getTenantId((req as any).user);
+      
+      // Validate and strip extra fields using Zod (security)
+      const validatedData = insertBankBillingConfigSchema.parse(req.body);
+      
+      const config = await storage.upsertBankBillingConfig(tenantId, validatedData);
+      
+      // Broadcast to all clients in this tenant
+      broadcastDataChange(tenantId, "bank-billing-configs", "updated", config);
+      
+      res.json(config);
+    } catch (error: any) {
+      console.error("Error upserting bank billing config:", error);
+      res.status(400).json({ message: error.message || "Erro ao salvar configuração bancária" });
+    }
+  });
+
+  // Delete bank billing config (soft-delete)
+  app.delete("/api/bank-billing-configs/:bankCode", isAuthenticated, async (req, res) => {
+    try {
+      const tenantId = getTenantId((req as any).user);
+      const { bankCode } = req.params;
+      
+      const success = await storage.deleteBankBillingConfig(tenantId, bankCode);
+      if (!success) {
+        return res.status(404).json({ message: "Configuração bancária não encontrada" });
+      }
+      
+      // Broadcast to all clients in this tenant
+      broadcastDataChange(tenantId, "bank-billing-configs", "deleted", { bankCode });
+      
+      res.json({ message: "Configuração bancária excluída com sucesso" });
+    } catch (error: any) {
+      console.error("Error deleting bank billing config:", error);
+      res.status(400).json({ message: error.message || "Erro ao excluir configuração bancária" });
     }
   });
 
