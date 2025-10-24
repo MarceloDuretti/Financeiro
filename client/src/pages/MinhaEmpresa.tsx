@@ -284,7 +284,7 @@ export default function MinhaEmpresa() {
                               <FormItem>
                                 <FormLabel>Inscrição Estadual</FormLabel>
                                 <FormControl>
-                                  <Input {...field} placeholder="123.456.789.012" data-testid="input-create-ie" />
+                                  <Input {...field} value={field.value || ""} placeholder="123.456.789.012" data-testid="input-create-ie" />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -297,7 +297,7 @@ export default function MinhaEmpresa() {
                               <FormItem>
                                 <FormLabel>Inscrição Municipal</FormLabel>
                                 <FormControl>
-                                  <Input {...field} placeholder="123456789" data-testid="input-create-im" />
+                                  <Input {...field} value={field.value || ""} placeholder="123456789" data-testid="input-create-im" />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -313,7 +313,7 @@ export default function MinhaEmpresa() {
                               <FormItem>
                                 <FormLabel>Email</FormLabel>
                                 <FormControl>
-                                  <Input {...field} type="email" placeholder="contato@empresa.com" data-testid="input-create-email" />
+                                  <Input {...field} value={field.value || ""} type="email" placeholder="contato@empresa.com" data-testid="input-create-email" />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -326,7 +326,7 @@ export default function MinhaEmpresa() {
                               <FormItem>
                                 <FormLabel>Website</FormLabel>
                                 <FormControl>
-                                  <Input {...field} placeholder="www.empresa.com" data-testid="input-create-website" />
+                                  <Input {...field} value={field.value || ""} placeholder="www.empresa.com" data-testid="input-create-website" />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>

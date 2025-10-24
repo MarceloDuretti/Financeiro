@@ -192,70 +192,44 @@ export default function CentroDeCusto() {
         </p>
       </div>
 
-      {/* Educational Section */}
-      <div className="grid gap-4 md:grid-cols-3">
+      {/* Educational Section - Compact */}
+      <div className="grid gap-3 md:grid-cols-3">
         <Card className="hover-elevate">
-          <CardHeader className="pb-3">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 shadow-sm">
-                <Lightbulb className="h-5 w-5 text-white" />
+          <CardContent className="p-3">
+            <div className="flex items-center gap-2">
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-blue-500 to-indigo-600">
+                <Lightbulb className="h-3.5 w-3.5 text-white" />
               </div>
-              <CardTitle className="text-base">O que são?</CardTitle>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium">Rastreie custos por área ou projeto</p>
+              </div>
             </div>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              Centros de Custo permitem rastrear "quem" ou "onde" o dinheiro foi gasto,
-              complementando o Plano de Contas que registra "o quê" foi gasto.
-            </p>
           </CardContent>
         </Card>
 
         <Card className="hover-elevate">
-          <CardHeader className="pb-3">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 shadow-sm">
-                <Target className="h-5 w-5 text-white" />
+          <CardContent className="p-3">
+            <div className="flex items-center gap-2">
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-green-500 to-emerald-600">
+                <Target className="h-3.5 w-3.5 text-white" />
               </div>
-              <CardTitle className="text-base">Exemplos</CardTitle>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium">Ex: Marketing, Vendas, Projetos</p>
+              </div>
             </div>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              <strong>Departamentos:</strong> Marketing, Vendas, TI<br />
-              <strong>Projetos:</strong> Projeto A, Campanha X<br />
-              <strong>Filiais:</strong> SP, RJ, BH
-            </p>
           </CardContent>
         </Card>
 
         <Card className="hover-elevate">
-          <CardHeader className="pb-3">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-purple-500 to-violet-600 shadow-sm">
-                <BarChart3 className="h-5 w-5 text-white" />
+          <CardContent className="p-3">
+            <div className="flex items-center gap-2">
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-purple-500 to-violet-600">
+                <Building2 className="h-3.5 w-3.5 text-white" />
               </div>
-              <CardTitle className="text-base">Benefícios</CardTitle>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium">Total: <span className="font-bold text-sm">{costCenters.length}</span></p>
+              </div>
             </div>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              Visibilidade clara de custos por área, análise de rentabilidade
-              por projeto e decisões estratégicas baseadas em dados.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-1">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de Centros de Custo</CardTitle>
-            <Building2 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{costCenters.length}</div>
           </CardContent>
         </Card>
       </div>
