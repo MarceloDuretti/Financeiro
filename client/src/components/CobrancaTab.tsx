@@ -57,7 +57,7 @@ export default function CobrancaTab({ companyId }: CobrancaTabProps) {
 
   // Fetch bank billing configs with real-time updates
   const { data: configs, isLoading } = useRealtimeQuery<BankBillingConfig[]>({
-    queryKey: ["/api/bank-billing-configs", { companyId }],
+    queryKey: [`/api/bank-billing-configs?companyId=${companyId}`],
     resource: "bank-billing-configs",
   });
 
@@ -156,7 +156,7 @@ export default function CobrancaTab({ companyId }: CobrancaTabProps) {
 
       // Update cache
       queryClient.setQueryData<BankBillingConfig[]>(
-        ["/api/bank-billing-configs", { companyId }],
+        [`/api/bank-billing-configs?companyId=${companyId}`],
         (old) => {
           if (!old) return [savedConfig];
           const exists = old.some((c) => c.bankCode === savedConfig.bankCode);
@@ -179,7 +179,7 @@ export default function CobrancaTab({ companyId }: CobrancaTabProps) {
         title: "Erro",
         description: error.message || "Não foi possível salvar a configuração",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/bank-billing-configs", { companyId }] });
+      queryClient.invalidateQueries({ queryKey: [`/api/bank-billing-configs?companyId=${companyId}`] });
     } finally {
       setIsSaving(false);
     }
@@ -192,7 +192,7 @@ export default function CobrancaTab({ companyId }: CobrancaTabProps) {
 
       // Update cache
       queryClient.setQueryData<BankBillingConfig[]>(
-        ["/api/bank-billing-configs", { companyId }],
+        [`/api/bank-billing-configs?companyId=${companyId}`],
         (old) => {
           if (!old) return old;
           return old.filter((c) => c.bankCode !== bankCode);
