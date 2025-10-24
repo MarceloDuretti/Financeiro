@@ -10,6 +10,7 @@ import {
   insertBankAccountSchema,
   insertPixKeySchema,
   togglePaymentMethodSchema,
+  insertCustomerSupplierSchema,
   loginSchema, 
   signupSchema,
   createCollaboratorSchema,
@@ -810,6 +811,112 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error("Error deleting PIX key:", error);
       res.status(400).json({ message: error.message || "Failed to delete PIX key" });
+    }
+  });
+
+  // Customers/Suppliers routes (authenticated + multi-tenant)
+
+  // List all customers/suppliers
+  app.get("/api/customers-suppliers", isAuthenticated, async (req, res) => {
+    try {
+      const tenantId = getTenantId((req as any).user);
+      const entities = await storage.listCustomersSuppliers(tenantId);
+      
+      // TODO: Add percentage calculation when transactions are implemented
+      // For now, return entities as-is with 0% or null
+      const entitiesWithStats = entities.map(entity => ({
+        ...entity,
+        revenuePercentage: null,
+        expensePercentage: null,
+      }));
+      
+      res.json(entitiesWithStats);
+    } catch (error) {
+      console.error("Error listing customers/suppliers:", error);
+      res.status(500).json({ error: "Erro ao listar clientes/fornecedores" });
+    }
+  });
+
+  // Get single customer/supplier by ID
+  app.get("/api/customers-suppliers/:id", isAuthenticated, async (req, res) => {
+    try {
+      const tenantId = getTenantId((req as any).user);
+      const { id } = req.params;
+      
+      const entity = await storage.getCustomerSupplier(tenantId, id);
+      if (!entity) {
+        return res.status(404).json({ message: "Cliente/Fornecedor não encontrado" });
+      }
+      
+      res.json(entity);
+    } catch (error) {
+      console.error("Error getting customer/supplier:", error);
+      res.status(500).json({ error: "Erro ao buscar cliente/fornecedor" });
+    }
+  });
+
+  // Create new customer/supplier
+  app.post("/api/customers-suppliers", isAuthenticated, async (req, res) => {
+    try {
+      const tenantId = getTenantId((req as any).user);
+      
+      // Validate and strip extra fields using Zod (security)
+      const validatedData = insertCustomerSupplierSchema.parse(req.body);
+      
+      const entity = await storage.createCustomerSupplier(tenantId, validatedData);
+      
+      // Broadcast to all clients in this tenant
+      broadcastDataChange(tenantId, "customers-suppliers", "created", entity);
+      
+      res.json(entity);
+    } catch (error: any) {
+      console.error("Error creating customer/supplier:", error);
+      res.status(400).json({ message: error.message || "Erro ao criar cliente/fornecedor" });
+    }
+  });
+
+  // Update customer/supplier
+  app.patch("/api/customers-suppliers/:id", isAuthenticated, async (req, res) => {
+    try {
+      const tenantId = getTenantId((req as any).user);
+      const { id } = req.params;
+      
+      // Validate and strip extra fields using Zod (security)
+      const validatedData = insertCustomerSupplierSchema.partial().parse(req.body);
+      
+      const entity = await storage.updateCustomerSupplier(tenantId, id, validatedData);
+      if (!entity) {
+        return res.status(404).json({ message: "Cliente/Fornecedor não encontrado ou versão desatualizada" });
+      }
+      
+      // Broadcast to all clients in this tenant
+      broadcastDataChange(tenantId, "customers-suppliers", "updated", entity);
+      
+      res.json(entity);
+    } catch (error: any) {
+      console.error("Error updating customer/supplier:", error);
+      res.status(400).json({ message: error.message || "Erro ao atualizar cliente/fornecedor" });
+    }
+  });
+
+  // Delete customer/supplier (soft-delete)
+  app.delete("/api/customers-suppliers/:id", isAuthenticated, async (req, res) => {
+    try {
+      const tenantId = getTenantId((req as any).user);
+      const { id } = req.params;
+      
+      const success = await storage.deleteCustomerSupplier(tenantId, id);
+      if (!success) {
+        return res.status(404).json({ message: "Cliente/Fornecedor não encontrado" });
+      }
+      
+      // Broadcast to all clients in this tenant
+      broadcastDataChange(tenantId, "customers-suppliers", "deleted", { id });
+      
+      res.json({ message: "Cliente/Fornecedor excluído com sucesso" });
+    } catch (error: any) {
+      console.error("Error deleting customer/supplier:", error);
+      res.status(400).json({ message: error.message || "Erro ao excluir cliente/fornecedor" });
     }
   });
 
