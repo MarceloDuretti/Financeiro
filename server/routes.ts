@@ -992,6 +992,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Validate and strip extra fields using Zod (security)
       const validatedData = insertBankBillingConfigSchema.parse(req.body);
       
+      // Security: Verify that company has a bank account for this bankCode
+      const bankAccounts = await storage.listBankAccounts(tenantId);
+      const hasBankAccount = bankAccounts.some(
+        account => 
+          account.companyId === validatedData.companyId && 
+          account.bankCode === validatedData.bankCode &&
+          !account.deleted
+      );
+      
+      if (!hasBankAccount) {
+        return res.status(400).json({ 
+          message: "Não é possível configurar boleto para um banco sem conta cadastrada. Cadastre uma conta bancária primeiro." 
+        });
+      }
+      
       const config = await storage.upsertBankBillingConfig(tenantId, validatedData);
       
       // Broadcast to all clients in this tenant
