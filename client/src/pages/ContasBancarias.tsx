@@ -572,26 +572,44 @@ export default function ContasBancarias() {
                 onClick={() => handleSelectAccount(account.id)}
                 data-testid={`card-account-${account.id}`}
               >
-                <CardContent className="p-3">
-                  <div className="space-y-2">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex items-center gap-2 min-w-0 flex-1">
-                        <CreditCard className="h-4 w-4 text-primary flex-shrink-0" />
-                        <span className="font-medium text-sm truncate" data-testid={`text-description-${account.id}`}>
-                          {account.description}
-                        </span>
-                      </div>
+                <CardContent className="p-4">
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <CreditCard className="h-5 w-5 text-primary flex-shrink-0" />
+                      <span className="font-semibold text-base" data-testid={`text-description-${account.id}`}>
+                        {account.description}
+                      </span>
                     </div>
-                    <div>
-                      <div className="text-xs text-muted-foreground truncate">
-                        {account.bankName}
+                    
+                    <div className="grid grid-cols-5 gap-3">
+                      <div>
+                        <div className="text-xs text-muted-foreground mb-1">Banco</div>
+                        <div className="text-sm font-medium truncate">{account.bankName}</div>
                       </div>
-                      <div className="text-xs text-muted-foreground">
-                        {account.accountType === "corrente" ? "C/C" : account.accountType === "poupanca" ? "Poupança" : "Investimento"}
+                      
+                      <div>
+                        <div className="text-xs text-muted-foreground mb-1">Tipo</div>
+                        <div className="text-sm font-medium">
+                          {account.accountType === "corrente" ? "C/C" : account.accountType === "poupanca" ? "Poupança" : "Investimento"}
+                        </div>
                       </div>
-                    </div>
-                    <div className="text-lg font-bold" data-testid={`text-balance-${account.id}`}>
-                      {formatCurrency(account.currentBalance)}
+                      
+                      <div>
+                        <div className="text-xs text-muted-foreground mb-1">Agência</div>
+                        <div className="text-sm font-medium">{account.agencyNumber || "N/A"}</div>
+                      </div>
+                      
+                      <div>
+                        <div className="text-xs text-muted-foreground mb-1">Conta</div>
+                        <div className="text-sm font-medium">{account.accountNumber}</div>
+                      </div>
+                      
+                      <div>
+                        <div className="text-xs text-muted-foreground mb-1">Saldo</div>
+                        <div className="text-base font-bold" data-testid={`text-balance-${account.id}`}>
+                          {formatCurrency(account.currentBalance)}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
