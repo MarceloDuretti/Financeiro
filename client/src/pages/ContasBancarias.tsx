@@ -708,6 +708,24 @@ export default function ContasBancarias() {
                                 {selectedAccount.initialBalanceDate ? format(new Date(selectedAccount.initialBalanceDate), 'dd/MM/yyyy', { locale: ptBR }) : "N/A"}
                               </p>
                             </div>
+                            <div>
+                              <span className="text-xs text-muted-foreground">Titular</span>
+                              <p className="text-sm font-medium">{selectedAccount.holderName || "N/A"}</p>
+                            </div>
+                            <div>
+                              <span className="text-xs text-muted-foreground">CPF/CNPJ</span>
+                              <p className="text-sm font-medium">{selectedAccount.holderDocument || "N/A"}</p>
+                            </div>
+                            <div>
+                              <span className="text-xs text-muted-foreground">Sincronização Automática</span>
+                              <div className="mt-1">
+                                {selectedAccount.autoSyncEnabled ? (
+                                  <Badge variant="default">Habilitada</Badge>
+                                ) : (
+                                  <Badge variant="secondary">Desabilitada</Badge>
+                                )}
+                              </div>
+                            </div>
                           </div>
                         </div>
 
@@ -726,6 +744,20 @@ export default function ContasBancarias() {
                             <div>
                               <span className="text-xs text-muted-foreground">Limite de Crédito</span>
                               <p className="text-sm font-medium">{formatCurrency(selectedAccount.creditLimit || 0)}</p>
+                            </div>
+                          )}
+                          <div>
+                            <span className="text-xs text-muted-foreground">Última Reconciliação</span>
+                            <p className="text-sm font-medium">
+                              {selectedAccount.lastReconciliationDate ? format(new Date(selectedAccount.lastReconciliationDate), 'dd/MM/yyyy', { locale: ptBR }) : "Nunca"}
+                            </p>
+                          </div>
+                          {selectedAccount.lastSyncAt && (
+                            <div>
+                              <span className="text-xs text-muted-foreground">Última Sincronização</span>
+                              <p className="text-sm font-medium">
+                                {format(new Date(selectedAccount.lastSyncAt), 'dd/MM/yyyy HH:mm', { locale: ptBR })}
+                              </p>
                             </div>
                           )}
                         </div>
