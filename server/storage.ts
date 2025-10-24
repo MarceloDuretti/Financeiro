@@ -140,14 +140,14 @@ export interface IStorage {
   deleteCustomerSupplier(tenantId: string, id: string): Promise<boolean>;
   toggleCustomerSupplierActive(tenantId: string, id: string): Promise<CustomerSupplier | undefined>;
 
-  // Bank Billing Configs operations - all require tenantId for multi-tenant isolation
-  listBankBillingConfigs(tenantId: string): Promise<BankBillingConfig[]>;
-  getBankBillingConfig(tenantId: string, bankCode: string): Promise<BankBillingConfig | undefined>;
+  // Bank Billing Configs operations - all require tenantId and companyId for multi-tenant isolation
+  listBankBillingConfigs(tenantId: string, companyId: string): Promise<BankBillingConfig[]>;
+  getBankBillingConfig(tenantId: string, companyId: string, bankCode: string): Promise<BankBillingConfig | undefined>;
   upsertBankBillingConfig(
     tenantId: string,
     config: InsertBankBillingConfig
   ): Promise<BankBillingConfig>;
-  deleteBankBillingConfig(tenantId: string, bankCode: string): Promise<boolean>;
+  deleteBankBillingConfig(tenantId: string, companyId: string, bankCode: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1245,14 +1245,15 @@ export class DatabaseStorage implements IStorage {
     });
   }
 
-  // Bank Billing Configs operations - all require tenantId for multi-tenant isolation
-  async listBankBillingConfigs(tenantId: string): Promise<BankBillingConfig[]> {
+  // Bank Billing Configs operations - all require tenantId and companyId for multi-tenant isolation
+  async listBankBillingConfigs(tenantId: string, companyId: string): Promise<BankBillingConfig[]> {
     const configs = await db
       .select()
       .from(bankBillingConfigs)
       .where(
         and(
           eq(bankBillingConfigs.tenantId, tenantId),
+          eq(bankBillingConfigs.companyId, companyId),
           eq(bankBillingConfigs.deleted, false)
         )
       )
@@ -1261,13 +1262,14 @@ export class DatabaseStorage implements IStorage {
     return configs;
   }
 
-  async getBankBillingConfig(tenantId: string, bankCode: string): Promise<BankBillingConfig | undefined> {
+  async getBankBillingConfig(tenantId: string, companyId: string, bankCode: string): Promise<BankBillingConfig | undefined> {
     const [config] = await db
       .select()
       .from(bankBillingConfigs)
       .where(
         and(
           eq(bankBillingConfigs.tenantId, tenantId),
+          eq(bankBillingConfigs.companyId, companyId),
           eq(bankBillingConfigs.bankCode, bankCode),
           eq(bankBillingConfigs.deleted, false)
         )
@@ -1281,13 +1283,14 @@ export class DatabaseStorage implements IStorage {
     configData: InsertBankBillingConfig
   ): Promise<BankBillingConfig> {
     return await db.transaction(async (tx) => {
-      // Check if config already exists for this bank
+      // Check if config already exists for this bank and company
       const [existing] = await tx
         .select()
         .from(bankBillingConfigs)
         .where(
           and(
             eq(bankBillingConfigs.tenantId, tenantId),
+            eq(bankBillingConfigs.companyId, configData.companyId),
             eq(bankBillingConfigs.bankCode, configData.bankCode),
             eq(bankBillingConfigs.deleted, false)
           )
@@ -1305,6 +1308,7 @@ export class DatabaseStorage implements IStorage {
           .where(
             and(
               eq(bankBillingConfigs.tenantId, tenantId),
+              eq(bankBillingConfigs.companyId, configData.companyId),
               eq(bankBillingConfigs.bankCode, configData.bankCode),
               eq(bankBillingConfigs.version, existing.version), // Optimistic lock
               eq(bankBillingConfigs.deleted, false)
@@ -1328,7 +1332,7 @@ export class DatabaseStorage implements IStorage {
     });
   }
 
-  async deleteBankBillingConfig(tenantId: string, bankCode: string): Promise<boolean> {
+  async deleteBankBillingConfig(tenantId: string, companyId: string, bankCode: string): Promise<boolean> {
     return await db.transaction(async (tx) => {
       // Soft delete
       const [deleted] = await tx
@@ -1340,6 +1344,7 @@ export class DatabaseStorage implements IStorage {
         .where(
           and(
             eq(bankBillingConfigs.tenantId, tenantId),
+            eq(bankBillingConfigs.companyId, companyId),
             eq(bankBillingConfigs.bankCode, bankCode),
             eq(bankBillingConfigs.deleted, false)
           )

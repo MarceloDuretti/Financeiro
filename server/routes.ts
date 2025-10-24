@@ -941,13 +941,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Bank Billing Configs routes (authenticated + multi-tenant)
+  // Bank Billing Configs routes (authenticated + multi-tenant + multi-company)
 
-  // List all bank billing configs
+  // List all bank billing configs for a company
   app.get("/api/bank-billing-configs", isAuthenticated, async (req, res) => {
     try {
       const tenantId = getTenantId((req as any).user);
-      const configs = await storage.listBankBillingConfigs(tenantId);
+      const { companyId } = req.query;
+      
+      if (!companyId || typeof companyId !== 'string') {
+        return res.status(400).json({ message: "companyId é obrigatório" });
+      }
+      
+      const configs = await storage.listBankBillingConfigs(tenantId, companyId);
       res.json(configs);
     } catch (error) {
       console.error("Error listing bank billing configs:", error);
@@ -960,8 +966,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const tenantId = getTenantId((req as any).user);
       const { bankCode } = req.params;
+      const { companyId } = req.query;
       
-      const config = await storage.getBankBillingConfig(tenantId, bankCode);
+      if (!companyId || typeof companyId !== 'string') {
+        return res.status(400).json({ message: "companyId é obrigatório" });
+      }
+      
+      const config = await storage.getBankBillingConfig(tenantId, companyId, bankCode);
       if (!config) {
         return res.status(404).json({ message: "Configuração bancária não encontrada" });
       }
@@ -998,14 +1009,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const tenantId = getTenantId((req as any).user);
       const { bankCode } = req.params;
+      const { companyId } = req.query;
       
-      const success = await storage.deleteBankBillingConfig(tenantId, bankCode);
+      if (!companyId || typeof companyId !== 'string') {
+        return res.status(400).json({ message: "companyId é obrigatório" });
+      }
+      
+      const success = await storage.deleteBankBillingConfig(tenantId, companyId, bankCode);
       if (!success) {
         return res.status(404).json({ message: "Configuração bancária não encontrada" });
       }
       
       // Broadcast to all clients in this tenant
-      broadcastDataChange(tenantId, "bank-billing-configs", "deleted", { bankCode });
+      broadcastDataChange(tenantId, "bank-billing-configs", "deleted", { bankCode, companyId });
       
       res.json({ message: "Configuração bancária excluída com sucesso" });
     } catch (error: any) {

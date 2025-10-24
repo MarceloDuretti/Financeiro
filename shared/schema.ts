@@ -512,6 +512,7 @@ export type CustomerSupplier = typeof customersSuppliers.$inferSelect;
 export const bankBillingConfigs = pgTable("bank_billing_configs", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   tenantId: varchar("tenant_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  companyId: varchar("company_id").notNull().references(() => companies.id, { onDelete: 'cascade' }),
   
   // Bank identification
   bankCode: text("bank_code").notNull(), // "001" (BB), "104" (CEF), "237" (Bradesco), "341" (Itaú), "033" (Santander), "756" (Sicoob)
@@ -545,12 +546,12 @@ export const bankBillingConfigs = pgTable("bank_billing_configs", {
   version: bigint("version", { mode: "number" }).notNull().default(1),
   deleted: boolean("deleted").notNull().default(false),
 }, (table) => [
-  index("bank_billing_configs_tenant_idx").on(table.tenantId, table.id),
-  // Ensure only one active config per bank per tenant
-  uniqueIndex("bank_billing_configs_tenant_bank_unique").on(table.tenantId, table.bankCode),
-  index("bank_billing_configs_tenant_updated_idx").on(table.tenantId, table.updatedAt),
-  index("bank_billing_configs_tenant_deleted_idx").on(table.tenantId, table.deleted, table.id),
-  index("bank_billing_configs_tenant_active_idx").on(table.tenantId, table.isActive, table.deleted),
+  index("bank_billing_configs_tenant_company_idx").on(table.tenantId, table.companyId, table.id),
+  // Ensure only one active config per bank per company per tenant
+  uniqueIndex("bank_billing_configs_tenant_company_bank_unique").on(table.tenantId, table.companyId, table.bankCode),
+  index("bank_billing_configs_tenant_company_updated_idx").on(table.tenantId, table.companyId, table.updatedAt),
+  index("bank_billing_configs_tenant_company_deleted_idx").on(table.tenantId, table.companyId, table.deleted, table.id),
+  index("bank_billing_configs_tenant_company_active_idx").on(table.tenantId, table.companyId, table.isActive, table.deleted),
 ]);
 
 export const insertBankBillingConfigSchema = createInsertSchema(bankBillingConfigs).omit({
@@ -561,6 +562,7 @@ export const insertBankBillingConfigSchema = createInsertSchema(bankBillingConfi
   version: true,
   deleted: true,
 }).extend({
+  companyId: z.string().min(1, "ID da empresa é obrigatório"),
   bankCode: z.string().min(1, "Código do banco é obrigatório"),
   bankName: z.string().min(1, "Nome do banco é obrigatório"),
   agency: z.string().min(1, "Agência é obrigatória"),

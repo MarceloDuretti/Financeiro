@@ -3,7 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Building2, Phone, Mail, MapPin, FileText, Briefcase, Globe, User, X, ChevronRight, Edit2, Plus, Trash2, Info, Users } from "lucide-react";
+import { Building2, Phone, Mail, MapPin, FileText, Briefcase, Globe, User, X, ChevronRight, Edit2, Plus, Trash2, Info, Users, Receipt } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,7 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import { insertCompanySchema, type Company } from "@shared/schema";
 import type { InsertCompany } from "@shared/schema";
 import { TeamTab } from "@/components/TeamTab";
+import CobrancaTab from "@/components/CobrancaTab";
 import { formatCompanyCode } from "@/lib/formatters";
 
 const SELECTED_COMPANY_KEY = "fincontrol_selected_company_id";
@@ -621,6 +622,14 @@ export default function MinhaEmpresa() {
                       <Users className="h-4 w-4 mr-2" />
                       Equipe
                     </TabsTrigger>
+                    <TabsTrigger 
+                      value="billing" 
+                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
+                      data-testid="tab-billing"
+                    >
+                      <Receipt className="h-4 w-4 mr-2" />
+                      Cobrança
+                    </TabsTrigger>
                   </TabsList>
                   
                   <TabsContent value="info" className="p-6 space-y-6 mt-0">
@@ -956,6 +965,10 @@ export default function MinhaEmpresa() {
 
                   <TabsContent value="team" className="p-6 mt-0">
                     <TeamTab companyId={selectedCompany.id} companyName={selectedCompany.tradeName} />
+                  </TabsContent>
+
+                  <TabsContent value="billing" className="p-6 mt-0">
+                    <CobrancaTab companyId={selectedCompany.id} />
                   </TabsContent>
                 </Tabs>
               </CardContent>
