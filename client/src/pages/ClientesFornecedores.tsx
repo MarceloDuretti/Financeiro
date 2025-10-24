@@ -57,6 +57,7 @@ import {
   ChevronRight,
   ChevronLeft,
   Check,
+  Power,
 } from "lucide-react";
 import { SiWhatsapp } from "react-icons/si";
 
@@ -270,6 +271,32 @@ export default function ClientesFornecedores() {
       });
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const [isTogglingActive, setIsTogglingActive] = useState(false);
+  
+  const handleToggleActive = async () => {
+    if (!selectedEntity) return;
+
+    setIsTogglingActive(true);
+    try {
+      await apiRequest("PATCH", `/api/customers-suppliers/${selectedEntity.id}/toggle-active`, {});
+
+      queryClient.invalidateQueries({ queryKey: ["/api/customers-suppliers"] });
+
+      toast({
+        title: "Sucesso!",
+        description: `Cliente/Fornecedor ${selectedEntity.isActive ? "desativado" : "ativado"} com sucesso`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Erro",
+        description: error.message || "Não foi possível alterar o status",
+        variant: "destructive",
+      });
+    } finally {
+      setIsTogglingActive(false);
     }
   };
 
@@ -1053,24 +1080,38 @@ export default function ClientesFornecedores() {
 
                 {/* Actions */}
                 {!isEditing ? (
-                  <div className="flex gap-2 pt-4">
-                    <Button variant="outline" className="flex-1" onClick={handleEdit} data-testid="button-edit">
-                      <Edit className="h-4 w-4 mr-2" />
-                      Editar
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      onClick={handleDelete}
-                      disabled={isDeleting}
-                      data-testid="button-delete"
-                    >
-                      {isDeleting ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <Trash2 className="h-4 w-4" />
-                      )}
-                    </Button>
-                  </div>
+                  <>
+                    <div className="flex gap-2 pt-4">
+                      <Button variant="outline" className="flex-1" onClick={handleEdit} data-testid="button-edit">
+                        <Edit className="h-4 w-4 mr-2" />
+                        Editar
+                      </Button>
+                      <Button
+                        variant={selectedEntity.isActive ? "secondary" : "default"}
+                        onClick={handleToggleActive}
+                        disabled={isTogglingActive}
+                        data-testid="button-toggle-active"
+                      >
+                        {isTogglingActive ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Power className="h-4 w-4" />
+                        )}
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        onClick={handleDelete}
+                        disabled={isDeleting}
+                        data-testid="button-delete"
+                      >
+                        {isDeleting ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
+                  </>
                 ) : (
                   <div className="flex gap-2 pt-4">
                     <Button
