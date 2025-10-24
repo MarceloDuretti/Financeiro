@@ -103,10 +103,10 @@ export default function FormasPagamento() {
     return (
       <div
         className={`w-14 h-14 rounded-xl flex items-center justify-center transition-all ${
-          isActive ? colorScheme : "bg-muted text-muted-foreground"
+          isActive ? `${colorScheme} animate-pulse` : "bg-muted text-muted-foreground"
         }`}
       >
-        <IconComponent className="h-7 w-7" />
+        <IconComponent className={`h-7 w-7 transition-transform ${isActive ? "scale-110" : ""}`} />
       </div>
     );
   };
