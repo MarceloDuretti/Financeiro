@@ -329,6 +329,7 @@ export const insertBankAccountSchema = createInsertSchema(bankAccounts).omit({
   holderDocument: z.string().min(11, "CPF/CNPJ inválido"),
   agencyNumber: z.string().min(1, "Agência é obrigatória"),
   accountNumber: z.string().min(1, "Conta é obrigatória"),
+  initialBalanceDate: z.coerce.date(), // Accept strings and convert to Date
 });
 
 export type InsertBankAccount = z.infer<typeof insertBankAccountSchema>;
