@@ -6,6 +6,8 @@ import {
   companyMembers,
   costCenters,
   chartOfAccounts,
+  bankAccounts,
+  pixKeys,
   type User,
   type InsertUser,
   type Company,
@@ -18,6 +20,10 @@ import {
   type InsertCostCenter,
   type ChartAccount,
   type InsertChartAccount,
+  type BankAccount,
+  type InsertBankAccount,
+  type PixKey,
+  type InsertPixKey,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, inArray, sql, max } from "drizzle-orm";
@@ -85,6 +91,28 @@ export interface IStorage {
   ): Promise<ChartAccount | undefined>;
   deleteChartAccount(tenantId: string, id: string): Promise<boolean>;
   seedDefaultChartAccounts(tenantId: string): Promise<void>;
+
+  // Bank Accounts operations - all require tenantId for multi-tenant isolation
+  listBankAccounts(tenantId: string): Promise<BankAccount[]>;
+  getBankAccount(tenantId: string, id: string): Promise<BankAccount | undefined>;
+  createBankAccount(tenantId: string, account: InsertBankAccount): Promise<BankAccount>;
+  updateBankAccount(
+    tenantId: string,
+    id: string,
+    account: Partial<InsertBankAccount>
+  ): Promise<BankAccount | undefined>;
+  deleteBankAccount(tenantId: string, id: string): Promise<boolean>;
+
+  // PIX Keys operations - all require tenantId for multi-tenant isolation
+  listPixKeysByAccount(tenantId: string, bankAccountId: string): Promise<PixKey[]>;
+  getPixKey(tenantId: string, id: string): Promise<PixKey | undefined>;
+  createPixKey(tenantId: string, bankAccountId: string, pixKey: InsertPixKey): Promise<PixKey>;
+  updatePixKey(
+    tenantId: string,
+    id: string,
+    pixKey: Partial<InsertPixKey>
+  ): Promise<PixKey | undefined>;
+  deletePixKey(tenantId: string, id: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -712,6 +740,206 @@ export class DatabaseStorage implements IStorage {
         parentId: null, // Root accounts
       });
     }
+  }
+
+  // Bank Accounts operations - with tenant isolation
+
+  async listBankAccounts(tenantId: string): Promise<BankAccount[]> {
+    return await db
+      .select()
+      .from(bankAccounts)
+      .where(and(
+        eq(bankAccounts.tenantId, tenantId),
+        eq(bankAccounts.deleted, false)
+      ))
+      .orderBy(bankAccounts.description);
+  }
+
+  async getBankAccount(tenantId: string, id: string): Promise<BankAccount | undefined> {
+    const [account] = await db
+      .select()
+      .from(bankAccounts)
+      .where(and(
+        eq(bankAccounts.tenantId, tenantId),
+        eq(bankAccounts.id, id),
+        eq(bankAccounts.deleted, false)
+      ));
+    return account;
+  }
+
+  async createBankAccount(tenantId: string, accountData: InsertBankAccount): Promise<BankAccount> {
+    // Set currentBalance to initialBalance on creation
+    const [account] = await db
+      .insert(bankAccounts)
+      .values({
+        ...accountData,
+        tenantId,
+        currentBalance: accountData.initialBalance,
+      })
+      .returning();
+    return account;
+  }
+
+  async updateBankAccount(
+    tenantId: string,
+    id: string,
+    updates: Partial<InsertBankAccount>
+  ): Promise<BankAccount | undefined> {
+    const [account] = await db
+      .update(bankAccounts)
+      .set({
+        ...updates,
+        updatedAt: new Date(),
+        version: sql`${bankAccounts.version} + 1`,
+      })
+      .where(and(
+        eq(bankAccounts.tenantId, tenantId),
+        eq(bankAccounts.id, id),
+        eq(bankAccounts.deleted, false)
+      ))
+      .returning();
+    return account;
+  }
+
+  async deleteBankAccount(tenantId: string, id: string): Promise<boolean> {
+    // Soft-delete: mark as deleted instead of physically removing
+    const result = await db
+      .update(bankAccounts)
+      .set({
+        deleted: true,
+        updatedAt: new Date(),
+        version: sql`${bankAccounts.version} + 1`,
+      })
+      .where(and(
+        eq(bankAccounts.tenantId, tenantId),
+        eq(bankAccounts.id, id),
+        eq(bankAccounts.deleted, false)
+      ))
+      .returning();
+    return result.length > 0;
+  }
+
+  // PIX Keys operations - with tenant isolation
+
+  async listPixKeysByAccount(tenantId: string, bankAccountId: string): Promise<PixKey[]> {
+    return await db
+      .select()
+      .from(pixKeys)
+      .where(and(
+        eq(pixKeys.tenantId, tenantId),
+        eq(pixKeys.bankAccountId, bankAccountId),
+        eq(pixKeys.deleted, false)
+      ))
+      .orderBy(pixKeys.isDefault, pixKeys.createdAt);
+  }
+
+  async getPixKey(tenantId: string, id: string): Promise<PixKey | undefined> {
+    const [pixKey] = await db
+      .select()
+      .from(pixKeys)
+      .where(and(
+        eq(pixKeys.tenantId, tenantId),
+        eq(pixKeys.id, id),
+        eq(pixKeys.deleted, false)
+      ));
+    return pixKey;
+  }
+
+  async createPixKey(
+    tenantId: string,
+    bankAccountId: string,
+    pixKeyData: InsertPixKey
+  ): Promise<PixKey> {
+    // If this is set as default, unset all other defaults for this account
+    return await db.transaction(async (tx) => {
+      if (pixKeyData.isDefault) {
+        await tx
+          .update(pixKeys)
+          .set({ isDefault: false })
+          .where(and(
+            eq(pixKeys.tenantId, tenantId),
+            eq(pixKeys.bankAccountId, bankAccountId),
+            eq(pixKeys.deleted, false)
+          ));
+      }
+
+      const [pixKey] = await tx
+        .insert(pixKeys)
+        .values({
+          ...pixKeyData,
+          tenantId,
+          bankAccountId,
+        })
+        .returning();
+      
+      return pixKey;
+    });
+  }
+
+  async updatePixKey(
+    tenantId: string,
+    id: string,
+    updates: Partial<InsertPixKey>
+  ): Promise<PixKey | undefined> {
+    return await db.transaction(async (tx) => {
+      // If setting as default, first unset all other defaults for this account
+      if (updates.isDefault) {
+        // Get the bank account ID first
+        const [currentKey] = await tx
+          .select()
+          .from(pixKeys)
+          .where(and(
+            eq(pixKeys.tenantId, tenantId),
+            eq(pixKeys.id, id),
+            eq(pixKeys.deleted, false)
+          ));
+        
+        if (currentKey) {
+          await tx
+            .update(pixKeys)
+            .set({ isDefault: false })
+            .where(and(
+              eq(pixKeys.tenantId, tenantId),
+              eq(pixKeys.bankAccountId, currentKey.bankAccountId),
+              eq(pixKeys.deleted, false)
+            ));
+        }
+      }
+
+      const [pixKey] = await tx
+        .update(pixKeys)
+        .set({
+          ...updates,
+          updatedAt: new Date(),
+          version: sql`${pixKeys.version} + 1`,
+        })
+        .where(and(
+          eq(pixKeys.tenantId, tenantId),
+          eq(pixKeys.id, id),
+          eq(pixKeys.deleted, false)
+        ))
+        .returning();
+      
+      return pixKey;
+    });
+  }
+
+  async deletePixKey(tenantId: string, id: string): Promise<boolean> {
+    // Soft-delete: mark as deleted instead of physically removing
+    const result = await db
+      .update(pixKeys)
+      .set({
+        deleted: true,
+        updatedAt: new Date(),
+        version: sql`${pixKeys.version} + 1`,
+      })
+      .where(and(
+        eq(pixKeys.tenantId, tenantId),
+        eq(pixKeys.id, id),
+        eq(pixKeys.deleted, false)
+      ))
+      .returning();
+    return result.length > 0;
   }
 }
 
