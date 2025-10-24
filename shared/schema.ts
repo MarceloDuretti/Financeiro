@@ -14,6 +14,47 @@ import {
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+// Supported banks for bank accounts and billing configurations
+// Ensures consistent naming and codes across the system
+export const SUPPORTED_BANKS = [
+  {
+    code: "001",
+    name: "Banco do Brasil",
+    shortName: "BB",
+    color: "text-yellow-700 bg-yellow-50",
+  },
+  {
+    code: "104",
+    name: "Caixa Econômica Federal",
+    shortName: "CEF",
+    color: "text-blue-700 bg-blue-50",
+  },
+  {
+    code: "237",
+    name: "Bradesco",
+    shortName: "Bradesco",
+    color: "text-red-700 bg-red-50",
+  },
+  {
+    code: "341",
+    name: "Itaú",
+    shortName: "Itaú",
+    color: "text-orange-700 bg-orange-50",
+  },
+  {
+    code: "033",
+    name: "Santander",
+    shortName: "Santander",
+    color: "text-red-700 bg-red-50",
+  },
+  {
+    code: "756",
+    name: "Sicoob",
+    shortName: "Sicoob",
+    color: "text-green-700 bg-green-50",
+  },
+] as const;
+
 // Session storage table.
 // (IMPORTANT) This table is mandatory for Replit Auth, don't drop it.
 export const sessions = pgTable(
@@ -278,8 +319,8 @@ export const bankAccounts = pgTable("bank_accounts", {
   tenantId: varchar("tenant_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
   companyId: varchar("company_id").references(() => companies.id, { onDelete: 'cascade' }), // Optional - can be personal account
   description: text("description").notNull(), // "Itaú Principal", "Nubank Reserva"
-  bankName: text("bank_name").notNull(), // "Banco Itaú"
-  bankCode: text("bank_code"), // COMPE/ISPB code for integrations (e.g., "341" for Itaú)
+  bankName: text("bank_name").notNull(), // "Banco Itaú" - Must be from SUPPORTED_BANKS
+  bankCode: text("bank_code").notNull(), // COMPE/ISPB code for integrations (e.g., "341" for Itaú) - Must be from SUPPORTED_BANKS
   accountType: text("account_type").notNull(), // "corrente", "poupanca", "pagamento"
   agencyNumber: text("agency_number").notNull(),
   agencyDigit: text("agency_digit"),
