@@ -188,7 +188,7 @@ export default function FormasPagamento() {
 
                   {/* Action Button */}
                   <Button
-                    variant={method.isActive ? "outline" : "default"}
+                    variant={method.isActive ? "secondary" : "outline"}
                     size="sm"
                     className="w-full"
                     onClick={() => handleToggle(method)}
