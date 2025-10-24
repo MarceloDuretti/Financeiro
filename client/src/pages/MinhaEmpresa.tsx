@@ -434,14 +434,16 @@ export default function MinhaEmpresa() {
                                     {company.cnpj}
                                   </span>
                                 </div>
-                                {/* Ver Detalhes Link */}
-                                <button
-                                  onClick={() => setSelectedCompanyId(company.id)}
-                                  className="text-xs underline text-primary hover:text-primary/80 transition-colors flex-shrink-0"
-                                  data-testid={`link-details-${company.id}`}
-                                >
-                                  Ver detalhes
-                                </button>
+                                {/* Ver Detalhes Link - Only show when details are not visible */}
+                                {selectedCompanyId !== company.id && (
+                                  <button
+                                    onClick={() => setSelectedCompanyId(company.id)}
+                                    className="text-xs underline text-primary hover:text-primary/80 transition-colors flex-shrink-0"
+                                    data-testid={`link-details-${company.id}`}
+                                  >
+                                    Ver detalhes
+                                  </button>
+                                )}
                               </div>
 
                               {/* Telefone */}
