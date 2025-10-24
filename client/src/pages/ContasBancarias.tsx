@@ -287,11 +287,11 @@ export default function ContasBancarias() {
   };
 
   return (
-    <div className="flex h-full gap-4">
+    <div className="flex h-full gap-4 px-6 py-4">
       {/* Lista de contas - lado esquerdo */}
       <div className={`${selectedAccountId ? 'w-1/3' : 'w-full'} transition-all duration-300 space-y-4`}>
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-2">
           <div>
             <h1 className="text-2xl font-semibold" data-testid="text-page-title">Contas Bancárias</h1>
             <p className="text-sm text-muted-foreground">Gerencie suas contas e chaves PIX</p>
