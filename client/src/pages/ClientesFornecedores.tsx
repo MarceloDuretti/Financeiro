@@ -529,7 +529,7 @@ export default function ClientesFornecedores() {
                 </div>
               </SheetHeader>
 
-              <div className="mt-6 space-y-6">
+              <div className="mt-4 space-y-4">
                 {/* Action Buttons */}
                 {!isEditing ? (
                   <div className="flex justify-end gap-2">
@@ -539,7 +539,7 @@ export default function ClientesFornecedores() {
                       onClick={handleEdit}
                       data-testid="button-edit"
                     >
-                      <Edit2 className="h-4 w-4 mr-2" />
+                      <Edit2 className="h-3.5 w-3.5 mr-1.5" />
                       Editar
                     </Button>
                     <Button
@@ -550,10 +550,10 @@ export default function ClientesFornecedores() {
                       data-testid="button-toggle-active"
                     >
                       {isTogglingActive ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
                       ) : (
                         <>
-                          <Power className="h-4 w-4 mr-2" />
+                          <Power className="h-3.5 w-3.5 mr-1.5" />
                           {selectedEntity.isActive ? "Desativar" : "Ativar"}
                         </>
                       )}
@@ -565,7 +565,7 @@ export default function ClientesFornecedores() {
                           size="sm"
                           data-testid="button-delete-trigger"
                         >
-                          <Trash2 className="h-4 w-4 mr-2" />
+                          <Trash2 className="h-3.5 w-3.5 mr-1.5" />
                           Excluir
                         </Button>
                       </AlertDialogTrigger>
@@ -617,7 +617,7 @@ export default function ClientesFornecedores() {
 
                 {/* Status and Type Badges */}
                 {!isEditing && (
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 -mt-1">
                     <Badge className={getTypeBadgeColor(selectedEntity)} data-testid="badge-type">
                       {getTypeLabel(selectedEntity)}
                     </Badge>
@@ -628,20 +628,20 @@ export default function ClientesFornecedores() {
                 )}
 
                 {/* Tipo e Identificação Section */}
-                <div className="space-y-4">
+                <div className="space-y-3">
                   <h3 className="text-sm font-semibold text-foreground">Informações Básicas</h3>
                   {!isEditing ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="border rounded-md p-2.5">
                         <span className="text-xs text-muted-foreground">Nome / Razão Social</span>
-                        <p className="text-sm font-medium" data-testid="text-name">{selectedEntity.name}</p>
+                        <p className="text-sm font-medium mt-0.5" data-testid="text-name">{selectedEntity.name}</p>
                       </div>
                       {selectedEntity.document && (
-                        <div>
+                        <div className="border rounded-md p-2.5">
                           <span className="text-xs text-muted-foreground">
                             {selectedEntity.documentType?.toUpperCase() || "Documento"}
                           </span>
-                          <p className="text-sm font-medium font-mono" data-testid="text-document">{selectedEntity.document}</p>
+                          <p className="text-sm font-medium font-mono mt-0.5" data-testid="text-document">{selectedEntity.document}</p>
                         </div>
                       )}
                     </div>
@@ -764,20 +764,20 @@ export default function ClientesFornecedores() {
                 <Separator />
 
                 {/* Contact Section */}
-                <div className="space-y-4">
+                <div className="space-y-3">
                   <h3 className="text-sm font-semibold text-foreground">Contato</h3>
                   {!isEditing ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {selectedEntity.phone && (
-                        <div>
+                        <div className="border rounded-md p-2.5">
                           <span className="text-xs text-muted-foreground">Telefone</span>
-                          <p className="text-sm font-medium" data-testid="text-phone">{selectedEntity.phone}</p>
+                          <p className="text-sm font-medium mt-0.5" data-testid="text-phone">{selectedEntity.phone}</p>
                         </div>
                       )}
                       {selectedEntity.whatsapp && (
-                        <div>
+                        <div className="border rounded-md p-2.5">
                           <span className="text-xs text-muted-foreground">WhatsApp</span>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 mt-0.5">
                             <p className="text-sm font-medium">{selectedEntity.whatsapp}</p>
                             <a
                               href={formatWhatsAppLink(selectedEntity.whatsapp)}
@@ -791,19 +791,19 @@ export default function ClientesFornecedores() {
                         </div>
                       )}
                       {selectedEntity.email && (
-                        <div>
+                        <div className="border rounded-md p-2.5">
                           <span className="text-xs text-muted-foreground">Email</span>
-                          <p className="text-sm font-medium" data-testid="text-email">{selectedEntity.email}</p>
+                          <p className="text-sm font-medium mt-0.5" data-testid="text-email">{selectedEntity.email}</p>
                         </div>
                       )}
                       {selectedEntity.website && (
-                        <div>
+                        <div className="border rounded-md p-2.5">
                           <span className="text-xs text-muted-foreground">Website</span>
                           <a
                             href={selectedEntity.website}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-sm font-medium text-primary hover:underline"
+                            className="text-sm font-medium text-primary hover:underline block mt-0.5"
                             data-testid="text-website"
                           >
                             {selectedEntity.website}
@@ -872,49 +872,49 @@ export default function ClientesFornecedores() {
                 <Separator />
 
                 {/* Address Section */}
-                <div className="space-y-4">
+                <div className="space-y-3">
                   <h3 className="text-sm font-semibold text-foreground">Endereço</h3>
                   {!isEditing ? (
                     <>
                       {(selectedEntity.street || selectedEntity.city) && (
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                           {selectedEntity.zipCode && (
-                            <div>
+                            <div className="border rounded-md p-2.5">
                               <span className="text-xs text-muted-foreground">CEP</span>
-                              <p className="text-sm font-medium">{selectedEntity.zipCode}</p>
+                              <p className="text-sm font-medium mt-0.5">{selectedEntity.zipCode}</p>
                             </div>
                           )}
                           {selectedEntity.street && (
-                            <div className="md:col-span-2">
+                            <div className="md:col-span-2 border rounded-md p-2.5">
                               <span className="text-xs text-muted-foreground">Logradouro</span>
-                              <p className="text-sm font-medium" data-testid="text-address">
+                              <p className="text-sm font-medium mt-0.5" data-testid="text-address">
                                 {selectedEntity.street}
                                 {selectedEntity.number && `, ${selectedEntity.number}`}
                               </p>
                             </div>
                           )}
                           {selectedEntity.complement && (
-                            <div className="md:col-span-3">
+                            <div className="md:col-span-3 border rounded-md p-2.5">
                               <span className="text-xs text-muted-foreground">Complemento</span>
-                              <p className="text-sm font-medium">{selectedEntity.complement}</p>
+                              <p className="text-sm font-medium mt-0.5">{selectedEntity.complement}</p>
                             </div>
                           )}
                           {selectedEntity.neighborhood && (
-                            <div>
+                            <div className="border rounded-md p-2.5">
                               <span className="text-xs text-muted-foreground">Bairro</span>
-                              <p className="text-sm font-medium">{selectedEntity.neighborhood}</p>
+                              <p className="text-sm font-medium mt-0.5">{selectedEntity.neighborhood}</p>
                             </div>
                           )}
                           {selectedEntity.city && (
-                            <div>
+                            <div className="border rounded-md p-2.5">
                               <span className="text-xs text-muted-foreground">Cidade</span>
-                              <p className="text-sm font-medium">{selectedEntity.city}</p>
+                              <p className="text-sm font-medium mt-0.5">{selectedEntity.city}</p>
                             </div>
                           )}
                           {selectedEntity.state && (
-                            <div>
+                            <div className="border rounded-md p-2.5">
                               <span className="text-xs text-muted-foreground">Estado</span>
-                              <p className="text-sm font-medium">{selectedEntity.state}</p>
+                              <p className="text-sm font-medium mt-0.5">{selectedEntity.state}</p>
                             </div>
                           )}
                         </div>
@@ -1039,36 +1039,36 @@ export default function ClientesFornecedores() {
                 <Separator />
 
                 {/* Banking Info Section */}
-                <div className="space-y-4">
+                <div className="space-y-3">
                   <h3 className="text-sm font-semibold text-foreground">Dados Bancários</h3>
                   {!isEditing ? (
                     <>
                       {(selectedEntity.bankName || selectedEntity.pixKey) && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                           {selectedEntity.bankName && (
-                            <div>
+                            <div className="border rounded-md p-2.5">
                               <span className="text-xs text-muted-foreground">Banco</span>
-                              <p className="text-sm font-medium" data-testid="text-bank">{selectedEntity.bankName}</p>
+                              <p className="text-sm font-medium mt-0.5" data-testid="text-bank">{selectedEntity.bankName}</p>
                             </div>
                           )}
                           {selectedEntity.accountAgency && (
-                            <div>
+                            <div className="border rounded-md p-2.5">
                               <span className="text-xs text-muted-foreground">Agência</span>
-                              <p className="text-sm font-medium">{selectedEntity.accountAgency}</p>
+                              <p className="text-sm font-medium mt-0.5">{selectedEntity.accountAgency}</p>
                             </div>
                           )}
                           {selectedEntity.accountNumber && (
-                            <div>
+                            <div className="border rounded-md p-2.5">
                               <span className="text-xs text-muted-foreground">Conta</span>
-                              <p className="text-sm font-medium">{selectedEntity.accountNumber}</p>
+                              <p className="text-sm font-medium mt-0.5">{selectedEntity.accountNumber}</p>
                             </div>
                           )}
                           {selectedEntity.pixKey && (
-                            <div>
+                            <div className="border rounded-md p-2.5">
                               <span className="text-xs text-muted-foreground">
                                 Chave PIX {selectedEntity.pixKeyType && `(${selectedEntity.pixKeyType.toUpperCase()})`}
                               </span>
-                              <p className="text-sm font-medium font-mono" data-testid="text-pix">{selectedEntity.pixKey}</p>
+                              <p className="text-sm font-medium font-mono mt-0.5" data-testid="text-pix">{selectedEntity.pixKey}</p>
                             </div>
                           )}
                         </div>
@@ -1163,12 +1163,12 @@ export default function ClientesFornecedores() {
                 <Separator />
 
                 {/* Notes Section */}
-                <div className="space-y-4">
+                <div className="space-y-3">
                   <h3 className="text-sm font-semibold text-foreground">Observações</h3>
                   {!isEditing ? (
                     <>
                       {selectedEntity.notes && (
-                        <div>
+                        <div className="border rounded-md p-2.5">
                           <p className="text-sm whitespace-pre-wrap" data-testid="text-notes">{selectedEntity.notes}</p>
                         </div>
                       )}
