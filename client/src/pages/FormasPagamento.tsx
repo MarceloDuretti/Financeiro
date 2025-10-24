@@ -159,7 +159,7 @@ export default function FormasPagamento() {
             <Card
               key={method.id}
               className={`h-full transition-all hover-elevate ${
-                method.isActive ? "ring-2 ring-primary/50 bg-accent/50 shadow-md" : ""
+                method.isActive ? "bg-accent/70 shadow-lg" : ""
               }`}
               data-testid={`card-payment-method-${method.id}`}
             >
