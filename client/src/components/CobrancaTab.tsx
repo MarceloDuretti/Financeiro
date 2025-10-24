@@ -346,7 +346,7 @@ export default function CobrancaTab({ companyId }: CobrancaTabProps) {
                     </div>
                   ) : (
                     <Button
-                      variant="outline"
+                      variant={hasAccount ? "default" : "outline"}
                       size="sm"
                       className="w-full h-8"
                       onClick={() => handleConfigure(bank.code)}
