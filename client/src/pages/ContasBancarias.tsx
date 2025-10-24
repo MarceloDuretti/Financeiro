@@ -562,7 +562,7 @@ export default function ContasBancarias() {
             </div>
           </Card>
         ) : (
-          <div className="space-y-3">
+          <div className="grid grid-cols-3 gap-3">
             {accounts.map((account) => (
               <Card 
                 key={account.id}
@@ -572,33 +572,27 @@ export default function ContasBancarias() {
                 onClick={() => handleSelectAccount(account.id)}
                 data-testid={`card-account-${account.id}`}
               >
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <CreditCard className="h-4 w-4 text-primary" />
-                        <span className="font-medium" data-testid={`text-description-${account.id}`}>
+                <CardContent className="p-3">
+                  <div className="space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                        <CreditCard className="h-4 w-4 text-primary flex-shrink-0" />
+                        <span className="font-medium text-sm truncate" data-testid={`text-description-${account.id}`}>
                           {account.description}
                         </span>
                       </div>
-                      <div className="text-sm text-muted-foreground">
-                        {account.bankName} • {account.accountType === "corrente" ? "C/C" : account.accountType === "poupanca" ? "Poupança" : "Investimento"}
+                    </div>
+                    <div>
+                      <div className="text-xs text-muted-foreground truncate">
+                        {account.bankName}
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        Ag: {account.agencyNumber || "N/A"} • Conta: {account.accountNumber}
-                      </div>
-                      <div className="flex items-center gap-2 mt-2">
-                        <div className="text-lg font-semibold" data-testid={`text-balance-${account.id}`}>
-                          {formatCurrency(account.currentBalance)}
-                        </div>
-                        {account.holderName && (
-                          <Badge variant="secondary" className="text-xs truncate max-w-[150px]">
-                            {account.holderName}
-                          </Badge>
-                        )}
+                        {account.accountType === "corrente" ? "C/C" : account.accountType === "poupanca" ? "Poupança" : "Investimento"}
                       </div>
                     </div>
-                    <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                    <div className="text-lg font-bold" data-testid={`text-balance-${account.id}`}>
+                      {formatCurrency(account.currentBalance)}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
