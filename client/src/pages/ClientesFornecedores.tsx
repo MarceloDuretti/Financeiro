@@ -447,32 +447,36 @@ export default function ClientesFornecedores() {
                             </AvatarFallback>
                           </Avatar>
 
-                          <div className="flex-1 min-w-0 space-y-0.5">
-                            {/* Code */}
-                            <span 
-                              className={`text-xs font-mono block transition-all ${
+                          <div className="flex-1 min-w-0 space-y-1">
+                            {/* Code - Type */}
+                            <div className="flex items-center gap-2">
+                              <span 
+                                className={`text-xs font-mono transition-all ${
+                                  entity.isActive 
+                                    ? "text-muted-foreground" 
+                                    : "text-muted-foreground/50"
+                                }`}
+                                data-testid={`text-code-${entity.id}`}
+                              >
+                                {formatCode(entity.code)}
+                              </span>
+                              <span className={`text-xs transition-all ${
                                 entity.isActive 
                                   ? "text-muted-foreground" 
                                   : "text-muted-foreground/50"
-                              }`}
-                              data-testid={`text-code-${entity.id}`}
-                            >
-                              {formatCode(entity.code)}
-                            </span>
-                            
-                            {/* Type Badge */}
-                            <Badge className={`${getTypeBadgeColor(entity)} text-xs w-fit`}>
-                              {getTypeLabel(entity)}
-                            </Badge>
+                              }`}>-</span>
+                              <Badge className={`${getTypeBadgeColor(entity)} text-xs`}>
+                                {getTypeLabel(entity)}
+                              </Badge>
+                            </div>
                             
                             {/* Name */}
                             <h3 
-                              className={`text-sm transition-all cursor-pointer ${
+                              className={`text-sm transition-all ${
                                 entity.isActive 
                                   ? "font-bold text-foreground" 
                                   : "font-semibold opacity-50"
                               }`}
-                              onClick={() => handleCardClick(entity)}
                               data-testid={`text-name-${entity.id}`}
                             >
                               {entity.name}
@@ -525,6 +529,19 @@ export default function ClientesFornecedores() {
                             )}
                           </div>
                         )}
+
+                        {/* Ver Detalhes Link */}
+                        <button
+                          onClick={() => handleCardClick(entity)}
+                          className={`text-xs underline transition-colors text-left ${
+                            entity.isActive 
+                              ? "text-primary hover:text-primary/80" 
+                              : "text-muted-foreground/50 hover:text-muted-foreground/70"
+                          }`}
+                          data-testid={`link-details-${entity.id}`}
+                        >
+                          Ver detalhes
+                        </button>
                       </div>
 
                       {/* Action - Always aligned at bottom */}
