@@ -396,49 +396,52 @@ export default function CentroDeCusto() {
               className="hover-elevate"
               data-testid={`card-cost-center-${costCenter.id}`}
             >
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex flex-1 items-center gap-2 min-w-0">
+              <CardContent className="p-4">
+                <div className="flex flex-col gap-2">
+                  {/* Linha 1: Código + Ações (Editar/Excluir) */}
+                  <div className="flex items-center justify-between gap-2">
                     <Badge
                       style={{ backgroundColor: costCenter.color }}
                       className="text-white shrink-0"
                     >
                       {formatCostCenterCode(costCenter.code)}
                     </Badge>
-                    <div className="flex items-center gap-2 min-w-0 flex-1">
-                      <CardTitle className="text-base truncate">
-                        {costCenter.name}
-                      </CardTitle>
-                      <Building2 className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <div className="flex gap-1 shrink-0">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleEdit(costCenter)}
+                        data-testid={`button-edit-cost-center-${costCenter.id}`}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setDeletingId(costCenter.id)}
+                        data-testid={`button-delete-cost-center-${costCenter.id}`}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
-                  <div className="flex gap-1 shrink-0">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleEdit(costCenter)}
-                      data-testid={`button-edit-cost-center-${costCenter.id}`}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setDeletingId(costCenter.id)}
-                      data-testid={`button-delete-cost-center-${costCenter.id}`}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+
+                  {/* Linha 2: Nome */}
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-base font-bold text-foreground flex-1">
+                      {costCenter.name}
+                    </h3>
+                    <Building2 className="h-4 w-4 text-muted-foreground shrink-0" />
                   </div>
+
+                  {/* Linha 3: Descrição */}
+                  {costCenter.description && (
+                    <p className="text-sm text-muted-foreground line-clamp-2">
+                      {costCenter.description}
+                    </p>
+                  )}
                 </div>
-              </CardHeader>
-              {costCenter.description && (
-                <CardContent>
-                  <p className="text-sm text-muted-foreground line-clamp-2">
-                    {costCenter.description}
-                  </p>
-                </CardContent>
-              )}
+              </CardContent>
             </Card>
           ))}
         </div>
