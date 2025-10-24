@@ -529,7 +529,7 @@ export default function ClientesFornecedores() {
                 </div>
               </SheetHeader>
 
-              <div className="mt-4 space-y-4">
+              <div className="mt-3 space-y-3">
                 {/* Action Buttons */}
                 {!isEditing ? (
                   <div className="flex justify-end gap-2">
@@ -613,11 +613,9 @@ export default function ClientesFornecedores() {
                   </div>
                 )}
 
-                <Separator />
-
                 {/* Status and Type Badges */}
                 {!isEditing && (
-                  <div className="flex gap-2 -mt-1">
+                  <div className="flex gap-2">
                     <Badge className={getTypeBadgeColor(selectedEntity)} data-testid="badge-type">
                       {getTypeLabel(selectedEntity)}
                     </Badge>
@@ -628,16 +626,16 @@ export default function ClientesFornecedores() {
                 )}
 
                 {/* Tipo e Identificação Section */}
-                <div className="space-y-3">
-                  <h3 className="text-sm font-semibold text-foreground">Informações Básicas</h3>
+                <div className="space-y-2">
+                  <h3 className="text-xs font-semibold text-foreground">Informações Básicas</h3>
                   {!isEditing ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <div className="border rounded-md p-2.5">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      <div className="border rounded-md p-2">
                         <span className="text-xs text-muted-foreground">Nome / Razão Social</span>
                         <p className="text-sm font-medium mt-0.5" data-testid="text-name">{selectedEntity.name}</p>
                       </div>
                       {selectedEntity.document && (
-                        <div className="border rounded-md p-2.5">
+                        <div className="border rounded-md p-2">
                           <span className="text-xs text-muted-foreground">
                             {selectedEntity.documentType?.toUpperCase() || "Documento"}
                           </span>
@@ -761,21 +759,19 @@ export default function ClientesFornecedores() {
                   )}
                 </div>
 
-                <Separator />
-
                 {/* Contact Section */}
-                <div className="space-y-3">
-                  <h3 className="text-sm font-semibold text-foreground">Contato</h3>
+                <div className="space-y-2">
+                  <h3 className="text-xs font-semibold text-foreground">Contato</h3>
                   {!isEditing ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                       {selectedEntity.phone && (
-                        <div className="border rounded-md p-2.5">
+                        <div className="border rounded-md p-2">
                           <span className="text-xs text-muted-foreground">Telefone</span>
                           <p className="text-sm font-medium mt-0.5" data-testid="text-phone">{selectedEntity.phone}</p>
                         </div>
                       )}
                       {selectedEntity.whatsapp && (
-                        <div className="border rounded-md p-2.5">
+                        <div className="border rounded-md p-2">
                           <span className="text-xs text-muted-foreground">WhatsApp</span>
                           <div className="flex items-center gap-2 mt-0.5">
                             <p className="text-sm font-medium">{selectedEntity.whatsapp}</p>
@@ -791,13 +787,13 @@ export default function ClientesFornecedores() {
                         </div>
                       )}
                       {selectedEntity.email && (
-                        <div className="border rounded-md p-2.5">
+                        <div className="border rounded-md p-2">
                           <span className="text-xs text-muted-foreground">Email</span>
                           <p className="text-sm font-medium mt-0.5" data-testid="text-email">{selectedEntity.email}</p>
                         </div>
                       )}
                       {selectedEntity.website && (
-                        <div className="border rounded-md p-2.5">
+                        <div className="border rounded-md p-2">
                           <span className="text-xs text-muted-foreground">Website</span>
                           <a
                             href={selectedEntity.website}
@@ -869,23 +865,21 @@ export default function ClientesFornecedores() {
                   )}
                 </div>
 
-                <Separator />
-
                 {/* Address Section */}
-                <div className="space-y-3">
-                  <h3 className="text-sm font-semibold text-foreground">Endereço</h3>
+                <div className="space-y-2">
+                  <h3 className="text-xs font-semibold text-foreground">Endereço</h3>
                   {!isEditing ? (
                     <>
                       {(selectedEntity.street || selectedEntity.city) && (
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                           {selectedEntity.zipCode && (
-                            <div className="border rounded-md p-2.5">
+                            <div className="border rounded-md p-2">
                               <span className="text-xs text-muted-foreground">CEP</span>
                               <p className="text-sm font-medium mt-0.5">{selectedEntity.zipCode}</p>
                             </div>
                           )}
                           {selectedEntity.street && (
-                            <div className="md:col-span-2 border rounded-md p-2.5">
+                            <div className="md:col-span-2 border rounded-md p-2">
                               <span className="text-xs text-muted-foreground">Logradouro</span>
                               <p className="text-sm font-medium mt-0.5" data-testid="text-address">
                                 {selectedEntity.street}
@@ -894,25 +888,25 @@ export default function ClientesFornecedores() {
                             </div>
                           )}
                           {selectedEntity.complement && (
-                            <div className="md:col-span-3 border rounded-md p-2.5">
+                            <div className="md:col-span-3 border rounded-md p-2">
                               <span className="text-xs text-muted-foreground">Complemento</span>
                               <p className="text-sm font-medium mt-0.5">{selectedEntity.complement}</p>
                             </div>
                           )}
                           {selectedEntity.neighborhood && (
-                            <div className="border rounded-md p-2.5">
+                            <div className="border rounded-md p-2">
                               <span className="text-xs text-muted-foreground">Bairro</span>
                               <p className="text-sm font-medium mt-0.5">{selectedEntity.neighborhood}</p>
                             </div>
                           )}
                           {selectedEntity.city && (
-                            <div className="border rounded-md p-2.5">
+                            <div className="border rounded-md p-2">
                               <span className="text-xs text-muted-foreground">Cidade</span>
                               <p className="text-sm font-medium mt-0.5">{selectedEntity.city}</p>
                             </div>
                           )}
                           {selectedEntity.state && (
-                            <div className="border rounded-md p-2.5">
+                            <div className="border rounded-md p-2">
                               <span className="text-xs text-muted-foreground">Estado</span>
                               <p className="text-sm font-medium mt-0.5">{selectedEntity.state}</p>
                             </div>
@@ -1036,35 +1030,33 @@ export default function ClientesFornecedores() {
                   )}
                 </div>
 
-                <Separator />
-
                 {/* Banking Info Section */}
-                <div className="space-y-3">
-                  <h3 className="text-sm font-semibold text-foreground">Dados Bancários</h3>
+                <div className="space-y-2">
+                  <h3 className="text-xs font-semibold text-foreground">Dados Bancários</h3>
                   {!isEditing ? (
                     <>
                       {(selectedEntity.bankName || selectedEntity.pixKey) && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                           {selectedEntity.bankName && (
-                            <div className="border rounded-md p-2.5">
+                            <div className="border rounded-md p-2">
                               <span className="text-xs text-muted-foreground">Banco</span>
                               <p className="text-sm font-medium mt-0.5" data-testid="text-bank">{selectedEntity.bankName}</p>
                             </div>
                           )}
                           {selectedEntity.accountAgency && (
-                            <div className="border rounded-md p-2.5">
+                            <div className="border rounded-md p-2">
                               <span className="text-xs text-muted-foreground">Agência</span>
                               <p className="text-sm font-medium mt-0.5">{selectedEntity.accountAgency}</p>
                             </div>
                           )}
                           {selectedEntity.accountNumber && (
-                            <div className="border rounded-md p-2.5">
+                            <div className="border rounded-md p-2">
                               <span className="text-xs text-muted-foreground">Conta</span>
                               <p className="text-sm font-medium mt-0.5">{selectedEntity.accountNumber}</p>
                             </div>
                           )}
                           {selectedEntity.pixKey && (
-                            <div className="border rounded-md p-2.5">
+                            <div className="border rounded-md p-2">
                               <span className="text-xs text-muted-foreground">
                                 Chave PIX {selectedEntity.pixKeyType && `(${selectedEntity.pixKeyType.toUpperCase()})`}
                               </span>
@@ -1160,15 +1152,13 @@ export default function ClientesFornecedores() {
                   )}
                 </div>
 
-                <Separator />
-
                 {/* Notes Section */}
-                <div className="space-y-3">
-                  <h3 className="text-sm font-semibold text-foreground">Observações</h3>
+                <div className="space-y-2">
+                  <h3 className="text-xs font-semibold text-foreground">Observações</h3>
                   {!isEditing ? (
                     <>
                       {selectedEntity.notes && (
-                        <div className="border rounded-md p-2.5">
+                        <div className="border rounded-md p-2">
                           <p className="text-sm whitespace-pre-wrap" data-testid="text-notes">{selectedEntity.notes}</p>
                         </div>
                       )}
