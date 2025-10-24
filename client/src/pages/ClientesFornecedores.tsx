@@ -627,7 +627,6 @@ export default function ClientesFornecedores() {
 
                 {/* Tipo e Identificação Section */}
                 <div className="space-y-2">
-                  <h3 className="text-xs font-semibold text-foreground">Informações Básicas</h3>
                   {!isEditing ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                       <div className="border rounded-md p-2">
@@ -762,7 +761,6 @@ export default function ClientesFornecedores() {
 
                 {/* Contact Section */}
                 <div className="space-y-2">
-                  <h3 className="text-xs font-semibold text-foreground">Contato</h3>
                   {!isEditing ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                       {selectedEntity.phone && (
@@ -868,7 +866,6 @@ export default function ClientesFornecedores() {
 
                 {/* Address Section */}
                 <div className="space-y-2">
-                  <h3 className="text-xs font-semibold text-foreground">Endereço</h3>
                   {!isEditing ? (
                     <>
                       {(selectedEntity.street || selectedEntity.city) && (
@@ -1033,7 +1030,6 @@ export default function ClientesFornecedores() {
 
                 {/* Banking Info Section */}
                 <div className="space-y-2">
-                  <h3 className="text-xs font-semibold text-foreground">Dados Bancários</h3>
                   {!isEditing ? (
                     <>
                       {(selectedEntity.bankName || selectedEntity.pixKey) && (
@@ -1155,7 +1151,6 @@ export default function ClientesFornecedores() {
 
                 {/* Notes Section */}
                 <div className="space-y-2">
-                  <h3 className="text-xs font-semibold text-foreground">Observações</h3>
                   {!isEditing ? (
                     <>
                       {selectedEntity.notes && (
