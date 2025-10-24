@@ -677,7 +677,7 @@ export default function ContasBancarias() {
                       <div className="space-y-3">
                         <div>
                           <h3 className="text-sm font-medium text-muted-foreground mb-2">Informações Gerais</h3>
-                          <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                          <div className="grid grid-cols-3 gap-x-4 gap-y-2">
                             <div>
                               <span className="text-xs text-muted-foreground">Descrição</span>
                               <p className="text-sm font-medium">{selectedAccount.description}</p>
@@ -706,7 +706,7 @@ export default function ContasBancarias() {
 
                         <div>
                           <h3 className="text-sm font-medium text-muted-foreground mb-2">Saldos</h3>
-                          <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                          <div className="grid grid-cols-3 gap-x-4 gap-y-2">
                             <div>
                               <span className="text-xs text-muted-foreground">Saldo Atual</span>
                               <p className="text-lg font-semibold">{formatCurrency(selectedAccount.currentBalance)}</p>
@@ -732,7 +732,7 @@ export default function ContasBancarias() {
 
                         <div>
                           <h3 className="text-sm font-medium text-muted-foreground mb-2">Status</h3>
-                          <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                          <div className="grid grid-cols-3 gap-x-4 gap-y-2">
                             <div>
                               <span className="text-xs text-muted-foreground">Permite Saldo Negativo</span>
                               <div className="mt-1">
