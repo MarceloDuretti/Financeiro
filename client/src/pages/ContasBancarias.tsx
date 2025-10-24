@@ -29,6 +29,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { insertBankAccountSchema, insertPixKeySchema, type BankAccount, type PixKey } from "@shared/schema";
@@ -674,7 +675,7 @@ export default function ContasBancarias() {
                         </AlertDialog>
                       </div>
 
-                      <div className="space-y-3">
+                      <div className="space-y-4">
                         <div>
                           <h3 className="text-sm font-medium text-muted-foreground mb-2">Informações Gerais</h3>
                           <div className="grid grid-cols-3 gap-x-4 gap-y-2">
@@ -704,6 +705,8 @@ export default function ContasBancarias() {
                           </div>
                         </div>
 
+                        <Separator />
+
                         <div>
                           <h3 className="text-sm font-medium text-muted-foreground mb-2">Saldos</h3>
                           <div className="grid grid-cols-3 gap-x-4 gap-y-2">
@@ -729,6 +732,8 @@ export default function ContasBancarias() {
                             )}
                           </div>
                         </div>
+
+                        <Separator />
 
                         <div>
                           <h3 className="text-sm font-medium text-muted-foreground mb-2">Status</h3>
