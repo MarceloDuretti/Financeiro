@@ -32,7 +32,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { insertBankAccountSchema, insertPixKeySchema, type BankAccount, type PixKey } from "@shared/schema";
+import { insertBankAccountSchema, insertPixKeySchema, type BankAccount, type PixKey, SUPPORTED_BANKS } from "@shared/schema";
 import type { InsertBankAccount, InsertPixKey } from "@shared/schema";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -78,6 +78,7 @@ export default function ContasBancarias() {
     defaultValues: {
       description: "",
       bankName: "",
+      bankCode: "",
       accountNumber: "",
       agencyNumber: "",
       holderName: "",
@@ -339,17 +340,33 @@ export default function ContasBancarias() {
                   <div className="grid grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
-                      name="bankName"
+                      name="bankCode"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Banco</FormLabel>
-                          <FormControl>
-                            <Input 
-                              {...field} 
-                              placeholder="Ex: Banco do Brasil" 
-                              data-testid="input-bank-name"
-                            />
-                          </FormControl>
+                          <Select 
+                            onValueChange={(value) => {
+                              const selectedBank = SUPPORTED_BANKS.find(b => b.code === value);
+                              if (selectedBank) {
+                                field.onChange(value);
+                                form.setValue('bankName', selectedBank.name);
+                              }
+                            }}
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger data-testid="select-bank">
+                                <SelectValue placeholder="Selecione o banco" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {SUPPORTED_BANKS.map((bank) => (
+                                <SelectItem key={bank.code} value={bank.code}>
+                                  {bank.name} ({bank.code})
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -834,11 +851,27 @@ export default function ContasBancarias() {
                         <div className="grid grid-cols-2 gap-4">
                           <div>
                             <label className="text-sm font-medium mb-2 block">Banco</label>
-                            <Input
-                              value={editFormData.bankName || ""}
-                              onChange={(e) => handleEditChange("bankName", e.target.value)}
-                              data-testid="input-edit-bank-name"
-                            />
+                            <Select 
+                              value={editFormData.bankCode || ""}
+                              onValueChange={(value) => {
+                                const selectedBank = SUPPORTED_BANKS.find(b => b.code === value);
+                                if (selectedBank) {
+                                  handleEditChange("bankCode", value);
+                                  handleEditChange("bankName", selectedBank.name);
+                                }
+                              }}
+                            >
+                              <SelectTrigger data-testid="select-edit-bank">
+                                <SelectValue placeholder="Selecione o banco" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {SUPPORTED_BANKS.map((bank) => (
+                                  <SelectItem key={bank.code} value={bank.code}>
+                                    {bank.name} ({bank.code})
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                           </div>
                           <div>
                             <label className="text-sm font-medium mb-2 block">Tipo de Conta</label>
