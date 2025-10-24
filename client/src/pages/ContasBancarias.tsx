@@ -199,8 +199,20 @@ export default function ContasBancarias() {
     }
   }, [selectedAccountId]);
 
+  const handleSelectAccount = (accountId: string) => {
+    setSelectedAccountId(accountId);
+    // Abrir direto em modo de edição
+    const account = accounts?.find(a => a.id === accountId);
+    if (account) {
+      setEditFormData(account);
+      setIsEditing(true);
+    }
+  };
+
   const handleCloseDetails = () => {
     setSelectedAccountId(null);
+    setIsEditing(false);
+    setEditFormData({});
   };
 
   const handleStartEdit = () => {
@@ -565,12 +577,12 @@ export default function ContasBancarias() {
                 className={`cursor-pointer transition-all hover-elevate ${
                   selectedAccountId === account.id ? 'ring-2 ring-primary' : ''
                 }`}
-                onClick={() => setSelectedAccountId(account.id)}
+                onClick={() => handleSelectAccount(account.id)}
                 data-testid={`card-account-${account.id}`}
               >
                 <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <CreditCard className="h-4 w-4 text-primary" />
                         <span className="font-medium" data-testid={`text-description-${account.id}`}>
@@ -580,11 +592,21 @@ export default function ContasBancarias() {
                       <div className="text-sm text-muted-foreground">
                         {account.bankName} • {account.accountType === "corrente" ? "C/C" : account.accountType === "poupanca" ? "Poupança" : "Investimento"}
                       </div>
-                      <div className="text-lg font-semibold mt-2" data-testid={`text-balance-${account.id}`}>
-                        {formatCurrency(account.currentBalance)}
+                      <div className="text-xs text-muted-foreground">
+                        Ag: {account.agencyNumber || "N/A"} • Conta: {account.accountNumber}
+                      </div>
+                      <div className="flex items-center gap-2 mt-2">
+                        <div className="text-lg font-semibold" data-testid={`text-balance-${account.id}`}>
+                          {formatCurrency(account.currentBalance)}
+                        </div>
+                        {account.holderName && (
+                          <Badge variant="secondary" className="text-xs truncate max-w-[150px]">
+                            {account.holderName}
+                          </Badge>
+                        )}
                       </div>
                     </div>
-                    <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                    <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
                   </div>
                 </CardContent>
               </Card>
@@ -631,19 +653,10 @@ export default function ContasBancarias() {
                 </TabsList>
 
                 {/* Tab Detalhes */}
-                <TabsContent value="details" className="space-y-3 mt-3">
+                <TabsContent value="details" className="space-y-4 mt-3">
                   {!isEditing ? (
                     <>
                       <div className="flex justify-end gap-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={handleStartEdit}
-                          data-testid="button-start-edit"
-                        >
-                          <Edit2 className="h-4 w-4 mr-2" />
-                          Editar
-                        </Button>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <Button 
@@ -675,10 +688,9 @@ export default function ContasBancarias() {
                         </AlertDialog>
                       </div>
 
-                      <div className="space-y-4">
-                        <div>
-                          <h3 className="text-sm font-medium text-muted-foreground mb-2">Informações Gerais</h3>
-                          <div className="grid grid-cols-3 gap-x-4 gap-y-2">
+                      <Card className="p-6">
+                        <div className="space-y-3">
+                          <div className="grid grid-cols-2 gap-4">
                             <div>
                               <span className="text-xs text-muted-foreground">Descrição</span>
                               <p className="text-sm font-medium">{selectedAccount.description}</p>
@@ -687,6 +699,9 @@ export default function ContasBancarias() {
                               <span className="text-xs text-muted-foreground">Banco</span>
                               <p className="text-sm font-medium">{selectedAccount.bankName}</p>
                             </div>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-4">
                             <div>
                               <span className="text-xs text-muted-foreground">Tipo</span>
                               <Badge variant="secondary" className="mt-1">
@@ -695,6 +710,13 @@ export default function ContasBancarias() {
                               </Badge>
                             </div>
                             <div>
+                              <span className="text-xs text-muted-foreground">Saldo Atual</span>
+                              <p className="text-xl font-bold mt-1">{formatCurrency(selectedAccount.currentBalance)}</p>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
                               <span className="text-xs text-muted-foreground">Agência</span>
                               <p className="text-sm font-medium">{selectedAccount.agencyNumber || "N/A"}</p>
                             </div>
@@ -702,87 +724,24 @@ export default function ContasBancarias() {
                               <span className="text-xs text-muted-foreground">Conta</span>
                               <p className="text-sm font-medium">{selectedAccount.accountNumber}</p>
                             </div>
-                            <div>
-                              <span className="text-xs text-muted-foreground">Data Saldo Inicial</span>
-                              <p className="text-sm font-medium">
-                                {selectedAccount.initialBalanceDate ? format(new Date(selectedAccount.initialBalanceDate), 'dd/MM/yyyy', { locale: ptBR }) : "N/A"}
-                              </p>
-                            </div>
-                            <div>
-                              <span className="text-xs text-muted-foreground">Titular</span>
-                              <p className="text-sm font-medium">{selectedAccount.holderName || "N/A"}</p>
-                            </div>
-                            <div>
-                              <span className="text-xs text-muted-foreground">CPF/CNPJ</span>
-                              <p className="text-sm font-medium">{selectedAccount.holderDocument || "N/A"}</p>
-                            </div>
-                            <div>
-                              <span className="text-xs text-muted-foreground">Sincronização Automática</span>
-                              <div className="mt-1">
-                                {selectedAccount.autoSyncEnabled ? (
-                                  <Badge variant="default">Habilitada</Badge>
-                                ) : (
-                                  <Badge variant="secondary">Desabilitada</Badge>
-                                )}
+                          </div>
+
+                          {selectedAccount.holderName && (
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <span className="text-xs text-muted-foreground">Titular</span>
+                                <p className="text-sm font-medium">{selectedAccount.holderName}</p>
                               </div>
-                            </div>
-                          </div>
-                        </div>
-
-                        <Separator />
-
-                        <div className="grid grid-cols-3 gap-x-4 gap-y-2">
-                          <div>
-                            <span className="text-xs text-muted-foreground">Saldo Atual</span>
-                            <p className="text-lg font-semibold">{formatCurrency(selectedAccount.currentBalance)}</p>
-                          </div>
-                          <div>
-                            <span className="text-xs text-muted-foreground">Saldo Inicial</span>
-                            <p className="text-sm font-medium">{formatCurrency(selectedAccount.initialBalance)}</p>
-                          </div>
-                          {selectedAccount.allowsNegativeBalance && (
-                            <div>
-                              <span className="text-xs text-muted-foreground">Limite de Crédito</span>
-                              <p className="text-sm font-medium">{formatCurrency(selectedAccount.creditLimit || 0)}</p>
-                            </div>
-                          )}
-                          <div>
-                            <span className="text-xs text-muted-foreground">Última Reconciliação</span>
-                            <p className="text-sm font-medium">
-                              {selectedAccount.lastReconciliationDate ? format(new Date(selectedAccount.lastReconciliationDate), 'dd/MM/yyyy', { locale: ptBR }) : "Nunca"}
-                            </p>
-                          </div>
-                          {selectedAccount.lastSyncAt && (
-                            <div>
-                              <span className="text-xs text-muted-foreground">Última Sincronização</span>
-                              <p className="text-sm font-medium">
-                                {format(new Date(selectedAccount.lastSyncAt), 'dd/MM/yyyy HH:mm', { locale: ptBR })}
-                              </p>
-                            </div>
-                          )}
-                        </div>
-
-                        <Separator />
-
-                        <div className="grid grid-cols-3 gap-x-4 gap-y-2">
-                          <div>
-                            <span className="text-xs text-muted-foreground">Permite Saldo Negativo</span>
-                            <div className="mt-1">
-                              {selectedAccount.allowsNegativeBalance ? (
-                                <Badge variant="default">Sim</Badge>
-                              ) : (
-                                <Badge variant="secondary">Não</Badge>
+                              {selectedAccount.holderDocument && (
+                                <div>
+                                  <span className="text-xs text-muted-foreground">CPF/CNPJ</span>
+                                  <p className="text-sm font-medium">{selectedAccount.holderDocument}</p>
+                                </div>
                               )}
                             </div>
-                          </div>
-                          <div>
-                            <span className="text-xs text-muted-foreground">Status</span>
-                            <div className="mt-1">
-                              <Badge variant="default">{selectedAccount.status || "Ativa"}</Badge>
-                            </div>
-                          </div>
+                          )}
                         </div>
-                      </div>
+                      </Card>
                     </>
                   ) : (
                     <>
@@ -804,7 +763,7 @@ export default function ContasBancarias() {
                         </Button>
                       </div>
 
-                      <div className="space-y-4">
+                      <div className="space-y-4 max-h-[calc(100vh-320px)] overflow-y-auto pr-2">
                         <div>
                           <label className="text-sm font-medium mb-2 block">Descrição</label>
                           <Input
@@ -858,6 +817,80 @@ export default function ContasBancarias() {
                               data-testid="input-edit-account-number"
                             />
                           </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="text-sm font-medium mb-2 block">Nome do Titular</label>
+                            <Input
+                              value={editFormData.holderName || ""}
+                              onChange={(e) => handleEditChange("holderName", e.target.value)}
+                              data-testid="input-edit-holder-name"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-sm font-medium mb-2 block">CPF/CNPJ do Titular</label>
+                            <Input
+                              value={editFormData.holderDocument || ""}
+                              onChange={(e) => handleEditChange("holderDocument", e.target.value)}
+                              data-testid="input-edit-holder-document"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="text-sm font-medium mb-2 block">Saldo Inicial</label>
+                            <Input
+                              value={editFormData.initialBalance || ""}
+                              onChange={(e) => handleEditChange("initialBalance", e.target.value)}
+                              placeholder="0.00"
+                              data-testid="input-edit-initial-balance"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-sm font-medium mb-2 block">Data do Saldo Inicial</label>
+                            <Input
+                              type="date"
+                              value={editFormData.initialBalanceDate ? new Date(editFormData.initialBalanceDate).toISOString().split('T')[0] : ""}
+                              onChange={(e) => handleEditChange("initialBalanceDate", e.target.value)}
+                              data-testid="input-edit-initial-balance-date"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <Checkbox
+                            checked={editFormData.allowsNegativeBalance || false}
+                            onCheckedChange={(checked) => handleEditChange("allowsNegativeBalance", checked)}
+                            data-testid="checkbox-edit-allows-negative"
+                          />
+                          <label className="text-sm font-medium cursor-pointer">
+                            Permite saldo negativo
+                          </label>
+                        </div>
+
+                        {editFormData.allowsNegativeBalance && (
+                          <div>
+                            <label className="text-sm font-medium mb-2 block">Limite de Crédito</label>
+                            <Input
+                              value={editFormData.creditLimit || ""}
+                              onChange={(e) => handleEditChange("creditLimit", e.target.value)}
+                              placeholder="0.00"
+                              data-testid="input-edit-credit-limit"
+                            />
+                          </div>
+                        )}
+
+                        <div className="flex items-center gap-2">
+                          <Checkbox
+                            checked={editFormData.autoSyncEnabled || false}
+                            onCheckedChange={(checked) => handleEditChange("autoSyncEnabled", checked)}
+                            data-testid="checkbox-edit-auto-sync"
+                          />
+                          <label className="text-sm font-medium cursor-pointer">
+                            Habilitar sincronização automática
+                          </label>
                         </div>
                       </div>
                     </>
