@@ -271,3 +271,103 @@ export const insertChartAccountSchema = createInsertSchema(chartOfAccounts).omit
 
 export type InsertChartAccount = z.infer<typeof insertChartAccountSchema>;
 export type ChartAccount = typeof chartOfAccounts.$inferSelect;
+
+// Bank Accounts table - For banking operations and automatic reconciliation
+export const bankAccounts = pgTable("bank_accounts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  tenantId: varchar("tenant_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  companyId: varchar("company_id").references(() => companies.id, { onDelete: 'cascade' }), // Optional - can be personal account
+  description: text("description").notNull(), // "Itaú Principal", "Nubank Reserva"
+  bankName: text("bank_name").notNull(), // "Banco Itaú"
+  bankCode: text("bank_code"), // COMPE/ISPB code for integrations (e.g., "341" for Itaú)
+  accountType: text("account_type").notNull(), // "corrente", "poupanca", "pagamento"
+  agencyNumber: text("agency_number").notNull(),
+  agencyDigit: text("agency_digit"),
+  accountNumber: text("account_number").notNull(),
+  accountDigit: text("account_digit"),
+  holderName: text("holder_name").notNull(), // Account owner name
+  holderDocument: text("holder_document").notNull(), // CPF or CNPJ
+  initialBalance: text("initial_balance").notNull().default("0"), // Stored as string to avoid float precision issues
+  initialBalanceDate: timestamp("initial_balance_date").notNull(), // Critical for reconciliation
+  currentBalance: text("current_balance").notNull().default("0"), // Updated by transactions
+  currency: text("currency").notNull().default("BRL"), // BRL, USD, EUR
+  allowsNegativeBalance: boolean("allows_negative_balance").notNull().default(false),
+  creditLimit: text("credit_limit").default("0"), // Overdraft/credit limit
+  color: text("color").notNull().default("#3B82F6"), // Visual identification
+  status: text("status").notNull().default("active"), // "active" or "inactive"
+  lastReconciliationDate: timestamp("last_reconciliation_date"), // Last time account was reconciled
+  autoSyncEnabled: boolean("auto_sync_enabled").notNull().default(false), // Future: Open Banking integration
+  lastSyncAt: timestamp("last_sync_at"), // Future: Last automatic sync
+  syncFrequency: text("sync_frequency"), // Future: "daily", "weekly", "manual"
+  notes: text("notes"), // Additional observations
+  updatedAt: timestamp("updated_at").notNull().defaultNow().$onUpdate(() => new Date()),
+  version: bigint("version", { mode: "number" }).notNull().default(1),
+  deleted: boolean("deleted").notNull().default(false),
+}, (table) => [
+  index("bank_accounts_tenant_idx").on(table.tenantId, table.deleted, table.id),
+  index("bank_accounts_tenant_company_idx").on(table.tenantId, table.companyId, table.deleted),
+  index("bank_accounts_tenant_updated_idx").on(table.tenantId, table.updatedAt),
+  index("bank_accounts_tenant_status_idx").on(table.tenantId, table.status, table.deleted),
+]);
+
+export const insertBankAccountSchema = createInsertSchema(bankAccounts).omit({
+  id: true,
+  tenantId: true,
+  currentBalance: true, // Managed internally
+  updatedAt: true,
+  version: true,
+  deleted: true,
+}).extend({
+  initialBalance: z.string().refine(
+    (val) => !isNaN(parseFloat(val)) && parseFloat(val) >= 0,
+    { message: "Saldo inicial deve ser um número válido" }
+  ),
+  creditLimit: z.string().optional().refine(
+    (val) => !val || (!isNaN(parseFloat(val)) && parseFloat(val) >= 0),
+    { message: "Limite deve ser um número válido" }
+  ),
+  holderDocument: z.string().min(11, "CPF/CNPJ inválido"),
+  agencyNumber: z.string().min(1, "Agência é obrigatória"),
+  accountNumber: z.string().min(1, "Conta é obrigatória"),
+});
+
+export type InsertBankAccount = z.infer<typeof insertBankAccountSchema>;
+export type BankAccount = typeof bankAccounts.$inferSelect;
+
+// PIX Keys table - Multiple PIX keys per bank account
+export const pixKeys = pgTable("pix_keys", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  tenantId: varchar("tenant_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  bankAccountId: varchar("bank_account_id").notNull().references(() => bankAccounts.id, { onDelete: 'cascade' }),
+  keyType: text("key_type").notNull(), // "cpf", "cnpj", "email", "phone", "random", "evp"
+  keyValue: text("key_value").notNull(),
+  isDefault: boolean("is_default").notNull().default(false), // Main PIX key for this account
+  status: text("status").notNull().default("active"), // "active" or "inactive"
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow().$onUpdate(() => new Date()),
+  version: bigint("version", { mode: "number" }).notNull().default(1),
+  deleted: boolean("deleted").notNull().default(false),
+}, (table) => [
+  index("pix_keys_tenant_account_idx").on(table.tenantId, table.bankAccountId, table.deleted),
+  index("pix_keys_tenant_updated_idx").on(table.tenantId, table.updatedAt),
+  // Ensure unique PIX key value per tenant
+  uniqueIndex("pix_keys_tenant_value_unique").on(table.tenantId, table.keyValue),
+]);
+
+export const insertPixKeySchema = createInsertSchema(pixKeys).omit({
+  id: true,
+  tenantId: true,
+  bankAccountId: true,
+  createdAt: true,
+  updatedAt: true,
+  version: true,
+  deleted: true,
+}).extend({
+  keyValue: z.string().min(1, "Chave PIX é obrigatória"),
+  keyType: z.enum(["cpf", "cnpj", "email", "phone", "random", "evp"], {
+    errorMap: () => ({ message: "Tipo de chave inválido" })
+  }),
+});
+
+export type InsertPixKey = z.infer<typeof insertPixKeySchema>;
+export type PixKey = typeof pixKeys.$inferSelect;
