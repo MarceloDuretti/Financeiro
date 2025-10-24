@@ -158,35 +158,37 @@ export default function FormasPagamento() {
           return (
             <Card
               key={method.id}
-              className={`transition-all hover-elevate ${
+              className={`h-full transition-all hover-elevate ${
                 method.isActive ? "ring-2 ring-primary/20 bg-accent/30" : ""
               }`}
               data-testid={`card-payment-method-${method.id}`}
             >
-              <CardContent className="p-5">
-                <div className="flex flex-col gap-4">
-                  {/* Icon and Status */}
-                  <div className="flex items-start justify-between">
-                    {renderIcon(method.icon, method.isActive, colorScheme)}
-                    {method.isActive && (
-                      <Badge variant="default" className="gap-1">
-                        <Check className="h-3 w-3" />
-                        Ativo
-                      </Badge>
-                    )}
+              <CardContent className="p-5 h-full">
+                <div className="flex flex-col h-full justify-between gap-4">
+                  <div className="flex flex-col gap-4">
+                    {/* Icon and Status */}
+                    <div className="flex items-start justify-between">
+                      {renderIcon(method.icon, method.isActive, colorScheme)}
+                      {method.isActive && (
+                        <Badge variant="default" className="gap-1">
+                          <Check className="h-3 w-3" />
+                          Ativo
+                        </Badge>
+                      )}
+                    </div>
+
+                    {/* Name and Description */}
+                    <div className="space-y-1">
+                      <h3 className="font-semibold text-base" data-testid={`text-method-name-${method.id}`}>
+                        {method.name}
+                      </h3>
+                      <p className="text-sm text-muted-foreground line-clamp-2">
+                        {method.description}
+                      </p>
+                    </div>
                   </div>
 
-                  {/* Name and Description */}
-                  <div className="space-y-1">
-                    <h3 className="font-semibold text-base" data-testid={`text-method-name-${method.id}`}>
-                      {method.name}
-                    </h3>
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      {method.description}
-                    </p>
-                  </div>
-
-                  {/* Action Button */}
+                  {/* Action Button - Always aligned at bottom */}
                   <Button
                     variant={method.isActive ? "secondary" : "outline"}
                     size="sm"
