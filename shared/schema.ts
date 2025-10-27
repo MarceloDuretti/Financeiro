@@ -560,6 +560,13 @@ export const cashRegisters = pgTable("cash_registers", {
   name: text("name").notNull(), // "Caixa Principal", "Loja Shopping", etc.
   defaultResponsibleId: varchar("default_responsible_id").references(() => users.id), // Optional default responsible
   
+  // Financial control
+  currentBalance: text("current_balance").notNull().default("0"), // Current balance (stored as string)
+  openingBalance: text("opening_balance").default("0"), // Opening balance when cash register was opened
+  isOpen: boolean("is_open").notNull().default(false), // Whether cash register is currently open
+  lastOpenedAt: timestamp("last_opened_at"), // Last time cash register was opened
+  lastClosedAt: timestamp("last_closed_at"), // Last time cash register was closed
+  
   // Status and control
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -581,6 +588,7 @@ export const insertCashRegisterSchema = createInsertSchema(cashRegisters).omit({
   id: true,
   tenantId: true,
   code: true, // Auto-generated
+  currentBalance: true, // Managed internally
   createdAt: true,
   updatedAt: true,
   version: true,
@@ -589,6 +597,10 @@ export const insertCashRegisterSchema = createInsertSchema(cashRegisters).omit({
   companyId: z.string().min(1, "ID da empresa é obrigatório"),
   name: z.string().min(2, "Nome deve ter no mínimo 2 caracteres"),
   defaultResponsibleId: z.string().optional(),
+  openingBalance: z.string().optional(),
+  isOpen: z.boolean().optional(),
+  lastOpenedAt: z.date().optional(),
+  lastClosedAt: z.date().optional(),
 });
 
 export type InsertCashRegister = z.infer<typeof insertCashRegisterSchema>;
