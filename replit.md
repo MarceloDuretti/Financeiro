@@ -41,6 +41,7 @@ Key features include:
     - Inline editing within drawer (no wizard reopening for edits)
     - Toggle active/inactive functionality with optimistic concurrency control
     - Real-time WebSocket updates for all CRUD operations including status changes
+    - **UX Enhancement:** Sheet drawer with `modal={false}` (no dark overlay blocking master list) and selected card highlight (`ring-2 ring-primary`)
 - **Caixas (Cash Registers) Page:**
     - Master-detail interface with Sheet drawer following established pattern
     - Grid layout with active/inactive sections and visual status indicators
@@ -52,6 +53,7 @@ Key features include:
     - Toggle active/inactive functionality
     - Real-time WebSocket updates for all CRUD operations
     - Search/filter by name or code
+    - **UX Enhancement:** Sheet drawer with `modal={false}` (no dark overlay blocking master list) and selected card highlight (`ring-2 ring-primary`)
 
 ### Backend Architecture
 
