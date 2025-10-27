@@ -23,6 +23,7 @@ import ClientesFornecedores from "@/pages/ClientesFornecedores";
 import ContasBancarias from "@/pages/ContasBancarias";
 import CentroDeCusto from "@/pages/CentroDeCusto";
 import PlanoDeContas from "@/pages/PlanoDeContas";
+import Caixas from "@/pages/Caixas";
 import FormasPagamento from "@/pages/FormasPagamento";
 import Parametros from "@/pages/Parametros";
 import Exportacao from "@/pages/Exportacao";
@@ -109,6 +110,12 @@ function Router() {
           <Route path="/dashboard/plano-de-contas">
             <DashboardLayout>
               <PlanoDeContas />
+            </DashboardLayout>
+          </Route>
+
+          <Route path="/dashboard/caixas">
+            <DashboardLayout>
+              <Caixas />
             </DashboardLayout>
           </Route>
 

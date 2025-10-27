@@ -78,6 +78,7 @@ const menuItems = [
       { title: "Centro de Custo", url: "/dashboard/centro-de-custo", icon: FolderTree },
       { title: "Plano de Contas", url: "/dashboard/plano-de-contas", icon: List },
       { title: "Contas Bancárias", url: "/dashboard/contas-bancarias", icon: Landmark },
+      { title: "Caixas", url: "/dashboard/caixas", icon: CreditCard },
       { title: "Formas de Pagamento", url: "/dashboard/formas-pagamento", icon: CreditCard },
       { title: "Clientes e Fornecedores", url: "/dashboard/clientes-fornecedores", icon: Users },
     ],
