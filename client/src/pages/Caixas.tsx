@@ -75,9 +75,18 @@ export default function Caixas() {
   });
 
   const { data: cashRegisters = [], isLoading } = useRealtimeQuery<CashRegister[]>({
-    queryKey: ['/api/cash-registers', { companyId: selectedCompanyId }],
+    queryKey: ['/api/cash-registers'],
     resource: 'cash-registers',
     enabled: !!selectedCompanyId,
+    queryFn: async () => {
+      const res = await fetch(`/api/cash-registers?companyId=${selectedCompanyId}`, {
+        credentials: "include",
+      });
+      if (!res.ok) {
+        throw new Error(`Failed to fetch cash registers: ${res.statusText}`);
+      }
+      return await res.json();
+    },
   });
 
   const createMutation = useMutation({
