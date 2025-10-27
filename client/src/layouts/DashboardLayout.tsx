@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
+import { CompanySelector } from "@/components/CompanySelector";
 import headerLogo from "@assets/image_1761141745101.png";
 
 interface DashboardLayoutProps {
@@ -85,6 +86,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               </div>
             </div>
             <div className="flex items-center gap-3">
+              <CompanySelector />
               <img 
                 src={headerLogo} 
                 alt="SyncTime Logo" 
