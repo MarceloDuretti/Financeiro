@@ -10,6 +10,7 @@ import {
   pixKeys,
   paymentMethods,
   customersSuppliers,
+  cashRegisters,
   bankBillingConfigs,
   type User,
   type InsertUser,
@@ -31,6 +32,8 @@ import {
   type InsertPaymentMethod,
   type CustomerSupplier,
   type InsertCustomerSupplier,
+  type CashRegister,
+  type InsertCashRegister,
   type BankBillingConfig,
   type InsertBankBillingConfig,
 } from "@shared/schema";
@@ -139,6 +142,19 @@ export interface IStorage {
   ): Promise<CustomerSupplier | undefined>;
   deleteCustomerSupplier(tenantId: string, id: string): Promise<boolean>;
   toggleCustomerSupplierActive(tenantId: string, id: string): Promise<CustomerSupplier | undefined>;
+
+  // Cash Registers operations - all require tenantId and companyId for multi-tenant isolation
+  listCashRegisters(tenantId: string, companyId: string): Promise<CashRegister[]>;
+  getCashRegister(tenantId: string, companyId: string, id: string): Promise<CashRegister | undefined>;
+  createCashRegister(tenantId: string, companyId: string, register: InsertCashRegister): Promise<CashRegister>;
+  updateCashRegister(
+    tenantId: string,
+    companyId: string,
+    id: string,
+    register: Partial<InsertCashRegister>
+  ): Promise<CashRegister | undefined>;
+  deleteCashRegister(tenantId: string, companyId: string, id: string): Promise<boolean>;
+  toggleCashRegisterActive(tenantId: string, companyId: string, id: string): Promise<CashRegister | undefined>;
 
   // Bank Billing Configs operations - all require tenantId and companyId for multi-tenant isolation
   listBankBillingConfigs(tenantId: string, companyId: string): Promise<BankBillingConfig[]>;
@@ -1242,6 +1258,175 @@ export class DatabaseStorage implements IStorage {
         .returning();
       
       return entity;
+    });
+  }
+
+  // Cash Registers operations - all require tenantId and companyId for multi-tenant isolation
+
+  private async getNextCashRegisterCode(tenantId: string, companyId: string): Promise<number> {
+    // Use advisory lock to prevent race conditions
+    return await db.transaction(async (tx) => {
+      const lockKey = this.hashStringToInt(`cash_register_${tenantId}_${companyId}`);
+      await tx.execute(sql`SELECT pg_advisory_xact_lock(${lockKey})`);
+
+      const [result] = await tx
+        .select({ maxCode: max(cashRegisters.code) })
+        .from(cashRegisters)
+        .where(
+          and(
+            eq(cashRegisters.tenantId, tenantId),
+            eq(cashRegisters.companyId, companyId)
+          )
+        );
+
+      return (result?.maxCode ?? 0) + 1;
+    });
+  }
+
+  async listCashRegisters(tenantId: string, companyId: string): Promise<CashRegister[]> {
+    const registers = await db
+      .select()
+      .from(cashRegisters)
+      .where(
+        and(
+          eq(cashRegisters.tenantId, tenantId),
+          eq(cashRegisters.companyId, companyId),
+          eq(cashRegisters.deleted, false)
+        )
+      )
+      .orderBy(cashRegisters.code);
+    
+    return registers;
+  }
+
+  async getCashRegister(tenantId: string, companyId: string, id: string): Promise<CashRegister | undefined> {
+    const [register] = await db
+      .select()
+      .from(cashRegisters)
+      .where(
+        and(
+          eq(cashRegisters.tenantId, tenantId),
+          eq(cashRegisters.companyId, companyId),
+          eq(cashRegisters.id, id),
+          eq(cashRegisters.deleted, false)
+        )
+      );
+    
+    return register;
+  }
+
+  async createCashRegister(
+    tenantId: string,
+    companyId: string,
+    registerData: InsertCashRegister
+  ): Promise<CashRegister> {
+    return await db.transaction(async (tx) => {
+      const code = await this.getNextCashRegisterCode(tenantId, companyId);
+      
+      const [newRegister] = await tx
+        .insert(cashRegisters)
+        .values({
+          ...registerData,
+          tenantId,
+          companyId,
+          code,
+        })
+        .returning();
+      
+      return newRegister;
+    });
+  }
+
+  async updateCashRegister(
+    tenantId: string,
+    companyId: string,
+    id: string,
+    registerData: Partial<InsertCashRegister>
+  ): Promise<CashRegister | undefined> {
+    return await db.transaction(async (tx) => {
+      const [updated] = await tx
+        .update(cashRegisters)
+        .set({
+          ...registerData,
+          updatedAt: new Date(),
+          version: sql`${cashRegisters.version} + 1`,
+        })
+        .where(
+          and(
+            eq(cashRegisters.tenantId, tenantId),
+            eq(cashRegisters.companyId, companyId),
+            eq(cashRegisters.id, id),
+            eq(cashRegisters.deleted, false)
+          )
+        )
+        .returning();
+
+      return updated;
+    });
+  }
+
+  async deleteCashRegister(tenantId: string, companyId: string, id: string): Promise<boolean> {
+    return await db.transaction(async (tx) => {
+      // Soft delete
+      const [deleted] = await tx
+        .update(cashRegisters)
+        .set({
+          deleted: true,
+          updatedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(cashRegisters.tenantId, tenantId),
+            eq(cashRegisters.companyId, companyId),
+            eq(cashRegisters.id, id),
+            eq(cashRegisters.deleted, false)
+          )
+        )
+        .returning();
+
+      return !!deleted;
+    });
+  }
+
+  async toggleCashRegisterActive(
+    tenantId: string,
+    companyId: string,
+    id: string
+  ): Promise<CashRegister | undefined> {
+    return await db.transaction(async (tx) => {
+      // First, verify the record exists and belongs to this tenant and company
+      const [existing] = await tx
+        .select()
+        .from(cashRegisters)
+        .where(and(
+          eq(cashRegisters.tenantId, tenantId),
+          eq(cashRegisters.companyId, companyId),
+          eq(cashRegisters.id, id),
+          eq(cashRegisters.deleted, false)
+        ));
+      
+      if (!existing) {
+        return undefined; // Not found or doesn't belong to tenant/company
+      }
+      
+      // Toggle isActive status with optimistic concurrency control
+      const [register] = await tx
+        .update(cashRegisters)
+        .set({
+          isActive: !existing.isActive,
+          updatedAt: new Date(),
+          version: sql`${cashRegisters.version} + 1`,
+        })
+        .where(and(
+          eq(cashRegisters.tenantId, tenantId),
+          eq(cashRegisters.companyId, companyId),
+          eq(cashRegisters.id, id),
+          eq(cashRegisters.version, existing.version), // Optimistic lock
+          eq(cashRegisters.deleted, false)
+        ))
+        .returning();
+      
+      return register;
     });
   }
 

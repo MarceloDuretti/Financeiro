@@ -549,6 +549,51 @@ export const insertCustomerSupplierSchema = createInsertSchema(customersSupplier
 export type InsertCustomerSupplier = z.infer<typeof insertCustomerSupplierSchema>;
 export type CustomerSupplier = typeof customersSuppliers.$inferSelect;
 
+// Cash Registers table - Manages cash register points (caixas)
+export const cashRegisters = pgTable("cash_registers", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  tenantId: varchar("tenant_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  companyId: varchar("company_id").notNull().references(() => companies.id, { onDelete: 'cascade' }),
+  code: integer("code").notNull(), // Auto-generated: CX001, CX002, etc.
+  
+  // Cash register info
+  name: text("name").notNull(), // "Caixa Principal", "Loja Shopping", etc.
+  defaultResponsibleId: varchar("default_responsible_id").references(() => users.id), // Optional default responsible
+  
+  // Status and control
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow().$onUpdate(() => new Date()),
+  version: bigint("version", { mode: "number" }).notNull().default(1),
+  deleted: boolean("deleted").notNull().default(false),
+}, (table) => [
+  // Primary tenant + company index for fast queries
+  index("cash_registers_tenant_company_idx").on(table.tenantId, table.companyId, table.deleted, table.id),
+  // Unique code per tenant per company
+  uniqueIndex("cash_registers_tenant_company_code_unique").on(table.tenantId, table.companyId, table.code),
+  // Index for updates/sync
+  index("cash_registers_tenant_company_updated_idx").on(table.tenantId, table.companyId, table.updatedAt),
+  // Index for status filtering
+  index("cash_registers_tenant_company_status_idx").on(table.tenantId, table.companyId, table.isActive, table.deleted),
+]);
+
+export const insertCashRegisterSchema = createInsertSchema(cashRegisters).omit({
+  id: true,
+  tenantId: true,
+  code: true, // Auto-generated
+  createdAt: true,
+  updatedAt: true,
+  version: true,
+  deleted: true,
+}).extend({
+  companyId: z.string().min(1, "ID da empresa é obrigatório"),
+  name: z.string().min(2, "Nome deve ter no mínimo 2 caracteres"),
+  defaultResponsibleId: z.string().optional(),
+});
+
+export type InsertCashRegister = z.infer<typeof insertCashRegisterSchema>;
+export type CashRegister = typeof cashRegisters.$inferSelect;
+
 // Bank Billing Configs table - Bank-specific configurations for boleto/billing generation
 export const bankBillingConfigs = pgTable("bank_billing_configs", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
