@@ -587,7 +587,7 @@ export default function ClientesFornecedores() {
       )}
 
       {/* Details Drawer - Implementation continues... */}
-      <Sheet open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
+      <Sheet open={isDrawerOpen} onOpenChange={setIsDrawerOpen} modal={false}>
         <SheetContent className="w-full sm:max-w-3xl overflow-y-auto">
           {selectedEntity && (
             <Form {...form}>
