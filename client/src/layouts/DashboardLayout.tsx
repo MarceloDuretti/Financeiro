@@ -84,9 +84,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   data-testid="input-search"
                 />
               </div>
+              <CompanySelector />
             </div>
             <div className="flex items-center gap-3">
-              <CompanySelector />
               <img 
                 src={headerLogo} 
                 alt="SyncTime Logo" 
