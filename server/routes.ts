@@ -11,6 +11,7 @@ import {
   insertPixKeySchema,
   togglePaymentMethodSchema,
   insertCustomerSupplierSchema,
+  insertCashRegisterSchema,
   insertBankBillingConfigSchema,
   loginSchema, 
   signupSchema,
@@ -937,6 +938,154 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(entity);
     } catch (error: any) {
       console.error("Error toggling customer/supplier:", error);
+      res.status(400).json({ message: error.message || "Erro ao alterar status" });
+    }
+  });
+
+  // Cash Registers routes (authenticated + multi-tenant + multi-company)
+
+  // List all cash registers for a company
+  app.get("/api/cash-registers", isAuthenticated, async (req, res) => {
+    try {
+      const tenantId = getTenantId((req as any).user);
+      const { companyId } = req.query;
+      
+      if (!companyId || typeof companyId !== 'string') {
+        return res.status(400).json({ error: "companyId é obrigatório" });
+      }
+      
+      const registers = await storage.listCashRegisters(tenantId, companyId);
+      res.json(registers);
+    } catch (error) {
+      console.error("Error listing cash registers:", error);
+      res.status(500).json({ error: "Erro ao listar caixas" });
+    }
+  });
+
+  // Get single cash register by ID
+  app.get("/api/cash-registers/:id", isAuthenticated, async (req, res) => {
+    try {
+      const tenantId = getTenantId((req as any).user);
+      const { id } = req.params;
+      const { companyId } = req.query;
+      
+      if (!companyId || typeof companyId !== 'string') {
+        return res.status(400).json({ error: "companyId é obrigatório" });
+      }
+      
+      const register = await storage.getCashRegister(tenantId, companyId, id);
+      if (!register) {
+        return res.status(404).json({ message: "Caixa não encontrado" });
+      }
+      
+      res.json(register);
+    } catch (error) {
+      console.error("Error getting cash register:", error);
+      res.status(500).json({ error: "Erro ao buscar caixa" });
+    }
+  });
+
+  // Create new cash register
+  app.post("/api/cash-registers", isAuthenticated, async (req, res) => {
+    try {
+      const tenantId = getTenantId((req as any).user);
+      
+      // Validate and strip extra fields using Zod (security)
+      const validatedData = insertCashRegisterSchema.parse(req.body);
+      
+      const register = await storage.createCashRegister(
+        tenantId,
+        validatedData.companyId,
+        validatedData
+      );
+      
+      // Broadcast to all clients in this tenant
+      broadcastDataChange(tenantId, "cash-registers", "created", register);
+      
+      res.json(register);
+    } catch (error: any) {
+      console.error("Error creating cash register:", error);
+      res.status(400).json({ message: error.message || "Erro ao criar caixa" });
+    }
+  });
+
+  // Update cash register
+  app.patch("/api/cash-registers/:id", isAuthenticated, async (req, res) => {
+    try {
+      const tenantId = getTenantId((req as any).user);
+      const { id } = req.params;
+      const { companyId } = req.query;
+      
+      if (!companyId || typeof companyId !== 'string') {
+        return res.status(400).json({ error: "companyId é obrigatório" });
+      }
+      
+      // Validate partial update (omit required fields)
+      const validatedData = insertCashRegisterSchema.partial().parse(req.body);
+      
+      const register = await storage.updateCashRegister(tenantId, companyId, id, validatedData);
+      if (!register) {
+        return res.status(404).json({ message: "Caixa não encontrado" });
+      }
+      
+      // Broadcast to all clients in this tenant
+      broadcastDataChange(tenantId, "cash-registers", "updated", register);
+      
+      res.json(register);
+    } catch (error: any) {
+      console.error("Error updating cash register:", error);
+      res.status(400).json({ message: error.message || "Erro ao atualizar caixa" });
+    }
+  });
+
+  // Delete cash register
+  app.delete("/api/cash-registers/:id", isAuthenticated, async (req, res) => {
+    try {
+      const tenantId = getTenantId((req as any).user);
+      const { id } = req.params;
+      const { companyId } = req.query;
+      
+      if (!companyId || typeof companyId !== 'string') {
+        return res.status(400).json({ error: "companyId é obrigatório" });
+      }
+      
+      const success = await storage.deleteCashRegister(tenantId, companyId, id);
+      if (!success) {
+        return res.status(404).json({ message: "Caixa não encontrado" });
+      }
+      
+      // Broadcast to all clients in this tenant
+      broadcastDataChange(tenantId, "cash-registers", "deleted", { id });
+      
+      res.json({ message: "Caixa excluído com sucesso" });
+    } catch (error) {
+      console.error("Error deleting cash register:", error);
+      res.status(500).json({ error: "Erro ao excluir caixa" });
+    }
+  });
+
+  // Toggle cash register active status
+  app.patch("/api/cash-registers/:id/toggle-active", isAuthenticated, async (req, res) => {
+    try {
+      const tenantId = getTenantId((req as any).user);
+      const { id } = req.params;
+      const { companyId } = req.query;
+      
+      if (!companyId || typeof companyId !== 'string') {
+        return res.status(400).json({ error: "companyId é obrigatório" });
+      }
+      
+      const register = await storage.toggleCashRegisterActive(tenantId, companyId, id);
+      if (!register) {
+        return res.status(404).json({ message: "Caixa não encontrado" });
+      }
+      
+      // Broadcast to all clients in this tenant
+      broadcastDataChange(tenantId, "cash-registers", "updated", register);
+      
+      res.json(register);
+    } catch (error: any) {
+      console.error("Error toggling cash register:", error);
       res.status(400).json({ message: error.message || "Erro ao alterar status" });
     }
   });
