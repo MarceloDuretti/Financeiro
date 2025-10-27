@@ -358,7 +358,7 @@ export default function Caixas() {
                 {activeCashRegisters.map((cashRegister) => (
                   <Card
                     key={cashRegister.id}
-                    className="hover-elevate cursor-pointer"
+                    className={`hover-elevate cursor-pointer ${selectedCashRegister?.id === cashRegister.id ? 'ring-2 ring-primary' : ''}`}
                     onClick={() => handleCardClick(cashRegister)}
                     data-testid={`card-cash-register-${cashRegister.id}`}
                   >
@@ -418,7 +418,7 @@ export default function Caixas() {
                 {inactiveCashRegisters.map((cashRegister) => (
                   <Card
                     key={cashRegister.id}
-                    className="hover-elevate opacity-60 cursor-pointer"
+                    className={`hover-elevate opacity-60 cursor-pointer ${selectedCashRegister?.id === cashRegister.id ? 'ring-2 ring-primary' : ''}`}
                     onClick={() => handleCardClick(cashRegister)}
                     data-testid={`card-cash-register-${cashRegister.id}`}
                   >
@@ -525,7 +525,7 @@ export default function Caixas() {
       </Dialog>
 
       {/* Detail Sheet */}
-      <Sheet open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
+      <Sheet open={isDrawerOpen} onOpenChange={setIsDrawerOpen} modal={false}>
         <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
           {selectedCashRegister && (
             <>
