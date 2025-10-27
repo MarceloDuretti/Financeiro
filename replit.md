@@ -41,6 +41,17 @@ Key features include:
     - Inline editing within drawer (no wizard reopening for edits)
     - Toggle active/inactive functionality with optimistic concurrency control
     - Real-time WebSocket updates for all CRUD operations including status changes
+- **Caixas (Cash Registers) Page:**
+    - Master-detail interface with Sheet drawer following established pattern
+    - Grid layout with active/inactive sections and visual status indicators
+    - Auto-generated codes (CX001, CX002, etc.) unique per tenant+company
+    - Financial information display: current balance, opening balance
+    - Operation history tracking: last opened/closed timestamps
+    - Status badges: Active/Inactive and Open/Closed indicators
+    - Inline editing within Sheet drawer (no dialog reopening)
+    - Toggle active/inactive functionality
+    - Real-time WebSocket updates for all CRUD operations
+    - Search/filter by name or code
 
 ### Backend Architecture
 
@@ -48,7 +59,7 @@ The backend utilizes Node.js with TypeScript, Express.js, Drizzle ORM, esbuild f
 
 Key architectural decisions include:
 - **Authentication:** Signup, login, logout, and user management using Passport Local Strategy with session-based authentication.
-- **Management Endpoints:** CRUD operations for `companies`, `collaborators`, `company_members`, `cost-centers`, `chart-of-accounts`, `bank-accounts`, `pix-keys`, `payment-methods`, and `customers-suppliers`, all enforcing multi-tenant isolation.
+- **Management Endpoints:** CRUD operations for `companies`, `collaborators`, `company_members`, `cost-centers`, `chart-of-accounts`, `bank-accounts`, `pix-keys`, `payment-methods`, `customers-suppliers`, and `cash-registers`, all enforcing multi-tenant isolation.
 - **Storage Layer:** PostgreSQL with Drizzle ORM, implementing multi-tenant isolation via a `tenantId` column in all business data tables.
 - **Real-Time Updates System:** Integrated WebSocket server using session-based authentication and tenant isolation. It broadcasts automatic notifications for data changes (CREATE/UPDATE/DELETE) to connected clients, supporting multi-user environments with instant UI updates and auto-reconnection.
 - **Multi-Tenant Architecture:** Row-level multi-tenancy enforced by `tenantId` in all business data, with security helpers at the API layer and `tenantId` filtering in the storage layer. Performance is optimized with composite indexes, and PostgreSQL Row-Level Security (RLS) is enabled. Versioning and soft-deletion are supported through `updated_at`, `version`, and `deleted` columns.
