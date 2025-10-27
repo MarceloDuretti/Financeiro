@@ -2,9 +2,8 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Bell, Search, LogOut, User as UserIcon } from "lucide-react";
+import { Bell, LogOut, User as UserIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -75,15 +74,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <header className="flex h-16 items-center justify-between border-b bg-background px-4 md:px-6">
             <div className="flex items-center gap-4">
               <SidebarTrigger data-testid="button-sidebar-toggle" />
-              <div className="relative hidden md:block">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder="Buscar..."
-                  className="w-64 pl-9"
-                  data-testid="input-search"
-                />
-              </div>
               <CompanySelector />
             </div>
             <div className="flex items-center gap-3">
