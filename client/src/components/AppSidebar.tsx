@@ -259,52 +259,50 @@ export function AppSidebar() {
                   if (isCollapsed) {
                     return (
                       <SidebarMenuItem key={item.title}>
-                        <Tooltip>
-                          <DropdownMenu>
+                        <DropdownMenu>
+                          <Tooltip>
                             <TooltipTrigger asChild>
-                              <div>
-                                <DropdownMenuTrigger asChild>
-                                  <SidebarMenuButton
-                                    className={`group/item h-auto py-3 px-3 justify-center ${!isDisabled ? 'hover-elevate' : 'cursor-not-allowed opacity-40'}`}
-                                    data-testid={`button-menu-${item.title.toLowerCase()}`}
-                                    disabled={isDisabled}
-                                    title={isDisabled ? "Configure uma empresa primeiro" : undefined}
-                                  >
-                                    <div className={`relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${item.color} shadow-sm ${isDisabled ? 'saturate-0' : ''}`}>
-                                      <Icon className="h-4 w-4 text-white" strokeWidth={2.5} />
-                                      {item.count && (
-                                        <div className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary border-2 border-sidebar flex items-center justify-center">
-                                          <span className="text-[8px] font-bold text-primary-foreground">{item.count}</span>
-                                        </div>
-                                      )}
-                                    </div>
-                                  </SidebarMenuButton>
-                                </DropdownMenuTrigger>
-                              </div>
+                              <DropdownMenuTrigger disabled={isDisabled} className="w-full">
+                                <SidebarMenuButton
+                                  className={`group/item h-auto py-3 px-3 justify-center ${!isDisabled ? 'hover-elevate' : 'cursor-not-allowed opacity-40'}`}
+                                  data-testid={`button-menu-${item.title.toLowerCase()}`}
+                                  disabled={isDisabled}
+                                  title={isDisabled ? "Configure uma empresa primeiro" : undefined}
+                                >
+                                  <div className={`relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${item.color} shadow-sm ${isDisabled ? 'saturate-0' : ''}`}>
+                                    <Icon className="h-4 w-4 text-white" strokeWidth={2.5} />
+                                    {item.count && (
+                                      <div className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary border-2 border-sidebar flex items-center justify-center">
+                                        <span className="text-[8px] font-bold text-primary-foreground">{item.count}</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                </SidebarMenuButton>
+                              </DropdownMenuTrigger>
                             </TooltipTrigger>
                             <TooltipContent side="right" className="flex flex-col gap-1">
                               <span className="font-semibold">{item.title}</span>
                               <span className="text-xs text-muted-foreground">{item.description}</span>
                             </TooltipContent>
-                            {!isDisabled && (
-                              <DropdownMenuContent side="right" align="start" className="w-56">
-                                {item.items.map((subItem) => {
-                                  const SubIcon = subItem.icon;
-                                  return (
-                                    <DropdownMenuItem key={subItem.title} asChild>
-                                      <Link href={subItem.url} onClick={handleMenuItemClick}>
-                                        <div className="flex items-center gap-2 w-full" data-testid={`link-submenu-${subItem.title.toLowerCase().replace(/\s+/g, '-')}`}>
-                                          <SubIcon className="h-4 w-4 text-muted-foreground" />
-                                          <span>{subItem.title}</span>
-                                        </div>
-                                      </Link>
-                                    </DropdownMenuItem>
-                                  );
-                                })}
-                              </DropdownMenuContent>
-                            )}
-                          </DropdownMenu>
-                        </Tooltip>
+                          </Tooltip>
+                          {!isDisabled && (
+                            <DropdownMenuContent side="right" align="start" className="w-56">
+                              {item.items.map((subItem) => {
+                                const SubIcon = subItem.icon;
+                                return (
+                                  <DropdownMenuItem key={subItem.title} asChild>
+                                    <Link href={subItem.url} onClick={handleMenuItemClick}>
+                                      <div className="flex items-center gap-2 w-full" data-testid={`link-submenu-${subItem.title.toLowerCase().replace(/\s+/g, '-')}`}>
+                                        <SubIcon className="h-4 w-4 text-muted-foreground" />
+                                        <span>{subItem.title}</span>
+                                      </div>
+                                    </Link>
+                                  </DropdownMenuItem>
+                                );
+                              })}
+                            </DropdownMenuContent>
+                          )}
+                        </DropdownMenu>
                       </SidebarMenuItem>
                     );
                   }
