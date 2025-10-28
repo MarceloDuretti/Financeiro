@@ -320,7 +320,7 @@ export function AppSidebar() {
                             {/* Mostrar badge apenas para Notificações */}
                             {item.title === "Notificações" && item.count && (
                               <div className="absolute -top-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-primary border border-background flex items-center justify-center shadow-sm">
-                                <span className="text-[9px] font-bold text-primary-foreground">{item.count}</span>
+                                <span className="text-[7px] font-bold text-primary-foreground">{item.count}</span>
                               </div>
                             )}
                           </div>
@@ -388,7 +388,7 @@ export function AppSidebar() {
                             {/* Mostrar badge apenas para Notificações */}
                             {item.title === "Notificações" && item.badge && (
                               <div className="absolute -top-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-primary border border-background flex items-center justify-center shadow-sm">
-                                <span className="text-[9px] font-bold text-primary-foreground">{item.badge}</span>
+                                <span className="text-[7px] font-bold text-primary-foreground">{item.badge}</span>
                               </div>
                             )}
                           </div>
