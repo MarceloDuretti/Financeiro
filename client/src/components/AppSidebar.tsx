@@ -207,6 +207,118 @@ export function AppSidebar() {
     return "Usuário";
   };
 
+  // Render collapsed sidebar with icon-only layout
+  if (isCollapsed) {
+    return (
+      <Sidebar collapsible="icon" className="border-r bg-gradient-to-b from-background to-muted/20">
+        <SidebarContent className="py-6 flex items-center justify-center">
+          <SidebarMenu className="gap-3 w-full px-2">
+            {menuItems.map((item) => {
+              const Icon = item.icon;
+              const isDisabled = item.requiresCompany && !hasCompanies;
+              
+              if (item.items) {
+                // Menu with submenu - use DropdownMenu
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger
+                        disabled={isDisabled}
+                        className={`w-full h-auto py-2 flex items-center justify-center rounded-lg hover-elevate active-elevate-2 ${isDisabled ? 'cursor-not-allowed opacity-40' : ''}`}
+                        data-testid={`button-menu-${item.title.toLowerCase()}`}
+                        title={`${item.title} - ${item.description}`}
+                      >
+                        <div className={`relative flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${item.color} shadow-sm ${isDisabled ? 'saturate-0' : ''}`}>
+                          <Icon className="h-5 w-5 text-white" strokeWidth={2.5} />
+                          {item.count && (
+                            <div className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary border-2 border-background flex items-center justify-center">
+                              <span className="text-[8px] font-bold text-primary-foreground">{item.count}</span>
+                            </div>
+                          )}
+                        </div>
+                      </DropdownMenuTrigger>
+                      {!isDisabled && (
+                        <DropdownMenuContent side="right" align="start" className="w-56">
+                          {item.items.map((subItem) => {
+                            const SubIcon = subItem.icon;
+                            return (
+                              <DropdownMenuItem key={subItem.title} asChild>
+                                <Link href={subItem.url} onClick={handleMenuItemClick}>
+                                  <div className="flex items-center gap-2 w-full" data-testid={`link-submenu-${subItem.title.toLowerCase().replace(/\s+/g, '-')}`}>
+                                    <SubIcon className="h-4 w-4 text-muted-foreground" />
+                                    <span>{subItem.title}</span>
+                                  </div>
+                                </Link>
+                              </DropdownMenuItem>
+                            );
+                          })}
+                        </DropdownMenuContent>
+                      )}
+                    </DropdownMenu>
+                  </SidebarMenuItem>
+                );
+              }
+
+              // Simple menu item
+              if (isDisabled) {
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          disabled
+                          className="relative w-full flex items-center justify-center py-2 rounded-lg cursor-not-allowed opacity-40"
+                          data-testid={`button-menu-${item.title.toLowerCase()}`}
+                        >
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-gray-400 to-gray-500 shadow-sm saturate-0">
+                            <Icon className="h-5 w-5 text-white" strokeWidth={2.5} />
+                          </div>
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="right" className="flex flex-col gap-1">
+                        <span className="font-semibold">{item.title}</span>
+                        <span className="text-xs text-muted-foreground">Configure uma empresa primeiro</span>
+                      </TooltipContent>
+                    </Tooltip>
+                  </SidebarMenuItem>
+                );
+              }
+
+              return (
+                <SidebarMenuItem key={item.title}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Link href={item.url!} onClick={handleMenuItemClick}>
+                        <button
+                          className={`relative w-full flex items-center justify-center py-2 rounded-lg hover-elevate active-elevate-2 ${location === item.url ? 'bg-accent' : ''}`}
+                          data-testid={`link-menu-${item.title.toLowerCase()}`}
+                        >
+                          <div className={`relative flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${item.color} shadow-sm`}>
+                            <Icon className="h-5 w-5 text-white" strokeWidth={2.5} />
+                            {item.badge && (
+                              <div className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary border-2 border-background flex items-center justify-center">
+                                <span className="text-[8px] font-bold text-primary-foreground">{item.badge}</span>
+                              </div>
+                            )}
+                          </div>
+                        </button>
+                      </Link>
+                    </TooltipTrigger>
+                    <TooltipContent side="right" className="flex flex-col gap-1">
+                      <span className="font-semibold">{item.title}</span>
+                      <span className="text-xs text-muted-foreground">{item.description}</span>
+                    </TooltipContent>
+                  </Tooltip>
+                </SidebarMenuItem>
+              );
+            })}
+          </SidebarMenu>
+        </SidebarContent>
+      </Sidebar>
+    );
+  }
+
+  // Render expanded sidebar with full layout
   return (
     <Sidebar collapsible="icon" className="border-r bg-gradient-to-b from-background to-muted/20">
       <SidebarHeader className="border-b bg-gradient-to-br from-primary/5 to-transparent p-5">
@@ -255,49 +367,7 @@ export function AppSidebar() {
                 const isDisabled = item.requiresCompany && !hasCompanies;
                 
                 if (item.items) {
-                  // When collapsed, use DropdownMenu for submenu items
-                  if (isCollapsed) {
-                    return (
-                      <SidebarMenuItem key={item.title}>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger
-                            disabled={isDisabled}
-                            className={`w-full h-auto py-3 px-3 flex items-center justify-center rounded-md hover-elevate active-elevate-2 ${isDisabled ? 'cursor-not-allowed opacity-40' : ''}`}
-                            data-testid={`button-menu-${item.title.toLowerCase()}`}
-                            title={`${item.title} - ${item.description}`}
-                          >
-                            <div className={`relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${item.color} shadow-sm ${isDisabled ? 'saturate-0' : ''}`}>
-                              <Icon className="h-4 w-4 text-white" strokeWidth={2.5} />
-                              {item.count && (
-                                <div className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary border-2 border-sidebar flex items-center justify-center">
-                                  <span className="text-[8px] font-bold text-primary-foreground">{item.count}</span>
-                                </div>
-                              )}
-                            </div>
-                          </DropdownMenuTrigger>
-                          {!isDisabled && (
-                            <DropdownMenuContent side="right" align="start" className="w-56">
-                              {item.items.map((subItem) => {
-                                const SubIcon = subItem.icon;
-                                return (
-                                  <DropdownMenuItem key={subItem.title} asChild>
-                                    <Link href={subItem.url} onClick={handleMenuItemClick}>
-                                      <div className="flex items-center gap-2 w-full" data-testid={`link-submenu-${subItem.title.toLowerCase().replace(/\s+/g, '-')}`}>
-                                        <SubIcon className="h-4 w-4 text-muted-foreground" />
-                                        <span>{subItem.title}</span>
-                                      </div>
-                                    </Link>
-                                  </DropdownMenuItem>
-                                );
-                              })}
-                            </DropdownMenuContent>
-                          )}
-                        </DropdownMenu>
-                      </SidebarMenuItem>
-                    );
-                  }
-
-                  // When expanded, use Collapsible
+                  // Menu with submenu - use Collapsible
                   return (
                     <Collapsible key={item.title} asChild defaultOpen={!isDisabled}>
                       <SidebarMenuItem>
@@ -364,97 +434,74 @@ export function AppSidebar() {
                   );
                 }
 
+                // Simple menu item
                 return (
                   <SidebarMenuItem key={item.title}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <SidebarMenuButton
-                          asChild={!isDisabled}
-                          isActive={!isDisabled && location === item.url}
-                          className={`group/item h-auto py-3 px-3 ${!isDisabled ? 'hover-elevate' : 'cursor-not-allowed opacity-40'} ${isCollapsed ? 'justify-center' : ''}`}
-                          disabled={isDisabled}
-                          title={isDisabled ? "Configure uma empresa primeiro" : undefined}
-                          onClick={(e) => {
-                            if (isDisabled) {
-                              e.preventDefault();
-                              e.stopPropagation();
-                            } else if (!isDisabled) {
-                              handleMenuItemClick();
-                            }
-                          }}
+                    <SidebarMenuButton
+                      asChild={!isDisabled}
+                      isActive={!isDisabled && location === item.url}
+                      className={`group/item h-auto py-3 px-3 ${!isDisabled ? 'hover-elevate' : 'cursor-not-allowed opacity-40'}`}
+                      disabled={isDisabled}
+                      title={isDisabled ? "Configure uma empresa primeiro" : undefined}
+                      onClick={(e) => {
+                        if (isDisabled) {
+                          e.preventDefault();
+                          e.stopPropagation();
+                        } else {
+                          handleMenuItemClick();
+                        }
+                      }}
+                    >
+                      {isDisabled ? (
+                        <div
+                          className="flex items-start gap-3 w-full"
+                          data-testid={`link-menu-${item.title.toLowerCase()}`}
                         >
-                          {isDisabled ? (
-                            <div
-                              className={`flex items-start gap-3 w-full ${isCollapsed ? 'justify-center' : ''}`}
-                              data-testid={`link-menu-${item.title.toLowerCase()}`}
-                            >
-                              <div className={`relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${item.color} shadow-sm ${isCollapsed ? 'mt-0' : 'mt-0.5'} saturate-0`}>
-                                <Icon className="h-4 w-4 text-white" strokeWidth={2.5} />
-                                {isCollapsed && item.badge && (
-                                  <div className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary border-2 border-sidebar flex items-center justify-center">
-                                    <span className="text-[8px] font-bold text-primary-foreground">{item.badge}</span>
-                                  </div>
-                                )}
-                              </div>
-                              {!isCollapsed && (
-                                <div className="flex flex-col gap-0.5 flex-1 min-w-0">
-                                  <div className="flex items-center justify-between gap-2">
-                                    <span className="font-semibold text-sm truncate">{item.title}</span>
-                                    {item.badge && (
-                                      <Badge
-                                        variant="secondary"
-                                        className="h-5 min-w-5 px-1.5 text-xs font-semibold bg-primary text-primary-foreground shrink-0"
-                                      >
-                                        {item.badge}
-                                      </Badge>
-                                    )}
-                                  </div>
-                                  <span className="text-xs text-muted-foreground truncate">{item.description}</span>
-                                </div>
+                          <div className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-gray-400 to-gray-500 shadow-sm mt-0.5 saturate-0">
+                            <Icon className="h-4 w-4 text-white" strokeWidth={2.5} />
+                          </div>
+                          <div className="flex flex-col gap-0.5 flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="font-semibold text-sm truncate">{item.title}</span>
+                              {item.badge && (
+                                <Badge
+                                  variant="secondary"
+                                  className="h-5 min-w-5 px-1.5 text-xs font-semibold bg-primary text-primary-foreground shrink-0"
+                                >
+                                  {item.badge}
+                                </Badge>
                               )}
                             </div>
-                          ) : (
-                            <Link href={item.url!}>
-                              <div
-                                className={`flex items-start gap-3 w-full ${isCollapsed ? 'justify-center' : ''}`}
-                                data-testid={`link-menu-${item.title.toLowerCase()}`}
-                              >
-                                <div className={`relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${item.color} shadow-sm ${isCollapsed ? 'mt-0' : 'mt-0.5'}`}>
-                                  <Icon className="h-4 w-4 text-white" strokeWidth={2.5} />
-                                  {isCollapsed && item.badge && (
-                                    <div className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary border-2 border-sidebar flex items-center justify-center">
-                                      <span className="text-[8px] font-bold text-primary-foreground">{item.badge}</span>
-                                    </div>
-                                  )}
-                                </div>
-                                {!isCollapsed && (
-                                  <div className="flex flex-col gap-0.5 flex-1 min-w-0">
-                                    <div className="flex items-center justify-between gap-2">
-                                      <span className="font-semibold text-sm truncate">{item.title}</span>
-                                      {item.badge && (
-                                        <Badge
-                                          variant="secondary"
-                                          className="h-5 min-w-5 px-1.5 text-xs font-semibold bg-primary text-primary-foreground shrink-0"
-                                        >
-                                          {item.badge}
-                                        </Badge>
-                                      )}
-                                    </div>
-                                    <span className="text-xs text-muted-foreground truncate">{item.description}</span>
-                                  </div>
+                            <span className="text-xs text-muted-foreground truncate">{item.description}</span>
+                          </div>
+                        </div>
+                      ) : (
+                        <Link href={item.url!}>
+                          <div
+                            className="flex items-start gap-3 w-full"
+                            data-testid={`link-menu-${item.title.toLowerCase()}`}
+                          >
+                            <div className={`relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${item.color} shadow-sm mt-0.5`}>
+                              <Icon className="h-4 w-4 text-white" strokeWidth={2.5} />
+                            </div>
+                            <div className="flex flex-col gap-0.5 flex-1 min-w-0">
+                              <div className="flex items-center justify-between gap-2">
+                                <span className="font-semibold text-sm truncate">{item.title}</span>
+                                {item.badge && (
+                                  <Badge
+                                    variant="secondary"
+                                    className="h-5 min-w-5 px-1.5 text-xs font-semibold bg-primary text-primary-foreground shrink-0"
+                                  >
+                                    {item.badge}
+                                  </Badge>
                                 )}
                               </div>
-                            </Link>
-                          )}
-                        </SidebarMenuButton>
-                      </TooltipTrigger>
-                      {isCollapsed && (
-                        <TooltipContent side="right" className="flex flex-col gap-1">
-                          <span className="font-semibold">{item.title}</span>
-                          <span className="text-xs text-muted-foreground">{item.description}</span>
-                        </TooltipContent>
+                              <span className="text-xs text-muted-foreground truncate">{item.description}</span>
+                            </div>
+                          </div>
+                        </Link>
                       )}
-                    </Tooltip>
+                    </SidebarMenuButton>
                   </SidebarMenuItem>
                 );
               })}
