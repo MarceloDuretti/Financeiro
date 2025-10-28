@@ -934,14 +934,16 @@ export default function Lancamentos() {
                               {/* Person */}
                               <div className="w-40 flex-shrink-0 hidden md:block">
                                 <div className="flex items-center gap-1.5">
-                                  <User className="w-3 h-3 text-muted-foreground" />
-                                  <span className="truncate font-semibold">{person?.name || '-'}</span>
+                                  <User className="w-3.5 h-3.5 text-muted-foreground" />
+                                  <span className="truncate font-bold text-sm">{person?.name || '-'}</span>
                                 </div>
                               </div>
 
                               {/* Description/Title */}
                               <div className="flex-1 min-w-0 hidden lg:block">
-                                <p className="text-muted-foreground truncate">{transaction.title || 'Sem título'}</p>
+                                <p className="text-muted-foreground truncate text-xs">
+                                  {transaction.title ? `(${transaction.title})` : ''}
+                                </p>
                               </div>
 
                               {/* Payment Date */}
