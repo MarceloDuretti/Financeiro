@@ -921,9 +921,14 @@ export default function Lancamentos() {
                               onClick={() => handleCardClick(transaction)}
                               data-testid={`row-transaction-${transaction.id}`}
                             >
-                              {/* Description */}
-                              <div className="flex-1 min-w-0">
-                                <p className="font-semibold truncate">{transaction.title || 'Sem título'}</p>
+                              {/* Type */}
+                              <div className="w-16 flex-shrink-0">
+                                <Badge 
+                                  variant={transaction.type === 'expense' ? 'destructive' : 'default'}
+                                  className={`text-[10px] h-5 px-1.5 ${transaction.type === 'revenue' ? 'bg-blue-600 hover:bg-blue-700' : ''}`}
+                                >
+                                  {transaction.type === 'expense' ? 'Despesa' : 'Receita'}
+                                </Badge>
                               </div>
 
                               {/* Person */}
