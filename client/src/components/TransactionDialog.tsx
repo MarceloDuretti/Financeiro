@@ -877,7 +877,18 @@ const FormContent = ({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form 
+        onSubmit={(e) => {
+          // Previne submit se não estiver na última etapa
+          if (currentStep < STEPS.length) {
+            e.preventDefault();
+            handleNext();
+          } else {
+            form.handleSubmit(onSubmit)(e);
+          }
+        }} 
+        className="space-y-4"
+      >
         <ProgressStepper currentStep={currentStep} transactionType={form.getValues().type} />
         {renderStepContent()}
 
@@ -1052,13 +1063,8 @@ export function TransactionDialog({
   });
 
   const onSubmit = (data: FormValues) => {
-    // Só permite salvar se estiver na etapa 5 (Revisão Final)
-    if (currentStep === STEPS.length) {
-      createMutation.mutate(data);
-    } else {
-      // Se não estiver na etapa 5, apenas avança para próxima etapa
-      handleNext();
-    }
+    // Neste ponto, só chega aqui se estiver na etapa 5
+    createMutation.mutate(data);
   };
 
   const handleNext = () => {
