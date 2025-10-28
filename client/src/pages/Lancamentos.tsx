@@ -330,9 +330,9 @@ export default function Lancamentos() {
       {/* Main Content Area */}
       <div className="flex flex-1 overflow-hidden">
         {/* Month Navigation Sidebar - Desktop Only */}
-        <div className="hidden lg:flex flex-col w-32 border-r bg-muted/20">
+        <div className="hidden lg:flex flex-col w-32 border-r bg-background">
           {/* Year selector - compact */}
-          <div className="p-2 border-b bg-muted/30">
+          <div className="p-2 border-b bg-muted/10">
             <Select value={selectedYear.toString()} onValueChange={(val) => setSelectedYear(parseInt(val))}>
               <SelectTrigger className="h-8 text-xs" data-testid="select-year">
                 <SelectValue />
