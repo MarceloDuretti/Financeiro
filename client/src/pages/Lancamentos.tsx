@@ -390,23 +390,15 @@ export default function Lancamentos() {
                     variant={isSelected ? "default" : "ghost"}
                     size="sm"
                     onClick={() => setSelectedMonth(month.index)}
-                    className={`w-full h-8 flex items-center justify-between px-2 text-xs transition-all duration-200 ${
+                    className={`w-full h-12 flex items-center justify-between px-3 transition-all duration-200 ${
                       isCurrent && !isSelected ? 'border-l-2 border-primary' : ''
                     }`}
                     data-testid={`button-month-${month.index}`}
                   >
-                    <span className="font-medium text-[11px]">{month.short}</span>
-                    <div className="flex items-center gap-1.5">
-                      <Badge
-                        variant="outline"
-                        className="text-[9px] px-1 h-4 min-w-[16px] font-medium border-muted-foreground/20"
-                      >
-                        {count}
-                      </Badge>
-                      <span className={`text-[9px] font-medium min-w-[28px] text-right ${yoyColor}`}>
-                        {displayYoy > 0 ? '+' : ''}{displayYoy.toFixed(0)}%
-                      </span>
-                    </div>
+                    <span className="font-semibold text-sm">{month.short}</span>
+                    <span className={`text-xs font-medium ${yoyColor}`}>
+                      {displayYoy > 0 ? '+' : ''}{displayYoy.toFixed(0)}%
+                    </span>
                   </Button>
                   {month.index < 11 && (
                     <div className="h-px bg-border/30 mx-2" />
@@ -476,16 +468,13 @@ export default function Lancamentos() {
                     variant={isSelected ? "default" : "outline"}
                     size="sm"
                     onClick={() => setSelectedMonth(month.index)}
-                    className={`h-7 px-2 text-xs flex-shrink-0 flex items-center gap-1.5 ${
+                    className={`h-9 px-3 text-xs flex-shrink-0 flex items-center gap-2 ${
                       isCurrent && !isSelected ? 'border-primary border-2' : ''
                     }`}
                     data-testid={`button-month-mobile-${month.index}`}
                   >
-                    <span className="font-medium text-[10px]">{month.short}</span>
-                    <Badge variant="outline" className="text-[8px] px-1 h-3.5 min-w-[14px] border-muted-foreground/20">
-                      {count}
-                    </Badge>
-                    <span className={`text-[8px] font-medium ${yoyColor}`}>
+                    <span className="font-semibold text-xs">{month.short}</span>
+                    <span className={`text-[10px] font-medium ${yoyColor}`}>
                       {displayYoy > 0 ? '+' : ''}{displayYoy.toFixed(0)}%
                     </span>
                   </Button>
