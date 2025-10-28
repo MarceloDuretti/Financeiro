@@ -776,9 +776,9 @@ export const insertTransactionSchema = createInsertSchema(transactions).omit({
   personId: z.string().optional(),
   costCenterId: z.string().optional(),
   chartAccountId: z.string().optional(),
-  issueDate: z.date(),
-  dueDate: z.date(),
-  paidDate: z.date().optional(),
+  issueDate: z.coerce.date(),
+  dueDate: z.coerce.date(),
+  paidDate: z.coerce.date().optional().nullable(),
   amount: z.string().min(1, "Valor é obrigatório"),
   paidAmount: z.string().optional(),
   discount: z.string().optional(),
@@ -796,7 +796,7 @@ export const insertTransactionSchema = createInsertSchema(transactions).omit({
   installmentNumber: z.number().optional(),
   installmentTotal: z.number().optional(),
   isReconciled: z.boolean().optional(),
-  reconciledAt: z.date().optional(),
+  reconciledAt: z.coerce.date().optional().nullable(),
 });
 
 export type InsertTransaction = z.infer<typeof insertTransactionSchema>;

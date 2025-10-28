@@ -22,6 +22,7 @@ import {
 import { format, startOfMonth, endOfMonth, getMonth, getYear } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import type { Transaction } from "@shared/schema";
+import { TransactionDialog } from "@/components/TransactionDialog";
 
 const SELECTED_COMPANY_KEY = "fincontrol_selected_company_id";
 
@@ -48,6 +49,8 @@ export default function Lancamentos() {
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const parentRef = useRef<HTMLDivElement>(null);
 
   // Calculate date range from selected month/year
@@ -321,7 +324,14 @@ export default function Lancamentos() {
             </p>
           </div>
         </div>
-        <Button size="sm" data-testid="button-new-transaction">
+        <Button 
+          size="sm" 
+          onClick={() => {
+            setSelectedTransaction(null);
+            setDialogOpen(true);
+          }}
+          data-testid="button-new-transaction"
+        >
           <Plus className="w-4 h-4" />
           <span className="hidden sm:inline">Novo</span>
         </Button>
@@ -722,8 +732,8 @@ export default function Lancamentos() {
                                 )}
                               </div>
                               
-                              <h3 className="font-medium truncate text-sm" data-testid={`text-description-${transaction.id}`}>
-                                {transaction.description || 'Sem descrição'}
+                              <h3 className="font-medium truncate text-sm" data-testid={`text-title-${transaction.id}`}>
+                                {transaction.title || 'Sem título'}
                               </h3>
                               
                               <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
@@ -764,6 +774,13 @@ export default function Lancamentos() {
           </div>
         </div>
       </div>
+
+      {/* Transaction Dialog */}
+      <TransactionDialog 
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        transaction={selectedTransaction}
+      />
     </div>
   );
 }
