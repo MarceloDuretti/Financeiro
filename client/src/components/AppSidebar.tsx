@@ -208,7 +208,7 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar className="border-r bg-gradient-to-b from-background to-muted/20">
+    <Sidebar collapsible="icon" className="border-r bg-gradient-to-b from-background to-muted/20">
       <SidebarHeader className="border-b bg-gradient-to-br from-primary/5 to-transparent p-5">
         <div className="flex items-center gap-3 rounded-xl bg-gradient-to-br from-card to-muted/30 p-4 border shadow-sm hover-elevate cursor-pointer mb-5" data-testid="profile-card">
           <Avatar className="h-12 w-12 border-2 border-primary/20">
