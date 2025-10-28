@@ -576,7 +576,7 @@ export default function Lancamentos() {
                       onClick={() => setSelectedMonth(month.index)}
                       className={`h-8 px-3 text-xs flex-shrink-0 flex items-center gap-2 ${
                         isCurrent && !isSelected ? 'border-primary border-2' : ''
-                      }`}
+                      } ${!isSelected ? 'opacity-60 hover:opacity-100' : ''}`}
                       data-testid={`button-month-mobile-${month.index}`}
                     >
                       <span className={`font-semibold transition-all duration-200 ${
