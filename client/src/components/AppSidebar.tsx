@@ -315,8 +315,8 @@ export function AppSidebar() {
                           data-testid={`button-menu-${item.title.toLowerCase()}`}
                           title={`${item.title} - ${item.description}`}
                         >
-                          <div className={`relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${item.color} shadow transition-all duration-300 ${isDisabled ? 'saturate-0' : 'hover:shadow-lg hover:shadow-primary/20'}`}>
-                            <Icon className="h-4 w-4 text-white" strokeWidth={2.5} />
+                          <div className={`relative flex shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${item.color} shadow transition-all duration-300 ${isDisabled ? 'saturate-0' : 'hover:shadow-lg hover:shadow-primary/20'}`} style={{ width: 'var(--sidebar-icon-size)', height: 'var(--sidebar-icon-size)' }}>
+                            <Icon className="text-white" style={{ width: '50%', height: '50%' }} strokeWidth={2.5} />
                             {/* Mostrar badge apenas para Notificações */}
                             {item.title === "Notificações" && item.count && (
                               <div className="absolute -top-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-primary border border-background flex items-center justify-center shadow-sm">
@@ -349,8 +349,8 @@ export function AppSidebar() {
                           className="relative w-full flex flex-col items-center justify-center gap-0.5 py-1 rounded-lg cursor-not-allowed opacity-40 transition-all duration-300"
                           data-testid={`button-menu-${item.title.toLowerCase()}`}
                         >
-                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-gray-400 to-gray-500 shadow saturate-0">
-                            <Icon className="h-4 w-4 text-white" strokeWidth={2.5} />
+                          <div className="flex shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-gray-400 to-gray-500 shadow saturate-0" style={{ width: 'var(--sidebar-icon-size)', height: 'var(--sidebar-icon-size)' }}>
+                            <Icon className="text-white" style={{ width: '50%', height: '50%' }} strokeWidth={2.5} />
                           </div>
                           <span className="text-[11px] font-medium text-muted-foreground truncate w-full text-center leading-tight">
                             {getShortLabel(item.title)}
@@ -383,8 +383,8 @@ export function AppSidebar() {
                           className={`relative w-full flex flex-col items-center justify-center gap-0.5 py-1 rounded-lg transition-all duration-300 hover:scale-105 active:scale-95 ${location === item.url ? 'bg-accent/50 ring-2 ring-primary/20' : ''}`}
                           data-testid={`link-menu-${item.title.toLowerCase()}`}
                         >
-                          <div className={`relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${item.color} shadow transition-all duration-300 hover:shadow-lg hover:shadow-primary/20`}>
-                            <Icon className="h-4 w-4 text-white" strokeWidth={2.5} />
+                          <div className={`relative flex shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${item.color} shadow transition-all duration-300 hover:shadow-lg hover:shadow-primary/20`} style={{ width: 'var(--sidebar-icon-size)', height: 'var(--sidebar-icon-size)' }}>
+                            <Icon className="text-white" style={{ width: '50%', height: '50%' }} strokeWidth={2.5} />
                             {/* Mostrar badge apenas para Notificações */}
                             {item.title === "Notificações" && item.badge && (
                               <div className="absolute -top-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-primary border border-background flex items-center justify-center shadow-sm">

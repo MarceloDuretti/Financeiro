@@ -411,29 +411,32 @@
   /* Responsive spacing for collapsed sidebar based on screen height */
   .sidebar-collapsed-spacing {
     /* Default: Compact spacing for small screens (< 768px height) */
-    --sidebar-py: 0.5rem;        /* py-2 */
-    --sidebar-gap: 0.5rem;        /* gap-2 */
-    --sidebar-menu-gap: 0.375rem; /* gap-1.5 */
-    --sidebar-avatar-size: 2rem;  /* h-8 w-8 */
+    --sidebar-py: 0.75rem;
+    --sidebar-gap: 0.75rem;
+    --sidebar-menu-gap: 0.5rem;
+    --sidebar-avatar-size: 2rem;
+    --sidebar-icon-size: 2rem;
   }
 
-  /* Medium screens (768px - 899px height) */
-  @media (min-height: 768px) and (max-height: 899px) {
+  /* Medium screens (768px - 900px height) */
+  @media (min-height: 768px) and (max-height: 900px) {
     .sidebar-collapsed-spacing {
-      --sidebar-py: 0.75rem;       /* py-3 */
-      --sidebar-gap: 0.75rem;      /* gap-3 */
-      --sidebar-menu-gap: 0.5rem;  /* gap-2 */
-      --sidebar-avatar-size: 2.25rem; /* h-9 w-9 */
+      --sidebar-py: 1.5rem;
+      --sidebar-gap: 1.25rem;
+      --sidebar-menu-gap: 0.875rem;
+      --sidebar-avatar-size: 2.5rem;
+      --sidebar-icon-size: 2.25rem;
     }
   }
 
-  /* Large screens (>= 900px height) */
-  @media (min-height: 900px) {
+  /* Large screens (> 900px height) */
+  @media (min-height: 901px) {
     .sidebar-collapsed-spacing {
-      --sidebar-py: 1.5rem;        /* py-6 */
-      --sidebar-gap: 1.5rem;       /* gap-6 */
-      --sidebar-menu-gap: 1rem;    /* gap-4 */
-      --sidebar-avatar-size: 3rem; /* h-12 w-12 */
+      --sidebar-py: 2.5rem;
+      --sidebar-gap: 2rem;
+      --sidebar-menu-gap: 1.5rem;
+      --sidebar-avatar-size: 3rem;
+      --sidebar-icon-size: 2.5rem;
     }
   }
 }
