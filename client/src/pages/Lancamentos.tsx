@@ -933,6 +933,29 @@ export default function Lancamentos() {
                       accumulatedBalance += (prevRevenues - prevExpenses);
                     }
                     
+                    // Calcular variação percentual vs dia anterior
+                    let percentChange: number | null = null;
+                    if (dayIndex > 0) {
+                      const previousDay = allDays[dayIndex - 1];
+                      const previousDayTransactions = filteredTransactions.filter(t => 
+                        t.dueDate && isSameDay(new Date(t.dueDate), previousDay)
+                      );
+                      const prevRevenues = previousDayTransactions
+                        .filter(t => t.type === 'revenue')
+                        .reduce((sum, t) => sum + parseFloat(t.amount || '0'), 0);
+                      const prevExpenses = previousDayTransactions
+                        .filter(t => t.type === 'expense')
+                        .reduce((sum, t) => sum + parseFloat(t.amount || '0'), 0);
+                      const previousDayBalance = prevRevenues - prevExpenses;
+                      
+                      if (previousDayBalance !== 0) {
+                        percentChange = ((dayBalance - previousDayBalance) / Math.abs(previousDayBalance)) * 100;
+                      } else if (dayBalance !== 0) {
+                        // Se dia anterior era 0 e hoje não é, consideramos crescimento infinito (usamos 100%)
+                        percentChange = dayBalance > 0 ? 100 : -100;
+                      }
+                    }
+                    
                     const isCurrentDay = isToday(day);
                     
                     return (
@@ -961,8 +984,26 @@ export default function Lancamentos() {
                               </Badge>
                             )}
                           </div>
-                          <div className="text-lg font-normal tracking-tight mb-1.5">
-                            {format(day, 'd')}
+                          <div className="flex items-center justify-between mb-1.5">
+                            <div className="text-lg font-normal tracking-tight">
+                              {format(day, 'd')}
+                            </div>
+                            {percentChange !== null && (
+                              <div className={`flex items-center gap-0.5 text-[10px] font-medium ${
+                                percentChange > 0 ? 'text-green-600 dark:text-green-500' : 
+                                percentChange < 0 ? 'text-red-600 dark:text-red-500' : 
+                                'text-muted-foreground'
+                              }`}>
+                                {percentChange > 0 ? (
+                                  <TrendingUp className="w-3 h-3" />
+                                ) : percentChange < 0 ? (
+                                  <TrendingDown className="w-3 h-3" />
+                                ) : null}
+                                <span>
+                                  {percentChange > 0 ? '+' : ''}{Math.abs(percentChange).toFixed(0)}%
+                                </span>
+                              </div>
+                            )}
                           </div>
                           
                           {/* Saldos */}
