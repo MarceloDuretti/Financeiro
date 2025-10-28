@@ -713,79 +713,123 @@ const Step5Content = ({
   const values = form.getValues();
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-2 mb-4">
+    <div className="space-y-3">
+      <div className="flex items-center gap-2">
         <CheckCircle2 className="h-5 w-5 text-green-600" />
-        <h3 className="text-lg font-semibold">Revisão Final - Confirme os Dados</h3>
+        <h3 className="text-base font-semibold">Revisão Final</h3>
       </div>
 
       <Card>
-        <CardContent className="p-4 space-y-3">
-          <div>
-            <p className="text-sm font-semibold text-muted-foreground mb-2">Tipo e Valores</p>
-            <div className="pl-4 space-y-1">
-              <p className="flex items-center gap-2">
-                <span className="text-muted-foreground">Tipo:</span>
-                <Badge variant={values.type === "expense" ? "destructive" : "default"} className={cn(
-                  values.type === "revenue" && "bg-blue-600 hover:bg-blue-700"
-                )}>
-                  {values.type === "expense" ? "Despesa" : "Receita"}
-                </Badge>
-              </p>
-              <p><span className="text-muted-foreground">Título:</span> <span className="font-medium">{values.title}</span></p>
-              <p><span className="text-muted-foreground">Valor:</span> <span className="font-bold text-lg">R$ {parseFloat(values.amount || "0").toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span></p>
-              <p><span className="text-muted-foreground">Data Emissão:</span> {format(values.issueDate, "dd/MM/yyyy")}</p>
-              <p><span className="text-muted-foreground">Vencimento:</span> {format(values.dueDate, "dd/MM/yyyy")}</p>
+        <CardContent className="p-3 space-y-2">
+          {/* Grid 2 colunas - Dados Básicos */}
+          <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
+            <div className="col-span-2 flex items-center gap-2 mb-1">
+              <span className="text-muted-foreground font-medium">Tipo:</span>
+              <Badge variant={values.type === "expense" ? "destructive" : "default"} className={cn(
+                "text-xs",
+                values.type === "revenue" && "bg-blue-600 hover:bg-blue-700"
+              )}>
+                {values.type === "expense" ? "Despesa" : "Receita"}
+              </Badge>
+            </div>
+            
+            <div className="col-span-2">
+              <span className="text-muted-foreground">Título:</span> <span className="font-medium">{values.title}</span>
+            </div>
+            
+            <div className="col-span-2">
+              <span className="text-muted-foreground">Valor:</span> <span className="font-bold text-base">R$ {parseFloat(values.amount || "0").toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+            </div>
+            
+            <div>
+              <span className="text-muted-foreground">Emissão:</span> {format(values.issueDate, "dd/MM/yyyy")}
+            </div>
+            
+            <div>
+              <span className="text-muted-foreground">Vencimento:</span> {format(values.dueDate, "dd/MM/yyyy")}
             </div>
           </div>
 
-          <Separator />
+          <Separator className="my-2" />
 
-          <div>
-            <p className="text-sm font-semibold text-muted-foreground mb-2">Categorização</p>
-            <div className="pl-4 space-y-1">
-              <p><span className="text-muted-foreground">Pessoa:</span> {customersSuppliers.find(p => p.id === values.personId)?.name || "Não informado"}</p>
-              <p><span className="text-muted-foreground">Centro de Custo:</span> {costCenters.find(c => c.id === values.costCenterId)?.name || "Não informado"}</p>
-              <p><span className="text-muted-foreground">Plano de Contas:</span> {chartAccounts.find(c => c.id === values.chartAccountId)?.name || "Não informado"}</p>
+          {/* Grid 2 colunas - Categorização */}
+          <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
+            <div className="col-span-2">
+              <span className="text-muted-foreground">Pessoa:</span> {customersSuppliers.find(p => p.id === values.personId)?.name || "Não informado"}
+            </div>
+            
+            <div>
+              <span className="text-muted-foreground">Centro:</span> {costCenters.find(c => c.id === values.costCenterId)?.name || "Não informado"}
+            </div>
+            
+            <div>
+              <span className="text-muted-foreground">Conta:</span> {chartAccounts.find(c => c.id === values.chartAccountId)?.name || "Não informado"}
             </div>
           </div>
 
-          <Separator />
+          <Separator className="my-2" />
 
-          <div>
-            <p className="text-sm font-semibold text-muted-foreground mb-2">Pagamento</p>
-            <div className="pl-4 space-y-1">
-              <p><span className="text-muted-foreground">Status:</span> <Badge variant="outline">{values.status === "pending" ? "Pendente" : values.status === "paid" ? "Pago" : "Cancelado"}</Badge></p>
-              <p><span className="text-muted-foreground">Forma de Pagamento:</span> {paymentMethods.find(p => p.id === values.paymentMethodId)?.name || "Não informado"}</p>
-              {values.status === "paid" && (
-                <>
-                  <p><span className="text-muted-foreground">Conta Bancária:</span> {bankAccounts.find(b => b.id === values.bankAccountId)?.name || "Não informado"}</p>
-                  {values.paidDate && <p><span className="text-muted-foreground">Data Pagamento:</span> {format(values.paidDate, "dd/MM/yyyy")}</p>}
-                </>
-              )}
+          {/* Grid 2 colunas - Pagamento */}
+          <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
+            <div className="flex items-center gap-2">
+              <span className="text-muted-foreground">Status:</span>
+              <Badge variant="outline" className="text-xs">
+                {values.status === "pending" ? "Pendente" : values.status === "paid" ? "Pago" : "Cancelado"}
+              </Badge>
             </div>
+            
+            <div>
+              <span className="text-muted-foreground">Forma:</span> {paymentMethods.find(p => p.id === values.paymentMethodId)?.name || "Não informado"}
+            </div>
+            
+            {values.status === "paid" && (
+              <>
+                <div>
+                  <span className="text-muted-foreground">Conta Bancária:</span> {bankAccounts.find(b => b.id === values.bankAccountId)?.name || "Não informado"}
+                </div>
+                {values.paidDate && (
+                  <div>
+                    <span className="text-muted-foreground">Data Pgto:</span> {format(values.paidDate, "dd/MM/yyyy")}
+                  </div>
+                )}
+              </>
+            )}
           </div>
 
+          {/* Informações Adicionais */}
           {(values.description || parseFloat(values.discount || "0") > 0 || parseFloat(values.interest || "0") > 0 || parseFloat(values.fees || "0") > 0) && (
             <>
-              <Separator />
-              <div>
-                <p className="text-sm font-semibold text-muted-foreground mb-2">Informações Adicionais</p>
-                <div className="pl-4 space-y-1">
-                  {values.description && <p><span className="text-muted-foreground">Descrição:</span> {values.description}</p>}
-                  {parseFloat(values.discount || "0") > 0 && <p><span className="text-muted-foreground">Desconto:</span> R$ {parseFloat(values.discount || "0").toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>}
-                  {parseFloat(values.interest || "0") > 0 && <p><span className="text-muted-foreground">Juros:</span> R$ {parseFloat(values.interest || "0").toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>}
-                  {parseFloat(values.fees || "0") > 0 && <p><span className="text-muted-foreground">Taxas:</span> R$ {parseFloat(values.fees || "0").toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>}
-                </div>
+              <Separator className="my-2" />
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
+                {values.description && (
+                  <div className="col-span-2">
+                    <span className="text-muted-foreground">Descrição:</span> {values.description}
+                  </div>
+                )}
+                {parseFloat(values.discount || "0") > 0 && (
+                  <div>
+                    <span className="text-muted-foreground">Desconto:</span> R$ {parseFloat(values.discount || "0").toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                  </div>
+                )}
+                {parseFloat(values.interest || "0") > 0 && (
+                  <div>
+                    <span className="text-muted-foreground">Juros:</span> R$ {parseFloat(values.interest || "0").toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                  </div>
+                )}
+                {parseFloat(values.fees || "0") > 0 && (
+                  <div>
+                    <span className="text-muted-foreground">Taxas:</span> R$ {parseFloat(values.fees || "0").toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                  </div>
+                )}
               </div>
             </>
           )}
         </CardContent>
       </Card>
 
-      <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-md p-3">
-        <p className="text-sm text-blue-900 dark:text-blue-100">
-          Revise todas as informações acima. Ao clicar em <strong>"Salvar"</strong>, o lançamento será criado e não poderá ser desfeito.
+      <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-md p-2.5">
+        <p className="text-xs text-blue-900 dark:text-blue-100">
+          ✓ Revise os dados acima e clique em <strong>"Salvar"</strong> para confirmar.
         </p>
       </div>
     </div>
