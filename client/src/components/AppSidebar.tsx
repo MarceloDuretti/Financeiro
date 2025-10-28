@@ -280,7 +280,7 @@ export function AppSidebar() {
         collapsible="icon" 
         className="border-r bg-gradient-to-b from-background via-muted/10 to-muted/30 backdrop-blur-sm flex flex-col h-full sidebar-collapsed-spacing"
       >
-        <SidebarContent className="flex flex-col items-center overflow-y-auto scrollbar-hidden flex-1 min-h-0" style={{ paddingTop: 'var(--sidebar-py)', paddingBottom: 'var(--sidebar-py)', gap: 'var(--sidebar-gap)' }}>
+        <SidebarContent className="flex flex-col items-center overflow-y-auto scrollbar-hidden flex-1 min-h-0 pb-8" style={{ paddingTop: 'var(--sidebar-py)', gap: 'var(--sidebar-gap)' }}>
           {/* Avatar no topo */}
           <div className="w-full flex items-center justify-center px-2 shrink-0">
             <div className="relative group">
@@ -324,7 +324,7 @@ export function AppSidebar() {
                               </div>
                             )}
                           </div>
-                          <span className="text-[11px] font-medium text-muted-foreground truncate w-full text-center leading-tight">
+                          <span className="text-[9px] font-medium text-muted-foreground truncate w-full text-center leading-tight">
                             {getShortLabel(item.title)}
                           </span>
                         </button>
@@ -352,7 +352,7 @@ export function AppSidebar() {
                           <div className="flex shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-gray-400 to-gray-500 shadow saturate-0" style={{ width: 'var(--sidebar-icon-size)', height: 'var(--sidebar-icon-size)' }}>
                             <Icon className="text-white" style={{ width: '50%', height: '50%' }} strokeWidth={2.5} />
                           </div>
-                          <span className="text-[11px] font-medium text-muted-foreground truncate w-full text-center leading-tight">
+                          <span className="text-[9px] font-medium text-muted-foreground truncate w-full text-center leading-tight">
                             {getShortLabel(item.title)}
                           </span>
                         </button>
@@ -392,7 +392,7 @@ export function AppSidebar() {
                               </div>
                             )}
                           </div>
-                          <span className="text-[11px] font-medium text-muted-foreground truncate w-full text-center leading-tight">
+                          <span className="text-[9px] font-medium text-muted-foreground truncate w-full text-center leading-tight">
                             {getShortLabel(item.title)}
                           </span>
                         </button>
