@@ -280,13 +280,13 @@ export function AppSidebar() {
         collapsible="icon" 
         className="border-r bg-gradient-to-b from-background via-muted/10 to-muted/30 backdrop-blur-sm flex flex-col h-full"
       >
-        <SidebarContent className="py-6 flex flex-col items-center gap-6 overflow-y-auto scrollbar-hidden flex-1 min-h-0">
+        <SidebarContent className="py-4 flex flex-col items-center gap-3 overflow-y-auto scrollbar-hidden flex-1 min-h-0">
           {/* Avatar no topo */}
           <div className="w-full flex items-center justify-center px-3 shrink-0">
             <div className="relative group">
-              <Avatar className="h-12 w-12 border-2 border-primary/20 shadow-lg transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl group-hover:border-primary/40">
+              <Avatar className="h-10 w-10 border-2 border-primary/20 shadow-lg transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl group-hover:border-primary/40">
                 <AvatarImage src={user?.profileImageUrl || ""} alt={getUserDisplayName()} />
-                <AvatarFallback className="bg-gradient-to-br from-primary to-blue-600 text-white font-semibold text-sm">
+                <AvatarFallback className="bg-gradient-to-br from-primary to-blue-600 text-white font-semibold text-xs">
                   {getUserInitials()}
                 </AvatarFallback>
               </Avatar>
@@ -297,7 +297,7 @@ export function AppSidebar() {
 
           <Separator className="w-3/4 mx-auto" />
 
-          <SidebarMenu className="gap-4 w-full px-3">
+          <SidebarMenu className="gap-2 w-full px-3">
             {menuItems.map((item) => {
               const Icon = item.icon;
               const isDisabled = item.requiresCompany && !hasCompanies;
