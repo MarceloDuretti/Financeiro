@@ -489,8 +489,8 @@ export default function Lancamentos() {
                       </span>
                     </div>
                     <div className={`flex items-center gap-0.5 font-medium transition-all duration-200 ${
-                      isSelected ? 'text-sm text-primary' : 'text-xs'
-                    } ${!isSelected && yoyColor}`}>
+                      isSelected ? 'text-sm' : 'text-xs'
+                    } ${yoyColor}`}>
                       {displayYoy !== 0 && (
                         displayYoy > 0 ? (
                           <ArrowUp className={`${isSelected ? 'w-3 h-3' : 'w-2.5 h-2.5'}`} />
@@ -583,8 +583,8 @@ export default function Lancamentos() {
                         {month.short}
                       </span>
                       <div className={`flex items-center gap-0.5 font-medium transition-all duration-200 ${
-                        isSelected ? 'text-xs text-primary' : 'text-[10px]'
-                      } ${!isSelected && yoyColor}`}>
+                        isSelected ? 'text-xs' : 'text-[10px]'
+                      } ${yoyColor}`}>
                         {displayYoy !== 0 && (
                           displayYoy > 0 ? (
                             <ArrowUp className={`${isSelected ? 'w-2.5 h-2.5' : 'w-2 h-2'}`} />
