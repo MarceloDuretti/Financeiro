@@ -280,7 +280,7 @@ export function AppSidebar() {
         collapsible="icon" 
         className="border-r bg-gradient-to-b from-background via-muted/10 to-muted/30 backdrop-blur-sm"
       >
-        <SidebarContent className="py-6 flex flex-col items-center gap-6 overflow-y-auto">
+        <SidebarContent className="py-6 flex flex-col items-center gap-6 overflow-y-auto scrollbar-hidden">
           {/* Avatar no topo */}
           <div className="w-full flex items-center justify-center px-3">
             <div className="relative group">
