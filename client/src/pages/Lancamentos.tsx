@@ -23,9 +23,25 @@ import {
   LayoutGrid,
   List,
   ArrowUp,
-  ArrowDown
+  ArrowDown,
+  CalendarDays
 } from "lucide-react";
-import { format, startOfMonth, endOfMonth, getMonth, getYear, getDate, isValid } from "date-fns";
+import { 
+  format, 
+  startOfMonth, 
+  endOfMonth, 
+  getMonth, 
+  getYear, 
+  getDate, 
+  isValid,
+  startOfWeek,
+  endOfWeek,
+  addWeeks,
+  subWeeks,
+  eachDayOfInterval,
+  isSameDay,
+  isToday
+} from "date-fns";
 import { ptBR } from "date-fns/locale";
 import type { Transaction } from "@shared/schema";
 import { TransactionDialog } from "@/components/TransactionDialog";
@@ -59,9 +75,12 @@ export default function Lancamentos() {
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [detailSheetOpen, setDetailSheetOpen] = useState(false);
   const [detailTransaction, setDetailTransaction] = useState<Transaction | null>(null);
-  const [viewMode, setViewMode] = useState<'cards' | 'list'>(() => {
+  const [viewMode, setViewMode] = useState<'cards' | 'list' | 'week'>(() => {
     const saved = localStorage.getItem('fincontrol_transactions_view_mode');
-    return (saved === 'list' ? 'list' : 'cards') as 'cards' | 'list';
+    return (saved === 'week' || saved === 'list' ? saved : 'cards') as 'cards' | 'list' | 'week';
+  });
+  const [selectedWeekStart, setSelectedWeekStart] = useState<Date>(() => {
+    return startOfWeek(now, { locale: ptBR });
   });
   const parentRef = useRef<HTMLDivElement>(null);
 
@@ -70,15 +89,23 @@ export default function Lancamentos() {
     localStorage.setItem('fincontrol_transactions_view_mode', viewMode);
   }, [viewMode]);
 
-  // Calculate date range from selected month/year
+  // Calculate date range from selected month/year (with buffer for week view)
   const startDate = useMemo(() => {
-    const date = new Date(selectedYear, selectedMonth, 1);
-    return format(startOfMonth(date), 'yyyy-MM-dd');
+    const monthStart = new Date(selectedYear, selectedMonth, 1);
+    // Include buffer days for complete weeks
+    return format(startOfWeek(monthStart, { locale: ptBR }), 'yyyy-MM-dd');
   }, [selectedMonth, selectedYear]);
 
   const endDate = useMemo(() => {
-    const date = new Date(selectedYear, selectedMonth, 1);
-    return format(endOfMonth(date), 'yyyy-MM-dd');
+    const monthEnd = endOfMonth(new Date(selectedYear, selectedMonth, 1));
+    // Include buffer days for complete weeks
+    return format(endOfWeek(monthEnd, { locale: ptBR }), 'yyyy-MM-dd');
+  }, [selectedMonth, selectedYear]);
+
+  // Sync week when month/year changes
+  useEffect(() => {
+    const firstDayOfMonth = new Date(selectedYear, selectedMonth, 1);
+    setSelectedWeekStart(startOfWeek(firstDayOfMonth, { locale: ptBR }));
   }, [selectedMonth, selectedYear]);
 
   // Navigation functions
@@ -111,6 +138,16 @@ export default function Lancamentos() {
   const goToToday = () => {
     setSelectedMonth(getMonth(now));
     setSelectedYear(getYear(now));
+    setSelectedWeekStart(startOfWeek(now, { locale: ptBR }));
+  };
+
+  // Week navigation functions
+  const goToPreviousWeek = () => {
+    setSelectedWeekStart(subWeeks(selectedWeekStart, 1));
+  };
+
+  const goToNextWeek = () => {
+    setSelectedWeekStart(addWeeks(selectedWeekStart, 1));
   };
 
   // Keyboard shortcuts
@@ -250,18 +287,30 @@ export default function Lancamentos() {
     enabled: !!selectedCompanyId,
   });
 
-  // Calculate KPIs (exclude cancelled transactions)
+  // Filter transactions to only current month (for accurate KPIs, excluding buffer days)
+  const monthOnlyTransactions = useMemo(() => {
+    const monthStart = startOfMonth(new Date(selectedYear, selectedMonth, 1));
+    const monthEnd = endOfMonth(new Date(selectedYear, selectedMonth, 1));
+    
+    return transactions.filter(t => {
+      if (!t.dueDate) return true; // Include transactions without dueDate
+      const dueDate = new Date(t.dueDate);
+      return dueDate >= monthStart && dueDate <= monthEnd;
+    });
+  }, [transactions, selectedMonth, selectedYear]);
+
+  // Calculate KPIs (exclude cancelled transactions) - use only month transactions
   const kpis = {
-    openExpenses: transactions
+    openExpenses: monthOnlyTransactions
       .filter(t => t.type === 'expense' && t.status === 'pending')
       .reduce((sum, t) => sum + parseFloat(t.amount || '0'), 0),
-    openRevenues: transactions
+    openRevenues: monthOnlyTransactions
       .filter(t => t.type === 'revenue' && t.status === 'pending')
       .reduce((sum, t) => sum + parseFloat(t.amount || '0'), 0),
-    overdue: transactions
+    overdue: monthOnlyTransactions
       .filter(t => t.status === 'pending' && t.dueDate && new Date(t.dueDate) < new Date())
       .reduce((sum, t) => sum + parseFloat(t.amount || '0'), 0),
-    result: transactions
+    result: monthOnlyTransactions
       .filter(t => t.status === 'paid')
       .reduce((sum, t) => {
         const amount = parseFloat(t.paidAmount || t.amount || '0');
@@ -284,33 +333,52 @@ export default function Lancamentos() {
     ? ((kpis.result - previousKpis.result) / Math.abs(previousKpis.result)) * 100 
     : kpis.result !== 0 ? 100 : 0;
 
-  // Calculate monthly totals for percentage calculation
+  // Calculate monthly totals for percentage calculation (use only month transactions)
   const monthlyTotals = useMemo(() => {
-    const totalRevenues = transactions
+    const totalRevenues = monthOnlyTransactions
       .filter(t => t.type === 'revenue')
       .reduce((sum, t) => sum + parseFloat(t.amount || '0'), 0);
     
-    const totalExpenses = transactions
+    const totalExpenses = monthOnlyTransactions
       .filter(t => t.type === 'expense')
       .reduce((sum, t) => sum + parseFloat(t.amount || '0'), 0);
     
     return { totalRevenues, totalExpenses };
-  }, [transactions]);
+  }, [monthOnlyTransactions]);
 
   // Filter transactions
-  const filteredTransactions = transactions.filter(transaction => {
-    if (typeFilter !== 'all' && transaction.type !== typeFilter) return false;
-    if (statusFilter !== 'all' && transaction.status !== statusFilter) return false;
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      const matchesTitle = transaction.title?.toLowerCase().includes(query);
-      const matchesDescription = transaction.description?.toLowerCase().includes(query);
-      if (!matchesTitle && !matchesDescription) return false;
-    }
-    return true;
-  });
+  const filteredTransactions = useMemo(() => {
+    // Start with month-only transactions for non-week views
+    let baseTransactions = viewMode === 'week' ? transactions : monthOnlyTransactions;
+    
+    let filtered = baseTransactions.filter(transaction => {
+      if (typeFilter !== 'all' && transaction.type !== typeFilter) return false;
+      if (statusFilter !== 'all' && transaction.status !== statusFilter) return false;
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        const matchesTitle = transaction.title?.toLowerCase().includes(query);
+        const matchesDescription = transaction.description?.toLowerCase().includes(query);
+        if (!matchesTitle && !matchesDescription) return false;
+      }
+      return true;
+    });
 
-  // Group transactions by day of due date (with fallback for missing dates)
+    // Additional filter for week view - filter by selected week range
+    if (viewMode === 'week' && filtered.length > 0) {
+      const weekStart = selectedWeekStart;
+      const weekEnd = endOfWeek(selectedWeekStart, { locale: ptBR });
+      
+      filtered = filtered.filter(transaction => {
+        if (!transaction.dueDate) return false;
+        const dueDate = new Date(transaction.dueDate);
+        return dueDate >= weekStart && dueDate <= weekEnd;
+      });
+    }
+
+    return filtered;
+  }, [transactions, monthOnlyTransactions, typeFilter, statusFilter, searchQuery, viewMode, selectedWeekStart]);
+
+  // Group transactions by full date (YYYY-MM-DD) to avoid collisions
   const transactionsByDay = useMemo(() => {
     const grouped: Record<string, Transaction[]> = {};
     const noDueDateKey = 'no-date';
@@ -319,8 +387,8 @@ export default function Lancamentos() {
       let key: string;
       
       if (transaction.dueDate && isValid(new Date(transaction.dueDate))) {
-        const day = getDate(new Date(transaction.dueDate));
-        key = `day-${day}`;
+        // Use full date format to avoid collisions between different months
+        key = format(new Date(transaction.dueDate), 'yyyy-MM-dd');
       } else {
         // Fallback for transactions without dueDate
         key = noDueDateKey;
@@ -332,13 +400,11 @@ export default function Lancamentos() {
       grouped[key].push(transaction);
     });
     
-    // Sort: numeric days first, then "no-date" section last
+    // Sort: dates first (chronologically), then "no-date" section last
     const sortedKeys = Object.keys(grouped).sort((a, b) => {
       if (a === noDueDateKey) return 1;
       if (b === noDueDateKey) return -1;
-      const dayA = parseInt(a.replace('day-', ''));
-      const dayB = parseInt(b.replace('day-', ''));
-      return dayA - dayB;
+      return a.localeCompare(b); // Chronological sort of YYYY-MM-DD strings
     });
     
     return sortedKeys.reduce((acc, key) => {
@@ -638,7 +704,7 @@ export default function Lancamentos() {
                     R$ {kpis.openExpenses.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </div>
                   <p className="text-[10px] text-muted-foreground">
-                    {transactions.filter(t => t.type === 'expense' && t.status === 'pending').length} lançamentos
+                    {monthOnlyTransactions.filter(t => t.type === 'expense' && t.status === 'pending').length} lançamentos
                   </p>
                 </CardContent>
               </Card>
@@ -654,7 +720,7 @@ export default function Lancamentos() {
                     R$ {kpis.openRevenues.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </div>
                   <p className="text-[10px] text-muted-foreground">
-                    {transactions.filter(t => t.type === 'revenue' && t.status === 'pending').length} lançamentos
+                    {monthOnlyTransactions.filter(t => t.type === 'revenue' && t.status === 'pending').length} lançamentos
                   </p>
                 </CardContent>
               </Card>
@@ -670,7 +736,7 @@ export default function Lancamentos() {
                     R$ {kpis.overdue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </div>
                   <p className="text-[10px] text-muted-foreground">
-                    {transactions.filter(t => t.status === 'pending' && t.dueDate && new Date(t.dueDate) < new Date()).length} lançamentos
+                    {monthOnlyTransactions.filter(t => t.status === 'pending' && t.dueDate && new Date(t.dueDate) < new Date()).length} lançamentos
                   </p>
                 </CardContent>
               </Card>
@@ -687,7 +753,7 @@ export default function Lancamentos() {
                   </div>
                   <div className="flex items-center justify-between">
                     <p className="text-[10px] text-muted-foreground">
-                      {transactions.filter(t => t.status === 'paid').length} pagos
+                      {monthOnlyTransactions.filter(t => t.status === 'paid').length} pagos
                     </p>
                     {resultChange !== 0 && (
                       <div className={`flex items-center gap-0.5 text-[10px] font-medium ${
@@ -767,6 +833,15 @@ export default function Lancamentos() {
                 >
                   <List className="w-3 h-3" />
                 </Button>
+                <Button 
+                  variant={viewMode === 'week' ? 'default' : 'outline'} 
+                  size="sm" 
+                  className="h-8 w-8 p-0"
+                  onClick={() => setViewMode('week')}
+                  data-testid="button-view-week"
+                >
+                  <CalendarDays className="w-3 h-3" />
+                </Button>
               </div>
             </div>
           </div>
@@ -792,11 +867,183 @@ export default function Lancamentos() {
                   </div>
                 </CardContent>
               </Card>
+            ) : viewMode === 'week' ? (
+              // WEEK VIEW
+              <div className="flex flex-col h-full">
+                {/* Week Navigation */}
+                <div className="flex items-center justify-between gap-4 mb-4 pb-3 border-b">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={goToPreviousWeek}
+                    className="h-9"
+                    data-testid="button-prev-week"
+                  >
+                    <ChevronLeft className="w-4 h-4 mr-1" />
+                    Anterior
+                  </Button>
+                  
+                  <div className="text-center">
+                    <h3 className="text-base font-semibold tracking-tight">
+                      {format(selectedWeekStart, "d 'de' MMMM", { locale: ptBR })} - {format(endOfWeek(selectedWeekStart, { locale: ptBR }), "d 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                    </h3>
+                  </div>
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={goToNextWeek}
+                    className="h-9"
+                    data-testid="button-next-week"
+                  >
+                    Próxima
+                    <ChevronRight className="w-4 h-4 ml-1" />
+                  </Button>
+                </div>
+
+                {/* Week Grid - 7 columns */}
+                <div className="flex-1 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-7 gap-3 overflow-auto">
+                  {eachDayOfInterval({
+                    start: selectedWeekStart,
+                    end: endOfWeek(selectedWeekStart, { locale: ptBR })
+                  }).map((day) => {
+                    const dayTransactions = filteredTransactions.filter(t => 
+                      t.dueDate && isSameDay(new Date(t.dueDate), day)
+                    );
+                    
+                    const dayRevenues = dayTransactions
+                      .filter(t => t.type === 'revenue')
+                      .reduce((sum, t) => sum + parseFloat(t.amount || '0'), 0);
+                    
+                    const dayExpenses = dayTransactions
+                      .filter(t => t.type === 'expense')
+                      .reduce((sum, t) => sum + parseFloat(t.amount || '0'), 0);
+                    
+                    const dayBalance = dayRevenues - dayExpenses;
+                    const isCurrentDay = isToday(day);
+                    
+                    return (
+                      <div 
+                        key={day.toISOString()} 
+                        className={`flex flex-col rounded-xl border transition-all duration-200 ${
+                          isCurrentDay 
+                            ? 'border-primary/50 bg-primary/5' 
+                            : dayBalance > 0 
+                              ? 'bg-blue-50/30 dark:bg-blue-950/10 border-blue-200/50 dark:border-blue-800/30' 
+                              : dayBalance < 0 
+                                ? 'bg-red-50/30 dark:bg-red-950/10 border-red-200/50 dark:border-red-800/30'
+                                : 'bg-background'
+                        }`}
+                        data-testid={`week-day-${format(day, 'yyyy-MM-dd')}`}
+                      >
+                        {/* Day Header */}
+                        <div className="p-3 border-b bg-muted/20">
+                          <div className="flex flex-col gap-1">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                                {format(day, 'EEE', { locale: ptBR })}
+                              </span>
+                              {isCurrentDay && (
+                                <Badge variant="default" className="h-5 text-[10px] px-1.5">
+                                  Hoje
+                                </Badge>
+                              )}
+                            </div>
+                            <div className="text-xl font-bold tracking-tight">
+                              {format(day, 'd')}
+                            </div>
+                            <div className="text-[10px] text-muted-foreground">
+                              {dayTransactions.length} {dayTransactions.length === 1 ? 'lançamento' : 'lançamentos'}
+                            </div>
+                          </div>
+                          
+                          {/* Day Totals */}
+                          {dayTransactions.length > 0 && (
+                            <div className="mt-2 pt-2 border-t space-y-1">
+                              <div className="flex items-center justify-between text-[11px]">
+                                <span className="text-muted-foreground">Saldo:</span>
+                                <span className={`font-semibold ${
+                                  dayBalance > 0 ? 'text-blue-600' : dayBalance < 0 ? 'text-destructive' : 'text-muted-foreground'
+                                }`}>
+                                  R$ {Math.abs(dayBalance).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Transactions List */}
+                        <div className="flex-1 overflow-y-auto p-2 space-y-1.5">
+                          {dayTransactions.map((transaction) => {
+                            const isPaid = transaction.status === 'paid';
+                            const isOverdue = transaction.status !== 'paid' && transaction.dueDate && new Date(transaction.dueDate) < new Date();
+                            const amount = parseFloat(transaction.amount || '0');
+                            const person = customersSuppliers.find(p => p.id === transaction.personId);
+                            
+                            return (
+                              <div
+                                key={transaction.id}
+                                className="p-2 rounded-lg border border-border/40 bg-background hover-elevate cursor-pointer transition-all duration-150"
+                                onClick={() => handleCardClick(transaction)}
+                                data-testid={`week-transaction-${transaction.id}`}
+                              >
+                                <div className="space-y-1">
+                                  {/* Type Badge */}
+                                  <Badge 
+                                    variant={transaction.type === 'expense' ? 'destructive' : 'default'}
+                                    className={`text-[9px] h-4 px-1 ${transaction.type === 'revenue' ? 'bg-blue-600' : ''}`}
+                                  >
+                                    {transaction.type === 'expense' ? 'Desp' : 'Rec'}
+                                  </Badge>
+                                  
+                                  {/* Person */}
+                                  {person && (
+                                    <div className="flex items-center gap-1">
+                                      <User className="w-2.5 h-2.5 text-muted-foreground/60" />
+                                      <span className="text-[11px] font-semibold truncate tracking-tight">
+                                        {person.name}
+                                      </span>
+                                    </div>
+                                  )}
+                                  
+                                  {/* Amount */}
+                                  <div className={`text-xs font-semibold tracking-tight ${
+                                    transaction.type === 'expense' ? 'text-destructive' : 'text-blue-600'
+                                  }`}>
+                                    {transaction.type === 'expense' ? '-' : '+'} R$ {amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                  </div>
+                                  
+                                  {/* Status Badge */}
+                                  <Badge 
+                                    variant="outline" 
+                                    className={`text-[9px] h-4 px-1 ${
+                                      isPaid ? 'border-blue-600/50 text-blue-600' : 
+                                      isOverdue ? 'border-orange-600/50 text-orange-600' : 
+                                      'border-border/50 text-muted-foreground'
+                                    }`}
+                                  >
+                                    {isPaid ? 'Pago' : isOverdue ? 'Atraso' : 'Pend'}
+                                  </Badge>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             ) : (
               <div className="space-y-6">
                 {Object.entries(transactionsByDay).map(([dayKey, dayTransactions]) => {
                   const isNoDate = dayKey === 'no-date';
-                  const day = isNoDate ? null : dayKey.replace('day-', '');
+                  const dayDate = isNoDate ? null : new Date(dayKey);
+                  const day = isNoDate ? null : (dayDate ? getDate(dayDate) : null);
+                  const dayMonth = isNoDate ? null : (dayDate ? getMonth(dayDate) : null);
+                  const dayLabel = isNoDate 
+                    ? 'Sem data de vencimento' 
+                    : `Dia ${day} de ${dayMonth !== null ? MONTHS[dayMonth].full : ''}`;
                   
                   return (
                     <div key={dayKey}>
@@ -804,7 +1051,7 @@ export default function Lancamentos() {
                       <div className="flex items-center gap-2 mb-3">
                         <Calendar className="w-4 h-4 text-muted-foreground" />
                         <h2 className="text-sm font-semibold text-muted-foreground">
-                          {isNoDate ? 'Sem data de vencimento' : `Dia ${day} de ${MONTHS[selectedMonth].full}`}
+                          {dayLabel}
                         </h2>
                         <div className="flex-1 h-px bg-border" />
                         <span className="text-xs text-muted-foreground">
