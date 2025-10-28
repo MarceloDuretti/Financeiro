@@ -390,7 +390,7 @@ export default function Lancamentos() {
               const displayYoy = hasTrend ? yoyChange : 0;
               const isPositive = hasTrend && yoyChange > 0;
               const isNegative = hasTrend && yoyChange < 0;
-              const yoyColor = isPositive ? 'text-green-600 dark:text-green-500' : 
+              const yoyColor = isPositive ? 'text-blue-600 dark:text-blue-500' : 
                                isNegative ? 'text-red-600 dark:text-red-500' : 
                                'text-muted-foreground';
               
@@ -480,7 +480,7 @@ export default function Lancamentos() {
                 const displayYoy = hasTrend ? yoyChange : 0;
                 const isPositive = hasTrend && yoyChange > 0;
                 const isNegative = hasTrend && yoyChange < 0;
-                const yoyColor = isPositive ? 'text-green-600 dark:text-green-500' : 
+                const yoyColor = isPositive ? 'text-blue-600 dark:text-blue-500' : 
                                  isNegative ? 'text-red-600 dark:text-red-500' : 
                                  'text-muted-foreground';
                 
@@ -553,13 +553,13 @@ export default function Lancamentos() {
               </Card>
 
               {/* Open Revenues */}
-              <Card className="border-l-2 border-l-green-600">
+              <Card className="border-l-2 border-l-blue-600">
                 <CardContent className="p-3">
                   <div className="flex items-center justify-between mb-1">
                     <p className="text-[10px] font-medium text-muted-foreground uppercase">Receitas Abertas</p>
-                    <TrendingUp className="w-3 h-3 text-green-600" />
+                    <TrendingUp className="w-3 h-3 text-blue-600" />
                   </div>
-                  <div className="text-base font-bold text-green-600">
+                  <div className="text-base font-bold text-blue-600">
                     R$ {kpis.openRevenues.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </div>
                   <p className="text-[10px] text-muted-foreground">
@@ -591,7 +591,7 @@ export default function Lancamentos() {
                     <p className="text-[10px] font-medium text-muted-foreground uppercase">Resultado</p>
                     <Calendar className="w-3 h-3 text-primary" />
                   </div>
-                  <div className={`text-base font-bold ${kpis.result >= 0 ? 'text-green-600' : 'text-destructive'}`}>
+                  <div className={`text-base font-bold ${kpis.result >= 0 ? 'text-blue-600' : 'text-destructive'}`}>
                     R$ {kpis.result.toLocaleString('pt-BR', { minimumFractionDigits: 2, signDisplay: 'always' })}
                   </div>
                   <div className="flex items-center justify-between">
@@ -600,7 +600,7 @@ export default function Lancamentos() {
                     </p>
                     {resultChange !== 0 && (
                       <div className={`flex items-center gap-0.5 text-[10px] font-medium ${
-                        resultChange > 0 ? 'text-green-600' : 'text-destructive'
+                        resultChange > 0 ? 'text-blue-600' : 'text-destructive'
                       }`}>
                         {resultChange > 0 ? (
                           <TrendingUp className="w-2.5 h-2.5" />
@@ -726,7 +726,7 @@ export default function Lancamentos() {
                                   </Badge>
                                 )}
                                 {isPaid && (
-                                  <Badge variant="outline" className="text-xs border-green-600 text-green-600">
+                                  <Badge variant="outline" className="text-xs border-blue-600 text-blue-600">
                                     Pago
                                   </Badge>
                                 )}
@@ -753,7 +753,7 @@ export default function Lancamentos() {
                             
                             <div className="text-right">
                               <div className={`text-lg font-bold ${
-                                transaction.type === 'expense' ? 'text-destructive' : 'text-green-600'
+                                transaction.type === 'expense' ? 'text-destructive' : 'text-blue-600'
                               }`}>
                                 {transaction.type === 'expense' ? '-' : '+'} R$ {parseFloat(transaction.amount || '0').toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                               </div>

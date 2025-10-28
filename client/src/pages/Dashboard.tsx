@@ -47,7 +47,7 @@ const kpis = [
     change: "+20.1%",
     trend: "up",
     icon: DollarSign,
-    gradient: "from-green-500 to-emerald-600",
+    gradient: "from-blue-500 to-blue-600",
     sparklineData: [32, 35, 38, 36, 40, 45],
     target: 50000,
     current: 45231,
@@ -508,7 +508,7 @@ export default function Dashboard() {
                       </td>
                       <td
                         className={`py-2.5 text-right text-sm font-bold ${
-                          transaction.type === "receita" ? "text-green-600" : "text-red-600"
+                          transaction.type === "receita" ? "text-blue-600" : "text-red-600"
                         }`}
                       >
                         {transaction.type === "receita" ? "+" : ""}
