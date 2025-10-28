@@ -964,7 +964,7 @@ export default function Lancamentos() {
                         {/* Day Header - FIXO */}
                         <div className="flex-shrink-0 p-2 border-b bg-muted/20">
                           <div className="flex items-center justify-between mb-1">
-                            <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">
+                            <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
                               {format(day, 'EEE', { locale: ptBR })}
                             </span>
                             {isCurrentDay && (
@@ -973,7 +973,7 @@ export default function Lancamentos() {
                               </Badge>
                             )}
                           </div>
-                          <div className="text-lg font-bold tracking-tight mb-0.5">
+                          <div className="text-lg font-normal tracking-tight mb-0.5">
                             {format(day, 'd')}
                           </div>
                           <div className="text-[9px] text-muted-foreground mb-1.5">
@@ -984,7 +984,7 @@ export default function Lancamentos() {
                           <div className="space-y-0.5 pt-1.5 border-t">
                             <div className="flex items-center justify-between text-[10px]">
                               <span className="text-muted-foreground">Dia:</span>
-                              <span className={`font-bold ${
+                              <span className={`font-medium ${
                                 dayBalance > 0 ? 'text-blue-600' : dayBalance < 0 ? 'text-destructive' : 'text-muted-foreground'
                               }`}>
                                 {dayBalance >= 0 ? '+' : '-'} R$ {Math.abs(dayBalance).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
@@ -992,7 +992,7 @@ export default function Lancamentos() {
                             </div>
                             <div className="flex items-center justify-between text-[10px]">
                               <span className="text-muted-foreground">Acum:</span>
-                              <span className={`font-bold ${
+                              <span className={`font-medium ${
                                 accumulatedBalance > 0 ? 'text-blue-600' : accumulatedBalance < 0 ? 'text-destructive' : 'text-muted-foreground'
                               }`}>
                                 {accumulatedBalance >= 0 ? '+' : '-'} R$ {Math.abs(accumulatedBalance).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
@@ -1019,13 +1019,13 @@ export default function Lancamentos() {
                                 <div className="space-y-0.5">
                                   {/* Person - PRIORIDADE */}
                                   {person && (
-                                    <div className="font-semibold text-[11px] truncate tracking-tight">
+                                    <div className="font-medium text-[11px] truncate tracking-tight">
                                       {person.name}
                                     </div>
                                   )}
                                   
                                   {/* Amount - DESTAQUE */}
-                                  <div className={`text-[11px] font-bold tracking-tight ${
+                                  <div className={`text-[11px] font-normal tracking-tight ${
                                     transaction.type === 'expense' ? 'text-destructive' : 'text-blue-600'
                                   }`}>
                                     {transaction.type === 'expense' ? '-' : '+'} R$ {amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
