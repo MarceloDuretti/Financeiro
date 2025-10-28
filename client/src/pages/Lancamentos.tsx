@@ -955,6 +955,25 @@ export default function Lancamentos() {
                                 )}
                               </div>
 
+                              {/* Percentage with Progress Bar */}
+                              <div className="w-32 flex-shrink-0 hidden xl:block">
+                                <div className="space-y-0.5">
+                                  <div className="flex items-center justify-between text-[10px]">
+                                    <span className="font-semibold">{percentage.toFixed(1)}%</span>
+                                  </div>
+                                  <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                                    <div
+                                      className={`h-full transition-all ${
+                                        transaction.type === 'expense' 
+                                          ? 'bg-destructive' 
+                                          : 'bg-blue-600'
+                                      }`}
+                                      style={{ width: `${Math.min(percentage, 100)}%` }}
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+
                               {/* Amount */}
                               <div className="w-28 flex-shrink-0 text-right">
                                 <span className={`font-bold ${
@@ -976,11 +995,6 @@ export default function Lancamentos() {
                                 >
                                   {isPaid ? 'Pago' : transaction.status === 'cancelled' ? 'Cancelado' : 'Pendente'}
                                 </Badge>
-                              </div>
-
-                              {/* Percentage */}
-                              <div className="w-16 flex-shrink-0 hidden xl:block text-right">
-                                <span className="font-semibold">{percentage.toFixed(1)}%</span>
                               </div>
                             </div>
                           );
