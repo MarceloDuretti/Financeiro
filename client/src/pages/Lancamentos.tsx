@@ -473,30 +473,93 @@ export default function Lancamentos() {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Header */}
-      <div className="flex items-center justify-between gap-4 p-3 border-b">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-primary/10">
-            <TrendingUp className="w-5 h-5 text-primary" />
+      {/* Header with KPIs */}
+      <div className="flex flex-col gap-2 p-3 border-b">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-primary/10">
+              <TrendingUp className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-xl font-semibold">Lançamentos</h1>
+              <p className="text-xs text-muted-foreground">
+                {MONTHS[selectedMonth].full} de {selectedYear}
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-xl font-semibold">Lançamentos</h1>
-            <p className="text-xs text-muted-foreground">
-              {MONTHS[selectedMonth].full} de {selectedYear}
-            </p>
+          <Button 
+            size="sm" 
+            onClick={() => {
+              setSelectedTransaction(null);
+              setDialogOpen(true);
+            }}
+            data-testid="button-new-transaction"
+          >
+            <Plus className="w-4 h-4" />
+            <span className="hidden sm:inline">Novo</span>
+          </Button>
+        </div>
+        
+        {/* Inline KPI Cards - Compact */}
+        <div className="flex items-center gap-2 overflow-x-auto">
+          {/* Open Expenses */}
+          <div className="flex items-center gap-1.5 px-2 py-1 rounded-md border border-l-2 border-l-destructive bg-muted/30 flex-shrink-0">
+            <TrendingDown className="w-3 h-3 text-destructive" />
+            <div className="flex flex-col">
+              <span className="text-[8px] text-muted-foreground uppercase tracking-wide">Desp. Abertas</span>
+              <span className="text-xs font-medium text-destructive">
+                R$ {kpis.openExpenses.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+              </span>
+            </div>
+          </div>
+
+          {/* Open Revenues */}
+          <div className="flex items-center gap-1.5 px-2 py-1 rounded-md border border-l-2 border-l-blue-600 bg-muted/30 flex-shrink-0">
+            <TrendingUp className="w-3 h-3 text-blue-600" />
+            <div className="flex flex-col">
+              <span className="text-[8px] text-muted-foreground uppercase tracking-wide">Rec. Abertas</span>
+              <span className="text-xs font-medium text-blue-600">
+                R$ {kpis.openRevenues.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+              </span>
+            </div>
+          </div>
+
+          {/* Overdue */}
+          <div className="flex items-center gap-1.5 px-2 py-1 rounded-md border border-l-2 border-l-orange-600 bg-muted/30 flex-shrink-0">
+            <AlertCircle className="w-3 h-3 text-orange-600" />
+            <div className="flex flex-col">
+              <span className="text-[8px] text-muted-foreground uppercase tracking-wide">Em Atraso</span>
+              <span className="text-xs font-medium text-orange-600">
+                R$ {kpis.overdue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+              </span>
+            </div>
+          </div>
+
+          {/* Result */}
+          <div className="flex items-center gap-1.5 px-2 py-1 rounded-md border border-l-2 border-l-primary bg-muted/30 flex-shrink-0">
+            <Calendar className="w-3 h-3 text-primary" />
+            <div className="flex flex-col">
+              <span className="text-[8px] text-muted-foreground uppercase tracking-wide">Resultado</span>
+              <div className="flex items-center gap-1">
+                <span className={`text-xs font-medium ${kpis.result >= 0 ? 'text-blue-600' : 'text-destructive'}`}>
+                  R$ {kpis.result.toLocaleString('pt-BR', { minimumFractionDigits: 2, signDisplay: 'always' })}
+                </span>
+                {resultChange !== 0 && (
+                  <div className={`flex items-center gap-0.5 text-[8px] font-medium ${
+                    resultChange > 0 ? 'text-blue-600' : 'text-destructive'
+                  }`}>
+                    {resultChange > 0 ? (
+                      <TrendingUp className="w-2 h-2" />
+                    ) : (
+                      <TrendingDown className="w-2 h-2" />
+                    )}
+                    <span>{Math.abs(resultChange).toFixed(1)}%</span>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
-        <Button 
-          size="sm" 
-          onClick={() => {
-            setSelectedTransaction(null);
-            setDialogOpen(true);
-          }}
-          data-testid="button-new-transaction"
-        >
-          <Plus className="w-4 h-4" />
-          <span className="hidden sm:inline">Novo</span>
-        </Button>
       </div>
 
       {/* Main Content Area */}
@@ -708,77 +771,6 @@ export default function Lancamentos() {
               >
                 Hoje
               </Button>
-            </div>
-          </div>
-
-          {/* Compact KPI Cards */}
-          <div className="p-2 border-b bg-muted/30">
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-              {/* Open Expenses */}
-              <Card className="border-l-2 border-l-destructive">
-                <CardContent className="p-2">
-                  <div className="flex items-center justify-between mb-0.5">
-                    <p className="text-[9px] font-medium text-muted-foreground uppercase tracking-wide">Despesas Abertas</p>
-                    <TrendingDown className="w-3 h-3 text-destructive" />
-                  </div>
-                  <div className="text-base font-normal text-destructive">
-                    R$ {kpis.openExpenses.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Open Revenues */}
-              <Card className="border-l-2 border-l-blue-600">
-                <CardContent className="p-2">
-                  <div className="flex items-center justify-between mb-0.5">
-                    <p className="text-[9px] font-medium text-muted-foreground uppercase tracking-wide">Receitas Abertas</p>
-                    <TrendingUp className="w-3 h-3 text-blue-600" />
-                  </div>
-                  <div className="text-base font-normal text-blue-600">
-                    R$ {kpis.openRevenues.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Overdue */}
-              <Card className="border-l-2 border-l-orange-600">
-                <CardContent className="p-2">
-                  <div className="flex items-center justify-between mb-0.5">
-                    <p className="text-[9px] font-medium text-muted-foreground uppercase tracking-wide">Em Atraso</p>
-                    <AlertCircle className="w-3 h-3 text-orange-600" />
-                  </div>
-                  <div className="text-base font-normal text-orange-600">
-                    R$ {kpis.overdue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Result */}
-              <Card className="border-l-2 border-l-primary">
-                <CardContent className="p-2">
-                  <div className="flex items-center justify-between mb-0.5">
-                    <p className="text-[9px] font-medium text-muted-foreground uppercase tracking-wide">Resultado</p>
-                    <Calendar className="w-3 h-3 text-primary" />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className={`text-base font-normal ${kpis.result >= 0 ? 'text-blue-600' : 'text-destructive'}`}>
-                      R$ {kpis.result.toLocaleString('pt-BR', { minimumFractionDigits: 2, signDisplay: 'always' })}
-                    </div>
-                    {resultChange !== 0 && (
-                      <div className={`flex items-center gap-0.5 text-[9px] font-medium ${
-                        resultChange > 0 ? 'text-blue-600' : 'text-destructive'
-                      }`}>
-                        {resultChange > 0 ? (
-                          <TrendingUp className="w-2.5 h-2.5" />
-                        ) : (
-                          <TrendingDown className="w-2.5 h-2.5" />
-                        )}
-                        <span>{Math.abs(resultChange).toFixed(1)}%</span>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
             </div>
           </div>
 
