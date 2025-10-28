@@ -961,7 +961,7 @@ export default function Lancamentos() {
                     return (
                       <div 
                         key={day.toISOString()} 
-                        className={`flex flex-col h-full rounded-lg border transition-all duration-200 ${
+                        className={`flex flex-col min-h-0 rounded-lg border transition-all duration-200 ${
                           isCurrentDay 
                             ? 'border-primary/50 bg-primary/5' 
                             : accumulatedBalance > 0 
