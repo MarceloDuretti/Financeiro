@@ -110,7 +110,34 @@ Key features include:
         - Mobile-first responsive grid (1 column mobile → 2 columns tablet → 4 columns desktop)
         - Loading states with skeletons and empty state messages
         - Compact card design: p-3 padding, text-sm/text-xs, text-lg for values
+    - **TransactionDialog Component (Create/Edit):**
+        - **Responsive Design:** Sheet component on mobile (<768px), Dialog on desktop
+        - **Form Fields:**
+            - Type toggle (Despesa/Receita) at top
+            - Title (required), Description (optional)
+            - Amount (required, numeric validation)
+            - Issue Date & Due Date (date pickers with z.coerce.date() for JSON compatibility)
+            - Status selector (pending/paid/cancelled)
+            - Person (customer/supplier), Cost Center, Chart Account (optional selects)
+            - Progressive Disclosure: Paid Date and Bank Account fields only visible when status="paid"
+            - Payment Method, Tags (optional)
+        - **Form State Management:**
+            - React Hook Form + Zod validation with insertTransactionSchema
+            - useEffect hook resets form on open/close to prevent stale data
+            - Handles both create (transaction=null) and edit (transaction=object) modes
+            - Default values populated from transaction prop or sensible defaults
+        - **API Integration:**
+            - POST /api/transactions for create (onSuccess invalidates cache)
+            - PUT /api/transactions/:id for update (future enhancement)
+            - Dates converted to ISO strings before API submission
+            - WebSocket broadcasts update to all connected clients
+        - **UX Features:**
+            - "Novo" button in header opens dialog for new transaction
+            - Form validates on submit with error messages
+            - Success toast notification on save
+            - Auto-close on successful save
     - Real-time WebSocket updates for all CRUD operations
+    - **Demo User:** demo@fincontrol.com / senha123 with pre-created company for testing
 
 ### Backend Architecture
 
