@@ -19,7 +19,9 @@ import {
   Filter,
   ChevronLeft,
   ChevronRight,
-  User
+  User,
+  LayoutGrid,
+  List
 } from "lucide-react";
 import { format, startOfMonth, endOfMonth, getMonth, getYear, getDate, isValid } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -55,7 +57,16 @@ export default function Lancamentos() {
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [detailSheetOpen, setDetailSheetOpen] = useState(false);
   const [detailTransaction, setDetailTransaction] = useState<Transaction | null>(null);
+  const [viewMode, setViewMode] = useState<'cards' | 'list'>(() => {
+    const saved = localStorage.getItem('fincontrol_transactions_view_mode');
+    return (saved === 'list' ? 'list' : 'cards') as 'cards' | 'list';
+  });
   const parentRef = useRef<HTMLDivElement>(null);
+
+  // Save view mode preference
+  useEffect(() => {
+    localStorage.setItem('fincontrol_transactions_view_mode', viewMode);
+  }, [viewMode]);
 
   // Calculate date range from selected month/year
   const startDate = useMemo(() => {
@@ -718,6 +729,27 @@ export default function Lancamentos() {
               <Button variant="outline" size="sm" className="h-8" data-testid="button-more-filters">
                 <Filter className="w-3 h-3" />
               </Button>
+
+              <div className="flex items-center gap-1 ml-auto">
+                <Button 
+                  variant={viewMode === 'cards' ? 'default' : 'outline'} 
+                  size="sm" 
+                  className="h-8 w-8 p-0"
+                  onClick={() => setViewMode('cards')}
+                  data-testid="button-view-cards"
+                >
+                  <LayoutGrid className="w-3 h-3" />
+                </Button>
+                <Button 
+                  variant={viewMode === 'list' ? 'default' : 'outline'} 
+                  size="sm" 
+                  className="h-8 w-8 p-0"
+                  onClick={() => setViewMode('list')}
+                  data-testid="button-view-list"
+                >
+                  <List className="w-3 h-3" />
+                </Button>
+              </div>
             </div>
           </div>
 
