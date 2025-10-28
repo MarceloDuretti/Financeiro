@@ -280,13 +280,13 @@ export function AppSidebar() {
         collapsible="icon" 
         className="border-r bg-gradient-to-b from-background via-muted/10 to-muted/30 backdrop-blur-sm flex flex-col h-full"
       >
-        <SidebarContent className="py-4 flex flex-col items-center gap-3 overflow-y-auto scrollbar-hidden flex-1 min-h-0">
+        <SidebarContent className="py-2 flex flex-col items-center gap-2 overflow-y-auto scrollbar-hidden flex-1 min-h-0">
           {/* Avatar no topo */}
-          <div className="w-full flex items-center justify-center px-3 shrink-0">
+          <div className="w-full flex items-center justify-center px-2 shrink-0">
             <div className="relative group">
-              <Avatar className="h-10 w-10 border-2 border-primary/20 shadow-lg transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl group-hover:border-primary/40">
+              <Avatar className="h-8 w-8 border border-primary/20 shadow transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg group-hover:border-primary/40">
                 <AvatarImage src={user?.profileImageUrl || ""} alt={getUserDisplayName()} />
-                <AvatarFallback className="bg-gradient-to-br from-primary to-blue-600 text-white font-semibold text-xs">
+                <AvatarFallback className="bg-gradient-to-br from-primary to-blue-600 text-white font-semibold text-[10px]">
                   {getUserInitials()}
                 </AvatarFallback>
               </Avatar>
@@ -297,7 +297,7 @@ export function AppSidebar() {
 
           <Separator className="w-3/4 mx-auto" />
 
-          <SidebarMenu className="gap-2 w-full px-3">
+          <SidebarMenu className="gap-1.5 w-full px-2">
             {menuItems.map((item) => {
               const Icon = item.icon;
               const isDisabled = item.requiresCompany && !hasCompanies;
@@ -311,19 +311,19 @@ export function AppSidebar() {
                         <button
                           disabled={isDisabled}
                           onClick={() => handleCollapsedMenuClick(item.title)}
-                          className={`w-full h-auto py-2 flex flex-col items-center justify-center gap-1 rounded-xl transition-all duration-300 ${isDisabled ? 'cursor-not-allowed opacity-40' : 'hover:scale-105 active:scale-95'}`}
+                          className={`w-full h-auto py-1 flex flex-col items-center justify-center gap-0.5 rounded-lg transition-all duration-300 ${isDisabled ? 'cursor-not-allowed opacity-40' : 'hover:scale-105 active:scale-95'}`}
                           data-testid={`button-menu-${item.title.toLowerCase()}`}
                           title={`${item.title} - ${item.description}`}
                         >
-                          <div className={`relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${item.color} shadow-lg transition-all duration-300 ${isDisabled ? 'saturate-0' : 'hover:shadow-2xl hover:shadow-primary/20'}`}>
-                            <Icon className="h-5 w-5 text-white" strokeWidth={2.5} />
+                          <div className={`relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${item.color} shadow transition-all duration-300 ${isDisabled ? 'saturate-0' : 'hover:shadow-lg hover:shadow-primary/20'}`}>
+                            <Icon className="h-4 w-4 text-white" strokeWidth={2.5} />
                             {item.count && (
-                              <div className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary border-2 border-background flex items-center justify-center shadow-md">
-                                <span className="text-[8px] font-bold text-primary-foreground">{item.count}</span>
+                              <div className="absolute -top-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-primary border border-background flex items-center justify-center shadow-sm">
+                                <span className="text-[9px] font-bold text-primary-foreground">{item.count}</span>
                               </div>
                             )}
                           </div>
-                          <span className="text-[9px] font-medium text-muted-foreground truncate w-full text-center px-1">
+                          <span className="text-[11px] font-medium text-muted-foreground truncate w-full text-center leading-tight">
                             {getShortLabel(item.title)}
                           </span>
                         </button>
@@ -345,13 +345,13 @@ export function AppSidebar() {
                       <TooltipTrigger asChild>
                         <button
                           disabled
-                          className="relative w-full flex flex-col items-center justify-center gap-1 py-2 rounded-xl cursor-not-allowed opacity-40 transition-all duration-300"
+                          className="relative w-full flex flex-col items-center justify-center gap-0.5 py-1 rounded-lg cursor-not-allowed opacity-40 transition-all duration-300"
                           data-testid={`button-menu-${item.title.toLowerCase()}`}
                         >
-                          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-gray-400 to-gray-500 shadow-lg saturate-0">
-                            <Icon className="h-5 w-5 text-white" strokeWidth={2.5} />
+                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-gray-400 to-gray-500 shadow saturate-0">
+                            <Icon className="h-4 w-4 text-white" strokeWidth={2.5} />
                           </div>
-                          <span className="text-[9px] font-medium text-muted-foreground truncate w-full text-center px-1">
+                          <span className="text-[11px] font-medium text-muted-foreground truncate w-full text-center leading-tight">
                             {getShortLabel(item.title)}
                           </span>
                         </button>
@@ -379,18 +379,18 @@ export function AppSidebar() {
                         }
                       }}>
                         <button
-                          className={`relative w-full flex flex-col items-center justify-center gap-1 py-2 rounded-xl transition-all duration-300 hover:scale-105 active:scale-95 ${location === item.url ? 'bg-accent/50 ring-2 ring-primary/20' : ''}`}
+                          className={`relative w-full flex flex-col items-center justify-center gap-0.5 py-1 rounded-lg transition-all duration-300 hover:scale-105 active:scale-95 ${location === item.url ? 'bg-accent/50 ring-2 ring-primary/20' : ''}`}
                           data-testid={`link-menu-${item.title.toLowerCase()}`}
                         >
-                          <div className={`relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${item.color} shadow-lg transition-all duration-300 hover:shadow-2xl hover:shadow-primary/20`}>
-                            <Icon className="h-5 w-5 text-white" strokeWidth={2.5} />
+                          <div className={`relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${item.color} shadow transition-all duration-300 hover:shadow-lg hover:shadow-primary/20`}>
+                            <Icon className="h-4 w-4 text-white" strokeWidth={2.5} />
                             {item.badge && (
-                              <div className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary border-2 border-background flex items-center justify-center shadow-md">
-                                <span className="text-[8px] font-bold text-primary-foreground">{item.badge}</span>
+                              <div className="absolute -top-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-primary border border-background flex items-center justify-center shadow-sm">
+                                <span className="text-[9px] font-bold text-primary-foreground">{item.badge}</span>
                               </div>
                             )}
                           </div>
-                          <span className="text-[9px] font-medium text-muted-foreground truncate w-full text-center px-1">
+                          <span className="text-[11px] font-medium text-muted-foreground truncate w-full text-center leading-tight">
                             {getShortLabel(item.title)}
                           </span>
                         </button>
