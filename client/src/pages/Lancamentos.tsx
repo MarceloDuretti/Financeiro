@@ -960,8 +960,8 @@ export default function Lancamentos() {
                               {/* Percentage with Progress Bar */}
                               <div className="w-32 flex-shrink-0 hidden xl:block">
                                 <div className="space-y-0.5">
-                                  <div className="flex items-center justify-between text-[10px]">
-                                    <span className="font-semibold">{percentage.toFixed(1)}%</span>
+                                  <div className="flex items-center justify-between">
+                                    <span className="font-bold text-sm">{percentage.toFixed(1)}%</span>
                                   </div>
                                   <div className="h-1.5 bg-muted rounded-full overflow-hidden">
                                     <div
