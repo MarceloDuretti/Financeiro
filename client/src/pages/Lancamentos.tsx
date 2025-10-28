@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useVirtualizer } from "@tanstack/react-virtual";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,6 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Progress } from "@/components/ui/progress";
 import { 
   Plus, 
   Search, 
@@ -17,9 +18,10 @@ import {
   Calendar,
   Filter,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  User
 } from "lucide-react";
-import { format, startOfMonth, endOfMonth, getMonth, getYear } from "date-fns";
+import { format, startOfMonth, endOfMonth, getMonth, getYear, getDate, isValid } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import type { Transaction } from "@shared/schema";
 import { TransactionDialog } from "@/components/TransactionDialog";
@@ -51,6 +53,8 @@ export default function Lancamentos() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
+  const [detailSheetOpen, setDetailSheetOpen] = useState(false);
+  const [detailTransaction, setDetailTransaction] = useState<Transaction | null>(null);
   const parentRef = useRef<HTMLDivElement>(null);
 
   // Calculate date range from selected month/year
@@ -267,21 +271,79 @@ export default function Lancamentos() {
     ? ((kpis.result - previousKpis.result) / Math.abs(previousKpis.result)) * 100 
     : kpis.result !== 0 ? 100 : 0;
 
+  // Calculate monthly totals for percentage calculation
+  const monthlyTotals = useMemo(() => {
+    const totalRevenues = transactions
+      .filter(t => t.type === 'revenue')
+      .reduce((sum, t) => sum + parseFloat(t.amount || '0'), 0);
+    
+    const totalExpenses = transactions
+      .filter(t => t.type === 'expense')
+      .reduce((sum, t) => sum + parseFloat(t.amount || '0'), 0);
+    
+    return { totalRevenues, totalExpenses };
+  }, [transactions]);
+
   // Filter transactions
   const filteredTransactions = transactions.filter(transaction => {
     if (typeFilter !== 'all' && transaction.type !== typeFilter) return false;
     if (statusFilter !== 'all' && transaction.status !== statusFilter) return false;
-    if (searchQuery && !transaction.description?.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      const matchesTitle = transaction.title?.toLowerCase().includes(query);
+      const matchesDescription = transaction.description?.toLowerCase().includes(query);
+      if (!matchesTitle && !matchesDescription) return false;
+    }
     return true;
   });
 
-  // Virtualizer for performance
-  const rowVirtualizer = useVirtualizer({
-    count: filteredTransactions.length,
-    getScrollElement: () => parentRef.current,
-    estimateSize: () => 100,
-    overscan: 5,
+  // Group transactions by day of due date (with fallback for missing dates)
+  const transactionsByDay = useMemo(() => {
+    const grouped: Record<string, Transaction[]> = {};
+    const noDueDateKey = 'no-date';
+    
+    filteredTransactions.forEach(transaction => {
+      let key: string;
+      
+      if (transaction.dueDate && isValid(new Date(transaction.dueDate))) {
+        const day = getDate(new Date(transaction.dueDate));
+        key = `day-${day}`;
+      } else {
+        // Fallback for transactions without dueDate
+        key = noDueDateKey;
+      }
+      
+      if (!grouped[key]) {
+        grouped[key] = [];
+      }
+      grouped[key].push(transaction);
+    });
+    
+    // Sort: numeric days first, then "no-date" section last
+    const sortedKeys = Object.keys(grouped).sort((a, b) => {
+      if (a === noDueDateKey) return 1;
+      if (b === noDueDateKey) return -1;
+      const dayA = parseInt(a.replace('day-', ''));
+      const dayB = parseInt(b.replace('day-', ''));
+      return dayA - dayB;
+    });
+    
+    return sortedKeys.reduce((acc, key) => {
+      acc[key] = grouped[key];
+      return acc;
+    }, {} as Record<string, Transaction[]>);
+  }, [filteredTransactions]);
+
+  // Fetch customers/suppliers for display
+  const { data: customersSuppliers = [] } = useQuery<any[]>({
+    queryKey: ["/api/customers-suppliers", { companyId: selectedCompanyId }],
+    enabled: !!selectedCompanyId,
   });
+
+  const handleCardClick = (transaction: Transaction) => {
+    setDetailTransaction(transaction);
+    setDetailSheetOpen(true);
+  };
 
   if (!selectedCompanyId) {
     return (
@@ -659,12 +721,12 @@ export default function Lancamentos() {
             </div>
           </div>
 
-          {/* Transactions List - NOW PRIORITIZED */}
-          <div className="flex-1 overflow-auto p-2" ref={parentRef}>
+          {/* Transactions List - Grid Layout Grouped by Day */}
+          <div className="flex-1 overflow-auto p-3" ref={parentRef}>
             {isLoading ? (
-              <div className="space-y-2">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Skeleton key={i} className="h-20 w-full" />
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <Skeleton key={i} className="h-48 w-full" />
                 ))}
               </div>
             ) : filteredTransactions.length === 0 ? (
@@ -681,99 +743,316 @@ export default function Lancamentos() {
                 </CardContent>
               </Card>
             ) : (
-              <div
-                style={{
-                  height: `${rowVirtualizer.getTotalSize()}px`,
-                  width: '100%',
-                  position: 'relative',
-                }}
-              >
-                {rowVirtualizer.getVirtualItems().map((virtualRow) => {
-                  const transaction = filteredTransactions[virtualRow.index];
-                  const isOverdue = transaction.status !== 'paid' && transaction.dueDate && new Date(transaction.dueDate) < new Date();
-                  const isPaid = transaction.status === 'paid';
+              <div className="space-y-6">
+                {Object.entries(transactionsByDay).map(([dayKey, dayTransactions]) => {
+                  const isNoDate = dayKey === 'no-date';
+                  const day = isNoDate ? null : dayKey.replace('day-', '');
                   
                   return (
-                    <div
-                      key={virtualRow.key}
-                      style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        width: '100%',
-                        transform: `translateY(${virtualRow.start}px)`,
-                      }}
-                      data-index={virtualRow.index}
-                      ref={rowVirtualizer.measureElement}
-                    >
-                      <Card 
-                        className="hover-elevate cursor-pointer mb-2"
-                        data-testid={`card-transaction-${transaction.id}`}
-                      >
-                        <CardContent className="p-3">
-                          <div className="flex items-start justify-between gap-4">
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1">
+                    <div key={dayKey}>
+                      {/* Day Header */}
+                      <div className="flex items-center gap-2 mb-3">
+                        <Calendar className="w-4 h-4 text-muted-foreground" />
+                        <h2 className="text-sm font-semibold text-muted-foreground">
+                          {isNoDate ? 'Sem data de vencimento' : `Dia ${day} de ${MONTHS[selectedMonth].full}`}
+                        </h2>
+                        <div className="flex-1 h-px bg-border" />
+                        <span className="text-xs text-muted-foreground">
+                          {dayTransactions.length} {dayTransactions.length === 1 ? 'lançamento' : 'lançamentos'}
+                        </span>
+                      </div>
+
+                    {/* Transaction Cards Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                      {dayTransactions.map((transaction) => {
+                        const isOverdue = transaction.status !== 'paid' && transaction.dueDate && new Date(transaction.dueDate) < new Date();
+                        const isPaid = transaction.status === 'paid';
+                        const amount = parseFloat(transaction.amount || '0');
+                        const total = transaction.type === 'revenue' ? monthlyTotals.totalRevenues : monthlyTotals.totalExpenses;
+                        const percentage = total > 0 ? (amount / total) * 100 : 0;
+                        const person = customersSuppliers.find(p => p.id === transaction.personId);
+
+                        return (
+                          <Card
+                            key={transaction.id}
+                            className="hover-elevate cursor-pointer"
+                            onClick={() => handleCardClick(transaction)}
+                            data-testid={`card-transaction-${transaction.id}`}
+                          >
+                            <CardContent className="p-4 space-y-3">
+                              {/* Type Badge */}
+                              <div className="flex items-center justify-between">
                                 <Badge 
                                   variant={transaction.type === 'expense' ? 'destructive' : 'default'}
-                                  className="text-xs"
+                                  className={`text-xs ${transaction.type === 'revenue' ? 'bg-blue-600 hover:bg-blue-700' : ''}`}
                                 >
                                   {transaction.type === 'expense' ? 'Despesa' : 'Receita'}
                                 </Badge>
                                 {isOverdue && (
                                   <Badge variant="outline" className="text-xs border-orange-600 text-orange-600">
-                                    Em Atraso
-                                  </Badge>
-                                )}
-                                {isPaid && (
-                                  <Badge variant="outline" className="text-xs border-blue-600 text-blue-600">
-                                    Pago
+                                    Atraso
                                   </Badge>
                                 )}
                               </div>
-                              
-                              <h3 className="font-medium truncate text-sm" data-testid={`text-title-${transaction.id}`}>
-                                {transaction.title || 'Sem título'}
-                              </h3>
-                              
-                              <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-                                <span>
-                                  Vencimento: {transaction.dueDate ? format(new Date(transaction.dueDate), "dd 'de' MMMM", { locale: ptBR }) : '-'}
-                                </span>
-                                {isPaid && transaction.paidDate && (
-                                  <>
-                                    <Separator orientation="vertical" className="h-3" />
-                                    <span>
-                                      Pago em: {format(new Date(transaction.paidDate), "dd 'de' MMMM", { locale: ptBR })}
-                                    </span>
-                                  </>
-                                )}
+
+                              {/* Title/Description */}
+                              <div>
+                                <h3 className="font-semibold text-sm line-clamp-2 min-h-[2.5rem]" data-testid={`text-title-${transaction.id}`}>
+                                  {transaction.title || 'Sem título'}
+                                </h3>
                               </div>
-                            </div>
-                            
-                            <div className="text-right">
-                              <div className={`text-lg font-bold ${
-                                transaction.type === 'expense' ? 'text-destructive' : 'text-blue-600'
-                              }`}>
-                                {transaction.type === 'expense' ? '-' : '+'} R$ {parseFloat(transaction.amount || '0').toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                              </div>
-                              {isPaid && transaction.paidAmount && transaction.paidAmount !== transaction.amount && (
-                                <div className="text-xs text-muted-foreground">
-                                  Pago: R$ {parseFloat(transaction.paidAmount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+
+                              {/* Person */}
+                              {person && (
+                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                  <User className="w-3 h-3" />
+                                  <span className="truncate">{person.name}</span>
                                 </div>
                               )}
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
+
+                              {/* Dates */}
+                              <div className="text-xs space-y-1">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-muted-foreground">Vencimento:</span>
+                                  <span className="font-medium">
+                                    {transaction.dueDate ? format(new Date(transaction.dueDate), "dd/MM/yy") : '-'}
+                                  </span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                  <span className="text-muted-foreground">Cadastro:</span>
+                                  <span>
+                                    {transaction.createdAt ? format(new Date(transaction.createdAt), "dd/MM/yy") : '-'}
+                                  </span>
+                                </div>
+                                {isPaid && transaction.paidDate && (
+                                  <div className="flex items-center justify-between text-blue-600">
+                                    <span>Pagamento:</span>
+                                    <span className="font-medium">
+                                      {format(new Date(transaction.paidDate), "dd/MM/yy")}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Amount */}
+                              <div className={`text-xl font-bold ${
+                                transaction.type === 'expense' ? 'text-destructive' : 'text-blue-600'
+                              }`}>
+                                {transaction.type === 'expense' ? '-' : '+'} R$ {amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                              </div>
+
+                              {/* Status */}
+                              <div>
+                                <Badge 
+                                  variant="outline" 
+                                  className={`text-xs ${
+                                    isPaid ? 'border-blue-600 text-blue-600' : 
+                                    isOverdue ? 'border-orange-600 text-orange-600' : 
+                                    'border-gray-400 text-gray-600'
+                                  }`}
+                                >
+                                  {isPaid ? 'Pago' : transaction.status === 'cancelled' ? 'Cancelado' : 'Pendente'}
+                                </Badge>
+                              </div>
+
+                              {/* Progress Bar with Percentage */}
+                              <div className="space-y-1.5">
+                                <div className="flex items-center justify-between text-xs">
+                                  <span className="text-muted-foreground">% do mês</span>
+                                  <span className="font-semibold">{percentage.toFixed(1)}%</span>
+                                </div>
+                                <div className="h-2 bg-muted rounded-full overflow-hidden">
+                                  <div
+                                    className={`h-full transition-all ${
+                                      transaction.type === 'expense' 
+                                        ? 'bg-destructive' 
+                                        : 'bg-blue-600'
+                                    }`}
+                                    style={{ width: `${Math.min(percentage, 100)}%` }}
+                                  />
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
                     </div>
-                  );
+                  </div>
+                );
                 })}
               </div>
             )}
           </div>
         </div>
       </div>
+
+      {/* Detail Sheet - Opens when clicking a card */}
+      <Sheet open={detailSheetOpen} onOpenChange={setDetailSheetOpen}>
+        <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto">
+          {detailTransaction && (
+            <>
+              <SheetHeader>
+                <SheetTitle className="flex items-center justify-between">
+                  <span>Detalhes do Lançamento</span>
+                  <Badge 
+                    variant={detailTransaction.type === 'expense' ? 'destructive' : 'default'}
+                    className={detailTransaction.type === 'revenue' ? 'bg-blue-600' : ''}
+                  >
+                    {detailTransaction.type === 'expense' ? 'Despesa' : 'Receita'}
+                  </Badge>
+                </SheetTitle>
+              </SheetHeader>
+
+              <div className="mt-6 space-y-6">
+                {/* Amount Card */}
+                <Card>
+                  <CardContent className="p-4">
+                    <p className="text-sm text-muted-foreground mb-2">Valor</p>
+                    <div className={`text-3xl font-bold ${
+                      detailTransaction.type === 'expense' ? 'text-destructive' : 'text-blue-600'
+                    }`}>
+                      {detailTransaction.type === 'expense' ? '-' : '+'} R$ {parseFloat(detailTransaction.amount || '0').toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </div>
+                    {(() => {
+                      const amount = parseFloat(detailTransaction.amount || '0');
+                      const total = detailTransaction.type === 'revenue' ? monthlyTotals.totalRevenues : monthlyTotals.totalExpenses;
+                      const percentage = total > 0 ? (amount / total) * 100 : 0;
+                      return (
+                        <div className="mt-3 space-y-1.5">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-muted-foreground">Representa {percentage.toFixed(1)}% do total de {detailTransaction.type === 'revenue' ? 'receitas' : 'despesas'} do mês</span>
+                          </div>
+                          <div className="h-2 bg-muted rounded-full overflow-hidden">
+                            <div
+                              className={`h-full ${
+                                detailTransaction.type === 'expense' 
+                                  ? 'bg-destructive' 
+                                  : 'bg-blue-600'
+                              }`}
+                              style={{ width: `${Math.min(percentage, 100)}%` }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </CardContent>
+                </Card>
+
+                {/* Information Grid */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Status</p>
+                    <Badge variant="outline">
+                      {detailTransaction.status === 'paid' ? 'Pago' : 
+                       detailTransaction.status === 'cancelled' ? 'Cancelado' : 'Pendente'}
+                    </Badge>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Vencimento</p>
+                    <p className="text-sm font-medium">
+                      {detailTransaction.dueDate ? format(new Date(detailTransaction.dueDate), "dd/MM/yyyy") : '-'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Emissão</p>
+                    <p className="text-sm">
+                      {detailTransaction.issueDate ? format(new Date(detailTransaction.issueDate), "dd/MM/yyyy") : '-'}
+                    </p>
+                  </div>
+                  {detailTransaction.paidDate && (
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">Pagamento</p>
+                      <p className="text-sm font-medium text-blue-600">
+                        {format(new Date(detailTransaction.paidDate), "dd/MM/yyyy")}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Title & Description */}
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">Título</p>
+                  <p className="font-semibold">{detailTransaction.title || 'Sem título'}</p>
+                </div>
+
+                {detailTransaction.description && (
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Descrição</p>
+                    <p className="text-sm">{detailTransaction.description}</p>
+                  </div>
+                )}
+
+                {/* Person */}
+                {(() => {
+                  const person = customersSuppliers.find(p => p.id === detailTransaction.personId);
+                  return person ? (
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">
+                        {detailTransaction.type === 'revenue' ? 'Cliente' : 'Fornecedor'}
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <User className="w-4 h-4 text-muted-foreground" />
+                        <p className="font-medium">{person.name}</p>
+                      </div>
+                    </div>
+                  ) : null;
+                })()}
+
+                {/* Additional values */}
+                {(parseFloat(detailTransaction.discount || '0') > 0 || 
+                  parseFloat(detailTransaction.interest || '0') > 0 || 
+                  parseFloat(detailTransaction.fees || '0') > 0) && (
+                  <div className="space-y-2">
+                    <p className="text-xs text-muted-foreground">Valores Adicionais</p>
+                    {parseFloat(detailTransaction.discount || '0') > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span>Desconto</span>
+                        <span className="font-medium">- R$ {parseFloat(detailTransaction.discount || '0').toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                      </div>
+                    )}
+                    {parseFloat(detailTransaction.interest || '0') > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span>Juros</span>
+                        <span className="font-medium">+ R$ {parseFloat(detailTransaction.interest || '0').toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                      </div>
+                    )}
+                    {parseFloat(detailTransaction.fees || '0') > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span>Taxas</span>
+                        <span className="font-medium">+ R$ {parseFloat(detailTransaction.fees || '0').toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Action Buttons */}
+                <div className="flex gap-2 pt-4">
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => {
+                      setDetailSheetOpen(false);
+                      setSelectedTransaction(detailTransaction);
+                      setDialogOpen(true);
+                    }}
+                    data-testid="button-edit-detail"
+                  >
+                    Editar
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => setDetailSheetOpen(false)}
+                    data-testid="button-close-detail"
+                  >
+                    Fechar
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
 
       {/* Transaction Dialog */}
       <TransactionDialog 
