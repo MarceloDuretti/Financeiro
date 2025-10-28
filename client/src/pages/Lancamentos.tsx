@@ -1154,7 +1154,7 @@ export default function Lancamentos() {
                               {isPaid && transaction.paidDate && (
                                 <div className="flex items-center justify-between text-[10px] text-blue-600">
                                   <span>Pago em:</span>
-                                  <span className="font-medium">
+                                  <span className="font-normal">
                                     {format(new Date(transaction.paidDate), "dd/MM/yy")}
                                   </span>
                                 </div>
@@ -1162,7 +1162,7 @@ export default function Lancamentos() {
 
                               {/* Amount and Status */}
                               <div className="flex items-center justify-between gap-1">
-                                <div className={`text-sm font-bold ${
+                                <div className={`text-sm font-medium ${
                                   transaction.type === 'expense' ? 'text-destructive' : 'text-blue-600'
                                 }`}>
                                   {transaction.type === 'expense' ? '-' : '+'} R$ {amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
@@ -1183,7 +1183,7 @@ export default function Lancamentos() {
                               <div className="space-y-0.5">
                                 <div className="flex items-center justify-between text-[10px]">
                                   <span className="text-muted-foreground">% do mês</span>
-                                  <span className="font-semibold">{percentage.toFixed(1)}%</span>
+                                  <span className="font-medium">{percentage.toFixed(1)}%</span>
                                 </div>
                                 <div className="h-1.5 bg-muted rounded-full overflow-hidden">
                                   <div
