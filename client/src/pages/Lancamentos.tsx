@@ -1028,7 +1028,7 @@ export default function Lancamentos() {
                         </div>
                         
                         {/* Transactions List - SCROLLÁVEL */}
-                        <div className="flex-1 overflow-y-auto p-1.5 space-y-1">
+                        <div className="flex-1 overflow-y-auto scrollbar-hidden p-1.5 space-y-1">
                           {dayTransactions.map((transaction) => {
                             const isPaid = transaction.status === 'paid';
                             const isOverdue = transaction.status !== 'paid' && transaction.dueDate && new Date(transaction.dueDate) < new Date();
