@@ -491,7 +491,7 @@ export default function Lancamentos() {
                       </span>
                     </div>
                     <div className={`flex items-center gap-0.5 font-medium transition-all duration-200 ${
-                      isSelected ? 'text-sm' : 'text-xs'
+                      isSelected ? 'text-xs' : 'text-[10px]'
                     } ${yoyColor}`}>
                       {displayYoy !== 0 && (
                         displayYoy > 0 ? (
