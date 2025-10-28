@@ -716,68 +716,56 @@ export default function Lancamentos() {
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
               {/* Open Expenses */}
               <Card className="border-l-2 border-l-destructive">
-                <CardContent className="p-3">
-                  <div className="flex items-center justify-between mb-1">
-                    <p className="text-[10px] font-medium text-muted-foreground uppercase">Despesas Abertas</p>
+                <CardContent className="p-2">
+                  <div className="flex items-center justify-between mb-0.5">
+                    <p className="text-[9px] font-medium text-muted-foreground uppercase tracking-wide">Despesas Abertas</p>
                     <TrendingDown className="w-3 h-3 text-destructive" />
                   </div>
-                  <div className="text-base font-bold text-destructive">
+                  <div className="text-base font-normal text-destructive">
                     R$ {kpis.openExpenses.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </div>
-                  <p className="text-[10px] text-muted-foreground">
-                    {monthOnlyTransactions.filter(t => t.type === 'expense' && t.status === 'pending').length} lançamentos
-                  </p>
                 </CardContent>
               </Card>
 
               {/* Open Revenues */}
               <Card className="border-l-2 border-l-blue-600">
-                <CardContent className="p-3">
-                  <div className="flex items-center justify-between mb-1">
-                    <p className="text-[10px] font-medium text-muted-foreground uppercase">Receitas Abertas</p>
+                <CardContent className="p-2">
+                  <div className="flex items-center justify-between mb-0.5">
+                    <p className="text-[9px] font-medium text-muted-foreground uppercase tracking-wide">Receitas Abertas</p>
                     <TrendingUp className="w-3 h-3 text-blue-600" />
                   </div>
-                  <div className="text-base font-bold text-blue-600">
+                  <div className="text-base font-normal text-blue-600">
                     R$ {kpis.openRevenues.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </div>
-                  <p className="text-[10px] text-muted-foreground">
-                    {monthOnlyTransactions.filter(t => t.type === 'revenue' && t.status === 'pending').length} lançamentos
-                  </p>
                 </CardContent>
               </Card>
 
               {/* Overdue */}
               <Card className="border-l-2 border-l-orange-600">
-                <CardContent className="p-3">
-                  <div className="flex items-center justify-between mb-1">
-                    <p className="text-[10px] font-medium text-muted-foreground uppercase">Em Atraso</p>
+                <CardContent className="p-2">
+                  <div className="flex items-center justify-between mb-0.5">
+                    <p className="text-[9px] font-medium text-muted-foreground uppercase tracking-wide">Em Atraso</p>
                     <AlertCircle className="w-3 h-3 text-orange-600" />
                   </div>
-                  <div className="text-base font-bold text-orange-600">
+                  <div className="text-base font-normal text-orange-600">
                     R$ {kpis.overdue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </div>
-                  <p className="text-[10px] text-muted-foreground">
-                    {monthOnlyTransactions.filter(t => t.status === 'pending' && t.dueDate && new Date(t.dueDate) < new Date()).length} lançamentos
-                  </p>
                 </CardContent>
               </Card>
 
               {/* Result */}
               <Card className="border-l-2 border-l-primary">
-                <CardContent className="p-3">
-                  <div className="flex items-center justify-between mb-1">
-                    <p className="text-[10px] font-medium text-muted-foreground uppercase">Resultado</p>
+                <CardContent className="p-2">
+                  <div className="flex items-center justify-between mb-0.5">
+                    <p className="text-[9px] font-medium text-muted-foreground uppercase tracking-wide">Resultado</p>
                     <Calendar className="w-3 h-3 text-primary" />
                   </div>
-                  <div className={`text-base font-bold ${kpis.result >= 0 ? 'text-blue-600' : 'text-destructive'}`}>
-                    R$ {kpis.result.toLocaleString('pt-BR', { minimumFractionDigits: 2, signDisplay: 'always' })}
-                  </div>
                   <div className="flex items-center justify-between">
-                    <p className="text-[10px] text-muted-foreground">
-                      {monthOnlyTransactions.filter(t => t.status === 'paid').length} pagos
-                    </p>
+                    <div className={`text-base font-normal ${kpis.result >= 0 ? 'text-blue-600' : 'text-destructive'}`}>
+                      R$ {kpis.result.toLocaleString('pt-BR', { minimumFractionDigits: 2, signDisplay: 'always' })}
+                    </div>
                     {resultChange !== 0 && (
-                      <div className={`flex items-center gap-0.5 text-[10px] font-medium ${
+                      <div className={`flex items-center gap-0.5 text-[9px] font-medium ${
                         resultChange > 0 ? 'text-blue-600' : 'text-destructive'
                       }`}>
                         {resultChange > 0 ? (
