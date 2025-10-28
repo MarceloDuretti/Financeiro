@@ -854,19 +854,6 @@ export default function Lancamentos() {
                   <Skeleton key={i} className="h-48 w-full" />
                 ))}
               </div>
-            ) : filteredTransactions.length === 0 ? (
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="text-center py-12">
-                    <TrendingUp className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-50" />
-                    <p className="text-muted-foreground">
-                      {searchQuery || typeFilter !== 'all' || statusFilter !== 'all'
-                        ? "Nenhum lançamento encontrado com os filtros aplicados"
-                        : "Nenhum lançamento cadastrado ainda"}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
             ) : viewMode === 'week' ? (
               // WEEK VIEW
               <div className="flex flex-col h-full">
@@ -1034,6 +1021,19 @@ export default function Lancamentos() {
                   })}
                 </div>
               </div>
+            ) : filteredTransactions.length === 0 ? (
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="text-center py-12">
+                    <TrendingUp className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-50" />
+                    <p className="text-muted-foreground">
+                      {searchQuery || typeFilter !== 'all' || statusFilter !== 'all'
+                        ? "Nenhum lançamento encontrado com os filtros aplicados"
+                        : "Nenhum lançamento cadastrado ainda"}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
             ) : (
               <div className="space-y-6">
                 {Object.entries(transactionsByDay).map(([dayKey, dayTransactions]) => {
