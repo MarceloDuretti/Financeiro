@@ -67,7 +67,19 @@ Key features include:
         - Year selector dropdown (last 5 years + next 2 years) with previous/next navigation buttons
         - "Hoje" (Today) button to instantly return to current month/year
         - Visual indicators: selected month highlighting, current month border (border-primary), transition animations
-        - Badge showing transaction count per month (queried from full year data)
+        - **Enhanced Month Buttons with YoY Indicators:**
+            - Two-row layout per button (min-h-[40px] desktop, min-h-[36px] mobile)
+            - Row 1: Month name (bold) + prominent transaction count badge (h-5)
+            - Row 2: Year-over-Year trend indicator (if previous year data exists)
+                - Green with ↑ for growth (e.g., +25%)
+                - Red with ↓ for decline (e.g., -10%)
+                - Hidden if no previous year data
+            - Desktop: TrendingUp/TrendingDown icons from lucide-react
+            - Mobile: Unicode arrows (↑↓) to save space
+        - **Data Queries for YoY:**
+            - Current year transactions (month badges)
+            - Previous year transactions (YoY comparison)
+            - Automatic calculation of percentage change per month
         - Keyboard shortcuts: Arrow Left/Right (month), Ctrl+Arrow Left/Right (year), Home/End (Jan/Dec), T (today)
         - Period display showing current view in header subtitle (e.g., "Outubro de 2025")
     - **Analytics Dashboard:**
