@@ -26,18 +26,18 @@ import type { Transaction } from "@shared/schema";
 const SELECTED_COMPANY_KEY = "fincontrol_selected_company_id";
 
 const MONTHS = [
-  { index: 0, short: "JAN", full: "Janeiro" },
-  { index: 1, short: "FEV", full: "Fevereiro" },
-  { index: 2, short: "MAR", full: "Março" },
-  { index: 3, short: "ABR", full: "Abril" },
-  { index: 4, short: "MAI", full: "Maio" },
-  { index: 5, short: "JUN", full: "Junho" },
-  { index: 6, short: "JUL", full: "Julho" },
-  { index: 7, short: "AGO", full: "Agosto" },
-  { index: 8, short: "SET", full: "Setembro" },
-  { index: 9, short: "OUT", full: "Outubro" },
-  { index: 10, short: "NOV", full: "Novembro" },
-  { index: 11, short: "DEZ", full: "Dezembro" },
+  { index: 0, short: "Jan", full: "Janeiro" },
+  { index: 1, short: "Fev", full: "Fevereiro" },
+  { index: 2, short: "Mar", full: "Março" },
+  { index: 3, short: "Abr", full: "Abril" },
+  { index: 4, short: "Mai", full: "Maio" },
+  { index: 5, short: "Jun", full: "Junho" },
+  { index: 6, short: "Jul", full: "Julho" },
+  { index: 7, short: "Ago", full: "Agosto" },
+  { index: 8, short: "Set", full: "Setembro" },
+  { index: 9, short: "Out", full: "Outubro" },
+  { index: 10, short: "Nov", full: "Novembro" },
+  { index: 11, short: "Dez", full: "Dezembro" },
 ];
 
 export default function Lancamentos() {
@@ -368,7 +368,7 @@ export default function Lancamentos() {
           </div>
 
           {/* Months vertical list - scrollable */}
-          <div className="flex-1 overflow-y-auto p-2 space-y-1">
+          <div className="flex-1 overflow-y-auto p-2 space-y-0.5">
             {MONTHS.map((month) => {
               const isSelected = selectedMonth === month.index;
               const isCurrent = getMonth(now) === month.index && getYear(now) === selectedYear;
@@ -377,49 +377,41 @@ export default function Lancamentos() {
               
               // Determine trend indicator
               const hasTrend = yoyChange !== null && yoyChange !== undefined;
+              const displayYoy = hasTrend ? yoyChange : 0;
               const isPositive = hasTrend && yoyChange > 0;
               const isNegative = hasTrend && yoyChange < 0;
-              const trendColor = isPositive ? 'text-green-600 dark:text-green-500' : 
-                                 isNegative ? 'text-red-600 dark:text-red-500' : 
-                                 'text-muted-foreground';
+              const yoyColor = isPositive ? 'text-green-600 dark:text-green-500' : 
+                               isNegative ? 'text-red-600 dark:text-red-500' : 
+                               'text-muted-foreground';
               
               return (
-                <Button
-                  key={month.index}
-                  variant={isSelected ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => setSelectedMonth(month.index)}
-                  className={`w-full h-auto min-h-[40px] flex flex-col items-start px-2 py-1.5 text-xs transition-all duration-200 ${
-                    isCurrent && !isSelected ? 'border-l-2 border-primary' : ''
-                  }`}
-                  data-testid={`button-month-${month.index}`}
-                >
-                  {/* First row: Month name + Count */}
-                  <div className="w-full flex items-center justify-between">
-                    <span className="font-semibold text-sm">{month.short}</span>
-                    <Badge
-                      variant={isSelected ? "secondary" : "default"}
-                      className="text-[10px] px-1.5 h-5 min-w-[20px] font-bold"
-                    >
-                      {count}
-                    </Badge>
-                  </div>
-                  
-                  {/* Second row: YoY comparison */}
-                  <div className={`w-full flex items-center gap-1 mt-0.5 ${trendColor}`}>
-                    {hasTrend ? (
-                      <>
-                        {isPositive && <TrendingUp className="w-3 h-3" />}
-                        {isNegative && <TrendingDown className="w-3 h-3" />}
-                        <span className="text-[9px] font-medium">
-                          {yoyChange > 0 ? '+' : ''}{yoyChange.toFixed(0)}%
-                        </span>
-                      </>
-                    ) : (
-                      <span className="text-[9px] text-muted-foreground">—</span>
-                    )}
-                  </div>
-                </Button>
+                <div key={month.index}>
+                  <Button
+                    variant={isSelected ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => setSelectedMonth(month.index)}
+                    className={`w-full h-8 flex items-center justify-between px-2 text-xs transition-all duration-200 ${
+                      isCurrent && !isSelected ? 'border-l-2 border-primary' : ''
+                    }`}
+                    data-testid={`button-month-${month.index}`}
+                  >
+                    <span className="font-medium text-[11px]">{month.short}</span>
+                    <div className="flex items-center gap-1.5">
+                      <Badge
+                        variant="outline"
+                        className="text-[9px] px-1 h-4 min-w-[16px] font-medium border-muted-foreground/20"
+                      >
+                        {count}
+                      </Badge>
+                      <span className={`text-[9px] font-medium min-w-[28px] text-right ${yoyColor}`}>
+                        {displayYoy > 0 ? '+' : ''}{displayYoy.toFixed(0)}%
+                      </span>
+                    </div>
+                  </Button>
+                  {month.index < 11 && (
+                    <div className="h-px bg-border/30 mx-2" />
+                  )}
+                </div>
               );
             })}
           </div>
@@ -471,8 +463,12 @@ export default function Lancamentos() {
                 const count = transactionCountsByMonth[month.index] || 0;
                 const yoyChange = yoyChangeByMonth[month.index];
                 const hasTrend = yoyChange !== null && yoyChange !== undefined;
+                const displayYoy = hasTrend ? yoyChange : 0;
                 const isPositive = hasTrend && yoyChange > 0;
                 const isNegative = hasTrend && yoyChange < 0;
+                const yoyColor = isPositive ? 'text-green-600 dark:text-green-500' : 
+                                 isNegative ? 'text-red-600 dark:text-red-500' : 
+                                 'text-muted-foreground';
                 
                 return (
                   <Button
@@ -480,29 +476,17 @@ export default function Lancamentos() {
                     variant={isSelected ? "default" : "outline"}
                     size="sm"
                     onClick={() => setSelectedMonth(month.index)}
-                    className={`h-auto min-h-[36px] px-2 py-1 text-xs flex-shrink-0 flex flex-col items-center gap-0.5 ${
+                    className={`h-7 px-2 text-xs flex-shrink-0 flex items-center gap-1.5 ${
                       isCurrent && !isSelected ? 'border-primary border-2' : ''
                     }`}
                     data-testid={`button-month-mobile-${month.index}`}
                   >
-                    <div className="flex items-center gap-1">
-                      <span className="font-semibold">{month.short}</span>
-                      <Badge variant="secondary" className="text-[9px] px-1 h-3.5 min-w-[14px]">
-                        {count}
-                      </Badge>
-                    </div>
-                    <span className={`text-[8px] font-medium ${
-                      hasTrend ? (
-                        isPositive ? 'text-green-600 dark:text-green-500' : 
-                        isNegative ? 'text-red-600 dark:text-red-500' : 
-                        'text-muted-foreground'
-                      ) : 'text-muted-foreground'
-                    }`}>
-                      {hasTrend ? (
-                        `${isPositive ? '↑' : isNegative ? '↓' : ''}${yoyChange > 0 ? '+' : ''}${yoyChange.toFixed(0)}%`
-                      ) : (
-                        '—'
-                      )}
+                    <span className="font-medium text-[10px]">{month.short}</span>
+                    <Badge variant="outline" className="text-[8px] px-1 h-3.5 min-w-[14px] border-muted-foreground/20">
+                      {count}
+                    </Badge>
+                    <span className={`text-[8px] font-medium ${yoyColor}`}>
+                      {displayYoy > 0 ? '+' : ''}{displayYoy.toFixed(0)}%
                     </span>
                   </Button>
                 );
