@@ -278,13 +278,13 @@ export function AppSidebar() {
     return (
       <Sidebar 
         collapsible="icon" 
-        className="border-r bg-gradient-to-b from-background via-muted/10 to-muted/30 backdrop-blur-sm flex flex-col h-full"
+        className="border-r bg-gradient-to-b from-background via-muted/10 to-muted/30 backdrop-blur-sm flex flex-col h-full sidebar-collapsed-spacing"
       >
-        <SidebarContent className="py-2 flex flex-col items-center gap-2 overflow-y-auto scrollbar-hidden flex-1 min-h-0">
+        <SidebarContent className="flex flex-col items-center overflow-y-auto scrollbar-hidden flex-1 min-h-0" style={{ paddingTop: 'var(--sidebar-py)', paddingBottom: 'var(--sidebar-py)', gap: 'var(--sidebar-gap)' }}>
           {/* Avatar no topo */}
           <div className="w-full flex items-center justify-center px-2 shrink-0">
             <div className="relative group">
-              <Avatar className="h-8 w-8 border border-primary/20 shadow transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg group-hover:border-primary/40">
+              <Avatar className="border border-primary/20 shadow transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg group-hover:border-primary/40" style={{ width: 'var(--sidebar-avatar-size)', height: 'var(--sidebar-avatar-size)' }}>
                 <AvatarImage src={user?.profileImageUrl || ""} alt={getUserDisplayName()} />
                 <AvatarFallback className="bg-gradient-to-br from-primary to-blue-600 text-white font-semibold text-[10px]">
                   {getUserInitials()}
@@ -297,7 +297,7 @@ export function AppSidebar() {
 
           <Separator className="w-3/4 mx-auto" />
 
-          <SidebarMenu className="gap-1.5 w-full px-2">
+          <SidebarMenu className="w-full px-2" style={{ gap: 'var(--sidebar-menu-gap)' }}>
             {menuItems.map((item) => {
               const Icon = item.icon;
               const isDisabled = item.requiresCompany && !hasCompanies;
