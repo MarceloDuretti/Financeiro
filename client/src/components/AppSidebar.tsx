@@ -210,9 +210,30 @@ export function AppSidebar() {
   // Render collapsed sidebar with icon-only layout
   if (isCollapsed) {
     return (
-      <Sidebar collapsible="icon" className="border-r bg-gradient-to-b from-background to-muted/20">
-        <SidebarContent className="py-6 flex items-center justify-center">
-          <SidebarMenu className="gap-3 w-full px-2">
+      <Sidebar 
+        collapsible="icon" 
+        className="border-r bg-gradient-to-b from-background via-muted/10 to-muted/30 backdrop-blur-sm"
+        onMouseEnter={() => setOpen(true)}
+        onMouseLeave={() => setOpen(false)}
+      >
+        <SidebarContent className="py-6 flex flex-col items-center gap-6">
+          {/* Avatar no topo */}
+          <div className="w-full flex items-center justify-center px-3">
+            <div className="relative group">
+              <Avatar className="h-12 w-12 border-2 border-primary/20 shadow-lg transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl group-hover:border-primary/40">
+                <AvatarImage src={user?.profileImageUrl || ""} alt={getUserDisplayName()} />
+                <AvatarFallback className="bg-gradient-to-br from-primary to-blue-600 text-white font-semibold text-sm">
+                  {getUserInitials()}
+                </AvatarFallback>
+              </Avatar>
+              {/* Ring effect on hover */}
+              <div className="absolute inset-0 rounded-full ring-2 ring-primary/0 group-hover:ring-primary/30 transition-all duration-300" />
+            </div>
+          </div>
+
+          <Separator className="w-3/4 mx-auto" />
+
+          <SidebarMenu className="gap-4 w-full px-3">
             {menuItems.map((item) => {
               const Icon = item.icon;
               const isDisabled = item.requiresCompany && !hasCompanies;
@@ -224,14 +245,14 @@ export function AppSidebar() {
                     <DropdownMenu>
                       <DropdownMenuTrigger
                         disabled={isDisabled}
-                        className={`w-full h-auto py-2 flex items-center justify-center rounded-lg hover-elevate active-elevate-2 ${isDisabled ? 'cursor-not-allowed opacity-40' : ''}`}
+                        className={`w-full h-auto py-2 flex items-center justify-center rounded-xl transition-all duration-300 ${isDisabled ? 'cursor-not-allowed opacity-40' : 'hover:scale-105 active:scale-95'}`}
                         data-testid={`button-menu-${item.title.toLowerCase()}`}
                         title={`${item.title} - ${item.description}`}
                       >
-                        <div className={`relative flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${item.color} shadow-sm ${isDisabled ? 'saturate-0' : ''}`}>
+                        <div className={`relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${item.color} shadow-lg transition-all duration-300 ${isDisabled ? 'saturate-0' : 'hover:shadow-2xl hover:shadow-primary/20'}`}>
                           <Icon className="h-5 w-5 text-white" strokeWidth={2.5} />
                           {item.count && (
-                            <div className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary border-2 border-background flex items-center justify-center">
+                            <div className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary border-2 border-background flex items-center justify-center shadow-md">
                               <span className="text-[8px] font-bold text-primary-foreground">{item.count}</span>
                             </div>
                           )}
@@ -267,10 +288,10 @@ export function AppSidebar() {
                       <TooltipTrigger asChild>
                         <button
                           disabled
-                          className="relative w-full flex items-center justify-center py-2 rounded-lg cursor-not-allowed opacity-40"
+                          className="relative w-full flex items-center justify-center py-2 rounded-xl cursor-not-allowed opacity-40 transition-all duration-300"
                           data-testid={`button-menu-${item.title.toLowerCase()}`}
                         >
-                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-gray-400 to-gray-500 shadow-sm saturate-0">
+                          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-gray-400 to-gray-500 shadow-lg saturate-0">
                             <Icon className="h-5 w-5 text-white" strokeWidth={2.5} />
                           </div>
                         </button>
@@ -290,13 +311,13 @@ export function AppSidebar() {
                     <TooltipTrigger asChild>
                       <Link href={item.url!} onClick={handleMenuItemClick}>
                         <button
-                          className={`relative w-full flex items-center justify-center py-2 rounded-lg hover-elevate active-elevate-2 ${location === item.url ? 'bg-accent' : ''}`}
+                          className={`relative w-full flex items-center justify-center py-2 rounded-xl transition-all duration-300 hover:scale-105 active:scale-95 ${location === item.url ? 'bg-accent/50 ring-2 ring-primary/20' : ''}`}
                           data-testid={`link-menu-${item.title.toLowerCase()}`}
                         >
-                          <div className={`relative flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${item.color} shadow-sm`}>
+                          <div className={`relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${item.color} shadow-lg transition-all duration-300 hover:shadow-2xl hover:shadow-primary/20`}>
                             <Icon className="h-5 w-5 text-white" strokeWidth={2.5} />
                             {item.badge && (
-                              <div className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary border-2 border-background flex items-center justify-center">
+                              <div className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary border-2 border-background flex items-center justify-center shadow-md">
                                 <span className="text-[8px] font-bold text-primary-foreground">{item.badge}</span>
                               </div>
                             )}

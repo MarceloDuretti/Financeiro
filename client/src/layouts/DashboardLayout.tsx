@@ -25,7 +25,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   
   const style = {
     "--sidebar-width": "22rem",
-    "--sidebar-width-icon": "3rem",
+    "--sidebar-width-icon": "5rem",
   };
 
   const handleLogout = async () => {
