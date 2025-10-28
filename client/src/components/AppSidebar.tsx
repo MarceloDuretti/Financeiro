@@ -24,7 +24,7 @@ import {
   List,
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Sidebar,
   SidebarContent,
@@ -169,6 +169,9 @@ export function AppSidebar() {
   const { user } = useAuth();
   const { state, setOpen } = useSidebar();
   const isCollapsed = state === "collapsed";
+  const [focusedItem, setFocusedItem] = useState<string | null>(null);
+  const [openSubmenus, setOpenSubmenus] = useState<Set<string>>(new Set());
+  const menuRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   // Fetch companies to determine if user has at least one
   const { data: companies = [] } = useQuery<Company[]>({
@@ -183,12 +186,45 @@ export function AppSidebar() {
     setOpen(false);
   };
 
-  // Expand sidebar when clicking on collapsed menu item
-  const handleCollapsedMenuClick = () => {
+  // Expand sidebar and focus on specific menu item
+  const handleCollapsedMenuClick = (itemTitle: string) => {
     if (isCollapsed) {
+      setFocusedItem(itemTitle);
       setOpen(true);
     }
   };
+
+  // Scroll to and highlight focused item when sidebar expands
+  useEffect(() => {
+    if (!isCollapsed && focusedItem && menuRefs.current[focusedItem]) {
+      let scrollTimer: NodeJS.Timeout;
+      let clearTimer: NodeJS.Timeout;
+      
+      // Small delay to ensure sidebar is fully expanded
+      scrollTimer = setTimeout(() => {
+        menuRefs.current[focusedItem]?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+        });
+        
+        // Open submenu if focused item has subitems
+        const focusedMenuItem = menuItems.find(item => item.title === focusedItem);
+        if (focusedMenuItem?.items) {
+          setOpenSubmenus(prev => new Set(prev).add(focusedItem));
+        }
+        
+        // Clear focus after animation
+        clearTimer = setTimeout(() => {
+          setFocusedItem(null);
+        }, 2000);
+      }, 100);
+      
+      return () => {
+        clearTimeout(scrollTimer);
+        clearTimeout(clearTimer);
+      };
+    }
+  }, [isCollapsed, focusedItem]);
 
   // Get short label for collapsed menu
   const getShortLabel = (title: string): string => {
@@ -244,7 +280,7 @@ export function AppSidebar() {
         collapsible="icon" 
         className="border-r bg-gradient-to-b from-background via-muted/10 to-muted/30 backdrop-blur-sm"
       >
-        <SidebarContent className="py-6 flex flex-col items-center gap-6">
+        <SidebarContent className="py-6 flex flex-col items-center gap-6 overflow-y-auto">
           {/* Avatar no topo */}
           <div className="w-full flex items-center justify-center px-3">
             <div className="relative group">
@@ -267,47 +303,36 @@ export function AppSidebar() {
               const isDisabled = item.requiresCompany && !hasCompanies;
               
               if (item.items) {
-                // Menu with submenu - use DropdownMenu
+                // Menu with submenu - just expand sidebar on click
                 return (
                   <SidebarMenuItem key={item.title}>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger
-                        disabled={isDisabled}
-                        onClick={handleCollapsedMenuClick}
-                        className={`w-full h-auto py-2 flex flex-col items-center justify-center gap-1 rounded-xl transition-all duration-300 ${isDisabled ? 'cursor-not-allowed opacity-40' : 'hover:scale-105 active:scale-95'}`}
-                        data-testid={`button-menu-${item.title.toLowerCase()}`}
-                        title={`${item.title} - ${item.description}`}
-                      >
-                        <div className={`relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${item.color} shadow-lg transition-all duration-300 ${isDisabled ? 'saturate-0' : 'hover:shadow-2xl hover:shadow-primary/20'}`}>
-                          <Icon className="h-5 w-5 text-white" strokeWidth={2.5} />
-                          {item.count && (
-                            <div className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary border-2 border-background flex items-center justify-center shadow-md">
-                              <span className="text-[8px] font-bold text-primary-foreground">{item.count}</span>
-                            </div>
-                          )}
-                        </div>
-                        <span className="text-[9px] font-medium text-muted-foreground truncate w-full text-center px-1">
-                          {getShortLabel(item.title)}
-                        </span>
-                      </DropdownMenuTrigger>
-                      {!isDisabled && (
-                        <DropdownMenuContent side="right" align="start" className="w-56">
-                          {item.items.map((subItem) => {
-                            const SubIcon = subItem.icon;
-                            return (
-                              <DropdownMenuItem key={subItem.title} asChild>
-                                <Link href={subItem.url} onClick={handleMenuItemClick}>
-                                  <div className="flex items-center gap-2 w-full" data-testid={`link-submenu-${subItem.title.toLowerCase().replace(/\s+/g, '-')}`}>
-                                    <SubIcon className="h-4 w-4 text-muted-foreground" />
-                                    <span>{subItem.title}</span>
-                                  </div>
-                                </Link>
-                              </DropdownMenuItem>
-                            );
-                          })}
-                        </DropdownMenuContent>
-                      )}
-                    </DropdownMenu>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          disabled={isDisabled}
+                          onClick={() => handleCollapsedMenuClick(item.title)}
+                          className={`w-full h-auto py-2 flex flex-col items-center justify-center gap-1 rounded-xl transition-all duration-300 ${isDisabled ? 'cursor-not-allowed opacity-40' : 'hover:scale-105 active:scale-95'}`}
+                          data-testid={`button-menu-${item.title.toLowerCase()}`}
+                          title={`${item.title} - ${item.description}`}
+                        >
+                          <div className={`relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${item.color} shadow-lg transition-all duration-300 ${isDisabled ? 'saturate-0' : 'hover:shadow-2xl hover:shadow-primary/20'}`}>
+                            <Icon className="h-5 w-5 text-white" strokeWidth={2.5} />
+                            {item.count && (
+                              <div className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary border-2 border-background flex items-center justify-center shadow-md">
+                                <span className="text-[8px] font-bold text-primary-foreground">{item.count}</span>
+                              </div>
+                            )}
+                          </div>
+                          <span className="text-[9px] font-medium text-muted-foreground truncate w-full text-center px-1">
+                            {getShortLabel(item.title)}
+                          </span>
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="right" className="flex flex-col gap-1">
+                        <span className="font-semibold">{item.title}</span>
+                        <span className="text-xs text-muted-foreground">{item.description}</span>
+                      </TooltipContent>
+                    </Tooltip>
                   </SidebarMenuItem>
                 );
               }
@@ -346,8 +371,8 @@ export function AppSidebar() {
                     <TooltipTrigger asChild>
                       <Link href={item.url!} onClick={() => {
                         if (isCollapsed) {
-                          // If collapsed, expand but don't close
-                          setOpen(true);
+                          // If collapsed, expand and focus this item
+                          handleCollapsedMenuClick(item.title);
                         } else {
                           // If already expanded, close after click (mobile behavior)
                           handleMenuItemClick();
@@ -438,22 +463,42 @@ export function AppSidebar() {
                 
                 if (item.items) {
                   // Menu with submenu - use Collapsible
+                  const isFocused = focusedItem === item.title;
+                  const isOpen = !isDisabled && (openSubmenus.has(item.title) || isFocused);
                   return (
-                    <Collapsible key={item.title} asChild defaultOpen={!isDisabled}>
+                    <Collapsible 
+                      key={item.title} 
+                      asChild 
+                      open={isOpen}
+                      onOpenChange={(open) => {
+                        setOpenSubmenus(prev => {
+                          const newSet = new Set(prev);
+                          if (open) {
+                            newSet.add(item.title);
+                          } else {
+                            newSet.delete(item.title);
+                          }
+                          return newSet;
+                        });
+                      }}
+                    >
                       <SidebarMenuItem>
-                        <CollapsibleTrigger asChild disabled={isDisabled}>
-                          <SidebarMenuButton
-                            className={`group/item h-auto py-3 px-3 ${!isDisabled ? 'hover-elevate' : 'cursor-not-allowed opacity-40'}`}
-                            data-testid={`button-menu-${item.title.toLowerCase()}`}
-                            disabled={isDisabled}
-                            title={isDisabled ? "Configure uma empresa primeiro" : undefined}
-                            onClick={(e) => {
-                              if (isDisabled) {
-                                e.preventDefault();
-                                e.stopPropagation();
-                              }
-                            }}
-                          >
+                        <div ref={(el) => {
+                          if (el) menuRefs.current[item.title] = el;
+                        }}>
+                          <CollapsibleTrigger asChild disabled={isDisabled}>
+                            <SidebarMenuButton
+                              className={`group/item h-auto py-3 px-3 transition-all duration-300 ${!isDisabled ? 'hover-elevate' : 'cursor-not-allowed opacity-40'} ${isFocused ? 'ring-2 ring-primary bg-primary/10' : ''}`}
+                              data-testid={`button-menu-${item.title.toLowerCase()}`}
+                              disabled={isDisabled}
+                              title={isDisabled ? "Configure uma empresa primeiro" : undefined}
+                              onClick={(e) => {
+                                if (isDisabled) {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                }
+                              }}
+                            >
                             <div className="flex items-start gap-3 flex-1">
                               <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${item.color} shadow-lg transition-all duration-300 mt-0.5 ${isDisabled ? 'saturate-0' : 'hover:shadow-2xl hover:shadow-primary/20'}`}>
                                 <Icon className="h-4 w-4 text-white" strokeWidth={2.5} />
@@ -499,18 +544,20 @@ export function AppSidebar() {
                             </SidebarMenuSub>
                           </CollapsibleContent>
                         )}
+                        </div>
                       </SidebarMenuItem>
                     </Collapsible>
                   );
                 }
 
                 // Simple menu item
+                const isFocused = focusedItem === item.title;
                 return (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton
                       asChild={!isDisabled}
                       isActive={!isDisabled && location === item.url}
-                      className={`group/item h-auto py-3 px-3 ${!isDisabled ? 'hover-elevate' : 'cursor-not-allowed opacity-40'}`}
+                      className={`group/item h-auto py-3 px-3 transition-all duration-300 ${!isDisabled ? 'hover-elevate' : 'cursor-not-allowed opacity-40'} ${isFocused ? 'ring-2 ring-primary bg-primary/10' : ''}`}
                       disabled={isDisabled}
                       title={isDisabled ? "Configure uma empresa primeiro" : undefined}
                       onClick={(e) => {
@@ -524,6 +571,9 @@ export function AppSidebar() {
                     >
                       {isDisabled ? (
                         <div
+                          ref={(el) => {
+                            if (el) menuRefs.current[item.title] = el;
+                          }}
                           className="flex items-start gap-3 w-full"
                           data-testid={`link-menu-${item.title.toLowerCase()}`}
                         >
@@ -548,6 +598,9 @@ export function AppSidebar() {
                       ) : (
                         <Link href={item.url!}>
                           <div
+                            ref={(el) => {
+                              if (el) menuRefs.current[item.title] = el;
+                            }}
                             className="flex items-start gap-3 w-full"
                             data-testid={`link-menu-${item.title.toLowerCase()}`}
                           >
