@@ -795,7 +795,7 @@ export default function Lancamentos() {
                       </div>
 
                     {viewMode === 'cards' ? (
-                      <div className="grid gap-2" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' }}>
+                      <div className="grid gap-2" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))' }}>
                       {dayTransactions.map((transaction) => {
                         const isOverdue = transaction.status !== 'paid' && transaction.dueDate && new Date(transaction.dueDate) < new Date();
                         const isPaid = transaction.status === 'paid';
@@ -811,7 +811,7 @@ export default function Lancamentos() {
                             onClick={() => handleCardClick(transaction)}
                             data-testid={`card-transaction-${transaction.id}`}
                           >
-                            <CardContent className="p-2 space-y-1.5">
+                            <CardContent className="p-2 space-y-1">
                               {/* Type Badge and Overdue */}
                               <div className="flex items-center gap-1 flex-wrap">
                                 <Badge 
@@ -826,11 +826,6 @@ export default function Lancamentos() {
                                   </Badge>
                                 )}
                               </div>
-
-                              {/* Title/Description */}
-                              <h3 className="font-semibold text-xs line-clamp-2 min-h-[2rem]" data-testid={`text-title-${transaction.id}`}>
-                                {transaction.title || 'Sem título'}
-                              </h3>
 
                               {/* Person */}
                               {person && (
@@ -850,24 +845,24 @@ export default function Lancamentos() {
                                 </div>
                               )}
 
-                              {/* Amount */}
-                              <div className={`text-base font-bold ${
-                                transaction.type === 'expense' ? 'text-destructive' : 'text-blue-600'
-                              }`}>
-                                {transaction.type === 'expense' ? '-' : '+'} R$ {amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                              {/* Amount and Status */}
+                              <div className="flex items-center justify-between gap-1">
+                                <div className={`text-sm font-bold ${
+                                  transaction.type === 'expense' ? 'text-destructive' : 'text-blue-600'
+                                }`}>
+                                  {transaction.type === 'expense' ? '-' : '+'} R$ {amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                </div>
+                                <Badge 
+                                  variant="outline" 
+                                  className={`text-[10px] h-5 px-1.5 flex-shrink-0 ${
+                                    isPaid ? 'border-blue-600 text-blue-600' : 
+                                    isOverdue ? 'border-orange-600 text-orange-600' : 
+                                    'border-gray-400 text-gray-600'
+                                  }`}
+                                >
+                                  {isPaid ? 'Pago' : transaction.status === 'cancelled' ? 'Cancelado' : 'Pendente'}
+                                </Badge>
                               </div>
-
-                              {/* Status */}
-                              <Badge 
-                                variant="outline" 
-                                className={`text-[10px] h-5 px-1.5 ${
-                                  isPaid ? 'border-blue-600 text-blue-600' : 
-                                  isOverdue ? 'border-orange-600 text-orange-600' : 
-                                  'border-gray-400 text-gray-600'
-                                }`}
-                              >
-                                {isPaid ? 'Pago' : transaction.status === 'cancelled' ? 'Cancelado' : 'Pendente'}
-                              </Badge>
 
                               {/* Progress Bar with Percentage */}
                               <div className="space-y-0.5">
