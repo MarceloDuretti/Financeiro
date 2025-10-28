@@ -130,7 +130,8 @@ export default function Lancamentos() {
 
   // Fetch transactions for selected month
   const { data: transactions = [], isLoading } = useQuery<Transaction[]>({
-    queryKey: ["/api/transactions", selectedCompanyId, { 
+    queryKey: ["/api/transactions", { 
+      companyId: selectedCompanyId,
       startDate, 
       endDate, 
       type: typeFilter === 'all' ? undefined : typeFilter,
@@ -145,9 +146,23 @@ export default function Lancamentos() {
   const yearEnd = useMemo(() => format(new Date(selectedYear, 11, 31), 'yyyy-MM-dd'), [selectedYear]);
 
   const { data: yearTransactions = [] } = useQuery<Transaction[]>({
-    queryKey: ["/api/transactions", selectedCompanyId, { 
+    queryKey: ["/api/transactions", { 
+      companyId: selectedCompanyId,
       startDate: yearStart, 
       endDate: yearEnd,
+    }],
+    enabled: !!selectedCompanyId,
+  });
+
+  // Fetch all transactions for the previous year for YoY comparison
+  const previousYearStart = useMemo(() => format(new Date(selectedYear - 1, 0, 1), 'yyyy-MM-dd'), [selectedYear]);
+  const previousYearEnd = useMemo(() => format(new Date(selectedYear - 1, 11, 31), 'yyyy-MM-dd'), [selectedYear]);
+
+  const { data: previousYearTransactions = [] } = useQuery<Transaction[]>({
+    queryKey: ["/api/transactions", { 
+      companyId: selectedCompanyId,
+      startDate: previousYearStart, 
+      endDate: previousYearEnd,
     }],
     enabled: !!selectedCompanyId,
   });
@@ -164,6 +179,34 @@ export default function Lancamentos() {
     return counts;
   }, [yearTransactions]);
 
+  // Calculate transaction count per month for previous year
+  const previousYearCountsByMonth = useMemo(() => {
+    const counts: Record<number, number> = {};
+    previousYearTransactions.forEach(t => {
+      if (t.dueDate) {
+        const month = getMonth(new Date(t.dueDate));
+        counts[month] = (counts[month] || 0) + 1;
+      }
+    });
+    return counts;
+  }, [previousYearTransactions]);
+
+  // Calculate YoY percentage change per month
+  const yoyChangeByMonth = useMemo(() => {
+    const changes: Record<number, number | null> = {};
+    for (let i = 0; i < 12; i++) {
+      const currentCount = transactionCountsByMonth[i] || 0;
+      const previousCount = previousYearCountsByMonth[i] || 0;
+      
+      if (previousCount === 0) {
+        changes[i] = currentCount > 0 ? 100 : null;
+      } else {
+        changes[i] = ((currentCount - previousCount) / previousCount) * 100;
+      }
+    }
+    return changes;
+  }, [transactionCountsByMonth, previousYearCountsByMonth]);
+
   // Calculate date range for previous month
   const previousMonthStart = useMemo(() => {
     const prevMonth = selectedMonth === 0 ? 11 : selectedMonth - 1;
@@ -179,7 +222,8 @@ export default function Lancamentos() {
 
   // Fetch previous month transactions for comparison
   const { data: previousMonthTransactions = [] } = useQuery<Transaction[]>({
-    queryKey: ["/api/transactions", selectedCompanyId, { 
+    queryKey: ["/api/transactions", { 
+      companyId: selectedCompanyId,
       startDate: previousMonthStart, 
       endDate: previousMonthEnd,
     }],
@@ -329,6 +373,15 @@ export default function Lancamentos() {
               const isSelected = selectedMonth === month.index;
               const isCurrent = getMonth(now) === month.index && getYear(now) === selectedYear;
               const count = transactionCountsByMonth[month.index] || 0;
+              const yoyChange = yoyChangeByMonth[month.index];
+              
+              // Determine trend indicator
+              const hasTrend = yoyChange !== null && yoyChange !== undefined;
+              const isPositive = hasTrend && yoyChange > 0;
+              const isNegative = hasTrend && yoyChange < 0;
+              const trendColor = isPositive ? 'text-green-600 dark:text-green-500' : 
+                                 isNegative ? 'text-red-600 dark:text-red-500' : 
+                                 'text-muted-foreground';
               
               return (
                 <Button
@@ -336,19 +389,33 @@ export default function Lancamentos() {
                   variant={isSelected ? "default" : "ghost"}
                   size="sm"
                   onClick={() => setSelectedMonth(month.index)}
-                  className={`w-full h-8 flex items-center justify-between px-2 text-xs transition-all duration-200 ${
+                  className={`w-full h-auto min-h-[40px] flex flex-col items-start px-2 py-1.5 text-xs transition-all duration-200 ${
                     isCurrent && !isSelected ? 'border-l-2 border-primary' : ''
                   }`}
                   data-testid={`button-month-${month.index}`}
                 >
-                  <span className="font-medium">{month.short}</span>
-                  {count > 0 && (
-                    <Badge
-                      variant={isSelected ? "secondary" : "outline"}
-                      className="text-[9px] px-1 h-4 min-w-[16px]"
-                    >
-                      {count}
-                    </Badge>
+                  {/* First row: Month name + Count */}
+                  <div className="w-full flex items-center justify-between">
+                    <span className="font-semibold text-sm">{month.short}</span>
+                    {count > 0 && (
+                      <Badge
+                        variant={isSelected ? "secondary" : "default"}
+                        className="text-[10px] px-1.5 h-5 min-w-[20px] font-bold"
+                      >
+                        {count}
+                      </Badge>
+                    )}
+                  </div>
+                  
+                  {/* Second row: YoY comparison */}
+                  {hasTrend && (
+                    <div className={`w-full flex items-center gap-1 mt-0.5 ${trendColor}`}>
+                      {isPositive && <TrendingUp className="w-3 h-3" />}
+                      {isNegative && <TrendingDown className="w-3 h-3" />}
+                      <span className="text-[9px] font-medium">
+                        {yoyChange > 0 ? '+' : ''}{yoyChange.toFixed(0)}%
+                      </span>
+                    </div>
                   )}
                 </Button>
               );
@@ -400,6 +467,10 @@ export default function Lancamentos() {
                 const isSelected = selectedMonth === month.index;
                 const isCurrent = getMonth(now) === month.index && getYear(now) === selectedYear;
                 const count = transactionCountsByMonth[month.index] || 0;
+                const yoyChange = yoyChangeByMonth[month.index];
+                const hasTrend = yoyChange !== null && yoyChange !== undefined;
+                const isPositive = hasTrend && yoyChange > 0;
+                const isNegative = hasTrend && yoyChange < 0;
                 
                 return (
                   <Button
@@ -407,13 +478,28 @@ export default function Lancamentos() {
                     variant={isSelected ? "default" : "outline"}
                     size="sm"
                     onClick={() => setSelectedMonth(month.index)}
-                    className={`h-8 px-2 text-xs flex-shrink-0 ${
+                    className={`h-auto min-h-[36px] px-2 py-1 text-xs flex-shrink-0 flex flex-col items-center gap-0.5 ${
                       isCurrent && !isSelected ? 'border-primary border-2' : ''
                     }`}
                     data-testid={`button-month-mobile-${month.index}`}
                   >
-                    {month.short}
-                    {count > 0 && ` (${count})`}
+                    <div className="flex items-center gap-1">
+                      <span className="font-semibold">{month.short}</span>
+                      {count > 0 && (
+                        <Badge variant="secondary" className="text-[9px] px-1 h-3.5 min-w-[14px]">
+                          {count}
+                        </Badge>
+                      )}
+                    </div>
+                    {hasTrend && (
+                      <span className={`text-[8px] font-medium ${
+                        isPositive ? 'text-green-600 dark:text-green-500' : 
+                        isNegative ? 'text-red-600 dark:text-red-500' : 
+                        'text-muted-foreground'
+                      }`}>
+                        {isPositive ? '↑' : isNegative ? '↓' : ''}{yoyChange > 0 ? '+' : ''}{yoyChange.toFixed(0)}%
+                      </span>
+                    )}
                   </Button>
                 );
               })}
