@@ -24,6 +24,7 @@ import {
   List,
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
+import { useState, useEffect } from "react";
 import {
   Sidebar,
   SidebarContent,
@@ -168,6 +169,7 @@ export function AppSidebar() {
   const { user } = useAuth();
   const { state, setOpen } = useSidebar();
   const isCollapsed = state === "collapsed";
+  const [isHovering, setIsHovering] = useState(false);
 
   // Fetch companies to determine if user has at least one
   const { data: companies = [] } = useQuery<Company[]>({
@@ -177,9 +179,42 @@ export function AppSidebar() {
 
   const hasCompanies = companies.length > 0;
 
+  // Reset isHovering when sidebar is manually toggled
+  useEffect(() => {
+    // If sidebar becomes expanded and isHovering is false, user toggled manually
+    // Keep isHovering false to prevent auto-collapse on mouse leave
+    // If sidebar becomes collapsed, always reset isHovering
+    if (isCollapsed) {
+      setIsHovering(false);
+    }
+  }, [isCollapsed]);
+
   // Auto-collapse sidebar on menu item click
   const handleMenuItemClick = () => {
     setOpen(false);
+    setIsHovering(false);
+  };
+
+  // Handle hover expansion
+  const handleMouseEnter = () => {
+    if (isCollapsed) {
+      setIsHovering(true);
+      setOpen(true);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (isHovering) {
+      setIsHovering(false);
+      setOpen(false);
+    }
+  };
+
+  // Clear hover flag when user clicks inside sidebar (pins it)
+  const handleClick = () => {
+    if (isHovering) {
+      setIsHovering(false);
+    }
   };
 
   // Get user initials for avatar fallback
@@ -213,8 +248,8 @@ export function AppSidebar() {
       <Sidebar 
         collapsible="icon" 
         className="border-r bg-gradient-to-b from-background via-muted/10 to-muted/30 backdrop-blur-sm"
-        onMouseEnter={() => setOpen(true)}
-        onMouseLeave={() => setOpen(false)}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
       >
         <SidebarContent className="py-6 flex flex-col items-center gap-6">
           {/* Avatar no topo */}
@@ -341,7 +376,12 @@ export function AppSidebar() {
 
   // Render expanded sidebar with full layout
   return (
-    <Sidebar collapsible="icon" className="border-r bg-gradient-to-b from-background to-muted/20">
+    <Sidebar 
+      collapsible="icon" 
+      className="border-r bg-gradient-to-b from-background to-muted/20"
+      onMouseLeave={handleMouseLeave}
+      onClick={handleClick}
+    >
       <SidebarHeader className="border-b bg-gradient-to-br from-primary/5 to-transparent p-5">
         <div className="flex items-center gap-3 rounded-xl bg-gradient-to-br from-card to-muted/30 p-4 border shadow-sm hover-elevate cursor-pointer mb-5" data-testid="profile-card">
           <Avatar className="h-12 w-12 border-2 border-primary/20">
