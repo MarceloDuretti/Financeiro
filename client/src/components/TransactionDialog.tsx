@@ -875,17 +875,18 @@ const FormContent = ({
     }
   };
 
+  const handleSaveClick = () => {
+    // Valida e submete apenas quando usuário clica explicitamente no botão
+    form.handleSubmit(onSubmit)();
+  };
+
   return (
     <Form {...form}>
       <form 
         onSubmit={(e) => {
-          // Previne submit se não estiver na última etapa
-          if (currentStep < STEPS.length) {
-            e.preventDefault();
-            handleNext();
-          } else {
-            form.handleSubmit(onSubmit)(e);
-          }
+          // BLOQUEIA completamente qualquer submit automático (Enter key)
+          e.preventDefault();
+          e.stopPropagation();
         }} 
         className="space-y-4"
       >
@@ -917,7 +918,8 @@ const FormContent = ({
             </Button>
           ) : (
             <Button
-              type="submit"
+              type="button"
+              onClick={handleSaveClick}
               className="flex-1"
               disabled={createMutation.isPending}
               data-testid="button-save"
