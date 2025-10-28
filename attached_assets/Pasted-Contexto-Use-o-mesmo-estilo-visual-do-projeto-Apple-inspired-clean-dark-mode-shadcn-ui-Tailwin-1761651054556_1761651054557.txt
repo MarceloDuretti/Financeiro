@@ -1,0 +1,220 @@
+Contexto: Use o mesmo estilo visual do projeto (Apple-inspired, clean, dark mode, shadcn/ui, Tailwind) e a mesma arquitetura (React/Vite/TanStack Query v5 no front; API/WS já existentes; multi-tenant). Não escreva boilerplate do projeto, somente os componentes e telas desta feature.
+
+Objetivo
+
+Criar a Listagem Analítica de Lançamentos (despesas e receitas), com:
+
+Card Analítico fixo no topo (KPIs do período/filters),
+
+Barra vertical de meses (JAN–DEZ) + seletor de ano,
+
+Tabela/Lista virtualizada com colunas ricas, percentuais e sinais de status,
+
+Hover de insights (recorrência, relacionadas, histórico),
+
+Split-view: ao clicar numa linha, a linha recolhe parcialmente e abre painel de detalhes à direita,
+
+Filtros completos e vistas salvas,
+
+Ações em massa,
+
+Wizard de novo lançamento em etapas, com badge NOVO no item criado,
+
+Real-time: refletir atualizações via WebSocket (create/update/delete/pay/recorrência).
+
+Requisitos funcionais (o que deve existir)
+1) Card Analítico (fixo no topo)
+
+KPIs baseados nos filtros atuais:
+
+Despesas Abertas (R$), Receitas Abertas (R$),
+
+Em Atraso (contagem e valor),
+
+Pago/Recebido no período,
+
+Resultado (Receitas – Despesas),
+
+Ticket médio,
+
+Top 3 categorias por valor no período.
+
+KPIs são clicáveis para aplicar filtros rápidos (ex.: clicar em “Em Atraso” filtra status OVERDUE).
+
+Opcional: mini-gráfico de evolução diária do período.
+
+2) Barra vertical de meses + seletor de ano
+
+Barra fixa à esquerda com JAN, FEV, MAR… DEZ (abreviado).
+
+Seletor de ano no topo da barra.
+
+Click no mês aplica filtro rápido; badges mostram quantidades abertas/vencidas naquele mês.
+
+Atalhos: Alt+↑/↓ alterna mês; Alt+←/→ alterna ano.
+
+3) Lista/Tabela analítica (virtualizada)
+
+Ordenação padrão: por Data de Vencimento asc (cabeçalhos ordenáveis para dueDate/issueDate/amount/status).
+
+Colunas e sinais (por linha):
+
+Status/Ícone: ✓ (pago/recebido), ! (vencido), ⟳ (recorrente com “1/10”).
+
+Título/Histórico (primário) + subtítulo com Pessoa (cliente/fornecedor) e Centro de Custo.
+
+Datas: Vencimento (sempre) e, se pago, “Pago em” (chip verde discreto).
+
+Valor (direita): verde para receita, vermelho para despesa (tons suaves, respeitando tema).
+
+Percentuais analíticos:
+
+% sobre Despesas Totais do período filtrado (se Despesa),
+
+% sobre Receitas Totais do período filtrado (se Receita),
+
+% dentro da categoria (conta do plano de contas) desse lançamento no período.
+
+Badges condicionais: NOVO (só no dia da criação), RECORRENTE, ANEXO, CONCILIADO.
+
+Estados visuais:
+
+Pago/Recebido: mesma base de layout, porém ícone ✓ e tipografia levemente atenuada (sem perder consistência).
+
+Vencido: badge e leve acentuação de cor no valor/data.
+
+4) Hover de insights (ao passar o mouse)
+
+Mostrar popover com:
+
+Recorrência: “Conta 1 de 10 (mensal; fim em 10/2026)”.
+
+Relacionadas: da mesma série (seriesId), mesma pessoa (personId) ou mesma conta do plano.
+
+Histórico: últimas 3 alterações com usuário e horário.
+
+Projeção (se recorrente): total anual projetado.
+
+5) Painel de detalhes (lateral direita, split-view)
+
+Ao clicar na linha: a linha recolhe parcialmente e abre detalhes à direita (com animação suave).
+
+Seções do detalhe:
+
+Resumo: título, pessoa, CC, conta do plano, status, valores, percentuais (do período e da categoria).
+
+Recorrência: 1/10, periodicidade, próxima geração, link para abrir a série completa.
+
+Pagamentos: registrar/editar pagamento/recebimento (data, conta bancária, método, valor líquido, taxas). Preparado para conciliação futura.
+
+Anexos: upload/preview; contador aparece na lista.
+
+Auditoria: últimas mudanças (quem/quando).
+
+Ações rápidas: Replicar, Editar, Marcar Pago/Recebido, Excluir, Exportar.
+
+Teclas de atalho dentro do detalhe: E editar, P pagar/receber, R replicar, Del excluir, A anexar. Esc fecha.
+
+6) Filtros e busca
+
+Filtros principais:
+
+Data Inicial / Data Final com seletor de modo de data: Vencimento ou Cadastro,
+
+Status (múltipla seleção),
+
+Tipo (Despesa, Receita, ou Ambas),
+
+Pessoa (Cliente/Fornecedor) em campo único (auto-complete),
+
+Centro de Custo, Conta do Plano, Conta Bancária, Forma de Pagamento,
+
+Toggle Somente abertas.
+
+Busca rápida (q) em título, notas, tags e nome da pessoa.
+
+Vistas salvas (salvar combinação de filtros + ordenação + colunas).
+
+Seleção em massa (checkbox) com barra de ações: Excluir, Marcar Pago/Recebido, Exportar (CSV/XLSX), Analisar (painel com soma, % por categoria, média, top pessoas).
+
+7) Wizard de novo lançamento (tela única, por etapas)
+
+Step 1 — Tipo e Básico: Despesa/Receita, título/histórico, pessoa, conta do plano, centro de custo.
+
+Step 2 — Datas e Valores: competência (cadastro), vencimento, valor, moeda, tags.
+
+Step 3 — Pagamento (opcional): marcar como pago/recebido, data, conta bancária, método, valor líquido, taxas.
+
+Step 4 — Recorrência (opcional): periodicidade, quantidade de parcelas, término.
+
+Step 5 — Anexos e Notas.
+
+Step 6 — Resumo (checagem final) e Salvar.
+
+Depois de salvar: o item aparece na lista atual com destaque NOVO (só até o fim do dia) e scrollIntoView + highlight.
+
+8) Real-time e consistência
+
+Assinar canal WS dos lançamentos do tenant atual.
+
+Reagir a created/updated/deleted/paid/reconciled/seriesUpdated invalidando/atualizando cache e refletindo na UI em tempo real.
+
+Optimistic update para ações rápidas (pagar, editar rótulos/tags, replicar); rollback em erro.
+
+9) Cálculos e percentuais (regra clara)
+
+Percentual sobre total do período:
+
+Para Despesas: valor do lançamento ÷ soma das despesas do período filtrado.
+
+Para Receitas: valor do lançamento ÷ soma das receitas do período filtrado.
+
+Percentual dentro da categoria:
+
+valor do lançamento ÷ soma dos lançamentos da mesma conta do plano no período filtrado.
+
+Exibir com 1–2 casas decimais e tooltip explicativo (“% dentro da categoria X no período atual”).
+
+10) Acessibilidade, UX e performance
+
+Acessibilidade: ARIA, foco visível, navegação por teclado em lista, filtros e detalhe.
+
+Performance: lista virtualizada, paginação/infinite scroll, skeletons, cache de queries, render P95 baixo.
+
+Dark mode total; cantos rounded-2xl, sombras suaves, micro-animações discretas.
+
+11) Estados e vazios
+
+Sem resultados: card com CTA “Cadastrar Lançamento (N)” e Importar CSV/OFX.
+
+Erros: banner discreto com “tentar novamente”.
+
+Carregamento: skeletons consistentes com a lista.
+
+12) Critérios de aceite (macro)
+
+Ordenação padrão por vencimento asc; cabeçalhos alternam ordenação.
+
+Card Analítico mostra KPIs corretos e aplica filtros ao clicar.
+
+Barra de meses + ano filtra imediatamente; navegação por atalhos funciona.
+
+Linha → Detalhe à direita com recolhimento parcial da linha, sem perder contexto.
+
+Hover exibe recorrência, relacionadas, histórico e projeção (quando aplicável).
+
+Wizard cria item, mostra NOVO (apenas no dia) e rola até ele.
+
+Ações em massa (excluir, exportar, pagar/receber, analisar) funcionam respeitando permissões.
+
+Real-time: alterações em outra sessão aparecem na lista e no detalhe instantaneamente.
+
+Observações finais
+
+Não alterar o tema global do app; respeitar tokens já existentes.
+
+Preparar tudo para multi-empresa/tenant, auditoria e permissões.
+
+Manter a experiência rápida e clara: este módulo deve “provar” que o SyncTime é diferente pela inteligência na listagem (percentuais e insights) e pela fluidez (interações rápidas, real-time).
+
+Entregável esperado: Tela completa de Lançamentos com os componentes e interações descritas, pronta para integrar (ou já integrada) às APIs/WS existentes do SyncTime.
