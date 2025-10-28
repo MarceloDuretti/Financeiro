@@ -104,9 +104,30 @@ export default function Lancamentos() {
 
   // Sync week when month/year changes
   useEffect(() => {
-    const firstDayOfMonth = new Date(selectedYear, selectedMonth, 1);
-    setSelectedWeekStart(startOfWeek(firstDayOfMonth, { locale: ptBR }));
+    const today = new Date();
+    const isCurrentMonth = selectedMonth === getMonth(today) && selectedYear === getYear(today);
+    
+    if (isCurrentMonth) {
+      // Se estamos no mês atual, vai para a semana atual
+      setSelectedWeekStart(startOfWeek(today, { locale: ptBR }));
+    } else {
+      // Se não, vai para a primeira semana do mês selecionado
+      const firstDayOfMonth = new Date(selectedYear, selectedMonth, 1);
+      setSelectedWeekStart(startOfWeek(firstDayOfMonth, { locale: ptBR }));
+    }
   }, [selectedMonth, selectedYear]);
+
+  // Go to current week when activating week view in current month
+  useEffect(() => {
+    if (viewMode === 'week') {
+      const today = new Date();
+      const isCurrentMonth = selectedMonth === getMonth(today) && selectedYear === getYear(today);
+      
+      if (isCurrentMonth) {
+        setSelectedWeekStart(startOfWeek(today, { locale: ptBR }));
+      }
+    }
+  }, [viewMode]);
 
   // Navigation functions
   const goToPreviousMonth = () => {
