@@ -64,7 +64,7 @@ interface TransactionDialogProps {
 }
 
 const STEPS = [
-  { id: 1, title: "Tipo e Dados Básicos" },
+  { id: 1, title: "Dados Básicos" },
   { id: 2, title: "Categorização" },
   { id: 3, title: "Forma de Pagamento" },
   { id: 4, title: "Informações Adicionais" },
@@ -73,9 +73,10 @@ const STEPS = [
 
 interface ProgressStepperProps {
   currentStep: number;
+  transactionType: "expense" | "revenue";
 }
 
-const ProgressStepper = ({ currentStep }: ProgressStepperProps) => (
+const ProgressStepper = ({ currentStep, transactionType }: ProgressStepperProps) => (
   <div className="mb-6">
     <div className="flex items-center justify-between">
       {STEPS.map((step, index) => (
@@ -85,7 +86,9 @@ const ProgressStepper = ({ currentStep }: ProgressStepperProps) => (
               className={cn(
                 "w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-colors",
                 currentStep >= step.id
-                  ? "bg-primary text-primary-foreground"
+                  ? transactionType === "expense"
+                    ? "bg-destructive text-destructive-foreground"
+                    : "bg-blue-600 text-white"
                   : "bg-muted text-muted-foreground"
               )}
             >
@@ -101,7 +104,11 @@ const ProgressStepper = ({ currentStep }: ProgressStepperProps) => (
           {index < STEPS.length - 1 && (
             <div className={cn(
               "h-0.5 flex-1 mx-2",
-              currentStep > step.id ? "bg-primary" : "bg-muted"
+              currentStep > step.id 
+                ? transactionType === "expense"
+                  ? "bg-destructive"
+                  : "bg-blue-600"
+                : "bg-muted"
             )} />
           )}
         </div>
@@ -137,65 +144,53 @@ const StepSummary = ({
   if (step < 1) return null;
 
   return (
-    <Card className="mb-6">
-      <CardContent className="p-4">
-        <div className="flex items-center gap-2 mb-3">
-          <CheckCircle2 className="h-4 w-4 text-green-600" />
-          <h3 className="text-sm font-semibold">Resumo das Etapas Anteriores</h3>
+    <Card className="mb-4">
+      <CardContent className="p-3">
+        <div className="flex items-center gap-2 mb-2">
+          <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />
+          <h3 className="text-xs font-semibold">Resumo</h3>
         </div>
-        <Separator className="mb-3" />
-        <div className="space-y-2 text-sm">
+        <Separator className="mb-2" />
+        <div className="text-xs space-y-2">
           {step >= 2 && (
-            <div>
-              <p className="font-medium text-muted-foreground mb-1">Etapa 1: Dados Básicos</p>
-              <div className="space-y-1 pl-4">
-                <p>
-                  <span className="text-muted-foreground">Tipo:</span>{" "}
-                  <Badge variant={values.type === "expense" ? "destructive" : "default"} className="ml-1">
-                    {values.type === "expense" ? "Despesa" : "Receita"}
-                  </Badge>
-                </p>
-                <p><span className="text-muted-foreground">Título:</span> {values.title || "-"}</p>
-                <p><span className="text-muted-foreground">Valor:</span> R$ {parseFloat(values.amount || "0").toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
-                <p><span className="text-muted-foreground">Data Emissão:</span> {format(values.issueDate, "dd/MM/yyyy")}</p>
-                <p><span className="text-muted-foreground">Vencimento:</span> {format(values.dueDate, "dd/MM/yyyy")}</p>
-              </div>
+            <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
+              <p>
+                <span className="text-muted-foreground">Tipo:</span>{" "}
+                <Badge variant={values.type === "expense" ? "destructive" : "default"} className="ml-1 text-xs h-5">
+                  {values.type === "expense" ? "Despesa" : "Receita"}
+                </Badge>
+              </p>
+              <p><span className="text-muted-foreground">Valor:</span> R$ {parseFloat(values.amount || "0").toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
+              <p className="col-span-2"><span className="text-muted-foreground">Título:</span> {values.title || "-"}</p>
+              <p><span className="text-muted-foreground">Vencimento:</span> {format(values.dueDate, "dd/MM/yyyy")}</p>
             </div>
           )}
 
           {step >= 3 && (
-            <div>
-              <Separator className="my-2" />
-              <p className="font-medium text-muted-foreground mb-1">Etapa 2: Categorização</p>
-              <div className="space-y-1 pl-4">
+            <>
+              <Separator className="my-1.5" />
+              <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
                 <p><span className="text-muted-foreground">Pessoa:</span> {customersSuppliers.find(p => p.id === values.personId)?.name || "-"}</p>
-                <p><span className="text-muted-foreground">Centro de Custo:</span> {costCenters.find(c => c.id === values.costCenterId)?.name || "-"}</p>
-                <p><span className="text-muted-foreground">Plano de Contas:</span> {chartAccounts.find(c => c.id === values.chartAccountId)?.name || "-"}</p>
+                <p><span className="text-muted-foreground">C. Custo:</span> {costCenters.find(c => c.id === values.costCenterId)?.name || "-"}</p>
               </div>
-            </div>
+            </>
           )}
 
           {step >= 4 && (
-            <div>
-              <Separator className="my-2" />
-              <p className="font-medium text-muted-foreground mb-1">Etapa 3: Forma de Pagamento</p>
-              <div className="space-y-1 pl-4">
+            <>
+              <Separator className="my-1.5" />
+              <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
                 <p><span className="text-muted-foreground">Status:</span> {values.status === "pending" ? "Pendente" : values.status === "paid" ? "Pago" : "Cancelado"}</p>
-                <p><span className="text-muted-foreground">Forma de Pagamento:</span> {paymentMethods.find(p => p.id === values.paymentMethodId)?.name || "-"}</p>
-                <p><span className="text-muted-foreground">Conta Bancária:</span> {bankAccounts.find(b => b.id === values.bankAccountId)?.name || "-"}</p>
+                <p><span className="text-muted-foreground">Pagamento:</span> {paymentMethods.find(p => p.id === values.paymentMethodId)?.name || "-"}</p>
               </div>
-            </div>
+            </>
           )}
 
-          {step >= 5 && (
-            <div>
-              <Separator className="my-2" />
-              <p className="font-medium text-muted-foreground mb-1">Etapa 4: Informações Adicionais</p>
-              <div className="space-y-1 pl-4">
-                <p><span className="text-muted-foreground">Descrição:</span> {values.description || "-"}</p>
-                <p><span className="text-muted-foreground">Tags:</span> {values.tags?.length || 0} tag(s)</p>
-              </div>
-            </div>
+          {step >= 5 && values.description && (
+            <>
+              <Separator className="my-1.5" />
+              <p className="col-span-2 truncate"><span className="text-muted-foreground">Obs:</span> {values.description}</p>
+            </>
           )}
         </div>
       </CardContent>
@@ -442,11 +437,13 @@ const Step2Content = ({
               </SelectTrigger>
             </FormControl>
             <SelectContent>
-              {chartAccounts.map((account) => (
-                <SelectItem key={account.id} value={account.id}>
-                  {account.code} - {account.name}
-                </SelectItem>
-              ))}
+              {chartAccounts
+                .filter(account => !chartAccounts.some(child => child.parentId === account.id))
+                .map((account) => (
+                  <SelectItem key={account.id} value={account.id}>
+                    {account.code} - {account.name}
+                  </SelectItem>
+                ))}
             </SelectContent>
           </Select>
           <FormMessage />
@@ -881,7 +878,7 @@ const FormContent = ({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <ProgressStepper currentStep={currentStep} />
+        <ProgressStepper currentStep={currentStep} transactionType={form.getValues().type} />
         {renderStepContent()}
 
         <div className="flex gap-2 pt-4">
