@@ -390,16 +390,19 @@ export default function Lancamentos() {
                     variant="ghost"
                     size="sm"
                     onClick={() => setSelectedMonth(month.index)}
-                    className={`w-full h-9 flex items-center justify-between px-3 transition-all duration-200 ${
-                      isCurrent && !isSelected ? 'border-l-2 border-primary' : ''
-                    }`}
+                    className="w-full h-9 flex items-center justify-between px-3 transition-all duration-200"
                     data-testid={`button-month-${month.index}`}
                   >
-                    <span className={`font-semibold transition-all duration-200 ${
-                      isSelected ? 'text-base text-primary' : 'text-sm'
-                    }`}>
-                      {month.short}
-                    </span>
+                    <div className="flex items-center gap-1">
+                      {isCurrent && !isSelected && (
+                        <ChevronRight className="w-3 h-3 text-primary" />
+                      )}
+                      <span className={`font-semibold transition-all duration-200 ${
+                        isSelected ? 'text-base text-primary' : 'text-sm'
+                      }`}>
+                        {month.short}
+                      </span>
+                    </div>
                     <span className={`font-medium transition-all duration-200 ${
                       isSelected ? 'text-sm text-primary' : 'text-xs'
                     } ${!isSelected && yoyColor}`}>

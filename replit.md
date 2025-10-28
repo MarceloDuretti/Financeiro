@@ -68,14 +68,17 @@ Key features include:
         - "Hoje" (Today) button to instantly return to current month/year
         - Visual indicators: selected month highlighting, current month border (border-primary), transition animations
         - **Enhanced Month Buttons with YoY Indicators:**
-            - Two-row layout per button (min-h-[40px] desktop, min-h-[36px] mobile)
-            - Row 1: Month name (bold) + prominent transaction count badge (h-5)
-            - Row 2: Year-over-Year trend indicator (if previous year data exists)
-                - Green with ↑ for growth (e.g., +25%)
-                - Red with ↓ for decline (e.g., -10%)
-                - Hidden if no previous year data
-            - Desktop: TrendingUp/TrendingDown icons from lucide-react
-            - Mobile: Unicode arrows (↑↓) to save space
+            - Single-row compact layout (h-9) showing: Month name + YoY percentage
+            - Clean white background with subtle separators between months
+            - Year-over-Year comparison always visible (shows 0% when no previous year data)
+                - Green for growth (e.g., +25%)
+                - Red for decline (e.g., -10%)
+                - Muted for neutral/no data (0%)
+            - Visual indicators:
+                - Selected month: Bottom border (primary color) + larger text (text-base) + primary color
+                - Current month (not selected): Chevron arrow (→) before month name
+                - Regular months: Standard size (text-sm)
+            - Smooth transitions for all state changes
         - **Data Queries for YoY:**
             - Current year transactions (month badges)
             - Previous year transactions (YoY comparison)
