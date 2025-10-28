@@ -397,26 +397,28 @@ export default function Lancamentos() {
                   {/* First row: Month name + Count */}
                   <div className="w-full flex items-center justify-between">
                     <span className="font-semibold text-sm">{month.short}</span>
-                    {count > 0 && (
-                      <Badge
-                        variant={isSelected ? "secondary" : "default"}
-                        className="text-[10px] px-1.5 h-5 min-w-[20px] font-bold"
-                      >
-                        {count}
-                      </Badge>
-                    )}
+                    <Badge
+                      variant={isSelected ? "secondary" : "default"}
+                      className="text-[10px] px-1.5 h-5 min-w-[20px] font-bold"
+                    >
+                      {count}
+                    </Badge>
                   </div>
                   
                   {/* Second row: YoY comparison */}
-                  {hasTrend && (
-                    <div className={`w-full flex items-center gap-1 mt-0.5 ${trendColor}`}>
-                      {isPositive && <TrendingUp className="w-3 h-3" />}
-                      {isNegative && <TrendingDown className="w-3 h-3" />}
-                      <span className="text-[9px] font-medium">
-                        {yoyChange > 0 ? '+' : ''}{yoyChange.toFixed(0)}%
-                      </span>
-                    </div>
-                  )}
+                  <div className={`w-full flex items-center gap-1 mt-0.5 ${trendColor}`}>
+                    {hasTrend ? (
+                      <>
+                        {isPositive && <TrendingUp className="w-3 h-3" />}
+                        {isNegative && <TrendingDown className="w-3 h-3" />}
+                        <span className="text-[9px] font-medium">
+                          {yoyChange > 0 ? '+' : ''}{yoyChange.toFixed(0)}%
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-[9px] text-muted-foreground">—</span>
+                    )}
+                  </div>
                 </Button>
               );
             })}
@@ -485,21 +487,23 @@ export default function Lancamentos() {
                   >
                     <div className="flex items-center gap-1">
                       <span className="font-semibold">{month.short}</span>
-                      {count > 0 && (
-                        <Badge variant="secondary" className="text-[9px] px-1 h-3.5 min-w-[14px]">
-                          {count}
-                        </Badge>
-                      )}
+                      <Badge variant="secondary" className="text-[9px] px-1 h-3.5 min-w-[14px]">
+                        {count}
+                      </Badge>
                     </div>
-                    {hasTrend && (
-                      <span className={`text-[8px] font-medium ${
+                    <span className={`text-[8px] font-medium ${
+                      hasTrend ? (
                         isPositive ? 'text-green-600 dark:text-green-500' : 
                         isNegative ? 'text-red-600 dark:text-red-500' : 
                         'text-muted-foreground'
-                      }`}>
-                        {isPositive ? '↑' : isNegative ? '↓' : ''}{yoyChange > 0 ? '+' : ''}{yoyChange.toFixed(0)}%
-                      </span>
-                    )}
+                      ) : 'text-muted-foreground'
+                    }`}>
+                      {hasTrend ? (
+                        `${isPositive ? '↑' : isNegative ? '↓' : ''}${yoyChange > 0 ? '+' : ''}${yoyChange.toFixed(0)}%`
+                      ) : (
+                        '—'
+                      )}
+                    </span>
                   </Button>
                 );
               })}
