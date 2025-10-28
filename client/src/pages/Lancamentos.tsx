@@ -825,7 +825,7 @@ export default function Lancamentos() {
                         return (
                           <Card
                             key={transaction.id}
-                            className="hover-elevate cursor-pointer bg-white dark:bg-gray-950"
+                            className="hover-elevate cursor-pointer bg-gray-50 dark:bg-gray-900"
                             onClick={() => handleCardClick(transaction)}
                             data-testid={`card-transaction-${transaction.id}`}
                           >
