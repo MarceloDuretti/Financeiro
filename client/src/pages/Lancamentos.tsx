@@ -474,8 +474,8 @@ export default function Lancamentos() {
   return (
     <div className="flex flex-col h-full">
       {/* Header with inline KPIs */}
-      <div className="flex items-center justify-between gap-3 p-3 border-b overflow-x-auto">
-        <div className="flex items-center gap-3 flex-shrink-0">
+      <div className="grid grid-cols-[auto_1fr_auto] items-center gap-6 p-3 border-b">
+        <div className="flex items-center gap-3">
           <div className="p-2 rounded-lg bg-primary/10">
             <TrendingUp className="w-5 h-5 text-primary" />
           </div>
@@ -487,8 +487,8 @@ export default function Lancamentos() {
           </div>
         </div>
         
-        {/* Inline KPI Cards - Compact */}
-        <div className="flex items-center gap-2 flex-1 overflow-x-auto">
+        {/* Inline KPI Cards - Centered */}
+        <div className="flex items-center justify-center gap-3 overflow-x-auto">
           {/* Open Expenses */}
           <div className="flex items-center gap-1.5 px-2 py-1 rounded-md border border-l-2 border-l-destructive bg-muted/30 flex-shrink-0">
             <TrendingDown className="w-3 h-3 text-destructive" />
@@ -554,7 +554,6 @@ export default function Lancamentos() {
             setSelectedTransaction(null);
             setDialogOpen(true);
           }}
-          className="flex-shrink-0"
           data-testid="button-new-transaction"
         >
           <Plus className="w-4 h-4" />
