@@ -488,57 +488,57 @@ export default function Lancamentos() {
         </div>
         
         {/* Inline KPI Cards - Centered */}
-        <div className="flex items-center justify-center gap-3 overflow-x-auto">
+        <div className="flex items-center justify-center gap-4 overflow-x-auto px-4">
           {/* Open Expenses */}
-          <div className="flex items-center gap-1.5 px-2 py-1 rounded-md border border-l-2 border-l-destructive bg-muted/30 flex-shrink-0">
-            <TrendingDown className="w-3 h-3 text-destructive" />
+          <div className="flex items-center gap-2 px-3 py-2 rounded-md border border-l-2 border-l-destructive bg-muted/30 flex-shrink-0 min-w-[140px]">
+            <TrendingDown className="w-4 h-4 text-destructive" />
             <div className="flex flex-col">
-              <span className="text-[8px] text-muted-foreground uppercase tracking-wide">Desp. Abertas</span>
-              <span className="text-xs font-medium text-destructive">
+              <span className="text-[9px] text-muted-foreground uppercase tracking-wide">Desp. Abertas</span>
+              <span className="text-sm font-medium text-destructive">
                 R$ {kpis.openExpenses.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
               </span>
             </div>
           </div>
 
           {/* Open Revenues */}
-          <div className="flex items-center gap-1.5 px-2 py-1 rounded-md border border-l-2 border-l-blue-600 bg-muted/30 flex-shrink-0">
-            <TrendingUp className="w-3 h-3 text-blue-600" />
+          <div className="flex items-center gap-2 px-3 py-2 rounded-md border border-l-2 border-l-blue-600 bg-muted/30 flex-shrink-0 min-w-[140px]">
+            <TrendingUp className="w-4 h-4 text-blue-600" />
             <div className="flex flex-col">
-              <span className="text-[8px] text-muted-foreground uppercase tracking-wide">Rec. Abertas</span>
-              <span className="text-xs font-medium text-blue-600">
+              <span className="text-[9px] text-muted-foreground uppercase tracking-wide">Rec. Abertas</span>
+              <span className="text-sm font-medium text-blue-600">
                 R$ {kpis.openRevenues.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
               </span>
             </div>
           </div>
 
           {/* Overdue */}
-          <div className="flex items-center gap-1.5 px-2 py-1 rounded-md border border-l-2 border-l-orange-600 bg-muted/30 flex-shrink-0">
-            <AlertCircle className="w-3 h-3 text-orange-600" />
+          <div className="flex items-center gap-2 px-3 py-2 rounded-md border border-l-2 border-l-orange-600 bg-muted/30 flex-shrink-0 min-w-[140px]">
+            <AlertCircle className="w-4 h-4 text-orange-600" />
             <div className="flex flex-col">
-              <span className="text-[8px] text-muted-foreground uppercase tracking-wide">Em Atraso</span>
-              <span className="text-xs font-medium text-orange-600">
+              <span className="text-[9px] text-muted-foreground uppercase tracking-wide">Em Atraso</span>
+              <span className="text-sm font-medium text-orange-600">
                 R$ {kpis.overdue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
               </span>
             </div>
           </div>
 
           {/* Result */}
-          <div className="flex items-center gap-1.5 px-2 py-1 rounded-md border border-l-2 border-l-primary bg-muted/30 flex-shrink-0">
-            <Calendar className="w-3 h-3 text-primary" />
+          <div className="flex items-center gap-2 px-3 py-2 rounded-md border border-l-2 border-l-primary bg-muted/30 flex-shrink-0 min-w-[140px]">
+            <Calendar className="w-4 h-4 text-primary" />
             <div className="flex flex-col">
-              <span className="text-[8px] text-muted-foreground uppercase tracking-wide">Resultado</span>
+              <span className="text-[9px] text-muted-foreground uppercase tracking-wide">Resultado</span>
               <div className="flex items-center gap-1">
-                <span className={`text-xs font-medium ${kpis.result >= 0 ? 'text-blue-600' : 'text-destructive'}`}>
+                <span className={`text-sm font-medium ${kpis.result >= 0 ? 'text-blue-600' : 'text-destructive'}`}>
                   R$ {kpis.result.toLocaleString('pt-BR', { minimumFractionDigits: 2, signDisplay: 'always' })}
                 </span>
                 {resultChange !== 0 && (
-                  <div className={`flex items-center gap-0.5 text-[8px] font-medium ${
+                  <div className={`flex items-center gap-0.5 text-[9px] font-medium ${
                     resultChange > 0 ? 'text-blue-600' : 'text-destructive'
                   }`}>
                     {resultChange > 0 ? (
-                      <TrendingUp className="w-2 h-2" />
+                      <TrendingUp className="w-2.5 h-2.5" />
                     ) : (
-                      <TrendingDown className="w-2 h-2" />
+                      <TrendingDown className="w-2.5 h-2.5" />
                     )}
                     <span>{Math.abs(resultChange).toFixed(1)}%</span>
                   </div>
