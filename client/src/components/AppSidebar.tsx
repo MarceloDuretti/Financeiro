@@ -183,6 +183,13 @@ export function AppSidebar() {
     setOpen(false);
   };
 
+  // Expand sidebar when clicking on collapsed menu item
+  const handleCollapsedMenuClick = () => {
+    if (isCollapsed) {
+      setOpen(true);
+    }
+  };
+
   // Get short label for collapsed menu
   const getShortLabel = (title: string): string => {
     const shortLabels: Record<string, string> = {
@@ -266,6 +273,7 @@ export function AppSidebar() {
                     <DropdownMenu>
                       <DropdownMenuTrigger
                         disabled={isDisabled}
+                        onClick={handleCollapsedMenuClick}
                         className={`w-full h-auto py-2 flex flex-col items-center justify-center gap-1 rounded-xl transition-all duration-300 ${isDisabled ? 'cursor-not-allowed opacity-40' : 'hover:scale-105 active:scale-95'}`}
                         data-testid={`button-menu-${item.title.toLowerCase()}`}
                         title={`${item.title} - ${item.description}`}
@@ -336,7 +344,15 @@ export function AppSidebar() {
                 <SidebarMenuItem key={item.title}>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Link href={item.url!} onClick={handleMenuItemClick}>
+                      <Link href={item.url!} onClick={() => {
+                        if (isCollapsed) {
+                          // If collapsed, expand but don't close
+                          setOpen(true);
+                        } else {
+                          // If already expanded, close after click (mobile behavior)
+                          handleMenuItemClick();
+                        }
+                      }}>
                         <button
                           className={`relative w-full flex flex-col items-center justify-center gap-1 py-2 rounded-xl transition-all duration-300 hover:scale-105 active:scale-95 ${location === item.url ? 'bg-accent/50 ring-2 ring-primary/20' : ''}`}
                           data-testid={`link-menu-${item.title.toLowerCase()}`}
