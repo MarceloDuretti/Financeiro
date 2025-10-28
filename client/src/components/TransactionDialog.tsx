@@ -1052,7 +1052,13 @@ export function TransactionDialog({
   });
 
   const onSubmit = (data: FormValues) => {
-    createMutation.mutate(data);
+    // Só permite salvar se estiver na etapa 5 (Revisão Final)
+    if (currentStep === STEPS.length) {
+      createMutation.mutate(data);
+    } else {
+      // Se não estiver na etapa 5, apenas avança para próxima etapa
+      handleNext();
+    }
   };
 
   const handleNext = () => {
