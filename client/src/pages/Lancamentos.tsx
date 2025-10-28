@@ -910,11 +910,11 @@ export default function Lancamentos() {
                 </div>
 
                 {/* Week Grid - 7 columns */}
-                <div className="flex-1 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-7 gap-3 overflow-auto">
+                <div className="flex-1 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-7 gap-2 overflow-hidden">
                   {eachDayOfInterval({
                     start: selectedWeekStart,
                     end: endOfWeek(selectedWeekStart, { locale: ptBR })
-                  }).map((day) => {
+                  }).map((day, dayIndex, allDays) => {
                     const dayTransactions = filteredTransactions.filter(t => 
                       t.dueDate && isSameDay(new Date(t.dueDate), day)
                     );
@@ -928,60 +928,81 @@ export default function Lancamentos() {
                       .reduce((sum, t) => sum + parseFloat(t.amount || '0'), 0);
                     
                     const dayBalance = dayRevenues - dayExpenses;
+                    
+                    // Calcular saldo acumulado (soma progressiva desde início da semana)
+                    let accumulatedBalance = 0;
+                    for (let i = 0; i <= dayIndex; i++) {
+                      const prevDay = allDays[i];
+                      const prevDayTransactions = filteredTransactions.filter(t => 
+                        t.dueDate && isSameDay(new Date(t.dueDate), prevDay)
+                      );
+                      const prevRevenues = prevDayTransactions
+                        .filter(t => t.type === 'revenue')
+                        .reduce((sum, t) => sum + parseFloat(t.amount || '0'), 0);
+                      const prevExpenses = prevDayTransactions
+                        .filter(t => t.type === 'expense')
+                        .reduce((sum, t) => sum + parseFloat(t.amount || '0'), 0);
+                      accumulatedBalance += (prevRevenues - prevExpenses);
+                    }
+                    
                     const isCurrentDay = isToday(day);
                     
                     return (
                       <div 
                         key={day.toISOString()} 
-                        className={`flex flex-col rounded-xl border transition-all duration-200 ${
+                        className={`flex flex-col h-full rounded-lg border transition-all duration-200 ${
                           isCurrentDay 
                             ? 'border-primary/50 bg-primary/5' 
-                            : dayBalance > 0 
+                            : accumulatedBalance > 0 
                               ? 'bg-blue-50/30 dark:bg-blue-950/10 border-blue-200/50 dark:border-blue-800/30' 
-                              : dayBalance < 0 
+                              : accumulatedBalance < 0 
                                 ? 'bg-red-50/30 dark:bg-red-950/10 border-red-200/50 dark:border-red-800/30'
                                 : 'bg-background'
                         }`}
                         data-testid={`week-day-${format(day, 'yyyy-MM-dd')}`}
                       >
-                        {/* Day Header */}
-                        <div className="p-3 border-b bg-muted/20">
-                          <div className="flex flex-col gap-1">
-                            <div className="flex items-center justify-between">
-                              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                                {format(day, 'EEE', { locale: ptBR })}
-                              </span>
-                              {isCurrentDay && (
-                                <Badge variant="default" className="h-5 text-[10px] px-1.5">
-                                  Hoje
-                                </Badge>
-                              )}
-                            </div>
-                            <div className="text-xl font-bold tracking-tight">
-                              {format(day, 'd')}
-                            </div>
-                            <div className="text-[10px] text-muted-foreground">
-                              {dayTransactions.length} {dayTransactions.length === 1 ? 'lançamento' : 'lançamentos'}
-                            </div>
+                        {/* Day Header - FIXO */}
+                        <div className="flex-shrink-0 p-2 border-b bg-muted/20">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">
+                              {format(day, 'EEE', { locale: ptBR })}
+                            </span>
+                            {isCurrentDay && (
+                              <Badge variant="default" className="h-4 text-[9px] px-1">
+                                Hoje
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="text-lg font-bold tracking-tight mb-0.5">
+                            {format(day, 'd')}
+                          </div>
+                          <div className="text-[9px] text-muted-foreground mb-1.5">
+                            {dayTransactions.length} {dayTransactions.length === 1 ? 'lanç.' : 'lanç.'}
                           </div>
                           
-                          {/* Day Totals */}
-                          {dayTransactions.length > 0 && (
-                            <div className="mt-2 pt-2 border-t space-y-1">
-                              <div className="flex items-center justify-between text-[11px]">
-                                <span className="text-muted-foreground">Saldo:</span>
-                                <span className={`font-semibold ${
-                                  dayBalance > 0 ? 'text-blue-600' : dayBalance < 0 ? 'text-destructive' : 'text-muted-foreground'
-                                }`}>
-                                  R$ {Math.abs(dayBalance).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                                </span>
-                              </div>
+                          {/* Saldos */}
+                          <div className="space-y-0.5 pt-1.5 border-t">
+                            <div className="flex items-center justify-between text-[10px]">
+                              <span className="text-muted-foreground">Dia:</span>
+                              <span className={`font-bold ${
+                                dayBalance > 0 ? 'text-blue-600' : dayBalance < 0 ? 'text-destructive' : 'text-muted-foreground'
+                              }`}>
+                                {dayBalance >= 0 ? '+' : '-'} R$ {Math.abs(dayBalance).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                              </span>
                             </div>
-                          )}
+                            <div className="flex items-center justify-between text-[10px]">
+                              <span className="text-muted-foreground">Acum:</span>
+                              <span className={`font-bold ${
+                                accumulatedBalance > 0 ? 'text-blue-600' : accumulatedBalance < 0 ? 'text-destructive' : 'text-muted-foreground'
+                              }`}>
+                                {accumulatedBalance >= 0 ? '+' : '-'} R$ {Math.abs(accumulatedBalance).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                              </span>
+                            </div>
+                          </div>
                         </div>
                         
-                        {/* Transactions List */}
-                        <div className="flex-1 overflow-y-auto p-2 space-y-1.5">
+                        {/* Transactions List - SCROLLÁVEL */}
+                        <div className="flex-1 overflow-y-auto p-1.5 space-y-1">
                           {dayTransactions.map((transaction) => {
                             const isPaid = transaction.status === 'paid';
                             const isOverdue = transaction.status !== 'paid' && transaction.dueDate && new Date(transaction.dueDate) < new Date();
@@ -991,47 +1012,38 @@ export default function Lancamentos() {
                             return (
                               <div
                                 key={transaction.id}
-                                className="p-2 rounded-lg border border-border/40 bg-background hover-elevate cursor-pointer transition-all duration-150"
+                                className="p-1.5 rounded-md border border-border/40 bg-background hover-elevate cursor-pointer transition-all duration-150"
                                 onClick={() => handleCardClick(transaction)}
                                 data-testid={`week-transaction-${transaction.id}`}
                               >
-                                <div className="space-y-1">
-                                  {/* Type Badge */}
-                                  <Badge 
-                                    variant={transaction.type === 'expense' ? 'destructive' : 'default'}
-                                    className={`text-[9px] h-4 px-1 ${transaction.type === 'revenue' ? 'bg-blue-600' : ''}`}
-                                  >
-                                    {transaction.type === 'expense' ? 'Desp' : 'Rec'}
-                                  </Badge>
-                                  
-                                  {/* Person */}
+                                <div className="space-y-0.5">
+                                  {/* Person - PRIORIDADE */}
                                   {person && (
-                                    <div className="flex items-center gap-1">
-                                      <User className="w-2.5 h-2.5 text-muted-foreground/60" />
-                                      <span className="text-[11px] font-semibold truncate tracking-tight">
-                                        {person.name}
-                                      </span>
+                                    <div className="font-semibold text-[11px] truncate tracking-tight">
+                                      {person.name}
                                     </div>
                                   )}
                                   
-                                  {/* Amount */}
-                                  <div className={`text-xs font-semibold tracking-tight ${
+                                  {/* Amount - DESTAQUE */}
+                                  <div className={`text-[11px] font-bold tracking-tight ${
                                     transaction.type === 'expense' ? 'text-destructive' : 'text-blue-600'
                                   }`}>
                                     {transaction.type === 'expense' ? '-' : '+'} R$ {amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                   </div>
                                   
-                                  {/* Status Badge */}
-                                  <Badge 
-                                    variant="outline" 
-                                    className={`text-[9px] h-4 px-1 ${
-                                      isPaid ? 'border-blue-600/50 text-blue-600' : 
-                                      isOverdue ? 'border-orange-600/50 text-orange-600' : 
-                                      'border-border/50 text-muted-foreground'
-                                    }`}
-                                  >
-                                    {isPaid ? 'Pago' : isOverdue ? 'Atraso' : 'Pend'}
-                                  </Badge>
+                                  {/* Status - COMPACTO */}
+                                  <div className="flex items-center gap-1">
+                                    <Badge 
+                                      variant="outline" 
+                                      className={`text-[8px] h-3.5 px-1 ${
+                                        isPaid ? 'border-blue-600/50 text-blue-600' : 
+                                        isOverdue ? 'border-orange-600/50 text-orange-600' : 
+                                        'border-border/50 text-muted-foreground'
+                                      }`}
+                                    >
+                                      {isPaid ? 'Pago' : isOverdue ? 'Atraso' : 'Pend'}
+                                    </Badge>
+                                  </div>
                                 </div>
                               </div>
                             );
