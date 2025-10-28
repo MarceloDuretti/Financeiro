@@ -317,7 +317,8 @@ export function AppSidebar() {
                         >
                           <div className={`relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${item.color} shadow transition-all duration-300 ${isDisabled ? 'saturate-0' : 'hover:shadow-lg hover:shadow-primary/20'}`}>
                             <Icon className="h-4 w-4 text-white" strokeWidth={2.5} />
-                            {item.count && (
+                            {/* Mostrar badge apenas para Notificações */}
+                            {item.title === "Notificações" && item.count && (
                               <div className="absolute -top-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-primary border border-background flex items-center justify-center shadow-sm">
                                 <span className="text-[9px] font-bold text-primary-foreground">{item.count}</span>
                               </div>
@@ -384,7 +385,8 @@ export function AppSidebar() {
                         >
                           <div className={`relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${item.color} shadow transition-all duration-300 hover:shadow-lg hover:shadow-primary/20`}>
                             <Icon className="h-4 w-4 text-white" strokeWidth={2.5} />
-                            {item.badge && (
+                            {/* Mostrar badge apenas para Notificações */}
+                            {item.title === "Notificações" && item.badge && (
                               <div className="absolute -top-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-primary border border-background flex items-center justify-center shadow-sm">
                                 <span className="text-[9px] font-bold text-primary-foreground">{item.badge}</span>
                               </div>
