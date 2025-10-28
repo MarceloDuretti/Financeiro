@@ -898,7 +898,7 @@ export default function Lancamentos() {
                 </div>
 
                 {/* Week Grid - 7 columns */}
-                <div className="flex-1 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-7 gap-2 overflow-hidden">
+                <div className="flex-1 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-7 gap-2 min-h-0">
                   {eachDayOfInterval({
                     start: selectedWeekStart,
                     end: endOfWeek(selectedWeekStart, { locale: ptBR })
