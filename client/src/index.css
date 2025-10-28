@@ -397,4 +397,14 @@
   .form-floating > textarea:focus::placeholder {
     @apply opacity-50;
   }
+
+  /* Invisible scrollbar - allows scroll but hides the scrollbar */
+  .scrollbar-hidden {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  
+  .scrollbar-hidden::-webkit-scrollbar {
+    display: none;
+  }
 }
