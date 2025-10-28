@@ -475,7 +475,9 @@ export default function Lancamentos() {
                     variant="ghost"
                     size="sm"
                     onClick={() => setSelectedMonth(month.index)}
-                    className="w-full h-9 flex items-center justify-between px-3 transition-all duration-200"
+                    className={`w-full h-9 flex items-center justify-between px-3 transition-all duration-200 ${
+                      !isSelected ? 'opacity-60 hover:opacity-100' : ''
+                    }`}
                     data-testid={`button-month-${month.index}`}
                   >
                     <div className="flex items-center gap-1">
@@ -493,9 +495,9 @@ export default function Lancamentos() {
                     } ${yoyColor}`}>
                       {displayYoy !== 0 && (
                         displayYoy > 0 ? (
-                          <ArrowUp className={`${isSelected ? 'w-3 h-3' : 'w-2.5 h-2.5'}`} />
+                          <ArrowUp className={`${isSelected ? 'w-2.5 h-2.5' : 'w-2 h-2'}`} />
                         ) : (
-                          <ArrowDown className={`${isSelected ? 'w-3 h-3' : 'w-2.5 h-2.5'}`} />
+                          <ArrowDown className={`${isSelected ? 'w-2.5 h-2.5' : 'w-2 h-2'}`} />
                         )
                       )}
                       <span>{Math.abs(displayYoy).toFixed(0)}%</span>
