@@ -54,6 +54,19 @@ Key features include:
     - Real-time WebSocket updates for all CRUD operations
     - Search/filter by name or code
     - **UX Enhancement:** Sheet drawer with `modal={false}` (no dark overlay blocking master list) and selected card highlight (`ring-2 ring-primary`)
+- **Lançamentos (Transactions) Page:**
+    - Virtualized list using @tanstack/react-virtual for performance with large datasets
+    - Analytics card with 4 KPI metrics:
+        - Despesas Abertas (Open Expenses): Sum of pending expenses
+        - Receitas Abertas (Open Revenues): Sum of pending revenues
+        - Em Atraso (Overdue): Sum of pending transactions past due date
+        - Resultado (Result): Net result of paid transactions (revenues - expenses)
+    - Essential filters: Search by description, type (expense/revenue), status (pending/paid/cancelled)
+    - Transaction list with color-coded badges (red for expenses, green for revenues)
+    - Overdue indicator (orange) for unpaid transactions past due date
+    - Mobile-first responsive grid (1 column mobile → 2 columns tablet → 4 columns desktop)
+    - Loading states with skeletons and empty state messages
+    - Real-time WebSocket updates for all CRUD operations
 
 ### Backend Architecture
 
@@ -61,7 +74,7 @@ The backend utilizes Node.js with TypeScript, Express.js, Drizzle ORM, esbuild f
 
 Key architectural decisions include:
 - **Authentication:** Signup, login, logout, and user management using Passport Local Strategy with session-based authentication.
-- **Management Endpoints:** CRUD operations for `companies`, `collaborators`, `company_members`, `cost-centers`, `chart-of-accounts`, `bank-accounts`, `pix-keys`, `payment-methods`, `customers-suppliers`, and `cash-registers`, all enforcing multi-tenant isolation.
+- **Management Endpoints:** CRUD operations for `companies`, `collaborators`, `company_members`, `cost-centers`, `chart-of-accounts`, `bank-accounts`, `pix-keys`, `payment-methods`, `customers-suppliers`, `cash-registers`, and `transactions`, all enforcing multi-tenant isolation.
 - **Storage Layer:** PostgreSQL with Drizzle ORM, implementing multi-tenant isolation via a `tenantId` column in all business data tables.
 - **Real-Time Updates System:** Integrated WebSocket server using session-based authentication and tenant isolation. It broadcasts automatic notifications for data changes (CREATE/UPDATE/DELETE) to connected clients, supporting multi-user environments with instant UI updates and auto-reconnection.
 - **Multi-Tenant Architecture:** Row-level multi-tenancy enforced by `tenantId` in all business data, with security helpers at the API layer and `tenantId` filtering in the storage layer. Performance is optimized with composite indexes, and PostgreSQL Row-Level Security (RLS) is enabled. Versioning and soft-deletion are supported through `updated_at`, `version`, and `deleted` columns.
