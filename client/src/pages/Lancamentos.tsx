@@ -353,6 +353,12 @@ export default function Lancamentos() {
     enabled: !!selectedCompanyId,
   });
 
+  // Fetch chart of accounts for display
+  const { data: accounts = [] } = useQuery<any[]>({
+    queryKey: ["/api/chart-of-accounts", { companyId: selectedCompanyId }],
+    enabled: !!selectedCompanyId,
+  });
+
   const handleCardClick = (transaction: Transaction) => {
     setDetailTransaction(transaction);
     setDetailSheetOpen(true);
@@ -913,6 +919,7 @@ export default function Lancamentos() {
                           const total = transaction.type === 'revenue' ? monthlyTotals.totalRevenues : monthlyTotals.totalExpenses;
                           const percentage = total > 0 ? (amount / total) * 100 : 0;
                           const person = customersSuppliers.find(p => p.id === transaction.personId);
+                          const account = accounts.find(a => a.id === transaction.chartAccountId);
 
                           return (
                             <div
@@ -942,6 +949,11 @@ export default function Lancamentos() {
                                   <User className="w-2.5 h-2.5" />
                                   <span className="truncate">{person?.name || '-'}</span>
                                 </div>
+                              </div>
+
+                              {/* Account */}
+                              <div className="w-40 flex-shrink-0 hidden lg:block">
+                                <span className="text-muted-foreground truncate">{account?.description || '-'}</span>
                               </div>
 
                               {/* Payment Date */}
