@@ -128,7 +128,7 @@ export default function Lancamentos() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selectedMonth, selectedYear]);
 
-  // Fetch transactions
+  // Fetch transactions for selected month
   const { data: transactions = [], isLoading } = useQuery<Transaction[]>({
     queryKey: ["/api/transactions", selectedCompanyId, { 
       startDate, 
@@ -136,6 +136,52 @@ export default function Lancamentos() {
       type: typeFilter === 'all' ? undefined : typeFilter,
       status: statusFilter === 'all' ? undefined : statusFilter,
       query: searchQuery
+    }],
+    enabled: !!selectedCompanyId,
+  });
+
+  // Fetch all transactions for the year to show counts per month
+  const yearStart = useMemo(() => format(new Date(selectedYear, 0, 1), 'yyyy-MM-dd'), [selectedYear]);
+  const yearEnd = useMemo(() => format(new Date(selectedYear, 11, 31), 'yyyy-MM-dd'), [selectedYear]);
+
+  const { data: yearTransactions = [] } = useQuery<Transaction[]>({
+    queryKey: ["/api/transactions", selectedCompanyId, { 
+      startDate: yearStart, 
+      endDate: yearEnd,
+    }],
+    enabled: !!selectedCompanyId,
+  });
+
+  // Calculate transaction count per month
+  const transactionCountsByMonth = useMemo(() => {
+    const counts: Record<number, number> = {};
+    yearTransactions.forEach(t => {
+      if (t.dueDate) {
+        const month = getMonth(new Date(t.dueDate));
+        counts[month] = (counts[month] || 0) + 1;
+      }
+    });
+    return counts;
+  }, [yearTransactions]);
+
+  // Calculate date range for previous month
+  const previousMonthStart = useMemo(() => {
+    const prevMonth = selectedMonth === 0 ? 11 : selectedMonth - 1;
+    const prevYear = selectedMonth === 0 ? selectedYear - 1 : selectedYear;
+    return format(startOfMonth(new Date(prevYear, prevMonth, 1)), 'yyyy-MM-dd');
+  }, [selectedMonth, selectedYear]);
+
+  const previousMonthEnd = useMemo(() => {
+    const prevMonth = selectedMonth === 0 ? 11 : selectedMonth - 1;
+    const prevYear = selectedMonth === 0 ? selectedYear - 1 : selectedYear;
+    return format(endOfMonth(new Date(prevYear, prevMonth, 1)), 'yyyy-MM-dd');
+  }, [selectedMonth, selectedYear]);
+
+  // Fetch previous month transactions for comparison
+  const { data: previousMonthTransactions = [] } = useQuery<Transaction[]>({
+    queryKey: ["/api/transactions", selectedCompanyId, { 
+      startDate: previousMonthStart, 
+      endDate: previousMonthEnd,
     }],
     enabled: !!selectedCompanyId,
   });
@@ -158,6 +204,21 @@ export default function Lancamentos() {
         return sum + (t.type === 'revenue' ? amount : -amount);
       }, 0),
   };
+
+  // Calculate previous month KPIs for comparison
+  const previousKpis = {
+    result: previousMonthTransactions
+      .filter(t => t.status === 'paid')
+      .reduce((sum, t) => {
+        const amount = parseFloat(t.paidAmount || t.amount || '0');
+        return sum + (t.type === 'revenue' ? amount : -amount);
+      }, 0),
+  };
+
+  // Calculate percentage change
+  const resultChange = previousKpis.result !== 0 
+    ? ((kpis.result - previousKpis.result) / Math.abs(previousKpis.result)) * 100 
+    : kpis.result !== 0 ? 100 : 0;
 
   // Filter transactions
   const filteredTransactions = transactions.filter(transaction => {
@@ -273,6 +334,7 @@ export default function Lancamentos() {
             {MONTHS.map((month) => {
               const isSelected = selectedMonth === month.index;
               const isCurrent = getMonth(now) === month.index && getYear(now) === selectedYear;
+              const count = transactionCountsByMonth[month.index] || 0;
               
               return (
                 <Button
@@ -280,15 +342,20 @@ export default function Lancamentos() {
                   variant={isSelected ? "default" : "outline"}
                   size="sm"
                   onClick={() => setSelectedMonth(month.index)}
-                  className={`h-12 flex flex-col items-center justify-center gap-1 ${
+                  className={`h-14 flex flex-col items-center justify-center gap-0.5 transition-all duration-200 relative ${
                     isCurrent && !isSelected ? 'border-primary border-2' : ''
                   }`}
                   data-testid={`button-month-${month.index}`}
                 >
                   <span className="text-xs font-semibold">{month.short}</span>
-                  <span className="text-[10px] text-muted-foreground hidden sm:inline">
-                    {month.full.substring(0, 3)}
-                  </span>
+                  {count > 0 && (
+                    <Badge
+                      variant={isSelected ? "secondary" : "outline"}
+                      className="text-[9px] px-1 h-4 min-w-[16px]"
+                    >
+                      {count}
+                    </Badge>
+                  )}
                 </Button>
               );
             })}
@@ -364,9 +431,23 @@ export default function Lancamentos() {
               <div className={`text-2xl font-bold ${kpis.result >= 0 ? 'text-green-600' : 'text-destructive'}`}>
                 R$ {kpis.result.toLocaleString('pt-BR', { minimumFractionDigits: 2, signDisplay: 'always' })}
               </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {transactions.filter(t => t.status === 'paid').length} pagos/recebidos
-              </p>
+              <div className="flex items-center justify-between mt-1">
+                <p className="text-xs text-muted-foreground">
+                  {transactions.filter(t => t.status === 'paid').length} pagos/recebidos
+                </p>
+                {resultChange !== 0 && (
+                  <div className={`flex items-center gap-1 text-xs font-medium ${
+                    resultChange > 0 ? 'text-green-600' : 'text-destructive'
+                  }`}>
+                    {resultChange > 0 ? (
+                      <TrendingUp className="w-3 h-3" />
+                    ) : (
+                      <TrendingDown className="w-3 h-3" />
+                    )}
+                    <span>{Math.abs(resultChange).toFixed(1)}%</span>
+                  </div>
+                )}
+              </div>
             </CardContent>
           </Card>
         </div>
