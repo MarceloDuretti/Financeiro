@@ -917,58 +917,58 @@ export default function Lancamentos() {
                           return (
                             <div
                               key={transaction.id}
-                              className="flex items-center gap-2 p-2 border rounded-md hover-elevate cursor-pointer text-xs"
+                              className="flex items-center gap-3 px-4 py-3 border border-border/40 rounded-xl hover-elevate cursor-pointer transition-all duration-150"
                               onClick={() => handleCardClick(transaction)}
                               data-testid={`row-transaction-${transaction.id}`}
                             >
                               {/* Type */}
-                              <div className="w-16 flex-shrink-0">
+                              <div className="w-[70px] flex-shrink-0">
                                 <Badge 
                                   variant={transaction.type === 'expense' ? 'destructive' : 'default'}
-                                  className={`text-[10px] h-5 px-1.5 ${transaction.type === 'revenue' ? 'bg-blue-600 hover:bg-blue-700' : ''}`}
+                                  className={`text-[11px] h-6 px-2 ${transaction.type === 'revenue' ? 'bg-blue-600 hover:bg-blue-700' : ''}`}
                                 >
                                   {transaction.type === 'expense' ? 'Despesa' : 'Receita'}
                                 </Badge>
                               </div>
 
                               {/* Person */}
-                              <div className="w-40 flex-shrink-0 hidden md:block">
-                                <div className="flex items-center gap-1.5">
-                                  <User className="w-3.5 h-3.5 text-muted-foreground" />
-                                  <span className="truncate font-bold text-sm">{person?.name || '-'}</span>
+                              <div className="w-44 flex-shrink-0 hidden md:block">
+                                <div className="flex items-center gap-2">
+                                  <User className="w-4 h-4 text-muted-foreground/60" />
+                                  <span className="truncate font-semibold text-[15px] tracking-tight">{person?.name || '-'}</span>
                                 </div>
                               </div>
 
                               {/* Description/Title */}
                               <div className="flex-1 min-w-0 hidden lg:block">
-                                <p className="text-muted-foreground truncate text-xs">
+                                <p className="text-muted-foreground/70 truncate text-[13px] tracking-normal">
                                   {transaction.title ? `(${transaction.title})` : ''}
                                 </p>
                               </div>
 
                               {/* Payment Date */}
-                              <div className="w-20 flex-shrink-0 hidden lg:block">
+                              <div className="w-24 flex-shrink-0 hidden lg:block">
                                 {isPaid && transaction.paidDate ? (
-                                  <span className="text-blue-600 font-medium">
+                                  <span className="text-blue-600 font-medium text-[13px]">
                                     {format(new Date(transaction.paidDate), "dd/MM/yy")}
                                   </span>
                                 ) : (
-                                  <span className="text-muted-foreground">-</span>
+                                  <span className="text-muted-foreground/50 text-[13px]">-</span>
                                 )}
                               </div>
 
                               {/* Percentage with Progress Bar */}
-                              <div className="w-32 flex-shrink-0 hidden xl:block">
-                                <div className="space-y-0.5">
+                              <div className="w-36 flex-shrink-0 hidden xl:block">
+                                <div className="space-y-1">
                                   <div className="flex items-center justify-between">
-                                    <span className="font-medium text-xs">{percentage.toFixed(1)}%</span>
+                                    <span className="font-medium text-[13px] tracking-tight">{percentage.toFixed(1)}%</span>
                                   </div>
-                                  <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                                  <div className="h-1 bg-muted/50 rounded-full overflow-hidden">
                                     <div
-                                      className={`h-full transition-all ${
+                                      className={`h-full transition-all duration-300 ease-out ${
                                         transaction.type === 'expense' 
-                                          ? 'bg-destructive' 
-                                          : 'bg-blue-600'
+                                          ? 'bg-gradient-to-r from-destructive to-destructive/90' 
+                                          : 'bg-gradient-to-r from-blue-600 to-blue-500'
                                       }`}
                                       style={{ width: `${Math.min(percentage, 100)}%` }}
                                     />
@@ -977,8 +977,8 @@ export default function Lancamentos() {
                               </div>
 
                               {/* Amount */}
-                              <div className="w-28 flex-shrink-0 text-right">
-                                <span className={`font-bold ${
+                              <div className="w-32 flex-shrink-0 text-right">
+                                <span className={`font-semibold text-[15px] tracking-tight ${
                                   transaction.type === 'expense' ? 'text-destructive' : 'text-blue-600'
                                 }`}>
                                   {transaction.type === 'expense' ? '-' : '+'} R$ {amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
@@ -986,13 +986,13 @@ export default function Lancamentos() {
                               </div>
 
                               {/* Status */}
-                              <div className="w-20 flex-shrink-0 hidden sm:block">
+                              <div className="w-24 flex-shrink-0 hidden sm:block">
                                 <Badge 
                                   variant="outline" 
-                                  className={`text-[10px] h-5 px-1.5 ${
-                                    isPaid ? 'border-blue-600 text-blue-600' : 
-                                    isOverdue ? 'border-orange-600 text-orange-600' : 
-                                    'border-gray-400 text-gray-600'
+                                  className={`text-[11px] h-6 px-2 ${
+                                    isPaid ? 'border-blue-600/50 text-blue-600' : 
+                                    isOverdue ? 'border-orange-600/50 text-orange-600' : 
+                                    'border-border/50 text-muted-foreground'
                                   }`}
                                 >
                                   {isPaid ? 'Pago' : transaction.status === 'cancelled' ? 'Cancelado' : 'Pendente'}
