@@ -762,8 +762,8 @@ export default function Lancamentos() {
                         </span>
                       </div>
 
-                    {/* Transaction Cards Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                    {/* Transaction Cards Grid - Auto-fit responsive */}
+                    <div className="grid gap-2" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' }}>
                       {dayTransactions.map((transaction) => {
                         const isOverdue = transaction.status !== 'paid' && transaction.dueDate && new Date(transaction.dueDate) < new Date();
                         const isPaid = transaction.status === 'paid';
@@ -779,89 +779,71 @@ export default function Lancamentos() {
                             onClick={() => handleCardClick(transaction)}
                             data-testid={`card-transaction-${transaction.id}`}
                           >
-                            <CardContent className="p-4 space-y-3">
-                              {/* Type Badge */}
-                              <div className="flex items-center justify-between">
+                            <CardContent className="p-2 space-y-1.5">
+                              {/* Type Badge and Overdue */}
+                              <div className="flex items-center gap-1 flex-wrap">
                                 <Badge 
                                   variant={transaction.type === 'expense' ? 'destructive' : 'default'}
-                                  className={`text-xs ${transaction.type === 'revenue' ? 'bg-blue-600 hover:bg-blue-700' : ''}`}
+                                  className={`text-[10px] h-5 px-1.5 ${transaction.type === 'revenue' ? 'bg-blue-600 hover:bg-blue-700' : ''}`}
                                 >
                                   {transaction.type === 'expense' ? 'Despesa' : 'Receita'}
                                 </Badge>
                                 {isOverdue && (
-                                  <Badge variant="outline" className="text-xs border-orange-600 text-orange-600">
+                                  <Badge variant="outline" className="text-[10px] h-5 px-1.5 border-orange-600 text-orange-600">
                                     Atraso
                                   </Badge>
                                 )}
                               </div>
 
                               {/* Title/Description */}
-                              <div>
-                                <h3 className="font-semibold text-sm line-clamp-2 min-h-[2.5rem]" data-testid={`text-title-${transaction.id}`}>
-                                  {transaction.title || 'Sem título'}
-                                </h3>
-                              </div>
+                              <h3 className="font-semibold text-xs line-clamp-2 min-h-[2rem]" data-testid={`text-title-${transaction.id}`}>
+                                {transaction.title || 'Sem título'}
+                              </h3>
 
                               {/* Person */}
                               {person && (
-                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                  <User className="w-3 h-3" />
+                                <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                                  <User className="w-2.5 h-2.5" />
                                   <span className="truncate">{person.name}</span>
                                 </div>
                               )}
 
-                              {/* Dates */}
-                              <div className="text-xs space-y-1">
-                                <div className="flex items-center justify-between">
-                                  <span className="text-muted-foreground">Vencimento:</span>
+                              {/* Payment Date (only if paid) */}
+                              {isPaid && transaction.paidDate && (
+                                <div className="flex items-center justify-between text-[10px] text-blue-600">
+                                  <span>Pago em:</span>
                                   <span className="font-medium">
-                                    {transaction.dueDate ? format(new Date(transaction.dueDate), "dd/MM/yy") : '-'}
+                                    {format(new Date(transaction.paidDate), "dd/MM/yy")}
                                   </span>
                                 </div>
-                                <div className="flex items-center justify-between">
-                                  <span className="text-muted-foreground">Cadastro:</span>
-                                  <span>
-                                    {transaction.createdAt ? format(new Date(transaction.createdAt), "dd/MM/yy") : '-'}
-                                  </span>
-                                </div>
-                                {isPaid && transaction.paidDate && (
-                                  <div className="flex items-center justify-between text-blue-600">
-                                    <span>Pagamento:</span>
-                                    <span className="font-medium">
-                                      {format(new Date(transaction.paidDate), "dd/MM/yy")}
-                                    </span>
-                                  </div>
-                                )}
-                              </div>
+                              )}
 
                               {/* Amount */}
-                              <div className={`text-xl font-bold ${
+                              <div className={`text-base font-bold ${
                                 transaction.type === 'expense' ? 'text-destructive' : 'text-blue-600'
                               }`}>
                                 {transaction.type === 'expense' ? '-' : '+'} R$ {amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                               </div>
 
                               {/* Status */}
-                              <div>
-                                <Badge 
-                                  variant="outline" 
-                                  className={`text-xs ${
-                                    isPaid ? 'border-blue-600 text-blue-600' : 
-                                    isOverdue ? 'border-orange-600 text-orange-600' : 
-                                    'border-gray-400 text-gray-600'
-                                  }`}
-                                >
-                                  {isPaid ? 'Pago' : transaction.status === 'cancelled' ? 'Cancelado' : 'Pendente'}
-                                </Badge>
-                              </div>
+                              <Badge 
+                                variant="outline" 
+                                className={`text-[10px] h-5 px-1.5 ${
+                                  isPaid ? 'border-blue-600 text-blue-600' : 
+                                  isOverdue ? 'border-orange-600 text-orange-600' : 
+                                  'border-gray-400 text-gray-600'
+                                }`}
+                              >
+                                {isPaid ? 'Pago' : transaction.status === 'cancelled' ? 'Cancelado' : 'Pendente'}
+                              </Badge>
 
                               {/* Progress Bar with Percentage */}
-                              <div className="space-y-1.5">
-                                <div className="flex items-center justify-between text-xs">
+                              <div className="space-y-0.5">
+                                <div className="flex items-center justify-between text-[10px]">
                                   <span className="text-muted-foreground">% do mês</span>
                                   <span className="font-semibold">{percentage.toFixed(1)}%</span>
                                 </div>
-                                <div className="h-2 bg-muted rounded-full overflow-hidden">
+                                <div className="h-1.5 bg-muted rounded-full overflow-hidden">
                                   <div
                                     className={`h-full transition-all ${
                                       transaction.type === 'expense' 
