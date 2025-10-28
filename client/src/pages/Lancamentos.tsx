@@ -410,7 +410,7 @@ export default function Lancamentos() {
                     <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
                   )}
                   {month.index < 11 && (
-                    <div className="h-px bg-border/20 mx-2" />
+                    <div className="h-px bg-border/50 mx-2" />
                   )}
                 </div>
               );
