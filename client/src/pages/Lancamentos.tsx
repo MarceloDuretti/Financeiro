@@ -961,11 +961,8 @@ export default function Lancamentos() {
                               </Badge>
                             )}
                           </div>
-                          <div className="text-lg font-normal tracking-tight mb-0.5">
+                          <div className="text-lg font-normal tracking-tight mb-1.5">
                             {format(day, 'd')}
-                          </div>
-                          <div className="text-[9px] text-muted-foreground mb-1.5">
-                            {dayTransactions.length} {dayTransactions.length === 1 ? 'lanç.' : 'lanç.'}
                           </div>
                           
                           {/* Saldos */}
