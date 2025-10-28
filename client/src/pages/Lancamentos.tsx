@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Button } from "@/components/ui/button";
@@ -15,22 +15,118 @@ import {
   TrendingUp, 
   AlertCircle,
   Calendar,
-  Filter
+  Filter,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
-import { format } from "date-fns";
+import { format, startOfMonth, endOfMonth, getMonth, getYear } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import type { Transaction } from "@shared/schema";
 
 const SELECTED_COMPANY_KEY = "fincontrol_selected_company_id";
 
+const MONTHS = [
+  { index: 0, short: "JAN", full: "Janeiro" },
+  { index: 1, short: "FEV", full: "Fevereiro" },
+  { index: 2, short: "MAR", full: "Março" },
+  { index: 3, short: "ABR", full: "Abril" },
+  { index: 4, short: "MAI", full: "Maio" },
+  { index: 5, short: "JUN", full: "Junho" },
+  { index: 6, short: "JUL", full: "Julho" },
+  { index: 7, short: "AGO", full: "Agosto" },
+  { index: 8, short: "SET", full: "Setembro" },
+  { index: 9, short: "OUT", full: "Outubro" },
+  { index: 10, short: "NOV", full: "Novembro" },
+  { index: 11, short: "DEZ", full: "Dezembro" },
+];
+
 export default function Lancamentos() {
   const selectedCompanyId = localStorage.getItem(SELECTED_COMPANY_KEY);
+  const now = new Date();
+  const [selectedMonth, setSelectedMonth] = useState<number>(getMonth(now));
+  const [selectedYear, setSelectedYear] = useState<number>(getYear(now));
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [startDate, setStartDate] = useState<string>("");
-  const [endDate, setEndDate] = useState<string>("");
   const parentRef = useRef<HTMLDivElement>(null);
+
+  // Calculate date range from selected month/year
+  const startDate = useMemo(() => {
+    const date = new Date(selectedYear, selectedMonth, 1);
+    return format(startOfMonth(date), 'yyyy-MM-dd');
+  }, [selectedMonth, selectedYear]);
+
+  const endDate = useMemo(() => {
+    const date = new Date(selectedYear, selectedMonth, 1);
+    return format(endOfMonth(date), 'yyyy-MM-dd');
+  }, [selectedMonth, selectedYear]);
+
+  // Navigation functions
+  const goToPreviousMonth = () => {
+    if (selectedMonth === 0) {
+      setSelectedMonth(11);
+      setSelectedYear(selectedYear - 1);
+    } else {
+      setSelectedMonth(selectedMonth - 1);
+    }
+  };
+
+  const goToNextMonth = () => {
+    if (selectedMonth === 11) {
+      setSelectedMonth(0);
+      setSelectedYear(selectedYear + 1);
+    } else {
+      setSelectedMonth(selectedMonth + 1);
+    }
+  };
+
+  const goToPreviousYear = () => {
+    setSelectedYear(selectedYear - 1);
+  };
+
+  const goToNextYear = () => {
+    setSelectedYear(selectedYear + 1);
+  };
+
+  const goToToday = () => {
+    setSelectedMonth(getMonth(now));
+    setSelectedYear(getYear(now));
+  };
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+
+      if (e.key === 'ArrowLeft' && e.ctrlKey) {
+        e.preventDefault();
+        goToPreviousYear();
+      } else if (e.key === 'ArrowRight' && e.ctrlKey) {
+        e.preventDefault();
+        goToNextYear();
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        goToPreviousMonth();
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        goToNextMonth();
+      } else if (e.key === 'Home') {
+        e.preventDefault();
+        setSelectedMonth(0);
+      } else if (e.key === 'End') {
+        e.preventDefault();
+        setSelectedMonth(11);
+      } else if (e.key === 't' || e.key === 'T') {
+        e.preventDefault();
+        goToToday();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedMonth, selectedYear]);
 
   // Fetch transactions
   const { data: transactions = [], isLoading } = useQuery<Transaction[]>({
@@ -93,6 +189,18 @@ export default function Lancamentos() {
     );
   }
 
+  // Generate year options (5 years back, 2 years forward)
+  const yearOptions = useMemo(() => {
+    const currentYear = getYear(now);
+    const years = [];
+    for (let i = currentYear - 5; i <= currentYear + 2; i++) {
+      years.push(i);
+    }
+    return years;
+  }, []);
+
+  const isCurrentMonth = selectedMonth === getMonth(now) && selectedYear === getYear(now);
+
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
@@ -112,6 +220,87 @@ export default function Lancamentos() {
           <Plus className="w-4 h-4" />
           <span className="hidden sm:inline">Novo Lançamento</span>
         </Button>
+      </div>
+
+      {/* Month Navigation Bar */}
+      <div className="p-4 border-b bg-muted/20">
+        <div className="flex flex-col gap-3">
+          {/* Year selector and navigation */}
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={goToPreviousYear}
+                data-testid="button-prev-year"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+              <Select value={selectedYear.toString()} onValueChange={(val) => setSelectedYear(parseInt(val))}>
+                <SelectTrigger className="w-[120px] h-9" data-testid="select-year">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {yearOptions.map(year => (
+                    <SelectItem key={year} value={year.toString()}>
+                      {year}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={goToNextYear}
+                data-testid="button-next-year"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
+
+            <Button
+              variant={isCurrentMonth ? "default" : "outline"}
+              size="sm"
+              onClick={goToToday}
+              data-testid="button-today"
+            >
+              Hoje
+            </Button>
+          </div>
+
+          {/* Months grid */}
+          <div className="grid grid-cols-6 lg:grid-cols-12 gap-2">
+            {MONTHS.map((month) => {
+              const isSelected = selectedMonth === month.index;
+              const isCurrent = getMonth(now) === month.index && getYear(now) === selectedYear;
+              
+              return (
+                <Button
+                  key={month.index}
+                  variant={isSelected ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSelectedMonth(month.index)}
+                  className={`h-12 flex flex-col items-center justify-center gap-1 ${
+                    isCurrent && !isSelected ? 'border-primary border-2' : ''
+                  }`}
+                  data-testid={`button-month-${month.index}`}
+                >
+                  <span className="text-xs font-semibold">{month.short}</span>
+                  <span className="text-[10px] text-muted-foreground hidden sm:inline">
+                    {month.full.substring(0, 3)}
+                  </span>
+                </Button>
+              );
+            })}
+          </div>
+
+          {/* Period info */}
+          <div className="text-center text-sm text-muted-foreground">
+            Visualizando: <span className="font-medium text-foreground">
+              {MONTHS[selectedMonth].full} de {selectedYear}
+            </span>
+          </div>
+        </div>
       </div>
 
       {/* Analytics Card */}
