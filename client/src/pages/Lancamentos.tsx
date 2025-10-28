@@ -473,35 +473,22 @@ export default function Lancamentos() {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Header with KPIs */}
-      <div className="flex flex-col gap-2 p-3 border-b">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-primary/10">
-              <TrendingUp className="w-5 h-5 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-xl font-semibold">Lançamentos</h1>
-              <p className="text-xs text-muted-foreground">
-                {MONTHS[selectedMonth].full} de {selectedYear}
-              </p>
-            </div>
+      {/* Header with inline KPIs */}
+      <div className="flex items-center justify-between gap-3 p-3 border-b overflow-x-auto">
+        <div className="flex items-center gap-3 flex-shrink-0">
+          <div className="p-2 rounded-lg bg-primary/10">
+            <TrendingUp className="w-5 h-5 text-primary" />
           </div>
-          <Button 
-            size="sm" 
-            onClick={() => {
-              setSelectedTransaction(null);
-              setDialogOpen(true);
-            }}
-            data-testid="button-new-transaction"
-          >
-            <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline">Novo</span>
-          </Button>
+          <div>
+            <h1 className="text-xl font-semibold">Lançamentos</h1>
+            <p className="text-xs text-muted-foreground">
+              {MONTHS[selectedMonth].full} de {selectedYear}
+            </p>
+          </div>
         </div>
         
         {/* Inline KPI Cards - Compact */}
-        <div className="flex items-center gap-2 overflow-x-auto">
+        <div className="flex items-center gap-2 flex-1 overflow-x-auto">
           {/* Open Expenses */}
           <div className="flex items-center gap-1.5 px-2 py-1 rounded-md border border-l-2 border-l-destructive bg-muted/30 flex-shrink-0">
             <TrendingDown className="w-3 h-3 text-destructive" />
@@ -560,6 +547,19 @@ export default function Lancamentos() {
             </div>
           </div>
         </div>
+
+        <Button 
+          size="sm" 
+          onClick={() => {
+            setSelectedTransaction(null);
+            setDialogOpen(true);
+          }}
+          className="flex-shrink-0"
+          data-testid="button-new-transaction"
+        >
+          <Plus className="w-4 h-4" />
+          <span className="hidden sm:inline">Novo</span>
+        </Button>
       </div>
 
       {/* Main Content Area */}
