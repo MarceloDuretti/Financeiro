@@ -21,7 +21,9 @@ import {
   ChevronRight,
   User,
   LayoutGrid,
-  List
+  List,
+  ArrowUp,
+  ArrowDown
 } from "lucide-react";
 import { format, startOfMonth, endOfMonth, getMonth, getYear, getDate, isValid } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -486,11 +488,18 @@ export default function Lancamentos() {
                         {month.short}
                       </span>
                     </div>
-                    <span className={`font-medium transition-all duration-200 ${
+                    <div className={`flex items-center gap-0.5 font-medium transition-all duration-200 ${
                       isSelected ? 'text-sm text-primary' : 'text-xs'
                     } ${!isSelected && yoyColor}`}>
-                      {displayYoy > 0 ? '+' : ''}{displayYoy.toFixed(0)}%
-                    </span>
+                      {displayYoy !== 0 && (
+                        displayYoy > 0 ? (
+                          <ArrowUp className={`${isSelected ? 'w-3 h-3' : 'w-2.5 h-2.5'}`} />
+                        ) : (
+                          <ArrowDown className={`${isSelected ? 'w-3 h-3' : 'w-2.5 h-2.5'}`} />
+                        )
+                      )}
+                      <span>{Math.abs(displayYoy).toFixed(0)}%</span>
+                    </div>
                   </Button>
                   {isSelected && (
                     <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
