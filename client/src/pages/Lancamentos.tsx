@@ -1231,14 +1231,14 @@ export default function Lancamentos() {
                               {/* Person */}
                               <div className="w-44 flex-shrink-0 hidden md:block">
                                 <div className="flex items-center gap-2">
-                                  <User className="w-4 h-4 text-muted-foreground/60" />
-                                  <span className="truncate font-semibold text-[15px] tracking-tight">{person?.name || '-'}</span>
+                                  <User className="w-3.5 h-3.5 text-muted-foreground/60" />
+                                  <span className="truncate font-semibold text-[13px] tracking-tight">{person?.name || '-'}</span>
                                 </div>
                               </div>
 
                               {/* Description/Title */}
                               <div className="flex-1 min-w-0 hidden lg:block">
-                                <p className="text-muted-foreground/70 truncate text-[13px] tracking-normal">
+                                <p className="text-muted-foreground/70 truncate text-[11px] tracking-normal">
                                   {transaction.title ? `(${transaction.title})` : ''}
                                 </p>
                               </div>
@@ -1246,11 +1246,11 @@ export default function Lancamentos() {
                               {/* Payment Date */}
                               <div className="w-24 flex-shrink-0 hidden lg:block">
                                 {isPaid && transaction.paidDate ? (
-                                  <span className="text-blue-600 font-medium text-[13px]">
+                                  <span className="text-blue-600 font-medium text-[11px]">
                                     {format(new Date(transaction.paidDate), "dd/MM/yy")}
                                   </span>
                                 ) : (
-                                  <span className="text-muted-foreground/50 text-[13px]">-</span>
+                                  <span className="text-muted-foreground/50 text-[11px]">-</span>
                                 )}
                               </div>
 
@@ -1258,7 +1258,7 @@ export default function Lancamentos() {
                               <div className="w-36 flex-shrink-0 hidden xl:block">
                                 <div className="space-y-1">
                                   <div className="flex items-center justify-between">
-                                    <span className="font-medium text-[13px] tracking-tight">{percentage.toFixed(1)}%</span>
+                                    <span className="font-medium text-[11px] tracking-tight">{percentage.toFixed(1)}%</span>
                                   </div>
                                   <div className="h-1 bg-muted/50 rounded-full overflow-hidden">
                                     <div
@@ -1275,7 +1275,7 @@ export default function Lancamentos() {
 
                               {/* Amount */}
                               <div className="w-32 flex-shrink-0 text-right">
-                                <span className={`font-semibold text-[15px] tracking-tight ${
+                                <span className={`font-semibold text-[13px] tracking-tight ${
                                   transaction.type === 'expense' ? 'text-destructive' : 'text-blue-600'
                                 }`}>
                                   {transaction.type === 'expense' ? '-' : '+'} R$ {amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
