@@ -970,7 +970,7 @@ export default function Lancamentos() {
                           
                           {/* Saldos */}
                           <div className="space-y-0.5 pt-1.5 border-t">
-                            <div className="flex items-center justify-between text-[10px]">
+                            <div className="flex items-center justify-between text-[11px]">
                               <span className="text-muted-foreground">Dia:</span>
                               <span className={`font-medium ${
                                 dayBalance > 0 ? 'text-blue-600' : dayBalance < 0 ? 'text-destructive' : 'text-muted-foreground'
@@ -978,7 +978,7 @@ export default function Lancamentos() {
                                 {dayBalance >= 0 ? '+' : '-'} R$ {Math.abs(dayBalance).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                               </span>
                             </div>
-                            <div className="flex items-center justify-between text-[10px]">
+                            <div className="flex items-center justify-between text-[11px]">
                               <span className="text-muted-foreground">Acum:</span>
                               <span className={`font-medium ${
                                 accumulatedBalance > 0 ? 'text-blue-600' : accumulatedBalance < 0 ? 'text-destructive' : 'text-muted-foreground'
