@@ -190,14 +190,11 @@ export function TransactionDialog({
   // Create mutation
   const createMutation = useMutation({
     mutationFn: async (data: FormValues) => {
-      return apiRequest("/api/transactions", {
-        method: "POST",
-        body: JSON.stringify({
-          ...data,
-          issueDate: data.issueDate.toISOString(),
-          dueDate: data.dueDate.toISOString(),
-          paidDate: data.paidDate ? data.paidDate.toISOString() : null,
-        }),
+      return apiRequest("POST", "/api/transactions", {
+        ...data,
+        issueDate: data.issueDate.toISOString(),
+        dueDate: data.dueDate.toISOString(),
+        paidDate: data.paidDate ? data.paidDate.toISOString() : null,
       });
     },
     onSuccess: () => {
