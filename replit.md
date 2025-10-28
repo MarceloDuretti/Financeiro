@@ -55,17 +55,37 @@ Key features include:
     - Search/filter by name or code
     - **UX Enhancement:** Sheet drawer with `modal={false}` (no dark overlay blocking master list) and selected card highlight (`ring-2 ring-primary`)
 - **Lançamentos (Transactions) Page:**
-    - Virtualized list using @tanstack/react-virtual for performance with large datasets
-    - Analytics card with 4 KPI metrics:
-        - Despesas Abertas (Open Expenses): Sum of pending expenses
-        - Receitas Abertas (Open Revenues): Sum of pending revenues
-        - Em Atraso (Overdue): Sum of pending transactions past due date
-        - Resultado (Result): Net result of paid transactions (revenues - expenses)
-    - Essential filters: Search by description, type (expense/revenue), status (pending/paid/cancelled)
-    - Transaction list with color-coded badges (red for expenses, green for revenues)
-    - Overdue indicator (orange) for unpaid transactions past due date
-    - Mobile-first responsive grid (1 column mobile → 2 columns tablet → 4 columns desktop)
-    - Loading states with skeletons and empty state messages
+    - **Temporal Navigation System:**
+        - Month/year selector with state management (selectedMonth, selectedYear)
+        - Year selector dropdown (last 5 years + next 2 years) with previous/next navigation buttons
+        - Responsive month grid (6 columns mobile → 12 columns desktop) with JAN-DEZ buttons
+        - "Hoje" (Today) button to return to current month/year
+        - Visual indicators: selected month highlighting, current month border (border-primary), transition animations
+        - Badge showing transaction count per month (queried from full year data)
+        - Keyboard shortcuts: Arrow Left/Right (month), Ctrl+Arrow Left/Right (year), Home/End (Jan/Dec), T (today)
+        - Period display showing current view (e.g., "Visualizando: Outubro de 2025")
+    - **Analytics Dashboard:**
+        - 4 KPI metrics with real-time calculations:
+            - Despesas Abertas (Open Expenses): Sum of pending expenses
+            - Receitas Abertas (Open Revenues): Sum of pending revenues
+            - Em Atraso (Overdue): Sum of pending transactions past due date
+            - Resultado (Result): Net result of paid transactions (revenues - expenses)
+        - KPI comparison: Result card shows percentage change vs previous month with trending indicator (up/down arrow)
+        - Automatic filtering by selected month/year period
+    - **Data Queries:**
+        - Current month transactions (list display + KPIs)
+        - Full year transactions (month badge counters)
+        - Previous month transactions (comparison metrics)
+    - **Essential Filters:**
+        - Search by description
+        - Type filter (all, expense, revenue)
+        - Status filter (all, pending, paid, cancelled)
+    - **Transaction List:**
+        - Virtualized list using @tanstack/react-virtual for performance with large datasets
+        - Color-coded badges (red for expenses, green for revenues)
+        - Overdue indicator (orange) for unpaid transactions past due date
+        - Mobile-first responsive grid (1 column mobile → 2 columns tablet → 4 columns desktop)
+        - Loading states with skeletons and empty state messages
     - Real-time WebSocket updates for all CRUD operations
 
 ### Backend Architecture
