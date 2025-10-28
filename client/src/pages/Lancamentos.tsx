@@ -582,11 +582,18 @@ export default function Lancamentos() {
                       }`}>
                         {month.short}
                       </span>
-                      <span className={`font-medium transition-all duration-200 ${
+                      <div className={`flex items-center gap-0.5 font-medium transition-all duration-200 ${
                         isSelected ? 'text-xs text-primary' : 'text-[10px]'
                       } ${!isSelected && yoyColor}`}>
-                        {displayYoy > 0 ? '+' : ''}{displayYoy.toFixed(0)}%
-                      </span>
+                        {displayYoy !== 0 && (
+                          displayYoy > 0 ? (
+                            <ArrowUp className={`${isSelected ? 'w-2.5 h-2.5' : 'w-2 h-2'}`} />
+                          ) : (
+                            <ArrowDown className={`${isSelected ? 'w-2.5 h-2.5' : 'w-2 h-2'}`} />
+                          )
+                        )}
+                        <span>{Math.abs(displayYoy).toFixed(0)}%</span>
+                      </div>
                     </Button>
                     {isSelected && (
                       <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-b" />
