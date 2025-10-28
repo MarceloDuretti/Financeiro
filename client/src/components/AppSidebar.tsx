@@ -169,7 +169,6 @@ export function AppSidebar() {
   const { user } = useAuth();
   const { state, setOpen } = useSidebar();
   const isCollapsed = state === "collapsed";
-  const [isHovering, setIsHovering] = useState(false);
 
   // Fetch companies to determine if user has at least one
   const { data: companies = [] } = useQuery<Company[]>({
@@ -179,42 +178,31 @@ export function AppSidebar() {
 
   const hasCompanies = companies.length > 0;
 
-  // Reset isHovering when sidebar is manually toggled
-  useEffect(() => {
-    // If sidebar becomes expanded and isHovering is false, user toggled manually
-    // Keep isHovering false to prevent auto-collapse on mouse leave
-    // If sidebar becomes collapsed, always reset isHovering
-    if (isCollapsed) {
-      setIsHovering(false);
-    }
-  }, [isCollapsed]);
-
-  // Auto-collapse sidebar on menu item click
+  // Auto-collapse sidebar on menu item click (mobile)
   const handleMenuItemClick = () => {
     setOpen(false);
-    setIsHovering(false);
   };
 
-  // Handle hover expansion
-  const handleMouseEnter = () => {
-    if (isCollapsed) {
-      setIsHovering(true);
-      setOpen(true);
-    }
-  };
-
-  const handleMouseLeave = () => {
-    if (isHovering) {
-      setIsHovering(false);
-      setOpen(false);
-    }
-  };
-
-  // Clear hover flag when user clicks inside sidebar (pins it)
-  const handleClick = () => {
-    if (isHovering) {
-      setIsHovering(false);
-    }
+  // Get short label for collapsed menu
+  const getShortLabel = (title: string): string => {
+    const shortLabels: Record<string, string> = {
+      "Início": "Início",
+      "Cadastros": "Cadastro",
+      "Empresa": "Empresa",
+      "Centro de Custo": "C. Custo",
+      "Plano de Contas": "Contas",
+      "Contas Bancárias": "Banco",
+      "Formas de Pagamento": "Pgto",
+      "Clientes e Fornecedores": "Clientes",
+      "Configuração de Boleto": "Boleto",
+      "Controle de Caixa": "Caixa",
+      "Lançamentos": "Lançar",
+      "Relatórios": "Relat.",
+      "Configurações": "Config",
+      "Central de Ajuda": "Ajuda",
+      "Notificações": "Notif.",
+    };
+    return shortLabels[title] || title.substring(0, 7);
   };
 
   // Get user initials for avatar fallback
@@ -248,8 +236,6 @@ export function AppSidebar() {
       <Sidebar 
         collapsible="icon" 
         className="border-r bg-gradient-to-b from-background via-muted/10 to-muted/30 backdrop-blur-sm"
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
       >
         <SidebarContent className="py-6 flex flex-col items-center gap-6">
           {/* Avatar no topo */}
@@ -280,7 +266,7 @@ export function AppSidebar() {
                     <DropdownMenu>
                       <DropdownMenuTrigger
                         disabled={isDisabled}
-                        className={`w-full h-auto py-2 flex items-center justify-center rounded-xl transition-all duration-300 ${isDisabled ? 'cursor-not-allowed opacity-40' : 'hover:scale-105 active:scale-95'}`}
+                        className={`w-full h-auto py-2 flex flex-col items-center justify-center gap-1 rounded-xl transition-all duration-300 ${isDisabled ? 'cursor-not-allowed opacity-40' : 'hover:scale-105 active:scale-95'}`}
                         data-testid={`button-menu-${item.title.toLowerCase()}`}
                         title={`${item.title} - ${item.description}`}
                       >
@@ -292,6 +278,9 @@ export function AppSidebar() {
                             </div>
                           )}
                         </div>
+                        <span className="text-[9px] font-medium text-muted-foreground truncate w-full text-center px-1">
+                          {getShortLabel(item.title)}
+                        </span>
                       </DropdownMenuTrigger>
                       {!isDisabled && (
                         <DropdownMenuContent side="right" align="start" className="w-56">
@@ -323,12 +312,15 @@ export function AppSidebar() {
                       <TooltipTrigger asChild>
                         <button
                           disabled
-                          className="relative w-full flex items-center justify-center py-2 rounded-xl cursor-not-allowed opacity-40 transition-all duration-300"
+                          className="relative w-full flex flex-col items-center justify-center gap-1 py-2 rounded-xl cursor-not-allowed opacity-40 transition-all duration-300"
                           data-testid={`button-menu-${item.title.toLowerCase()}`}
                         >
                           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-gray-400 to-gray-500 shadow-lg saturate-0">
                             <Icon className="h-5 w-5 text-white" strokeWidth={2.5} />
                           </div>
+                          <span className="text-[9px] font-medium text-muted-foreground truncate w-full text-center px-1">
+                            {getShortLabel(item.title)}
+                          </span>
                         </button>
                       </TooltipTrigger>
                       <TooltipContent side="right" className="flex flex-col gap-1">
@@ -346,7 +338,7 @@ export function AppSidebar() {
                     <TooltipTrigger asChild>
                       <Link href={item.url!} onClick={handleMenuItemClick}>
                         <button
-                          className={`relative w-full flex items-center justify-center py-2 rounded-xl transition-all duration-300 hover:scale-105 active:scale-95 ${location === item.url ? 'bg-accent/50 ring-2 ring-primary/20' : ''}`}
+                          className={`relative w-full flex flex-col items-center justify-center gap-1 py-2 rounded-xl transition-all duration-300 hover:scale-105 active:scale-95 ${location === item.url ? 'bg-accent/50 ring-2 ring-primary/20' : ''}`}
                           data-testid={`link-menu-${item.title.toLowerCase()}`}
                         >
                           <div className={`relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${item.color} shadow-lg transition-all duration-300 hover:shadow-2xl hover:shadow-primary/20`}>
@@ -357,6 +349,9 @@ export function AppSidebar() {
                               </div>
                             )}
                           </div>
+                          <span className="text-[9px] font-medium text-muted-foreground truncate w-full text-center px-1">
+                            {getShortLabel(item.title)}
+                          </span>
                         </button>
                       </Link>
                     </TooltipTrigger>
@@ -379,8 +374,6 @@ export function AppSidebar() {
     <Sidebar 
       collapsible="icon" 
       className="border-r bg-gradient-to-b from-background to-muted/20"
-      onMouseLeave={handleMouseLeave}
-      onClick={handleClick}
     >
       <SidebarHeader className="border-b bg-gradient-to-br from-primary/5 to-transparent p-5">
         <div className="flex items-center gap-3 rounded-xl bg-gradient-to-br from-card to-muted/30 p-4 border shadow-sm hover-elevate cursor-pointer mb-5" data-testid="profile-card">
