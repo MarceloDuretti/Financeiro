@@ -368,7 +368,7 @@ export default function Lancamentos() {
           </div>
 
           {/* Months vertical list - scrollable */}
-          <div className="flex-1 overflow-y-auto p-2 space-y-0.5">
+          <div className="flex-1 overflow-y-auto p-2 space-y-0">
             {MONTHS.map((month) => {
               const isSelected = selectedMonth === month.index;
               const isCurrent = getMonth(now) === month.index && getYear(now) === selectedYear;
@@ -385,23 +385,32 @@ export default function Lancamentos() {
                                'text-muted-foreground';
               
               return (
-                <div key={month.index}>
+                <div key={month.index} className="relative">
                   <Button
-                    variant={isSelected ? "default" : "ghost"}
+                    variant="ghost"
                     size="sm"
                     onClick={() => setSelectedMonth(month.index)}
-                    className={`w-full h-12 flex items-center justify-between px-3 transition-all duration-200 ${
+                    className={`w-full h-9 flex items-center justify-between px-3 transition-all duration-200 ${
                       isCurrent && !isSelected ? 'border-l-2 border-primary' : ''
                     }`}
                     data-testid={`button-month-${month.index}`}
                   >
-                    <span className="font-semibold text-sm">{month.short}</span>
-                    <span className={`text-xs font-medium ${yoyColor}`}>
+                    <span className={`font-semibold transition-all duration-200 ${
+                      isSelected ? 'text-base text-primary' : 'text-sm'
+                    }`}>
+                      {month.short}
+                    </span>
+                    <span className={`font-medium transition-all duration-200 ${
+                      isSelected ? 'text-sm text-primary' : 'text-xs'
+                    } ${!isSelected && yoyColor}`}>
                       {displayYoy > 0 ? '+' : ''}{displayYoy.toFixed(0)}%
                     </span>
                   </Button>
+                  {isSelected && (
+                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
+                  )}
                   {month.index < 11 && (
-                    <div className="h-px bg-border/30 mx-2" />
+                    <div className="h-px bg-border/20 mx-2" />
                   )}
                 </div>
               );
@@ -463,21 +472,31 @@ export default function Lancamentos() {
                                  'text-muted-foreground';
                 
                 return (
-                  <Button
-                    key={month.index}
-                    variant={isSelected ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setSelectedMonth(month.index)}
-                    className={`h-9 px-3 text-xs flex-shrink-0 flex items-center gap-2 ${
-                      isCurrent && !isSelected ? 'border-primary border-2' : ''
-                    }`}
-                    data-testid={`button-month-mobile-${month.index}`}
-                  >
-                    <span className="font-semibold text-xs">{month.short}</span>
-                    <span className={`text-[10px] font-medium ${yoyColor}`}>
-                      {displayYoy > 0 ? '+' : ''}{displayYoy.toFixed(0)}%
-                    </span>
-                  </Button>
+                  <div key={month.index} className="relative">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setSelectedMonth(month.index)}
+                      className={`h-8 px-3 text-xs flex-shrink-0 flex items-center gap-2 ${
+                        isCurrent && !isSelected ? 'border-primary border-2' : ''
+                      }`}
+                      data-testid={`button-month-mobile-${month.index}`}
+                    >
+                      <span className={`font-semibold transition-all duration-200 ${
+                        isSelected ? 'text-sm text-primary' : 'text-xs'
+                      }`}>
+                        {month.short}
+                      </span>
+                      <span className={`font-medium transition-all duration-200 ${
+                        isSelected ? 'text-xs text-primary' : 'text-[10px]'
+                      } ${!isSelected && yoyColor}`}>
+                        {displayYoy > 0 ? '+' : ''}{displayYoy.toFixed(0)}%
+                      </span>
+                    </Button>
+                    {isSelected && (
+                      <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-b" />
+                    )}
+                  </div>
                 );
               })}
 
