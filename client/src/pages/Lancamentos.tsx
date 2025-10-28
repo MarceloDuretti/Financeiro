@@ -369,75 +369,75 @@ export default function Lancamentos() {
           </div>
         </div>
 
-        {/* Mobile Month Navigation - Horizontal Scroll */}
-        <div className="lg:hidden border-b bg-muted/20">
-          <div className="p-2 flex items-center gap-2 overflow-x-auto">
-            <Select value={selectedYear.toString()} onValueChange={(val) => setSelectedYear(parseInt(val))}>
-              <SelectTrigger className="h-8 w-20 text-xs" data-testid="select-year-mobile">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {yearOptions.map(year => (
-                  <SelectItem key={year} value={year.toString()}>
-                    {year}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={goToPreviousYear}
-              className="h-8 w-8 p-0"
-            >
-              <ChevronLeft className="w-3 h-3" />
-            </Button>
-
-            {MONTHS.map((month) => {
-              const isSelected = selectedMonth === month.index;
-              const isCurrent = getMonth(now) === month.index && getYear(now) === selectedYear;
-              const count = transactionCountsByMonth[month.index] || 0;
-              
-              return (
-                <Button
-                  key={month.index}
-                  variant={isSelected ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSelectedMonth(month.index)}
-                  className={`h-8 px-2 text-xs flex-shrink-0 ${
-                    isCurrent && !isSelected ? 'border-primary border-2' : ''
-                  }`}
-                  data-testid={`button-month-mobile-${month.index}`}
-                >
-                  {month.short}
-                  {count > 0 && ` (${count})`}
-                </Button>
-              );
-            })}
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={goToNextYear}
-              className="h-8 w-8 p-0"
-            >
-              <ChevronRight className="w-3 h-3" />
-            </Button>
-
-            <Button
-              variant={isCurrentMonth ? "default" : "outline"}
-              size="sm"
-              onClick={goToToday}
-              className="h-8 px-2 text-xs flex-shrink-0"
-            >
-              Hoje
-            </Button>
-          </div>
-        </div>
-
         {/* Right Content Area */}
         <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Mobile Month Navigation - Horizontal Scroll */}
+          <div className="lg:hidden border-b bg-muted/20">
+            <div className="p-2 flex items-center gap-2 overflow-x-auto">
+              <Select value={selectedYear.toString()} onValueChange={(val) => setSelectedYear(parseInt(val))}>
+                <SelectTrigger className="h-8 w-20 text-xs" data-testid="select-year-mobile">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {yearOptions.map(year => (
+                    <SelectItem key={year} value={year.toString()}>
+                      {year}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={goToPreviousYear}
+                className="h-8 w-8 p-0"
+              >
+                <ChevronLeft className="w-3 h-3" />
+              </Button>
+
+              {MONTHS.map((month) => {
+                const isSelected = selectedMonth === month.index;
+                const isCurrent = getMonth(now) === month.index && getYear(now) === selectedYear;
+                const count = transactionCountsByMonth[month.index] || 0;
+                
+                return (
+                  <Button
+                    key={month.index}
+                    variant={isSelected ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setSelectedMonth(month.index)}
+                    className={`h-8 px-2 text-xs flex-shrink-0 ${
+                      isCurrent && !isSelected ? 'border-primary border-2' : ''
+                    }`}
+                    data-testid={`button-month-mobile-${month.index}`}
+                  >
+                    {month.short}
+                    {count > 0 && ` (${count})`}
+                  </Button>
+                );
+              })}
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={goToNextYear}
+                className="h-8 w-8 p-0"
+              >
+                <ChevronRight className="w-3 h-3" />
+              </Button>
+
+              <Button
+                variant={isCurrentMonth ? "default" : "outline"}
+                size="sm"
+                onClick={goToToday}
+                className="h-8 px-2 text-xs flex-shrink-0"
+              >
+                Hoje
+              </Button>
+            </div>
+          </div>
+
           {/* Compact KPI Cards */}
           <div className="p-2 border-b bg-muted/30">
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
