@@ -794,8 +794,8 @@ export default function Lancamentos() {
                         </span>
                       </div>
 
-                    {/* Transaction Cards Grid - Auto-fit responsive */}
-                    <div className="grid gap-2" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' }}>
+                    {viewMode === 'cards' ? (
+                      <div className="grid gap-2" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' }}>
                       {dayTransactions.map((transaction) => {
                         const isOverdue = transaction.status !== 'paid' && transaction.dueDate && new Date(transaction.dueDate) < new Date();
                         const isPaid = transaction.status === 'paid';
@@ -891,6 +891,89 @@ export default function Lancamentos() {
                         );
                       })}
                     </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {dayTransactions.map((transaction) => {
+                          const isOverdue = transaction.status !== 'paid' && transaction.dueDate && new Date(transaction.dueDate) < new Date();
+                          const isPaid = transaction.status === 'paid';
+                          const amount = parseFloat(transaction.amount || '0');
+                          const total = transaction.type === 'revenue' ? monthlyTotals.totalRevenues : monthlyTotals.totalExpenses;
+                          const percentage = total > 0 ? (amount / total) * 100 : 0;
+                          const person = customersSuppliers.find(p => p.id === transaction.personId);
+
+                          return (
+                            <div
+                              key={transaction.id}
+                              className="flex items-center gap-2 p-2 border rounded-md hover-elevate cursor-pointer text-xs"
+                              onClick={() => handleCardClick(transaction)}
+                              data-testid={`row-transaction-${transaction.id}`}
+                            >
+                              {/* Type */}
+                              <div className="w-16 flex-shrink-0">
+                                <Badge 
+                                  variant={transaction.type === 'expense' ? 'destructive' : 'default'}
+                                  className={`text-[10px] h-5 px-1.5 ${transaction.type === 'revenue' ? 'bg-blue-600 hover:bg-blue-700' : ''}`}
+                                >
+                                  {transaction.type === 'expense' ? 'Despesa' : 'Receita'}
+                                </Badge>
+                              </div>
+
+                              {/* Description */}
+                              <div className="flex-1 min-w-0">
+                                <p className="font-semibold truncate">{transaction.title || 'Sem título'}</p>
+                              </div>
+
+                              {/* Person */}
+                              <div className="w-32 flex-shrink-0 hidden md:block">
+                                <div className="flex items-center gap-1 text-muted-foreground">
+                                  <User className="w-2.5 h-2.5" />
+                                  <span className="truncate">{person?.name || '-'}</span>
+                                </div>
+                              </div>
+
+                              {/* Payment Date */}
+                              <div className="w-20 flex-shrink-0 hidden lg:block">
+                                {isPaid && transaction.paidDate ? (
+                                  <span className="text-blue-600 font-medium">
+                                    {format(new Date(transaction.paidDate), "dd/MM/yy")}
+                                  </span>
+                                ) : (
+                                  <span className="text-muted-foreground">-</span>
+                                )}
+                              </div>
+
+                              {/* Amount */}
+                              <div className="w-28 flex-shrink-0 text-right">
+                                <span className={`font-bold ${
+                                  transaction.type === 'expense' ? 'text-destructive' : 'text-blue-600'
+                                }`}>
+                                  {transaction.type === 'expense' ? '-' : '+'} R$ {amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                </span>
+                              </div>
+
+                              {/* Status */}
+                              <div className="w-20 flex-shrink-0 hidden sm:block">
+                                <Badge 
+                                  variant="outline" 
+                                  className={`text-[10px] h-5 px-1.5 ${
+                                    isPaid ? 'border-blue-600 text-blue-600' : 
+                                    isOverdue ? 'border-orange-600 text-orange-600' : 
+                                    'border-gray-400 text-gray-600'
+                                  }`}
+                                >
+                                  {isPaid ? 'Pago' : transaction.status === 'cancelled' ? 'Cancelado' : 'Pendente'}
+                                </Badge>
+                              </div>
+
+                              {/* Percentage */}
+                              <div className="w-16 flex-shrink-0 hidden xl:block text-right">
+                                <span className="font-semibold">{percentage.toFixed(1)}%</span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 );
                 })}
