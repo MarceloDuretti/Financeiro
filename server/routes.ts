@@ -13,6 +13,7 @@ import {
   insertCustomerSupplierSchema,
   insertCashRegisterSchema,
   insertBankBillingConfigSchema,
+  insertTransactionSchema,
   loginSchema, 
   signupSchema,
   createCollaboratorSchema,
@@ -1233,6 +1234,193 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error("Error toggling payment method:", error);
       res.status(400).json({ message: error.message || "Não foi possível atualizar a forma de pagamento" });
+    }
+  });
+
+  // Transactions routes (authenticated + multi-tenant)
+
+  // List all transactions with filters
+  app.get("/api/transactions", isAuthenticated, async (req, res) => {
+    try {
+      const tenantId = getTenantId((req as any).user);
+      const { companyId, startDate, endDate, type, status, personId, costCenterId, chartAccountId, cashRegisterId, query } = req.query;
+      
+      if (!companyId || typeof companyId !== 'string') {
+        return res.status(400).json({ error: "companyId é obrigatório" });
+      }
+
+      const filters: any = {};
+      if (startDate && typeof startDate === 'string') filters.startDate = new Date(startDate);
+      if (endDate && typeof endDate === 'string') filters.endDate = new Date(endDate);
+      if (type && typeof type === 'string') filters.type = type as 'expense' | 'revenue';
+      if (status && typeof status === 'string') filters.status = status;
+      if (personId && typeof personId === 'string') filters.personId = personId;
+      if (costCenterId && typeof costCenterId === 'string') filters.costCenterId = costCenterId;
+      if (chartAccountId && typeof chartAccountId === 'string') filters.chartAccountId = chartAccountId;
+      if (cashRegisterId && typeof cashRegisterId === 'string') filters.cashRegisterId = cashRegisterId;
+      if (query && typeof query === 'string') filters.query = query;
+      
+      const transactions = await storage.listTransactions(tenantId, companyId, filters);
+      res.json(transactions);
+    } catch (error) {
+      console.error("Error listing transactions:", error);
+      res.status(500).json({ error: "Erro ao listar lançamentos" });
+    }
+  });
+
+  // Get single transaction by ID
+  app.get("/api/transactions/:id", isAuthenticated, async (req, res) => {
+    try {
+      const tenantId = getTenantId((req as any).user);
+      const { id } = req.params;
+      const { companyId } = req.query;
+      
+      if (!companyId || typeof companyId !== 'string') {
+        return res.status(400).json({ error: "companyId é obrigatório" });
+      }
+      
+      const transaction = await storage.getTransaction(tenantId, companyId, id);
+      if (!transaction) {
+        return res.status(404).json({ message: "Lançamento não encontrado" });
+      }
+      
+      res.json(transaction);
+    } catch (error) {
+      console.error("Error getting transaction:", error);
+      res.status(500).json({ error: "Erro ao buscar lançamento" });
+    }
+  });
+
+  // Create new transaction
+  app.post("/api/transactions", isAuthenticated, async (req, res) => {
+    try {
+      const tenantId = getTenantId((req as any).user);
+      const userId = (req as any).user.id;
+      
+      // Validate and strip extra fields using Zod (security)
+      const validatedData = insertTransactionSchema.parse(req.body);
+      
+      const transaction = await storage.createTransaction(
+        tenantId,
+        validatedData.companyId,
+        validatedData,
+        userId
+      );
+      
+      // Broadcast to all clients in this tenant
+      broadcastDataChange(tenantId, "transactions", "created", transaction);
+      
+      res.json(transaction);
+    } catch (error: any) {
+      console.error("Error creating transaction:", error);
+      res.status(400).json({ message: error.message || "Erro ao criar lançamento" });
+    }
+  });
+
+  // Update transaction
+  app.patch("/api/transactions/:id", isAuthenticated, async (req, res) => {
+    try {
+      const tenantId = getTenantId((req as any).user);
+      const userId = (req as any).user.id;
+      const { id } = req.params;
+      const { companyId } = req.query;
+      
+      if (!companyId || typeof companyId !== 'string') {
+        return res.status(400).json({ error: "companyId é obrigatório" });
+      }
+      
+      // Validate and strip extra fields using Zod (security)
+      const validatedData = insertTransactionSchema.partial().parse(req.body);
+      
+      const transaction = await storage.updateTransaction(
+        tenantId,
+        companyId,
+        id,
+        validatedData,
+        userId
+      );
+      
+      if (!transaction) {
+        return res.status(404).json({ message: "Lançamento não encontrado" });
+      }
+      
+      // Broadcast to all clients in this tenant
+      broadcastDataChange(tenantId, "transactions", "updated", transaction);
+      
+      res.json(transaction);
+    } catch (error: any) {
+      console.error("Error updating transaction:", error);
+      res.status(400).json({ message: error.message || "Erro ao atualizar lançamento" });
+    }
+  });
+
+  // Delete transaction (soft delete)
+  app.delete("/api/transactions/:id", isAuthenticated, async (req, res) => {
+    try {
+      const tenantId = getTenantId((req as any).user);
+      const { id } = req.params;
+      const { companyId } = req.query;
+      
+      if (!companyId || typeof companyId !== 'string') {
+        return res.status(400).json({ error: "companyId é obrigatório" });
+      }
+      
+      const success = await storage.deleteTransaction(tenantId, companyId, id);
+      if (!success) {
+        return res.status(404).json({ message: "Lançamento não encontrado" });
+      }
+      
+      // Broadcast to all clients in this tenant
+      broadcastDataChange(tenantId, "transactions", "deleted", { id });
+      
+      res.json({ message: "Lançamento excluído com sucesso" });
+    } catch (error: any) {
+      console.error("Error deleting transaction:", error);
+      res.status(400).json({ message: error.message || "Erro ao excluir lançamento" });
+    }
+  });
+
+  // Pay/receive transaction
+  app.post("/api/transactions/:id/pay", isAuthenticated, async (req, res) => {
+    try {
+      const tenantId = getTenantId((req as any).user);
+      const userId = (req as any).user.id;
+      const { id } = req.params;
+      const { companyId, paidDate, paidAmount, bankAccountId, paymentMethodId, cashRegisterId } = req.body;
+      
+      if (!companyId) {
+        return res.status(400).json({ error: "companyId é obrigatório" });
+      }
+      
+      if (!paidDate) {
+        return res.status(400).json({ error: "paidDate é obrigatório" });
+      }
+      
+      const transaction = await storage.payTransaction(
+        tenantId,
+        companyId,
+        id,
+        {
+          paidDate: new Date(paidDate),
+          paidAmount,
+          bankAccountId,
+          paymentMethodId,
+          cashRegisterId,
+        },
+        userId
+      );
+      
+      if (!transaction) {
+        return res.status(404).json({ message: "Lançamento não encontrado" });
+      }
+      
+      // Broadcast to all clients in this tenant (paid is an update)
+      broadcastDataChange(tenantId, "transactions", "updated", transaction);
+      
+      res.json(transaction);
+    } catch (error: any) {
+      console.error("Error paying transaction:", error);
+      res.status(400).json({ message: error.message || "Erro ao registrar pagamento" });
     }
   });
 

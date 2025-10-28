@@ -673,3 +673,131 @@ export const insertBankBillingConfigSchema = createInsertSchema(bankBillingConfi
 
 export type InsertBankBillingConfig = z.infer<typeof insertBankBillingConfigSchema>;
 export type BankBillingConfig = typeof bankBillingConfigs.$inferSelect;
+
+// Transactions table - Financial transactions (expenses and revenues)
+export const transactions = pgTable("transactions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  tenantId: varchar("tenant_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  companyId: varchar("company_id").notNull().references(() => companies.id, { onDelete: 'cascade' }),
+  
+  // Transaction type
+  type: text("type").notNull(), // "expense" or "revenue"
+  
+  // Basic information
+  title: text("title").notNull(), // Main title/description
+  description: text("description"), // Additional details/notes
+  
+  // Related entities
+  personId: varchar("person_id").references(() => customersSuppliers.id), // Customer or Supplier
+  costCenterId: varchar("cost_center_id").references(() => costCenters.id),
+  chartAccountId: varchar("chart_account_id").references(() => chartOfAccounts.id),
+  
+  // Dates
+  issueDate: timestamp("issue_date").notNull(), // Issue/competence date
+  dueDate: timestamp("due_date").notNull(), // Due date
+  paidDate: timestamp("paid_date"), // When it was paid/received
+  
+  // Financial values (stored as text to avoid float precision issues)
+  amount: text("amount").notNull(), // Total amount
+  paidAmount: text("paid_amount"), // Amount actually paid (can differ from amount due to fees)
+  discount: text("discount").default("0"), // Discount amount
+  interest: text("interest").default("0"), // Interest/late fees
+  fees: text("fees").default("0"), // Additional fees
+  
+  // Status
+  status: text("status").notNull().default("pending"), // "pending", "paid", "overdue", "cancelled"
+  
+  // Payment information
+  bankAccountId: varchar("bank_account_id").references(() => bankAccounts.id), // Which bank account was used
+  paymentMethodId: varchar("payment_method_id").references(() => paymentMethods.id),
+  cashRegisterId: varchar("cash_register_id").references(() => cashRegisters.id), // Which cash register processed it
+  
+  // Additional data
+  tags: text("tags").array(), // Categorization tags
+  attachmentsCount: integer("attachments_count").notNull().default(0), // Number of attached files
+  
+  // Recurrence control
+  isRecurring: boolean("is_recurring").notNull().default(false),
+  seriesId: varchar("series_id"), // Groups recurring transactions together
+  recurrenceConfig: jsonb("recurrence_config"), // { frequency: "monthly", interval: 1, count: 12, endDate: "..." }
+  installmentNumber: integer("installment_number"), // Which installment (1/10, 2/10, etc.)
+  installmentTotal: integer("installment_total"), // Total installments in series
+  
+  // Reconciliation (for future bank reconciliation feature)
+  isReconciled: boolean("is_reconciled").notNull().default(false),
+  reconciledAt: timestamp("reconciled_at"),
+  
+  // Audit trail
+  createdBy: varchar("created_by").references(() => users.id),
+  updatedBy: varchar("updated_by").references(() => users.id),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow().$onUpdate(() => new Date()),
+  version: bigint("version", { mode: "number" }).notNull().default(1),
+  deleted: boolean("deleted").notNull().default(false),
+}, (table) => [
+  // Primary tenant + company index
+  index("transactions_tenant_company_idx").on(table.tenantId, table.companyId, table.deleted, table.id),
+  // Index for date range queries (most common)
+  index("transactions_tenant_company_date_idx").on(table.tenantId, table.companyId, table.dueDate, table.deleted),
+  // Index for type filtering
+  index("transactions_tenant_company_type_idx").on(table.tenantId, table.companyId, table.type, table.deleted),
+  // Index for status filtering
+  index("transactions_tenant_company_status_idx").on(table.tenantId, table.companyId, table.status, table.deleted),
+  // Index for person filtering
+  index("transactions_tenant_person_idx").on(table.tenantId, table.personId, table.deleted),
+  // Index for cost center filtering
+  index("transactions_tenant_cost_center_idx").on(table.tenantId, table.costCenterId, table.deleted),
+  // Index for chart account filtering
+  index("transactions_tenant_chart_account_idx").on(table.tenantId, table.chartAccountId, table.deleted),
+  // Index for series (recurring transactions)
+  index("transactions_tenant_series_idx").on(table.tenantId, table.seriesId, table.deleted),
+  // Index for updates/sync
+  index("transactions_tenant_company_updated_idx").on(table.tenantId, table.companyId, table.updatedAt),
+  // Index for cash register
+  index("transactions_tenant_cash_register_idx").on(table.tenantId, table.cashRegisterId, table.deleted),
+]);
+
+export const insertTransactionSchema = createInsertSchema(transactions).omit({
+  id: true,
+  tenantId: true,
+  createdAt: true,
+  updatedAt: true,
+  version: true,
+  deleted: true,
+  createdBy: true,
+  updatedBy: true,
+}).extend({
+  companyId: z.string().min(1, "ID da empresa é obrigatório"),
+  type: z.enum(["expense", "revenue"], {
+    errorMap: () => ({ message: "Tipo deve ser despesa ou receita" })
+  }),
+  title: z.string().min(2, "Título deve ter no mínimo 2 caracteres"),
+  description: z.string().optional(),
+  personId: z.string().optional(),
+  costCenterId: z.string().optional(),
+  chartAccountId: z.string().optional(),
+  issueDate: z.date(),
+  dueDate: z.date(),
+  paidDate: z.date().optional(),
+  amount: z.string().min(1, "Valor é obrigatório"),
+  paidAmount: z.string().optional(),
+  discount: z.string().optional(),
+  interest: z.string().optional(),
+  fees: z.string().optional(),
+  status: z.enum(["pending", "paid", "overdue", "cancelled"]).optional(),
+  bankAccountId: z.string().optional(),
+  paymentMethodId: z.string().optional(),
+  cashRegisterId: z.string().optional(),
+  tags: z.array(z.string()).optional(),
+  attachmentsCount: z.number().optional(),
+  isRecurring: z.boolean().optional(),
+  seriesId: z.string().optional(),
+  recurrenceConfig: z.any().optional(), // JSONB - flexible structure
+  installmentNumber: z.number().optional(),
+  installmentTotal: z.number().optional(),
+  isReconciled: z.boolean().optional(),
+  reconciledAt: z.date().optional(),
+});
+
+export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
+export type Transaction = typeof transactions.$inferSelect;

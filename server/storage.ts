@@ -12,6 +12,7 @@ import {
   customersSuppliers,
   cashRegisters,
   bankBillingConfigs,
+  transactions,
   type User,
   type InsertUser,
   type Company,
@@ -36,9 +37,11 @@ import {
   type InsertCashRegister,
   type BankBillingConfig,
   type InsertBankBillingConfig,
+  type Transaction,
+  type InsertTransaction,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, inArray, sql, max } from "drizzle-orm";
+import { eq, and, inArray, sql, max, gte, lte, like, or, desc } from "drizzle-orm";
 
 // Interface for storage operations
 export interface IStorage {
@@ -164,6 +167,53 @@ export interface IStorage {
     config: InsertBankBillingConfig
   ): Promise<BankBillingConfig>;
   deleteBankBillingConfig(tenantId: string, companyId: string, bankCode: string): Promise<boolean>;
+
+  // Transactions operations - all require tenantId and companyId for multi-tenant isolation
+  listTransactions(
+    tenantId: string,
+    companyId: string,
+    filters?: {
+      startDate?: Date;
+      endDate?: Date;
+      type?: 'expense' | 'revenue';
+      status?: string;
+      personId?: string;
+      costCenterId?: string;
+      chartAccountId?: string;
+      cashRegisterId?: string;
+      query?: string; // Search in title, description, tags
+    }
+  ): Promise<Transaction[]>;
+  getTransaction(tenantId: string, companyId: string, id: string): Promise<Transaction | undefined>;
+  createTransaction(
+    tenantId: string,
+    companyId: string,
+    transaction: InsertTransaction,
+    userId: string
+  ): Promise<Transaction>;
+  updateTransaction(
+    tenantId: string,
+    companyId: string,
+    id: string,
+    transaction: Partial<InsertTransaction>,
+    userId: string
+  ): Promise<Transaction | undefined>;
+  deleteTransaction(tenantId: string, companyId: string, id: string): Promise<boolean>;
+  payTransaction(
+    tenantId: string,
+    companyId: string,
+    id: string,
+    payment: {
+      paidDate: Date;
+      paidAmount?: string;
+      bankAccountId?: string;
+      paymentMethodId?: string;
+      cashRegisterId?: string;
+    },
+    userId: string
+  ): Promise<Transaction | undefined>;
+  // Auto-create default cash register if none exists
+  ensureDefaultCashRegister(tenantId: string, companyId: string): Promise<CashRegister>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1537,6 +1587,287 @@ export class DatabaseStorage implements IStorage {
         .returning();
 
       return !!deleted;
+    });
+  }
+
+  // Transactions operations - all require tenantId and companyId for multi-tenant isolation
+
+  // Ensure default cash register exists (auto-create if needed)
+  async ensureDefaultCashRegister(tenantId: string, companyId: string): Promise<CashRegister> {
+    // Check if any cash register exists
+    const existing = await db
+      .select()
+      .from(cashRegisters)
+      .where(
+        and(
+          eq(cashRegisters.tenantId, tenantId),
+          eq(cashRegisters.companyId, companyId),
+          eq(cashRegisters.deleted, false)
+        )
+      )
+      .limit(1);
+
+    if (existing.length > 0) {
+      return existing[0];
+    }
+
+    // No cash register exists, create default one
+    const [cashRegister] = await db
+      .insert(cashRegisters)
+      .values({
+        tenantId,
+        companyId,
+        code: 1, // First cash register
+        name: "Caixa Principal",
+        isActive: true,
+        isOpen: true, // Always open in automatic mode
+        currentBalance: "0",
+        openingBalance: "0",
+      })
+      .returning();
+
+    return cashRegister;
+  }
+
+  async listTransactions(
+    tenantId: string,
+    companyId: string,
+    filters?: {
+      startDate?: Date;
+      endDate?: Date;
+      type?: 'expense' | 'revenue';
+      status?: string;
+      personId?: string;
+      costCenterId?: string;
+      chartAccountId?: string;
+      cashRegisterId?: string;
+      query?: string;
+    }
+  ): Promise<Transaction[]> {
+    const conditions = [
+      eq(transactions.tenantId, tenantId),
+      eq(transactions.companyId, companyId),
+      eq(transactions.deleted, false),
+    ];
+
+    if (filters) {
+      if (filters.startDate) {
+        conditions.push(gte(transactions.dueDate, filters.startDate));
+      }
+      if (filters.endDate) {
+        conditions.push(lte(transactions.dueDate, filters.endDate));
+      }
+      if (filters.type) {
+        conditions.push(eq(transactions.type, filters.type));
+      }
+      if (filters.status) {
+        conditions.push(eq(transactions.status, filters.status));
+      }
+      if (filters.personId) {
+        conditions.push(eq(transactions.personId, filters.personId));
+      }
+      if (filters.costCenterId) {
+        conditions.push(eq(transactions.costCenterId, filters.costCenterId));
+      }
+      if (filters.chartAccountId) {
+        conditions.push(eq(transactions.chartAccountId, filters.chartAccountId));
+      }
+      if (filters.cashRegisterId) {
+        conditions.push(eq(transactions.cashRegisterId, filters.cashRegisterId));
+      }
+      if (filters.query) {
+        // Search in title and description
+        conditions.push(
+          or(
+            like(transactions.title, `%${filters.query}%`),
+            like(transactions.description, `%${filters.query}%`)
+          )!
+        );
+      }
+    }
+
+    const results = await db
+      .select()
+      .from(transactions)
+      .where(and(...conditions))
+      .orderBy(desc(transactions.dueDate));
+
+    return results;
+  }
+
+  async getTransaction(tenantId: string, companyId: string, id: string): Promise<Transaction | undefined> {
+    const [transaction] = await db
+      .select()
+      .from(transactions)
+      .where(
+        and(
+          eq(transactions.tenantId, tenantId),
+          eq(transactions.companyId, companyId),
+          eq(transactions.id, id),
+          eq(transactions.deleted, false)
+        )
+      );
+
+    return transaction;
+  }
+
+  async createTransaction(
+    tenantId: string,
+    companyId: string,
+    transactionData: InsertTransaction,
+    userId: string
+  ): Promise<Transaction> {
+    return await db.transaction(async (tx) => {
+      // If this is a paid transaction and no cash register is specified, ensure default exists
+      if (transactionData.status === 'paid' && !transactionData.cashRegisterId) {
+        const defaultCashRegister = await this.ensureDefaultCashRegister(tenantId, companyId);
+        transactionData.cashRegisterId = defaultCashRegister.id;
+      }
+
+      const [transaction] = await tx
+        .insert(transactions)
+        .values({
+          ...transactionData,
+          tenantId,
+          companyId,
+          createdBy: userId,
+          updatedBy: userId,
+        })
+        .returning();
+
+      return transaction;
+    });
+  }
+
+  async updateTransaction(
+    tenantId: string,
+    companyId: string,
+    id: string,
+    transactionData: Partial<InsertTransaction>,
+    userId: string
+  ): Promise<Transaction | undefined> {
+    return await db.transaction(async (tx) => {
+      // Get current version for optimistic locking
+      const [existing] = await tx
+        .select()
+        .from(transactions)
+        .where(
+          and(
+            eq(transactions.tenantId, tenantId),
+            eq(transactions.companyId, companyId),
+            eq(transactions.id, id),
+            eq(transactions.deleted, false)
+          )
+        );
+
+      if (!existing) return undefined;
+
+      const [updated] = await tx
+        .update(transactions)
+        .set({
+          ...transactionData,
+          updatedBy: userId,
+          updatedAt: new Date(),
+          version: sql`${transactions.version} + 1`,
+        })
+        .where(
+          and(
+            eq(transactions.tenantId, tenantId),
+            eq(transactions.companyId, companyId),
+            eq(transactions.id, id),
+            eq(transactions.version, existing.version), // Optimistic lock
+            eq(transactions.deleted, false)
+          )
+        )
+        .returning();
+
+      return updated;
+    });
+  }
+
+  async deleteTransaction(tenantId: string, companyId: string, id: string): Promise<boolean> {
+    return await db.transaction(async (tx) => {
+      const [deleted] = await tx
+        .update(transactions)
+        .set({
+          deleted: true,
+          updatedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(transactions.tenantId, tenantId),
+            eq(transactions.companyId, companyId),
+            eq(transactions.id, id),
+            eq(transactions.deleted, false)
+          )
+        )
+        .returning();
+
+      return !!deleted;
+    });
+  }
+
+  async payTransaction(
+    tenantId: string,
+    companyId: string,
+    id: string,
+    payment: {
+      paidDate: Date;
+      paidAmount?: string;
+      bankAccountId?: string;
+      paymentMethodId?: string;
+      cashRegisterId?: string;
+    },
+    userId: string
+  ): Promise<Transaction | undefined> {
+    return await db.transaction(async (tx) => {
+      // Get existing transaction
+      const [existing] = await tx
+        .select()
+        .from(transactions)
+        .where(
+          and(
+            eq(transactions.tenantId, tenantId),
+            eq(transactions.companyId, companyId),
+            eq(transactions.id, id),
+            eq(transactions.deleted, false)
+          )
+        );
+
+      if (!existing) return undefined;
+
+      // If no cash register specified, ensure default exists
+      let cashRegisterId = payment.cashRegisterId;
+      if (!cashRegisterId) {
+        const defaultCashRegister = await this.ensureDefaultCashRegister(tenantId, companyId);
+        cashRegisterId = defaultCashRegister.id;
+      }
+
+      const [updated] = await tx
+        .update(transactions)
+        .set({
+          status: 'paid',
+          paidDate: payment.paidDate,
+          paidAmount: payment.paidAmount || existing.amount,
+          bankAccountId: payment.bankAccountId,
+          paymentMethodId: payment.paymentMethodId,
+          cashRegisterId,
+          updatedBy: userId,
+          updatedAt: new Date(),
+          version: sql`${transactions.version} + 1`,
+        })
+        .where(
+          and(
+            eq(transactions.tenantId, tenantId),
+            eq(transactions.companyId, companyId),
+            eq(transactions.id, id),
+            eq(transactions.version, existing.version), // Optimistic lock
+            eq(transactions.deleted, false)
+          )
+        )
+        .returning();
+
+      return updated;
     });
   }
 }
