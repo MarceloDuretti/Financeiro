@@ -156,6 +156,22 @@ const menuItems = [
     badge: "23",
     requiresCompany: true,
   },
+  {
+    title: "Contabilidade",
+    description: "Dashboard contábil",
+    externalUrl: "https://contabil-dashboard-nexttisoftware.replit.app/",
+    icon: BarChart3,
+    color: "from-blue-600 to-indigo-600",
+    requiresCompany: false,
+  },
+  {
+    title: "Cliente",
+    description: "Área do cliente",
+    externalUrl: "https://client-nexttisoftware.replit.app/",
+    icon: Users,
+    color: "from-teal-500 to-cyan-500",
+    requiresCompany: false,
+  },
 ];
 
 const quickStats = [
