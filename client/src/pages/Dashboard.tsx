@@ -291,6 +291,11 @@ export default function Dashboard() {
                   dx={-10}
                 />
                 <Tooltip content={<CustomTooltip />} />
+                <Legend 
+                  wrapperStyle={{ paddingTop: "4px", fontSize: "11px" }}
+                  iconType="circle"
+                  iconSize={8}
+                />
                 <Line
                   type="monotone"
                   dataKey="receitas"
@@ -390,6 +395,22 @@ export default function Dashboard() {
                   })()}
                 </tbody>
               </table>
+            </div>
+            
+            {/* Compact Color Legend */}
+            <div className="mt-2 flex items-center justify-center gap-2 text-[10px]">
+              <div className="flex items-center gap-1">
+                <div className="h-2 w-2 rounded-sm bg-blue-500/50" />
+                <span className="text-muted-foreground">Baixo</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="h-2 w-2 rounded-sm bg-amber-500/70" />
+                <span className="text-muted-foreground">Médio</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="h-2 w-2 rounded-sm bg-red-500/90" />
+                <span className="text-muted-foreground">Alto</span>
+              </div>
             </div>
           </CardContent>
         </Card>
