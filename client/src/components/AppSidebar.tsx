@@ -516,7 +516,7 @@ export function AppSidebar() {
                                     <span className="text-xs font-semibold text-muted-foreground shrink-0">{item.count}</span>
                                   )}
                                 </div>
-                                <span className="text-xs text-muted-foreground truncate">{item.description}</span>
+                                <span className="text-[11px] text-muted-foreground truncate leading-tight">{item.description}</span>
                               </div>
                               <ChevronDown className="h-4 w-4 shrink-0 mt-1 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-180" />
                             </div>
@@ -598,7 +598,7 @@ export function AppSidebar() {
                                 </Badge>
                               )}
                             </div>
-                            <span className="text-xs text-muted-foreground truncate">{item.description}</span>
+                            <span className="text-[11px] text-muted-foreground truncate leading-tight">{item.description}</span>
                           </div>
                         </div>
                       ) : (
@@ -625,7 +625,7 @@ export function AppSidebar() {
                                   </Badge>
                                 )}
                               </div>
-                              <span className="text-xs text-muted-foreground truncate">{item.description}</span>
+                              <span className="text-[11px] text-muted-foreground truncate leading-tight">{item.description}</span>
                             </div>
                           </div>
                         </Link>
