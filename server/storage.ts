@@ -51,6 +51,7 @@ export interface IStorage {
   getUserByInviteToken(token: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: string, updates: Partial<InsertUser>): Promise<User | undefined>;
+  upsertUser(user: { id?: string; email: string; firstName?: string | null; lastName?: string | null; profileImageUrl?: string | null; role?: string; status?: string }): Promise<User>;
   listCollaborators(adminId: string): Promise<User[]>;
 
   // Company operations - all require tenantId for multi-tenant isolation
@@ -251,6 +252,42 @@ export class DatabaseStorage implements IStorage {
       .values(userData)
       .returning();
     return user;
+  }
+
+  async upsertUser(userData: { id?: string; email: string; firstName?: string | null; lastName?: string | null; profileImageUrl?: string | null; role?: string; status?: string }): Promise<User> {
+    // Prefer lookup by id when provided, otherwise by email
+    const existing = userData.id
+      ? (await db.select().from(users).where(eq(users.id, userData.id)).limit(1))[0]
+      : (await db.select().from(users).where(eq(users.email, userData.email)).limit(1))[0];
+
+    if (existing) {
+      const [updated] = await db
+        .update(users)
+        .set({
+          email: userData.email ?? existing.email,
+          firstName: userData.firstName ?? existing.firstName,
+          lastName: userData.lastName ?? existing.lastName,
+          profileImageUrl: userData.profileImageUrl ?? existing.profileImageUrl,
+          updatedAt: new Date(),
+        })
+        .where(eq(users.id, existing.id))
+        .returning();
+      return updated;
+    }
+
+    const [created] = await db
+      .insert(users)
+      .values({
+        id: userData.id, // allow external id (e.g., OIDC sub)
+        email: userData.email,
+        firstName: userData.firstName ?? null,
+        lastName: userData.lastName ?? null,
+        profileImageUrl: userData.profileImageUrl ?? null,
+        role: userData.role ?? "admin", // grant admin for first OIDC user to be self-tenant
+        status: userData.status ?? "active",
+      })
+      .returning();
+    return created;
   }
 
   async updateUser(id: string, updates: Partial<InsertUser>): Promise<User | undefined> {

@@ -60,7 +60,7 @@ export async function setupAuth(app: Express) {
         try {
           const user = await storage.getUserByEmail(email);
           
-          if (!user || !user.password) {
+          if (!user) {
             return done(null, false, { message: "Email ou senha incorretos" });
           }
 

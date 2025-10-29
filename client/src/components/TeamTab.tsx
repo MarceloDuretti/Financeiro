@@ -16,10 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { insertCompanyMemberSchema, type CompanyMember } from "@shared/schema";
 
-const memberFormSchema = insertCompanyMemberSchema.omit({
-  tenantId: true,
-  companyId: true,
-}).extend({
+const memberFormSchema = insertCompanyMemberSchema.extend({
   name: z.string().min(2, "Nome deve ter no mínimo 2 caracteres"),
   email: z.string().email("Email inválido"),
   role: z.string().min(2, "Cargo é obrigatório"),
