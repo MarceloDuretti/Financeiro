@@ -290,7 +290,7 @@ export function AppSidebar() {
             <div className="relative group">
               <Avatar className="border border-primary/20 shadow transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg group-hover:border-primary/40" style={{ width: 'var(--sidebar-avatar-size)', height: 'var(--sidebar-avatar-size)' }}>
                 <AvatarImage src={user?.profileImageUrl || ""} alt={getUserDisplayName()} />
-                <AvatarFallback className="bg-black text-white font-semibold text-[10px]">
+                <AvatarFallback className="bg-yellow-400 text-white font-semibold text-[10px]">
                   {getUserInitials()}
                 </AvatarFallback>
               </Avatar>
@@ -426,7 +426,7 @@ export function AppSidebar() {
         <div className="flex items-center gap-2 rounded-xl bg-gradient-to-br from-card to-muted/30 p-2 border shadow-sm hover-elevate cursor-pointer mb-2" data-testid="profile-card">
           <Avatar className="h-8 w-8 border-2 border-primary/20">
             <AvatarImage src={user?.profileImageUrl || ""} alt={getUserDisplayName()} />
-            <AvatarFallback className="bg-black text-white font-semibold text-xs">
+            <AvatarFallback className="bg-yellow-400 text-white font-semibold text-xs">
               {getUserInitials()}
             </AvatarFallback>
           </Avatar>
