@@ -1346,10 +1346,10 @@ export default function Lancamentos() {
 
               <div className="mt-6 space-y-6">
                 {/* Amount Card */}
-                <Card className="border-0 bg-gradient-to-br from-card to-muted/30 shadow-lg">
+                <Card>
                   <CardContent className="p-4">
                     <p className="text-sm text-muted-foreground mb-2">Valor</p>
-                    <div className={`text-3xl font-semibold tabular-nums tracking-tight ${
+                    <div className={`text-3xl font-bold ${
                       detailTransaction.type === 'expense' ? 'text-destructive' : 'text-blue-600'
                     }`}>
                       {detailTransaction.type === 'expense' ? '-' : '+'} R$ {parseFloat(detailTransaction.amount || '0').toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
@@ -1361,7 +1361,7 @@ export default function Lancamentos() {
                       return (
                         <div className="mt-3 space-y-1.5">
                           <div className="flex items-center justify-between text-xs">
-                            <span className="text-muted-foreground">Representa {percentage.toFixed(1)}% do total do mês</span>
+                            <span className="text-muted-foreground">Representa {percentage.toFixed(1)}% do total de {detailTransaction.type === 'revenue' ? 'receitas' : 'despesas'} do mÃªs</span>
                           </div>
                           <div className="h-2 bg-muted rounded-full overflow-hidden">
                             <div
@@ -1439,27 +1439,7 @@ export default function Lancamentos() {
                   ) : null;
                 })()}
 
-                
-                {/* Classification & Payment Info */}
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-1">Centro de Custo</p>
-                    <p>{costCenters.find(c => c.id === detailTransaction.costCenterId)?.name || '-'}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-1">Conta Contábil</p>
-                    <p>{chartAccounts.find(a => a.id === detailTransaction.chartAccountId)?.fullPathName || '-'}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-1">Forma de Pagamento</p>
-                    <p>{paymentMethods.find(m => m.id === detailTransaction.paymentMethodId)?.name || '-'}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-1">Conta Bancária</p>
-                    <p>{bankAccounts.find(b => b.id === detailTransaction.bankAccountId)?.name || '-'}</p>
-                  </div>
-                </div>
-                {/* Classification & Payment Info */}
+                {/* Additional values */}
                 {(parseFloat(detailTransaction.discount || '0') > 0 || 
                   parseFloat(detailTransaction.interest || '0') > 0 || 
                   parseFloat(detailTransaction.fees || '0') > 0) && (
@@ -1486,56 +1466,7 @@ export default function Lancamentos() {
                   </div>
                 )}
 
-                
-                {/* Valor Líquido, Recorrência, Conciliação e Tags */}
-                {(() => {
-                  const amount = parseFloat(detailTransaction.amount || '0');
-                  const discount = parseFloat(detailTransaction.discount || '0');
-                  const interest = parseFloat(detailTransaction.interest || '0');
-                  const fees = parseFloat(detailTransaction.fees || '0');
-                  const net = amount - discount + interest + fees;
-                  const hasMeta = detailTransaction.isRecurring || detailTransaction.installmentTotal || detailTransaction.isReconciled || (detailTransaction.tags && detailTransaction.tags.length > 0) || detailTransaction.attachmentsCount;
-                  return (
-                    <div className="space-y-3">
-                      <div className="flex justify-between text-sm font-medium">
-                        <span>Valor Líquido</span>
-                        <span className="tabular-nums">R$ {net.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-                      </div>
-                      {hasMeta && (
-                        <div className="grid grid-cols-2 gap-4 text-sm">
-                          {detailTransaction.isRecurring && (
-                            <div>
-                              <p className="text-xs text-muted-foreground mb-1">Recorrência</p>
-                              <p>{detailTransaction.installmentNumber ? `${detailTransaction.installmentNumber}/${detailTransaction.installmentTotal || '-'}` : 'Ativa'}</p>
-                            </div>
-                          )}
-                          {detailTransaction.isReconciled !== undefined && (
-                            <div>
-                              <p className="text-xs text-muted-foreground mb-1">Conciliação</p>
-                              <p>{detailTransaction.isReconciled ? `Conciliado${detailTransaction.reconciledAt ? ` em ${format(new Date(detailTransaction.reconciledAt as any), 'dd/MM/yyyy')}` : ''}` : 'Pendente'}</p>
-                            </div>
-                          )}
-                          {detailTransaction.tags && detailTransaction.tags.length > 0 && (
-                            <div className="col-span-2">
-                              <p className="text-xs text-muted-foreground mb-1">Tags</p>
-                              <div className="flex flex-wrap gap-1.5">
-                                {detailTransaction.tags.map((t: string, i: number) => (
-                                  <Badge key={i} variant="secondary" className="text-[11px]">{t}</Badge>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                          {detailTransaction.attachmentsCount ? (
-                            <div>
-                              <p className="text-xs text-muted-foreground mb-1">Anexos</p>
-                              <p>{detailTransaction.attachmentsCount} arquivo(s)</p>
-                            </div>
-                          ) : null}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })()}{/* Action Buttons */}
+                {/* Action Buttons */}
                 <div className="flex gap-2 pt-4">
                   <Button
                     variant="outline"
@@ -1573,9 +1504,4 @@ export default function Lancamentos() {
     </div>
   );
 }
-
-
-
-
-
 

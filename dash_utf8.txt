@@ -77,7 +77,7 @@ const kpis = [
     current: 18,
   },
   {
-    title: "Prazo MÃ©dio de Recebimento",
+    title: "Prazo Médio de Recebimento",
     description: "Dias para receber vendas",
     value: "32 dias",
     change: "-5 dias",
@@ -112,21 +112,21 @@ const categoryData = [
 const departmentHeatmap = [
   { dept: "Vendas", jan: 12, fev: 15, mar: 18, abr: 16, mai: 20, jun: 22 },
   { dept: "Marketing", jan: 8, fev: 9, mar: 11, abr: 10, mai: 12, jun: 14 },
-  { dept: "OperaÃ§Ãµes", jan: 20, fev: 22, mar: 24, abr: 23, mai: 26, jun: 28 },
+  { dept: "Operações", jan: 20, fev: 22, mar: 24, abr: 23, mai: 26, jun: 28 },
   { dept: "TI", jan: 6, fev: 7, mar: 8, abr: 7, mai: 9, jun: 10 },
 ];
 
 const alerts = [
-  { type: "warning", message: "Despesa com Marketing 15% acima da meta", time: "HÃ¡ 2h" },
-  { type: "success", message: "Meta de receita do mÃªs atingida", time: "HÃ¡ 5h" },
-  { type: "info", message: "Novo cliente premium adicionado", time: "HÃ¡ 1 dia" },
+  { type: "warning", message: "Despesa com Marketing 15% acima da meta", time: "Há 2h" },
+  { type: "success", message: "Meta de receita do mês atingida", time: "Há 5h" },
+  { type: "info", message: "Novo cliente premium adicionado", time: "Há 1 dia" },
 ];
 
 const recentTransactions = [
   { id: 1, description: "Pagamento Cliente A", category: "Receita", date: "15/06/2025", amount: 8500, type: "receita", status: "confirmed" },
   { id: 2, description: "Folha de Pagamento", category: "Pessoal", date: "10/06/2025", amount: -15000, type: "despesa", status: "confirmed" },
   { id: 3, description: "Campanha Google Ads", category: "Marketing", date: "08/06/2025", amount: -2450, type: "despesa", status: "pending" },
-  { id: 4, description: "ServiÃ§os Consultoria", category: "Receita", date: "05/06/2025", amount: 12000, type: "receita", status: "confirmed" },
+  { id: 4, description: "Serviços Consultoria", category: "Receita", date: "05/06/2025", amount: 12000, type: "receita", status: "confirmed" },
   { id: 5, description: "Infraestrutura Cloud", category: "Tecnologia", date: "03/06/2025", amount: -890, type: "despesa", status: "confirmed" },
 ];
 
@@ -157,11 +157,11 @@ export default function Dashboard() {
     <div className="flex flex-col gap-4 p-3 md:p-4 lg:p-6 bg-gradient-to-br from-background via-muted/10 to-background">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl font-light tracking-tight bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
-            AnÃ¡lise
+          <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
+            Análise
           </h1>
           <p className="text-muted-foreground text-sm">
-            VisÃ£o estratÃ©gica em tempo real da sua operaÃ§Ã£o financeira
+            Visão estratégica em tempo real da sua operação financeira
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -197,7 +197,7 @@ export default function Dashboard() {
                     <CardDescription className="text-xs font-medium">
                       {kpi.title}
                     </CardDescription>
-                    <CardTitle className="text-lg font-semibold tracking-tight tabular-nums truncate">{kpi.value}</CardTitle>
+                    <CardTitle className="text-lg font-bold truncate">{kpi.value}</CardTitle>
                   </div>
                   <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${kpi.gradient} shadow-lg transition-all duration-300 group-hover/kpi:scale-110 group-hover/kpi:shadow-2xl`}>
                     <Icon className="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover/kpi:scale-110" strokeWidth={2.5} />
@@ -211,7 +211,7 @@ export default function Dashboard() {
                   ) : (
                     <TrendingDown className="h-3 w-3 text-red-500" />
                   )}
-                  <span className={`text-xs font-semibold tabular-nums ${kpi.trend === "up" ? "text-green-500" : "text-red-500"}`}>
+                  <span className={`text-xs font-semibold ${kpi.trend === "up" ? "text-green-500" : "text-red-500"}`}>
                     {kpi.change}
                   </span>
                   <span className="text-xs text-muted-foreground">vs meta</span>
@@ -252,7 +252,7 @@ export default function Dashboard() {
               <div>
                 <CardTitle className="text-lg font-bold">Receitas e Despesas</CardTitle>
                 <CardDescription className="text-xs">
-                  EvoluÃ§Ã£o mensal dos Ãºltimos 6 meses
+                  Evolução mensal dos últimos 6 meses
                 </CardDescription>
               </div>
               <Badge variant="secondary" className="bg-green-500/10 text-green-600 border-green-500/20 text-xs">
@@ -412,7 +412,7 @@ export default function Dashboard() {
               </div>
               <div className="flex items-center gap-1">
                 <div className="h-2 w-2 rounded-sm bg-amber-500/70" />
-                <span className="text-muted-foreground">MÃ©dio</span>
+                <span className="text-muted-foreground">Médio</span>
               </div>
               <div className="flex items-center gap-1">
                 <div className="h-2 w-2 rounded-sm bg-red-500/90" />
@@ -423,13 +423,13 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      {/* DistribuiÃ§Ã£o de Despesas e Alertas & Insights */}
+      {/* Distribuição de Despesas e Alertas & Insights */}
       <div className="grid gap-4 lg:grid-cols-2">
         {/* Category Breakdown */}
         <Card className="border-0 bg-gradient-to-br from-card to-muted/20 shadow-lg">
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg font-bold">DistribuiÃ§Ã£o de Despesas</CardTitle>
-            <CardDescription className="text-xs">AnÃ¡lise por categoria operacional</CardDescription>
+            <CardTitle className="text-lg font-bold">Distribuição de Despesas</CardTitle>
+            <CardDescription className="text-xs">Análise por categoria operacional</CardDescription>
           </CardHeader>
           <CardContent className="pb-2">
             <ResponsiveContainer width="100%" height={180}>
@@ -468,7 +468,7 @@ export default function Dashboard() {
         <Card className="border-0 bg-gradient-to-br from-card to-muted/20 shadow-lg">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg font-bold">Alertas & Insights</CardTitle>
-            <CardDescription className="text-xs">NotificaÃ§Ãµes importantes do sistema</CardDescription>
+            <CardDescription className="text-xs">Notificações importantes do sistema</CardDescription>
           </CardHeader>
           <CardContent className="pb-2">
             <div className="flex flex-col gap-2">
@@ -508,18 +508,18 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      {/* Ãšltimas TransaÃ§Ãµes */}
+      {/* Últimas Transações */}
       <Card className="border-0 bg-gradient-to-br from-card to-muted/20 shadow-lg">
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg font-bold">Ãšltimas TransaÃ§Ãµes</CardTitle>
-            <CardDescription className="text-xs">MovimentaÃ§Ãµes recentes com status de confirmaÃ§Ã£o</CardDescription>
+            <CardTitle className="text-lg font-bold">Últimas Transações</CardTitle>
+            <CardDescription className="text-xs">Movimentações recentes com status de confirmação</CardDescription>
           </CardHeader>
           <CardContent className="pb-2">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-muted/30">
-                    <th className="pb-2 text-left text-xs font-medium text-muted-foreground">DescriÃ§Ã£o</th>
+                    <th className="pb-2 text-left text-xs font-medium text-muted-foreground">Descrição</th>
                     <th className="pb-2 text-left text-xs font-medium text-muted-foreground">Categoria</th>
                     <th className="pb-2 text-left text-xs font-medium text-muted-foreground">Data</th>
                     <th className="pb-2 text-right text-xs font-medium text-muted-foreground">Valor</th>
@@ -579,3 +579,4 @@ export default function Dashboard() {
     </div>
   );
 }
+

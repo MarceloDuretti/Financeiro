@@ -76,7 +76,7 @@
   --chart-4: 180 75% 35%;
   --chart-5: 260 80% 38%;
 
-  --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, 'Open Sans', sans-serif;
+  --font-sans: 'SF Pro Text', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'Segoe UI', Roboto, Arial, system-ui, sans-serif;
   --font-serif: Georgia, serif;
   --font-mono: 'SF Mono', Menlo, monospace;
   --radius: .5rem; /* 8px */
@@ -239,6 +239,10 @@
 
   body {
     @apply font-sans antialiased bg-background text-foreground;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-synthesis-weight: none;
   }
 }
 
