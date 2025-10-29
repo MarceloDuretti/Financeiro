@@ -104,13 +104,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     className="relative h-9 w-9 rounded-full p-0"
                     data-testid="button-user-menu"
                   >
-                    <Avatar className="h-9 w-9" data-testid="avatar-user">
+                    <Avatar className="h-9 w-9 after:border-0" data-testid="avatar-user">
                       <AvatarImage 
                         src={user?.profileImageUrl || ""} 
                         alt={getUserDisplayName()}
                         style={{ objectFit: "cover" }}
                       />
-                      <AvatarFallback className="bg-red-600 text-white font-semibold">
+                      <AvatarFallback className="bg-black text-white font-semibold">
                         {getUserInitials()}
                       </AvatarFallback>
                     </Avatar>

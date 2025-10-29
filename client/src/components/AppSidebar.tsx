@@ -288,14 +288,12 @@ export function AppSidebar() {
           {/* Avatar no topo */}
           <div className="w-full flex items-center justify-center px-2 shrink-0">
             <div className="relative group">
-              <Avatar className="border border-primary/20 shadow transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg group-hover:border-primary/40" style={{ width: 'var(--sidebar-avatar-size)', height: 'var(--sidebar-avatar-size)' }}>
+              <Avatar className="after:border-0 shadow transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg" style={{ width: 'var(--sidebar-avatar-size)', height: 'var(--sidebar-avatar-size)' }}>
                 <AvatarImage src={user?.profileImageUrl || ""} alt={getUserDisplayName()} />
-                <AvatarFallback className="bg-yellow-400 text-white font-semibold text-[10px]">
+                <AvatarFallback className="bg-black text-white font-semibold text-[10px]">
                   {getUserInitials()}
                 </AvatarFallback>
               </Avatar>
-              {/* Ring effect on hover */}
-              <div className="absolute inset-0 rounded-full ring-2 ring-primary/0 group-hover:ring-primary/30 transition-all duration-300" />
             </div>
           </div>
 
@@ -424,9 +422,9 @@ export function AppSidebar() {
     >
       <SidebarHeader className="border-b bg-gradient-to-br from-primary/5 to-transparent p-2">
         <div className="flex items-center gap-2 rounded-xl bg-gradient-to-br from-card to-muted/30 p-2 border shadow-sm hover-elevate cursor-pointer mb-2" data-testid="profile-card">
-          <Avatar className="h-8 w-8 border-2 border-primary/20">
+          <Avatar className="h-8 w-8 after:border-0">
             <AvatarImage src={user?.profileImageUrl || ""} alt={getUserDisplayName()} />
-            <AvatarFallback className="bg-yellow-400 text-white font-semibold text-xs">
+            <AvatarFallback className="bg-black text-white font-semibold text-xs">
               {getUserInitials()}
             </AvatarFallback>
           </Avatar>
