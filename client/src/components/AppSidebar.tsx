@@ -182,8 +182,12 @@ export function AppSidebar() {
   const hasCompanies = companies.length > 0;
 
   // Auto-collapse sidebar on menu item click (mobile)
-  const handleMenuItemClick = () => {
-    setOpen(false);
+  // Só fecha o menu se for clicado em "Lançamentos" ou se for explicitamente solicitado
+  const handleMenuItemClick = (itemTitle?: string) => {
+    if (itemTitle === "Lançamentos") {
+      setOpen(false);
+    }
+    // Para outros itens, mantém o menu aberto
   };
 
   // Expand sidebar and focus on specific menu item
@@ -375,8 +379,8 @@ export function AppSidebar() {
                           // If collapsed, expand and focus this item
                           handleCollapsedMenuClick(item.title);
                         } else {
-                          // If already expanded, close after click (mobile behavior)
-                          handleMenuItemClick();
+                          // If already expanded, close only for "Lançamentos"
+                          handleMenuItemClick(item.title);
                         }
                       }}>
                         <button
@@ -530,7 +534,7 @@ export function AppSidebar() {
                                       isActive={location === subItem.url}
                                       className="hover-elevate py-2"
                                     >
-                                      <Link href={subItem.url} onClick={handleMenuItemClick}>
+                                      <Link href={subItem.url} onClick={() => handleMenuItemClick()}>
                                         <div
                                           className="flex items-center gap-2 w-full"
                                           data-testid={`link-submenu-${subItem.title.toLowerCase().replace(/\s+/g, '-')}`}
@@ -567,7 +571,7 @@ export function AppSidebar() {
                           e.preventDefault();
                           e.stopPropagation();
                         } else {
-                          handleMenuItemClick();
+                          handleMenuItemClick(item.title);
                         }
                       }}
                     >
