@@ -462,7 +462,7 @@ export function AppSidebar() {
       <SidebarContent className="px-4 py-4 overflow-y-auto scrollbar-hidden">
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu className="gap-1">
+            <SidebarMenu className="gap-0.5">
               {menuItems.map((item) => {
                 const Icon = item.icon;
                 const isDisabled = item.requiresCompany && !hasCompanies;
@@ -494,7 +494,7 @@ export function AppSidebar() {
                         }}>
                           <CollapsibleTrigger asChild disabled={isDisabled}>
                             <SidebarMenuButton
-                              className={`group/item h-auto py-3 px-3 transition-all duration-300 ${!isDisabled ? 'hover-elevate' : 'cursor-not-allowed opacity-40'} ${isFocused ? 'ring-2 ring-primary bg-primary/10' : ''}`}
+                              className={`group/item h-auto py-2 px-3 transition-all duration-300 ${!isDisabled ? 'hover-elevate' : 'cursor-not-allowed opacity-40'} ${isFocused ? 'ring-2 ring-primary bg-primary/10' : ''}`}
                               data-testid={`button-menu-${item.title.toLowerCase()}`}
                               disabled={isDisabled}
                               title={isDisabled ? "Configure uma empresa primeiro" : undefined}
@@ -563,7 +563,7 @@ export function AppSidebar() {
                     <SidebarMenuButton
                       asChild={!isDisabled}
                       isActive={!isDisabled && location === item.url}
-                      className={`group/item h-auto py-3 px-3 transition-all duration-300 ${!isDisabled ? 'hover-elevate' : 'cursor-not-allowed opacity-40'} ${isFocused ? 'ring-2 ring-primary bg-primary/10' : ''}`}
+                      className={`group/item h-auto py-2 px-3 transition-all duration-300 ${!isDisabled ? 'hover-elevate' : 'cursor-not-allowed opacity-40'} ${isFocused ? 'ring-2 ring-primary bg-primary/10' : ''}`}
                       disabled={isDisabled}
                       title={isDisabled ? "Configure uma empresa primeiro" : undefined}
                       onClick={(e) => {
