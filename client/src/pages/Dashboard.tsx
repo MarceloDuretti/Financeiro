@@ -261,9 +261,9 @@ export default function Dashboard() {
               </Badge>
             </div>
           </CardHeader>
-          <CardContent className="pb-2">
+          <CardContent className="pb-1">
             <ResponsiveContainer width="100%" height={140}>
-              <LineChart data={monthlyData}>
+              <LineChart data={monthlyData} margin={{ top: 5, right: 5, left: -15, bottom: 0 }}>
                 <defs>
                   <linearGradient id="lineGradientReceitas" x1="0" y1="0" x2="1" y2="0">
                     <stop offset="0%" stopColor="#10b981" />
@@ -281,18 +281,18 @@ export default function Dashboard() {
                   stroke="hsl(var(--muted-foreground))" 
                   axisLine={false}
                   tickLine={false}
-                  dy={10}
+                  dy={3}
                 />
                 <YAxis 
                   className="text-xs" 
                   stroke="hsl(var(--muted-foreground))" 
                   axisLine={false}
                   tickLine={false}
-                  dx={-10}
+                  dx={0}
                 />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend 
-                  wrapperStyle={{ paddingTop: "4px", fontSize: "11px" }}
+                  wrapperStyle={{ paddingTop: "2px", fontSize: "11px" }}
                   iconType="circle"
                   iconSize={8}
                 />
