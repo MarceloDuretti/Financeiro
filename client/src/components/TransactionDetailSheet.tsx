@@ -373,28 +373,11 @@ export function TransactionDetailSheet({
                     </div>
                   </div>
 
-                  {/* Sparkline - Evolução da Semana */}
-                  <div>
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1">
-                      Tendência Semanal
-                    </p>
-                    <ResponsiveContainer width="100%" height={40}>
-                      <LineChart data={sparklineData}>
-                        <Line
-                          type="monotone"
-                          dataKey="value"
-                          stroke="hsl(var(--primary))"
-                          strokeWidth={2}
-                          dot={false}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
                 </CardContent>
               </Card>
 
-              {/* Status, Emissão, Vencimento - Alinhados ao Centro */}
-              <div className="flex flex-col justify-center space-y-2">
+              {/* Status, Emissão, Vencimento + Gráfico */}
+              <div className="flex flex-col justify-center space-y-3">
                 {/* Status */}
                 <div>
                   {!isEditing ? (
@@ -498,13 +481,33 @@ export function TransactionDetailSheet({
                     />
                   )}
                 </div>
+
+                {/* Gráfico de Tendência Semanal */}
+                <Card className="border-0 bg-gradient-to-br from-card to-muted/30 shadow-sm">
+                  <CardContent className="p-3">
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-2">
+                      Tendência Semanal
+                    </p>
+                    <ResponsiveContainer width="100%" height={50}>
+                      <LineChart data={sparklineData}>
+                        <Line
+                          type="monotone"
+                          dataKey="value"
+                          stroke="hsl(var(--primary))"
+                          strokeWidth={2}
+                          dot={false}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
               </div>
             </div>
 
             <Separator className="my-2" />
 
-            {/* Grid de 3 colunas: Título, Pessoa, Centro Custo */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {/* Grid de 2 colunas: Título, Pessoa */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {/* Título */}
               <div>
                 {!isEditing ? (
@@ -566,6 +569,10 @@ export function TransactionDetailSheet({
                 )}
               </div>
 
+            </div>
+
+            {/* Grid de 2 colunas: Centro de Custo, Conta Contábil */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {/* Centro de Custo */}
               <div>
                 {!isEditing ? (
@@ -600,12 +607,6 @@ export function TransactionDetailSheet({
                   />
                 )}
               </div>
-            </div>
-
-            <Separator className="my-2" />
-
-            {/* Grid de 3 colunas: Conta Contábil, Forma Pagamento, Conta Bancária */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               {/* Conta Contábil */}
               <div>
                 {!isEditing ? (
@@ -641,6 +642,10 @@ export function TransactionDetailSheet({
                 )}
               </div>
 
+            </div>
+
+            {/* Grid de 2 colunas: Forma de Pagamento, Conta Bancária */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {/* Forma de Pagamento */}
               <div>
                 {!isEditing ? (
