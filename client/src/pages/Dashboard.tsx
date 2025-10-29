@@ -247,8 +247,8 @@ export default function Dashboard() {
       <div className="grid gap-4 lg:grid-cols-2">
         {/* Modern Line Chart - Revenue & Expenses */}
         <Card className="border-0 bg-gradient-to-br from-card to-muted/20 shadow-lg">
-          <CardHeader className="pb-3">
-            <div className="flex items-start justify-between flex-wrap gap-3">
+          <CardHeader className="pb-2">
+            <div className="flex items-start justify-between flex-wrap gap-2">
               <div>
                 <CardTitle className="text-lg font-bold">Receitas e Despesas</CardTitle>
                 <CardDescription className="text-xs">
@@ -261,8 +261,8 @@ export default function Dashboard() {
               </Badge>
             </div>
           </CardHeader>
-          <CardContent className="pb-3">
-            <ResponsiveContainer width="100%" height={180}>
+          <CardContent className="pb-2">
+            <ResponsiveContainer width="100%" height={140}>
               <LineChart data={monthlyData}>
                 <defs>
                   <linearGradient id="lineGradientReceitas" x1="0" y1="0" x2="1" y2="0">
@@ -291,10 +291,6 @@ export default function Dashboard() {
                   dx={-10}
                 />
                 <Tooltip content={<CustomTooltip />} />
-                <Legend 
-                  wrapperStyle={{ paddingTop: "16px" }}
-                  iconType="circle"
-                />
                 <Line
                   type="monotone"
                   dataKey="receitas"
@@ -320,22 +316,22 @@ export default function Dashboard() {
 
         {/* Department Performance Heatmap */}
         <Card className="border-0 bg-gradient-to-br from-card to-muted/20 shadow-lg">
-          <CardHeader className="pb-3">
+          <CardHeader className="pb-2">
             <CardTitle className="text-lg font-bold">Performance por Departamento</CardTitle>
-            <CardDescription className="text-xs">Gastos mensais em milhares (R$) - Heatmap visual</CardDescription>
+            <CardDescription className="text-xs">Gastos mensais em milhares (R$)</CardDescription>
           </CardHeader>
-          <CardContent className="pb-3">
+          <CardContent className="pb-2">
             <div className="overflow-x-auto">
               <table className="w-full border-collapse">
                 <thead>
                   <tr>
-                    <th className="p-2 text-left text-xs font-semibold text-muted-foreground border-b border-muted/30">
+                    <th className="px-1 py-1.5 text-left text-xs font-semibold text-muted-foreground border-b border-muted/30">
                       Departamento
                     </th>
                     {["Jan", "Fev", "Mar", "Abr", "Mai", "Jun"].map((month) => (
                       <th
                         key={month}
-                        className="p-2 text-center text-xs font-semibold text-muted-foreground border-b border-muted/30"
+                        className="px-1 py-1.5 text-center text-xs font-semibold text-muted-foreground border-b border-muted/30"
                       >
                         {month}
                       </th>
@@ -370,7 +366,7 @@ export default function Dashboard() {
                       
                       return (
                         <tr key={deptIdx} className="border-b border-muted/20 last:border-0">
-                          <td className="p-2 text-sm font-medium">{dept.dept}</td>
+                          <td className="px-1 py-0.5 text-xs font-medium">{dept.dept}</td>
                           {months.map((value, idx) => {
                             const colors = getHeatColor(value);
                             return (
@@ -380,7 +376,7 @@ export default function Dashboard() {
                                 data-testid={`heatmap-${dept.dept}-${idx}`}
                               >
                                 <div
-                                  className={`${colors.bg} ${colors.text} rounded-md m-1 p-2.5 text-center text-sm font-bold transition-all hover:scale-105 hover:shadow-md cursor-default`}
+                                  className={`${colors.bg} ${colors.text} rounded-md m-0.5 p-1.5 text-center text-xs font-bold transition-all hover:scale-105 hover:shadow-md cursor-default`}
                                   title={`${dept.dept} - ${["Jan", "Fev", "Mar", "Abr", "Mai", "Jun"][idx]}: R$ ${value}k`}
                                 >
                                   {value}k
@@ -394,31 +390,6 @@ export default function Dashboard() {
                   })()}
                 </tbody>
               </table>
-            </div>
-            
-            {/* Color Legend */}
-            <div className="mt-4 flex items-center justify-center gap-4 text-xs">
-              <span className="text-muted-foreground font-medium">Escala de gastos:</span>
-              <div className="flex items-center gap-2">
-                <div className="h-3 w-3 rounded-sm bg-blue-500/50" />
-                <span className="text-muted-foreground">Muito Baixo</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="h-3 w-3 rounded-sm bg-emerald-500/60" />
-                <span className="text-muted-foreground">Baixo</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="h-3 w-3 rounded-sm bg-amber-500/70" />
-                <span className="text-muted-foreground">Médio</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="h-3 w-3 rounded-sm bg-orange-500/80" />
-                <span className="text-muted-foreground">Alto</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="h-3 w-3 rounded-sm bg-red-500/90" />
-                <span className="text-muted-foreground">Muito Alto</span>
-              </div>
             </div>
           </CardContent>
         </Card>
