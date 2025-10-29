@@ -450,7 +450,7 @@ export default function Dashboard() {
                 <Tooltip content={<CustomTooltip />} />
               </PieChart>
             </ResponsiveContainer>
-            <div className="mt-1.5 grid grid-cols-2 gap-1.5">
+            <div className="mt-1.5 grid grid-cols-3 gap-1.5">
               {categoryData.map((cat, idx) => (
                 <div key={idx} className="flex items-center gap-1">
                   <div className="h-2 w-2 rounded-sm shrink-0" style={{ backgroundColor: cat.color }} />
