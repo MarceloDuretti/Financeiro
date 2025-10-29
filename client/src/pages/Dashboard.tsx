@@ -154,27 +154,25 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 
 export default function Dashboard() {
   return (
-    <div className="flex flex-col gap-6 p-4 md:p-6 lg:p-8 bg-gradient-to-br from-background via-muted/10 to-background">
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
-              Análise
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              Visão estratégica em tempo real da sua operação financeira
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" data-testid="button-filter">
-              <Calendar className="h-4 w-4 mr-2" />
-              Junho 2025
-            </Button>
-            <Button size="sm" data-testid="button-export">
-              <BarChart4 className="h-4 w-4 mr-2" />
-              Exportar
-            </Button>
-          </div>
+    <div className="flex flex-col gap-4 p-3 md:p-4 lg:p-6 bg-gradient-to-br from-background via-muted/10 to-background">
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
+            Análise
+          </h1>
+          <p className="text-muted-foreground text-sm">
+            Visão estratégica em tempo real da sua operação financeira
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" data-testid="button-filter">
+            <Calendar className="h-4 w-4 mr-2" />
+            Junho 2025
+          </Button>
+          <Button size="sm" data-testid="button-export">
+            <BarChart4 className="h-4 w-4 mr-2" />
+            Exportar
+          </Button>
         </div>
       </div>
 
