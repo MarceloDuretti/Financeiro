@@ -110,7 +110,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                         alt={getUserDisplayName()}
                         style={{ objectFit: "cover" }}
                       />
-                      <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
+                      <AvatarFallback className="bg-red-600 text-white font-semibold">
                         {getUserInitials()}
                       </AvatarFallback>
                     </Avatar>
