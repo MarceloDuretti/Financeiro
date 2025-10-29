@@ -1329,14 +1329,243 @@ export default function Lancamentos() {
       </div>
 
       {/* Detail Sheet - Opens when clicking a card */}
-      {/* Transaction Detail Sheet with Inline Editing */}
-      <TransactionDetailSheet
-        open={detailSheetOpen}
-        onOpenChange={setDetailSheetOpen}
-        transaction={detailTransaction}
-        monthlyTotals={monthlyTotals}
-      />
+      <Sheet open={detailSheetOpen} onOpenChange={setDetailSheetOpen}>
+        <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto">
+          {detailTransaction && (
+            <>
+              <SheetHeader>
+                <SheetTitle className="flex items-center justify-between">
+                  <span>Detalhes do Lan√ßamento</span>
+                  <Badge 
+                    variant={detailTransaction.type === 'expense' ? 'destructive' : 'default'}
+                    className={detailTransaction.type === 'revenue' ? 'bg-blue-600' : ''}
+                  >
+                    {detailTransaction.type === 'expense' ? 'Despesa' : 'Receita'}
+                  </Badge>
+                </SheetTitle>
+              </SheetHeader>
 
+              <div className="mt-6 space-y-6">
+                {/* Amount Card */}
+                <Card className="border-0 bg-gradient-to-br from-card to-muted/30 shadow-lg">
+                  <CardContent className="p-4">
+                    <p className="text-sm text-muted-foreground mb-2">Valor</p>
+                    <div className={`text-3xl font-semibold tabular-nums tracking-tight ${
+                      detailTransaction.type === 'expense' ? 'text-destructive' : 'text-blue-600'
+                    }`}>
+                      {detailTransaction.type === 'expense' ? '-' : '+'} R$ {parseFloat(detailTransaction.amount || '0').toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </div>
+                    {(() => {
+                      const amount = parseFloat(detailTransaction.amount || '0');
+                      const total = detailTransaction.type === 'revenue' ? monthlyTotals.totalRevenues : monthlyTotals.totalExpenses;
+                      const percentage = total > 0 ? (amount / total) * 100 : 0;
+                      return (
+                        <div className="mt-3 space-y-1.5">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-muted-foreground">Representa {percentage.toFixed(1)}% do total do mÍs</span>
+                          </div>
+                          <div className="h-2 bg-muted rounded-full overflow-hidden">
+                            <div
+                              className={`h-full ${
+                                detailTransaction.type === 'expense' 
+                                  ? 'bg-destructive' 
+                                  : 'bg-blue-600'
+                              }`}
+                              style={{ width: `${Math.min(percentage, 100)}%` }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </CardContent>
+                </Card>
+
+                {/* Information Grid */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Status</p>
+                    <Badge variant="outline">
+                      {detailTransaction.status === 'paid' ? 'Pago' : 
+                       detailTransaction.status === 'cancelled' ? 'Cancelado' : 'Pendente'}
+                    </Badge>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Vencimento</p>
+                    <p className="text-sm font-medium">
+                      {detailTransaction.dueDate ? format(new Date(detailTransaction.dueDate), "dd/MM/yyyy") : '-'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Emiss√£o</p>
+                    <p className="text-sm">
+                      {detailTransaction.issueDate ? format(new Date(detailTransaction.issueDate), "dd/MM/yyyy") : '-'}
+                    </p>
+                  </div>
+                  {detailTransaction.paidDate && (
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">Pagamento</p>
+                      <p className="text-sm font-medium text-blue-600">
+                        {format(new Date(detailTransaction.paidDate), "dd/MM/yyyy")}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Title & Description */}
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">T√≠tulo</p>
+                  <p className="font-semibold">{detailTransaction.title || 'Sem t√≠tulo'}</p>
+                </div>
+
+                {detailTransaction.description && (
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Descri√ß√£o</p>
+                    <p className="text-sm">{detailTransaction.description}</p>
+                  </div>
+                )}
+
+                {/* Person */}
+                {(() => {
+                  const person = customersSuppliers.find(p => p.id === detailTransaction.personId);
+                  return person ? (
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">
+                        {detailTransaction.type === 'revenue' ? 'Cliente' : 'Fornecedor'}
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <User className="w-4 h-4 text-muted-foreground" />
+                        <p className="font-medium">{person.name}</p>
+                      </div>
+                    </div>
+                  ) : null;
+                })()}
+
+                
+                {/* Classification & Payment Info */}
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Centro de Custo</p>
+                    <p>{costCenters.find(c => c.id === detailTransaction.costCenterId)?.name || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Conta Cont·bil</p>
+                    <p>{chartAccounts.find(a => a.id === detailTransaction.chartAccountId)?.fullPathName || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Forma de Pagamento</p>
+                    <p>{paymentMethods.find(m => m.id === detailTransaction.paymentMethodId)?.name || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Conta Banc·ria</p>
+                    <p>{bankAccounts.find(b => b.id === detailTransaction.bankAccountId)?.name || '-'}</p>
+                  </div>
+                </div>
+                {/* Classification & Payment Info */}
+                {(parseFloat(detailTransaction.discount || '0') > 0 || 
+                  parseFloat(detailTransaction.interest || '0') > 0 || 
+                  parseFloat(detailTransaction.fees || '0') > 0) && (
+                  <div className="space-y-2">
+                    <p className="text-xs text-muted-foreground">Valores Adicionais</p>
+                    {parseFloat(detailTransaction.discount || '0') > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span>Desconto</span>
+                        <span className="font-medium">- R$ {parseFloat(detailTransaction.discount || '0').toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                      </div>
+                    )}
+                    {parseFloat(detailTransaction.interest || '0') > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span>Juros</span>
+                        <span className="font-medium">+ R$ {parseFloat(detailTransaction.interest || '0').toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                      </div>
+                    )}
+                    {parseFloat(detailTransaction.fees || '0') > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span>Taxas</span>
+                        <span className="font-medium">+ R$ {parseFloat(detailTransaction.fees || '0').toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                
+                {/* Valor LÌquido, RecorrÍncia, ConciliaÁ„o e Tags */}
+                {(() => {
+                  const amount = parseFloat(detailTransaction.amount || '0');
+                  const discount = parseFloat(detailTransaction.discount || '0');
+                  const interest = parseFloat(detailTransaction.interest || '0');
+                  const fees = parseFloat(detailTransaction.fees || '0');
+                  const net = amount - discount + interest + fees;
+                  const hasMeta = detailTransaction.isRecurring || detailTransaction.installmentTotal || detailTransaction.isReconciled || (detailTransaction.tags && detailTransaction.tags.length > 0) || detailTransaction.attachmentsCount;
+                  return (
+                    <div className="space-y-3">
+                      <div className="flex justify-between text-sm font-medium">
+                        <span>Valor LÌquido</span>
+                        <span className="tabular-nums">R$ {net.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                      </div>
+                      {hasMeta && (
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                          {detailTransaction.isRecurring && (
+                            <div>
+                              <p className="text-xs text-muted-foreground mb-1">RecorrÍncia</p>
+                              <p>{detailTransaction.installmentNumber ? `${detailTransaction.installmentNumber}/${detailTransaction.installmentTotal || '-'}` : 'Ativa'}</p>
+                            </div>
+                          )}
+                          {detailTransaction.isReconciled !== undefined && (
+                            <div>
+                              <p className="text-xs text-muted-foreground mb-1">ConciliaÁ„o</p>
+                              <p>{detailTransaction.isReconciled ? `Conciliado${detailTransaction.reconciledAt ? ` em ${format(new Date(detailTransaction.reconciledAt as any), 'dd/MM/yyyy')}` : ''}` : 'Pendente'}</p>
+                            </div>
+                          )}
+                          {detailTransaction.tags && detailTransaction.tags.length > 0 && (
+                            <div className="col-span-2">
+                              <p className="text-xs text-muted-foreground mb-1">Tags</p>
+                              <div className="flex flex-wrap gap-1.5">
+                                {detailTransaction.tags.map((t: string, i: number) => (
+                                  <Badge key={i} variant="secondary" className="text-[11px]">{t}</Badge>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          {detailTransaction.attachmentsCount ? (
+                            <div>
+                              <p className="text-xs text-muted-foreground mb-1">Anexos</p>
+                              <p>{detailTransaction.attachmentsCount} arquivo(s)</p>
+                            </div>
+                          ) : null}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}{/* Action Buttons */}
+                <div className="flex gap-2 pt-4">
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => {
+                      setDetailSheetOpen(false);
+                      setSelectedTransaction(detailTransaction);
+                      setDialogOpen(true);
+                    }}
+                    data-testid="button-edit-detail"
+                  >
+                    Editar
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => setDetailSheetOpen(false)}
+                    data-testid="button-close-detail"
+                  >
+                    Fechar
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
+
+      {/* Transaction Dialog */}
       <TransactionDialog 
         open={dialogOpen}
         onOpenChange={setDialogOpen}
