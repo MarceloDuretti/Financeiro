@@ -462,7 +462,7 @@ export function AppSidebar() {
       <SidebarContent className="px-4 py-4 overflow-y-auto scrollbar-hidden">
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu className="gap-0">
+            <SidebarMenu className="gap-1">
               {menuItems.map((item) => {
                 const Icon = item.icon;
                 const isDisabled = item.requiresCompany && !hasCompanies;
