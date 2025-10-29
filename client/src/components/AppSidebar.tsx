@@ -459,7 +459,7 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="px-4 py-4 overflow-y-auto">
+      <SidebarContent className="px-4 py-4 overflow-y-auto scrollbar-hidden">
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu className="gap-1">
