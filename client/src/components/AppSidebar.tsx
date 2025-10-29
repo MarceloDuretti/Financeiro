@@ -422,9 +422,9 @@ export function AppSidebar() {
       collapsible="icon" 
       className="border-r bg-gradient-to-b from-background to-muted/20"
     >
-      <SidebarHeader className="border-b bg-gradient-to-br from-primary/5 to-transparent p-3">
-        <div className="flex items-center gap-2.5 rounded-xl bg-gradient-to-br from-card to-muted/30 p-2.5 border shadow-sm hover-elevate cursor-pointer mb-3" data-testid="profile-card">
-          <Avatar className="h-9 w-9 border-2 border-primary/20">
+      <SidebarHeader className="border-b bg-gradient-to-br from-primary/5 to-transparent p-2">
+        <div className="flex items-center gap-2 rounded-xl bg-gradient-to-br from-card to-muted/30 p-2 border shadow-sm hover-elevate cursor-pointer mb-2" data-testid="profile-card">
+          <Avatar className="h-8 w-8 border-2 border-primary/20">
             <AvatarImage src={user?.profileImageUrl || ""} alt={getUserDisplayName()} />
             <AvatarFallback className="bg-gradient-to-br from-primary to-blue-600 text-white font-semibold text-xs">
               {getUserInitials()}
@@ -440,19 +440,19 @@ export function AppSidebar() {
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-1.5">
+        <div className="grid grid-cols-3 gap-1">
           {quickStats.map((stat, index) => (
             <div
               key={index}
-              className="flex flex-col items-center gap-1 rounded-xl bg-gradient-to-br from-muted/50 to-transparent p-2 border border-border/50 hover-elevate cursor-default"
+              className="flex flex-col items-center gap-0.5 rounded-xl bg-gradient-to-br from-muted/50 to-transparent p-1.5 border border-border/50 hover-elevate cursor-default"
               data-testid={`quick-stat-${index}`}
             >
-              <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${stat.color === 'text-green-500' ? 'from-green-500 to-emerald-600' : stat.color === 'text-blue-500' ? 'from-blue-500 to-indigo-600' : 'from-orange-500 to-amber-600'} shadow-sm`}>
+              <div className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${stat.color === 'text-green-500' ? 'from-green-500 to-emerald-600' : stat.color === 'text-blue-500' ? 'from-blue-500 to-indigo-600' : 'from-orange-500 to-amber-600'} shadow-sm`}>
                 <stat.icon className="h-3 w-3 text-white" />
               </div>
-              <div className="flex flex-col items-center gap-0.5 w-full">
+              <div className="flex flex-col items-center gap-0 w-full">
                 <span className="text-xs font-semibold truncate">{stat.value}</span>
-                <span className="text-[11px] text-muted-foreground text-center truncate w-full leading-tight">{stat.label}</span>
+                <span className="text-[10px] text-muted-foreground text-center truncate w-full leading-tight">{stat.label}</span>
               </div>
             </div>
           ))}
