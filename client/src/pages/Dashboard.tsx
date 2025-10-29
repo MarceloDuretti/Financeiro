@@ -261,9 +261,9 @@ export default function Dashboard() {
               </Badge>
             </div>
           </CardHeader>
-          <CardContent className="pb-1">
-            <ResponsiveContainer width="100%" height={140}>
-              <LineChart data={monthlyData} margin={{ top: 5, right: 5, left: -15, bottom: 0 }}>
+          <CardContent className="pb-2">
+            <ResponsiveContainer width="100%" height={170}>
+              <LineChart data={monthlyData} margin={{ top: 5, right: 10, left: -15, bottom: 5 }}>
                 <defs>
                   <linearGradient id="lineGradientReceitas" x1="0" y1="0" x2="1" y2="0">
                     <stop offset="0%" stopColor="#10b981" />
@@ -291,11 +291,6 @@ export default function Dashboard() {
                   dx={0}
                 />
                 <Tooltip content={<CustomTooltip />} />
-                <Legend 
-                  wrapperStyle={{ paddingTop: "2px", fontSize: "11px" }}
-                  iconType="circle"
-                  iconSize={8}
-                />
                 <Line
                   type="monotone"
                   dataKey="receitas"
@@ -316,6 +311,18 @@ export default function Dashboard() {
                 />
               </LineChart>
             </ResponsiveContainer>
+            
+            {/* Compact Legend Below */}
+            <div className="mt-1 flex items-center justify-center gap-3 text-[10px]">
+              <div className="flex items-center gap-1">
+                <div className="h-2 w-2 rounded-full bg-emerald-500" />
+                <span className="text-muted-foreground">Receitas</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="h-2 w-2 rounded-full bg-red-500" />
+                <span className="text-muted-foreground">Despesas</span>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
