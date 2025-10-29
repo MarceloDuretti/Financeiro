@@ -509,7 +509,7 @@ export function AppSidebar() {
                               <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${item.color} shadow-lg transition-all duration-300 mt-0.5 ${isDisabled ? 'saturate-0' : 'hover:shadow-2xl hover:shadow-primary/20'}`}>
                                 <Icon className="h-4 w-4 text-white" strokeWidth={2.5} />
                               </div>
-                              <div className="flex flex-col gap-0.5 flex-1 min-w-0">
+                              <div className="flex flex-col gap-0 flex-1 min-w-0">
                                 <div className="flex items-center justify-between gap-2">
                                   <span className="font-semibold text-sm truncate">{item.title}</span>
                                   {item.count && (
@@ -586,7 +586,7 @@ export function AppSidebar() {
                           <div className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-gray-400 to-gray-500 shadow-lg mt-0.5 saturate-0">
                             <Icon className="h-4 w-4 text-white" strokeWidth={2.5} />
                           </div>
-                          <div className="flex flex-col gap-0.5 flex-1 min-w-0">
+                          <div className="flex flex-col gap-0 flex-1 min-w-0">
                             <div className="flex items-center justify-between gap-2">
                               <span className="font-semibold text-sm truncate">{item.title}</span>
                               {item.badge && (
@@ -613,7 +613,7 @@ export function AppSidebar() {
                             <div className={`relative flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${item.color} shadow-lg transition-all duration-300 mt-0.5 hover:shadow-2xl hover:shadow-primary/20`}>
                               <Icon className="h-4 w-4 text-white" strokeWidth={2.5} />
                             </div>
-                            <div className="flex flex-col gap-0.5 flex-1 min-w-0">
+                            <div className="flex flex-col gap-0 flex-1 min-w-0">
                               <div className="flex items-center justify-between gap-2">
                                 <span className="font-semibold text-sm truncate">{item.title}</span>
                                 {item.badge && (
