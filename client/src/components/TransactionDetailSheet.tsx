@@ -269,53 +269,58 @@ export function TransactionDetailSheet({
               {/* Amount Card */}
               <Card className="border-0 bg-gradient-to-br from-card to-muted/30 shadow-md">
                 <CardContent className="p-4">
-                  {!isEditing ? (
-                    <div className="space-y-2">
-                      <p className="text-xs text-muted-foreground">Valor</p>
-                      <div
-                        className={`text-2xl font-bold tabular-nums ${
-                          transaction.type === "expense" ? "text-destructive" : "text-blue-600"
-                        }`}
-                      >
-                        {transaction.type === "expense" ? "-" : "+"} R${" "}
-                        {amount.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                  <div className="space-y-2">
+                    {!isEditing ? (
+                      <>
+                        <p className="text-xs text-muted-foreground">Valor</p>
+                        <div
+                          className={`text-2xl font-bold tabular-nums ${
+                            transaction.type === "expense" ? "text-destructive" : "text-blue-600"
+                          }`}
+                        >
+                          {transaction.type === "expense" ? "-" : "+"} R${" "}
+                          {amount.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                        </div>
+                      </>
+                    ) : (
+                      <FormField
+                        control={form.control}
+                        name="amount"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs">Valor</FormLabel>
+                            <FormControl>
+                              <Input
+                                {...field}
+                                type="text"
+                                placeholder="0.00"
+                                data-testid="input-amount"
+                                className="h-8"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
+                    
+                    {/* Barra de percentual - sempre visível */}
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-muted-foreground">
+                          Representa {percentage.toFixed(1)}% do total do mês
+                        </span>
                       </div>
-                      <div className="space-y-1">
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="text-muted-foreground">
-                            {percentage.toFixed(1)}% do mês
-                          </span>
-                        </div>
-                        <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                          <div
-                            className={`h-full ${
-                              transaction.type === "expense" ? "bg-destructive" : "bg-blue-600"
-                            }`}
-                            style={{ width: `${Math.min(percentage, 100)}%` }}
-                          />
-                        </div>
+                      <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                        <div
+                          className={`h-full ${
+                            transaction.type === "expense" ? "bg-destructive" : "bg-blue-600"
+                          }`}
+                          style={{ width: `${Math.min(percentage, 100)}%` }}
+                        />
                       </div>
                     </div>
-                  ) : (
-                    <FormField
-                      control={form.control}
-                      name="amount"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-xs">Valor</FormLabel>
-                          <FormControl>
-                            <Input
-                              {...field}
-                              type="text"
-                              placeholder="0.00"
-                              data-testid="input-amount"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  )}
+                  </div>
                 </CardContent>
               </Card>
 
