@@ -48,7 +48,11 @@ import {
   Trash2,
   Loader2,
   Calendar as CalendarIcon,
+  Copy,
+  Repeat,
+  Printer,
 } from "lucide-react";
+import { LineChart, Line, ResponsiveContainer } from "recharts";
 import type { Transaction, InsertTransaction } from "@shared/schema";
 import { insertTransactionSchema } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -243,6 +247,23 @@ export function TransactionDetailSheet({
   const total = transaction.type === "revenue" ? monthlyTotals.totalRevenues : monthlyTotals.totalExpenses;
   const percentage = total > 0 ? (amount / total) * 100 : 0;
 
+  // Mock data for sparkline - simulating weekly cash flow
+  // TODO: Replace with real API data from transactions
+  const sparklineData = [
+    { value: 1200 },
+    { value: 2400 },
+    { value: 1800 },
+    { value: 3200 },
+    { value: 2800 },
+    { value: 3500 },
+    { value: 4100 },
+  ];
+
+  // Mock cash flow metrics
+  // TODO: Replace with real calculated values from API
+  const accumulatedBalance = 4100.50;
+  const dailyBalance = 850.25;
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange} modal={false}>
       <SheetContent className="w-full sm:max-w-6xl overflow-y-auto">
@@ -266,29 +287,37 @@ export function TransactionDetailSheet({
           <div className="mt-4 space-y-3">
             {/* Top Section: Amount Card + Status/Dates */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {/* Amount Card */}
+              {/* Amount Card - Financial Dashboard */}
               <Card className="border-0 bg-gradient-to-br from-card to-muted/30 shadow-md">
-                <CardContent className="p-4">
-                  <div className="space-y-2">
+                <CardContent className="p-4 space-y-3">
+                  {/* Título do Módulo */}
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                      Impacto Financeiro
+                    </h3>
+                    <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                      Semana Atual
+                    </Badge>
+                  </div>
+
+                  {/* Valor Principal */}
+                  <div>
                     {!isEditing ? (
-                      <>
-                        <p className="text-xs text-muted-foreground">Valor</p>
-                        <div
-                          className={`text-2xl font-bold tabular-nums ${
-                            transaction.type === "expense" ? "text-destructive" : "text-blue-600"
-                          }`}
-                        >
-                          {transaction.type === "expense" ? "-" : "+"} R${" "}
-                          {amount.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                        </div>
-                      </>
+                      <div
+                        className={`text-2xl font-bold tabular-nums ${
+                          transaction.type === "expense" ? "text-destructive" : "text-blue-600"
+                        }`}
+                      >
+                        {transaction.type === "expense" ? "-" : "+"} R${" "}
+                        {amount.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                      </div>
                     ) : (
                       <FormField
                         control={form.control}
                         name="amount"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-xs">Valor</FormLabel>
+                            <FormLabel className="text-xs">Valor do Lançamento</FormLabel>
                             <FormControl>
                               <Input
                                 {...field}
@@ -303,29 +332,69 @@ export function TransactionDetailSheet({
                         )}
                       />
                     )}
-                    
-                    {/* Barra de percentual - sempre visível */}
-                    <div className="space-y-1">
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-muted-foreground">
-                          Representa {percentage.toFixed(1)}% do total do mês
-                        </span>
-                      </div>
-                      <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                        <div
-                          className={`h-full ${
-                            transaction.type === "expense" ? "bg-destructive" : "bg-blue-600"
-                          }`}
-                          style={{ width: `${Math.min(percentage, 100)}%` }}
-                        />
-                      </div>
+                  </div>
+
+                  {/* Barra de percentual */}
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground">
+                        Representa {percentage.toFixed(1)}% do total do mês
+                      </span>
                     </div>
+                    <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                      <div
+                        className={`h-full ${
+                          transaction.type === "expense" ? "bg-destructive" : "bg-blue-600"
+                        }`}
+                        style={{ width: `${Math.min(percentage, 100)}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  <Separator className="my-2" />
+
+                  {/* Métricas de Fluxo de Caixa */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-0.5">
+                        Saldo Acumulado
+                      </p>
+                      <p className="text-sm font-bold tabular-nums">
+                        R$ {accumulatedBalance.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-0.5">
+                        Saldo do Dia
+                      </p>
+                      <p className="text-sm font-bold tabular-nums">
+                        R$ {dailyBalance.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Sparkline - Evolução da Semana */}
+                  <div>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1">
+                      Tendência Semanal
+                    </p>
+                    <ResponsiveContainer width="100%" height={40}>
+                      <LineChart data={sparklineData}>
+                        <Line
+                          type="monotone"
+                          dataKey="value"
+                          stroke="hsl(var(--primary))"
+                          strokeWidth={2}
+                          dot={false}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
                   </div>
                 </CardContent>
               </Card>
 
-              {/* Status, Emissão, Vencimento */}
-              <div className="space-y-2">
+              {/* Status, Emissão, Vencimento - Alinhados ao Centro */}
+              <div className="flex flex-col justify-center space-y-2">
                 {/* Status */}
                 <div>
                   {!isEditing ? (
@@ -675,56 +744,104 @@ export function TransactionDetailSheet({
             </div>
 
             {/* Action Buttons */}
-            <div className="flex gap-2 pt-2 border-t mt-2">
+            <div className="space-y-2 pt-2 border-t mt-2">
               {!isEditing ? (
                 <>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex-1"
-                    onClick={handleEdit}
-                    data-testid="button-edit"
-                  >
-                    <Edit2 className="h-3 w-3 mr-1.5" />
-                    Editar
-                  </Button>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="outline" size="sm" className="flex-1" data-testid="button-delete-trigger">
-                        <Trash2 className="h-3 w-3 mr-1.5" />
-                        Excluir
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Tem certeza que deseja excluir este lançamento? Esta ação não pode ser desfeita.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={handleDelete}
-                          disabled={isDeleting}
-                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                          data-testid="button-delete-confirm"
-                        >
-                          {isDeleting ? (
-                            <>
-                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                              Excluindo...
-                            </>
-                          ) : (
-                            "Excluir"
-                          )}
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                  {/* Primeira Linha: Ações Principais */}
+                  <div className="grid grid-cols-3 gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleEdit}
+                      data-testid="button-edit"
+                    >
+                      <Edit2 className="h-3 w-3 mr-1.5" />
+                      Editar
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        toast({
+                          title: "Clonar Lançamento",
+                          description: "Funcionalidade em desenvolvimento",
+                        });
+                      }}
+                      data-testid="button-clone"
+                    >
+                      <Copy className="h-3 w-3 mr-1.5" />
+                      Clonar
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        toast({
+                          title: "Imprimir",
+                          description: "Funcionalidade em desenvolvimento",
+                        });
+                      }}
+                      data-testid="button-print"
+                    >
+                      <Printer className="h-3 w-3 mr-1.5" />
+                      Imprimir
+                    </Button>
+                  </div>
+
+                  {/* Segunda Linha: Ações Secundárias */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        toast({
+                          title: "Recorrência",
+                          description: "Funcionalidade em desenvolvimento",
+                        });
+                      }}
+                      data-testid="button-recurring"
+                    >
+                      <Repeat className="h-3 w-3 mr-1.5" />
+                      Recorrente
+                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="outline" size="sm" data-testid="button-delete-trigger">
+                          <Trash2 className="h-3 w-3 mr-1.5" />
+                          Excluir
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Tem certeza que deseja excluir este lançamento? Esta ação não pode ser desfeita.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={handleDelete}
+                            disabled={isDeleting}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            data-testid="button-delete-confirm"
+                          >
+                            {isDeleting ? (
+                              <>
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                Excluindo...
+                              </>
+                            ) : (
+                              "Excluir"
+                            )}
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
                 </>
               ) : (
-                <>
+                <div className="flex gap-2">
                   <Button
                     variant="outline"
                     size="sm"
@@ -755,7 +872,7 @@ export function TransactionDetailSheet({
                       </>
                     )}
                   </Button>
-                </>
+                </div>
               )}
             </div>
           </div>
