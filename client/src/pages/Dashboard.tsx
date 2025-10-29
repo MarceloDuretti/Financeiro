@@ -243,10 +243,10 @@ export default function Dashboard() {
         })}
       </div>
 
-      {/* Advanced Charts Grid */}
+      {/* Receitas x Despesas e Performance por Departamento */}
       <div className="grid gap-4 lg:grid-cols-2">
         {/* Modern Line Chart - Revenue & Expenses */}
-        <Card className="border-0 bg-gradient-to-br from-card to-muted/20 shadow-lg col-span-full">
+        <Card className="border-0 bg-gradient-to-br from-card to-muted/20 shadow-lg">
           <CardHeader className="pb-3">
             <div className="flex items-start justify-between flex-wrap gap-3">
               <div>
@@ -315,45 +315,6 @@ export default function Dashboard() {
                 />
               </LineChart>
             </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        {/* Category Breakdown */}
-        <Card className="border-0 bg-gradient-to-br from-card to-muted/20 shadow-lg">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg font-bold">Distribuição de Despesas</CardTitle>
-            <CardDescription className="text-xs">Análise por categoria operacional</CardDescription>
-          </CardHeader>
-          <CardContent className="pb-3">
-            <ResponsiveContainer width="100%" height={240}>
-              <PieChart>
-                <Pie
-                  data={categoryData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={100}
-                  paddingAngle={2}
-                  dataKey="value"
-                >
-                  {categoryData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip content={<CustomTooltip />} />
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="mt-4 grid grid-cols-2 gap-3">
-              {categoryData.map((cat, idx) => (
-                <div key={idx} className="flex items-center gap-2">
-                  <div className="h-3 w-3 rounded-sm" style={{ backgroundColor: cat.color }} />
-                  <div className="flex flex-col">
-                    <span className="text-xs font-medium">{cat.name}</span>
-                    <span className="text-xs text-muted-foreground">{cat.percentage}%</span>
-                  </div>
-                </div>
-              ))}
-            </div>
           </CardContent>
         </Card>
 
@@ -463,10 +424,93 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      {/* Intelligence Workspace */}
-      <div className="grid gap-4 lg:grid-cols-3">
-        {/* Transactions Table */}
-        <Card className="border-0 bg-gradient-to-br from-card to-muted/20 shadow-lg lg:col-span-2">
+      {/* Distribuição de Despesas e Alertas & Insights */}
+      <div className="grid gap-4 lg:grid-cols-2">
+        {/* Category Breakdown */}
+        <Card className="border-0 bg-gradient-to-br from-card to-muted/20 shadow-lg">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg font-bold">Distribuição de Despesas</CardTitle>
+            <CardDescription className="text-xs">Análise por categoria operacional</CardDescription>
+          </CardHeader>
+          <CardContent className="pb-3">
+            <ResponsiveContainer width="100%" height={240}>
+              <PieChart>
+                <Pie
+                  data={categoryData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={100}
+                  paddingAngle={2}
+                  dataKey="value"
+                >
+                  {categoryData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip content={<CustomTooltip />} />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              {categoryData.map((cat, idx) => (
+                <div key={idx} className="flex items-center gap-2">
+                  <div className="h-3 w-3 rounded-sm" style={{ backgroundColor: cat.color }} />
+                  <div className="flex flex-col">
+                    <span className="text-xs font-medium">{cat.name}</span>
+                    <span className="text-xs text-muted-foreground">{cat.percentage}%</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Alerts Feed */}
+        <Card className="border-0 bg-gradient-to-br from-card to-muted/20 shadow-lg">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg font-bold">Alertas & Insights</CardTitle>
+            <CardDescription className="text-xs">Notificações importantes do sistema</CardDescription>
+          </CardHeader>
+          <CardContent className="pb-3">
+            <div className="flex flex-col gap-3">
+              {alerts.map((alert, idx) => (
+                <div
+                  key={idx}
+                  className={`flex items-start gap-3 p-3 rounded-lg border ${
+                    alert.type === "warning"
+                      ? "bg-orange-500/5 border-orange-500/20"
+                      : alert.type === "success"
+                      ? "bg-green-500/5 border-green-500/20"
+                      : "bg-blue-500/5 border-blue-500/20"
+                  }`}
+                  data-testid={`alert-${idx}`}
+                >
+                  {alert.type === "warning" ? (
+                    <AlertCircle className="h-4 w-4 text-orange-500 shrink-0 mt-0.5" />
+                  ) : alert.type === "success" ? (
+                    <CheckCircle className="h-4 w-4 text-green-500 shrink-0 mt-0.5" />
+                  ) : (
+                    <Activity className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
+                  )}
+                  <div className="flex flex-col gap-1 flex-1 min-w-0">
+                    <p className="text-sm font-medium leading-tight">{alert.message}</p>
+                    <span className="text-xs text-muted-foreground">{alert.time}</span>
+                  </div>
+                </div>
+              ))}
+              
+              <Separator className="my-2" />
+              
+              <Button variant="outline" size="sm" className="w-full">
+                Ver Todos os Alertas
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Últimas Transações */}
+      <Card className="border-0 bg-gradient-to-br from-card to-muted/20 shadow-lg">
           <CardHeader className="pb-3">
             <CardTitle className="text-lg font-bold">Últimas Transações</CardTitle>
             <CardDescription className="text-xs">Movimentações recentes com status de confirmação</CardDescription>
@@ -533,50 +577,6 @@ export default function Dashboard() {
             </div>
           </CardContent>
         </Card>
-
-        {/* Alerts Feed */}
-        <Card className="border-0 bg-gradient-to-br from-card to-muted/20 shadow-lg">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg font-bold">Alertas & Insights</CardTitle>
-            <CardDescription className="text-xs">Notificações importantes do sistema</CardDescription>
-          </CardHeader>
-          <CardContent className="pb-3">
-            <div className="flex flex-col gap-3">
-              {alerts.map((alert, idx) => (
-                <div
-                  key={idx}
-                  className={`flex items-start gap-3 p-3 rounded-lg border ${
-                    alert.type === "warning"
-                      ? "bg-orange-500/5 border-orange-500/20"
-                      : alert.type === "success"
-                      ? "bg-green-500/5 border-green-500/20"
-                      : "bg-blue-500/5 border-blue-500/20"
-                  }`}
-                  data-testid={`alert-${idx}`}
-                >
-                  {alert.type === "warning" ? (
-                    <AlertCircle className="h-4 w-4 text-orange-500 shrink-0 mt-0.5" />
-                  ) : alert.type === "success" ? (
-                    <CheckCircle className="h-4 w-4 text-green-500 shrink-0 mt-0.5" />
-                  ) : (
-                    <Activity className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
-                  )}
-                  <div className="flex flex-col gap-1 flex-1 min-w-0">
-                    <p className="text-sm font-medium leading-tight">{alert.message}</p>
-                    <span className="text-xs text-muted-foreground">{alert.time}</span>
-                  </div>
-                </div>
-              ))}
-              
-              <Separator className="my-2" />
-              
-              <Button variant="outline" size="sm" className="w-full">
-                Ver Todos os Alertas
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
     </div>
   );
 }
