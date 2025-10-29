@@ -432,14 +432,14 @@ export default function Dashboard() {
             <CardDescription className="text-xs">Análise por categoria operacional</CardDescription>
           </CardHeader>
           <CardContent className="pb-2">
-            <ResponsiveContainer width="100%" height={140}>
+            <ResponsiveContainer width="100%" height={180}>
               <PieChart>
                 <Pie
                   data={categoryData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={45}
-                  outerRadius={75}
+                  innerRadius={55}
+                  outerRadius={85}
                   paddingAngle={2}
                   dataKey="value"
                 >
