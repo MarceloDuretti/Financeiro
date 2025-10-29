@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useRealtimeQuery } from "@/hooks/useRealtimeQuery";
@@ -87,6 +87,23 @@ export default function PlanoDeContas() {
 
   // Build tree structure
   const accountTree = buildAccountTree(accounts);
+
+  // Auto-expand all nodes when accounts are loaded
+  useEffect(() => {
+    if (accounts.length > 0) {
+      const allIds = new Set<string>();
+      const collectIds = (nodes: ChartAccountNode[]) => {
+        nodes.forEach(node => {
+          allIds.add(node.id);
+          if (node.children.length > 0) {
+            collectIds(node.children);
+          }
+        });
+      };
+      collectIds(accountTree);
+      setExpandedNodes(allIds);
+    }
+  }, [accounts.length]); // Only re-run when number of accounts changes
 
   // Create mutation
   const createMutation = useMutation({
