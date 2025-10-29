@@ -185,7 +185,7 @@ export default function Dashboard() {
           return (
             <Card
               key={index}
-              className="relative overflow-hidden border-0 bg-gradient-to-br from-card via-card to-muted/20 shadow-lg hover-elevate transition-all duration-300"
+              className="group/kpi relative overflow-hidden border-0 bg-gradient-to-br from-card via-card to-muted/20 shadow-lg hover-elevate transition-all duration-300"
               data-testid={`card-kpi-${index}`}
             >
               <div
@@ -199,8 +199,8 @@ export default function Dashboard() {
                     </CardDescription>
                     <CardTitle className="text-lg font-bold truncate">{kpi.value}</CardTitle>
                   </div>
-                  <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${kpi.gradient} shadow-lg`}>
-                    <Icon className="h-3.5 w-3.5 text-white" strokeWidth={2.5} />
+                  <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${kpi.gradient} shadow-lg transition-all duration-300 group-hover/kpi:scale-110 group-hover/kpi:shadow-2xl`}>
+                    <Icon className="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover/kpi:scale-110" strokeWidth={2.5} />
                   </div>
                 </div>
               </CardHeader>
