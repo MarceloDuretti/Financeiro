@@ -444,11 +444,11 @@ export function AppSidebar() {
           {quickStats.map((stat, index) => (
             <div
               key={index}
-              className="flex items-center gap-1.5 rounded-xl bg-gradient-to-br from-muted/50 to-transparent p-1.5 border border-border/50 hover-elevate cursor-default"
+              className="group/stat flex items-center gap-1.5 rounded-xl bg-gradient-to-br from-muted/50 to-transparent p-1.5 border border-border/50 hover-elevate cursor-default"
               data-testid={`quick-stat-${index}`}
             >
-              <div className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${stat.color === 'text-green-500' ? 'from-green-500 to-emerald-600' : stat.color === 'text-blue-500' ? 'from-blue-500 to-indigo-600' : 'from-orange-500 to-amber-600'} shadow-sm`}>
-                <stat.icon className="h-3 w-3 text-white" />
+              <div className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${stat.color === 'text-green-500' ? 'from-green-500 to-emerald-600' : stat.color === 'text-blue-500' ? 'from-blue-500 to-indigo-600' : 'from-orange-500 to-amber-600'} shadow-sm transition-all duration-300 group-hover/stat:scale-110 group-hover/stat:shadow-lg`}>
+                <stat.icon className="h-3 w-3 text-white transition-transform duration-300 group-hover/stat:scale-110" />
               </div>
               <div className="flex flex-col gap-0 flex-1 min-w-0">
                 <span className="text-xs font-semibold truncate">{stat.value}</span>
