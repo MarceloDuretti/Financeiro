@@ -177,7 +177,7 @@ export default function Dashboard() {
       </div>
 
       {/* Hero KPIs Grid */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {kpis.map((kpi, index) => {
           const Icon = kpi.icon;
           const progressPercent = (kpi.current / kpi.target) * 100;
@@ -191,21 +191,21 @@ export default function Dashboard() {
               <div
                 className={`absolute -right-8 -top-8 h-32 w-32 rounded-full bg-gradient-to-br ${kpi.gradient} opacity-10 blur-3xl`}
               />
-              <CardHeader className="pb-2">
+              <CardHeader className="pb-1.5">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex flex-col gap-0.5 flex-1 min-w-0">
                     <CardDescription className="text-xs font-medium">
                       {kpi.title}
                     </CardDescription>
-                    <CardTitle className="text-xl font-bold truncate">{kpi.value}</CardTitle>
+                    <CardTitle className="text-lg font-bold truncate">{kpi.value}</CardTitle>
                   </div>
-                  <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${kpi.gradient} shadow-lg`}>
-                    <Icon className="h-4 w-4 text-white" strokeWidth={2.5} />
+                  <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${kpi.gradient} shadow-lg`}>
+                    <Icon className="h-3.5 w-3.5 text-white" strokeWidth={2.5} />
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="pb-3">
-                <div className="flex items-center gap-2 mb-2">
+              <CardContent className="pb-2">
+                <div className="flex items-center gap-1.5 mb-1.5">
                   {kpi.trend === "up" ? (
                     <TrendingUp className="h-3 w-3 text-green-500" />
                   ) : (
@@ -218,7 +218,7 @@ export default function Dashboard() {
                 </div>
                 
                 {/* Mini Sparkline */}
-                <div className="h-6 w-full">
+                <div className="h-5 w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={kpi.sparklineData.map((v, i) => ({ value: v }))}>
                       <defs>
@@ -244,27 +244,25 @@ export default function Dashboard() {
       </div>
 
       {/* Advanced Charts Grid */}
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-4 lg:grid-cols-2">
         {/* Modern Line Chart - Revenue & Expenses */}
         <Card className="border-0 bg-gradient-to-br from-card to-muted/20 shadow-lg col-span-full">
-          <CardHeader>
-            <div className="flex items-start justify-between flex-wrap gap-4">
+          <CardHeader className="pb-3">
+            <div className="flex items-start justify-between flex-wrap gap-3">
               <div>
-                <CardTitle className="text-xl font-bold">Receitas e Despesas</CardTitle>
-                <CardDescription className="mt-1">
+                <CardTitle className="text-lg font-bold">Receitas e Despesas</CardTitle>
+                <CardDescription className="text-xs">
                   Evolução mensal dos últimos 6 meses
                 </CardDescription>
               </div>
-              <div className="flex gap-2">
-                <Badge variant="secondary" className="bg-green-500/10 text-green-600 border-green-500/20">
-                  <TrendingUp className="h-3 w-3 mr-1" />
-                  Crescimento Positivo
-                </Badge>
-              </div>
+              <Badge variant="secondary" className="bg-green-500/10 text-green-600 border-green-500/20 text-xs">
+                <TrendingUp className="h-3 w-3 mr-1" />
+                Crescimento Positivo
+              </Badge>
             </div>
           </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={240}>
+          <CardContent className="pb-3">
+            <ResponsiveContainer width="100%" height={180}>
               <LineChart data={monthlyData}>
                 <defs>
                   <linearGradient id="lineGradientReceitas" x1="0" y1="0" x2="1" y2="0">
@@ -322,12 +320,12 @@ export default function Dashboard() {
 
         {/* Category Breakdown */}
         <Card className="border-0 bg-gradient-to-br from-card to-muted/20 shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-xl font-bold">Distribuição de Despesas</CardTitle>
-            <CardDescription>Análise por categoria operacional</CardDescription>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg font-bold">Distribuição de Despesas</CardTitle>
+            <CardDescription className="text-xs">Análise por categoria operacional</CardDescription>
           </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+          <CardContent className="pb-3">
+            <ResponsiveContainer width="100%" height={240}>
               <PieChart>
                 <Pie
                   data={categoryData}
@@ -361,11 +359,11 @@ export default function Dashboard() {
 
         {/* Department Performance Heatmap */}
         <Card className="border-0 bg-gradient-to-br from-card to-muted/20 shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-xl font-bold">Performance por Departamento</CardTitle>
-            <CardDescription>Gastos mensais em milhares (R$) - Heatmap visual</CardDescription>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg font-bold">Performance por Departamento</CardTitle>
+            <CardDescription className="text-xs">Gastos mensais em milhares (R$) - Heatmap visual</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pb-3">
             <div className="overflow-x-auto">
               <table className="w-full border-collapse">
                 <thead>
@@ -466,14 +464,14 @@ export default function Dashboard() {
       </div>
 
       {/* Intelligence Workspace */}
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-4 lg:grid-cols-3">
         {/* Transactions Table */}
         <Card className="border-0 bg-gradient-to-br from-card to-muted/20 shadow-lg lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="text-xl font-bold">Últimas Transações</CardTitle>
-            <CardDescription>Movimentações recentes com status de confirmação</CardDescription>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg font-bold">Últimas Transações</CardTitle>
+            <CardDescription className="text-xs">Movimentações recentes com status de confirmação</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pb-3">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
@@ -538,11 +536,11 @@ export default function Dashboard() {
 
         {/* Alerts Feed */}
         <Card className="border-0 bg-gradient-to-br from-card to-muted/20 shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-xl font-bold">Alertas & Insights</CardTitle>
-            <CardDescription>Notificações importantes do sistema</CardDescription>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg font-bold">Alertas & Insights</CardTitle>
+            <CardDescription className="text-xs">Notificações importantes do sistema</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pb-3">
             <div className="flex flex-col gap-3">
               {alerts.map((alert, idx) => (
                 <div
