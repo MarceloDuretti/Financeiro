@@ -355,7 +355,7 @@ export default function PlanoDeContas() {
   const renderNode = (node: ChartAccountNode, depth: number = 0, isLast: boolean = false) => {
     const isExpanded = expandedNodes.has(node.id);
     const hasChildNodes = node.children.length > 0;
-    const indentSize = 32; // 32px per level for strong visual hierarchy
+    const indentSize = 24; // 24px per level for compact visual hierarchy
     
     // Typography hierarchy based on depth
     const getTextSize = () => {
@@ -384,7 +384,7 @@ export default function PlanoDeContas() {
 
         {/* Account row with hover actions */}
         <div
-          className={`group relative flex items-center gap-3 py-2.5 px-3 rounded-md hover-elevate transition-all ${
+          className={`group relative flex items-center gap-2 py-1.5 px-2 rounded-md hover-elevate transition-all ${
             !hasChildNodes ? 'bg-muted/30 dark:bg-muted/20' : ''
           }`}
           style={{ paddingLeft: `${depth * indentSize + 12}px` }}
@@ -411,7 +411,7 @@ export default function PlanoDeContas() {
           <div className="flex-shrink-0">
             {hasChildNodes ? (
               isExpanded ? (
-                <FolderOpen className={`h-5 w-5 ${
+                <FolderOpen className={`h-4 w-4 ${
                   node.type === "receita" ? "text-green-600 dark:text-green-400" :
                   node.type === "despesa" ? "text-red-600 dark:text-red-400" :
                   node.type === "ativo" ? "text-blue-600 dark:text-blue-400" :
@@ -419,7 +419,7 @@ export default function PlanoDeContas() {
                   "text-violet-600 dark:text-violet-400"
                 }`} />
               ) : (
-                <Folder className={`h-5 w-5 ${
+                <Folder className={`h-4 w-4 ${
                   node.type === "receita" ? "text-green-600 dark:text-green-400" :
                   node.type === "despesa" ? "text-red-600 dark:text-red-400" :
                   node.type === "ativo" ? "text-blue-600 dark:text-blue-400" :
@@ -444,7 +444,7 @@ export default function PlanoDeContas() {
           <div className="flex-shrink-0">
             <Badge 
               variant="secondary" 
-              className="font-mono text-xs px-2 py-0.5"
+              className="font-mono text-[10px] px-1.5 py-0"
               data-testid={`text-code-${node.id}`}
             >
               {node.code}
@@ -454,14 +454,14 @@ export default function PlanoDeContas() {
           {/* Name and description with hierarchical typography */}
           <div className="flex-1 min-w-0">
             <div
-              className={`${getTextSize()}`}
+              className={`${getTextSize()} leading-tight`}
               data-testid={`text-name-${node.id}`}
             >
               {node.name}
             </div>
             {node.description && (
               <div 
-                className="text-xs text-muted-foreground mt-0.5 truncate"
+                className="text-[10px] text-muted-foreground mt-0 truncate leading-tight"
                 data-testid={`text-description-${node.id}`}
                 title={node.description}
               >
@@ -473,43 +473,43 @@ export default function PlanoDeContas() {
           {/* Type badge */}
           <Badge
             variant="outline"
-            className={`${getTypeColor(node.type)} text-xs flex-shrink-0`}
+            className={`${getTypeColor(node.type)} text-[10px] px-1.5 py-0 flex-shrink-0`}
             data-testid={`badge-type-${node.id}`}
           >
             {getTypeLabel(node.type)}
           </Badge>
 
           {/* Action buttons - only visible on hover */}
-          <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="flex items-center gap-0 opacity-0 group-hover:opacity-100 transition-opacity">
             <Button
               size="icon"
               variant="ghost"
-              className="h-8 w-8"
+              className="h-7 w-7"
               onClick={() => openCreateChildDialog(node)}
               data-testid={`button-add-child-${node.id}`}
               title="Adicionar subconta"
             >
-              <Plus className="h-4 w-4" />
+              <Plus className="h-3.5 w-3.5" />
             </Button>
             <Button
               size="icon"
               variant="ghost"
-              className="h-8 w-8"
+              className="h-7 w-7"
               onClick={() => openEditDialog(node)}
               data-testid={`button-edit-${node.id}`}
               title="Editar"
             >
-              <Edit className="h-4 w-4" />
+              <Edit className="h-3.5 w-3.5" />
             </Button>
             <Button
               size="icon"
               variant="ghost"
-              className="h-8 w-8"
+              className="h-7 w-7"
               onClick={() => openDeleteDialog(node)}
               data-testid={`button-delete-${node.id}`}
               title="Excluir"
             >
-              <Trash2 className="h-4 w-4" />
+              <Trash2 className="h-3.5 w-3.5" />
             </Button>
           </div>
         </div>
@@ -528,16 +528,16 @@ export default function PlanoDeContas() {
 
   if (isLoading) {
     return (
-      <div className="flex-1 overflow-auto p-6">
-        <div className="max-w-7xl mx-auto space-y-6">
+      <div className="flex-1 overflow-auto p-4">
+        <div className="max-w-7xl mx-auto space-y-3">
           <div className="flex items-center justify-between">
             <Skeleton className="h-8 w-48" />
             <Skeleton className="h-10 w-40" />
           </div>
-          <Card className="p-6">
-            <div className="space-y-3">
+          <Card className="p-3">
+            <div className="space-y-2">
               {[...Array(5)].map((_, i) => (
-                <Skeleton key={i} className="h-12 w-full" />
+                <Skeleton key={i} className="h-10 w-full" />
               ))}
             </div>
           </Card>
@@ -547,15 +547,15 @@ export default function PlanoDeContas() {
   }
 
   return (
-    <div className="flex-1 overflow-auto p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="flex-1 overflow-auto p-4">
+      <div className="max-w-7xl mx-auto space-y-3">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight" data-testid="text-page-title">
+            <h1 className="text-2xl font-bold tracking-tight leading-tight" data-testid="text-page-title">
               Plano de Contas
             </h1>
-            <p className="text-muted-foreground mt-1" data-testid="text-page-subtitle">
+            <p className="text-muted-foreground text-xs mt-0" data-testid="text-page-subtitle">
               Estrutura hierárquica de contas contábeis
             </p>
           </div>
@@ -646,10 +646,10 @@ export default function PlanoDeContas() {
 
         {/* Account tree with improved spacing */}
         {accounts.length > 0 && (
-          <Card className="p-4">
-            <div className="space-y-4">
+          <Card className="p-3">
+            <div className="space-y-1">
               {accountTree.map((node, index) => (
-                <div key={node.id} className={index > 0 ? "pt-4 border-t" : ""}>
+                <div key={node.id} className={index > 0 ? "pt-2 border-t" : ""}>
                   {renderNode(node, 0)}
                 </div>
               ))}
