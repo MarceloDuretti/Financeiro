@@ -156,22 +156,6 @@ const menuItems = [
     badge: "23",
     requiresCompany: true,
   },
-  {
-    title: "Contabilidade",
-    description: "Dashboard contábil",
-    externalUrl: "https://contabil-dashboard-nexttisoftware.replit.app/",
-    icon: BarChart3,
-    color: "from-blue-600 to-indigo-600",
-    requiresCompany: false,
-  },
-  {
-    title: "Cliente",
-    description: "Área do cliente",
-    externalUrl: "https://client-nexttisoftware.replit.app/",
-    icon: Users,
-    color: "from-teal-500 to-cyan-500",
-    requiresCompany: false,
-  },
 ];
 
 const quickStats = [
@@ -652,6 +636,31 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+
+      {/* Links de Apresentação */}
+      <div className="px-4 py-3 border-t border-border">
+        <div className="flex items-center justify-center gap-3">
+          <a
+            href="https://contabil-dashboard-nexttisoftware.replit.app/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors hover-elevate px-3 py-1.5 rounded-md"
+            data-testid="link-contabilidade"
+          >
+            Contabilidade
+          </a>
+          <Separator orientation="vertical" className="h-4" />
+          <a
+            href="https://client-nexttisoftware.replit.app/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors hover-elevate px-3 py-1.5 rounded-md"
+            data-testid="link-cliente"
+          >
+            Cliente
+          </a>
+        </div>
+      </div>
     </Sidebar>
   );
 }
