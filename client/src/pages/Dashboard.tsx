@@ -399,19 +399,19 @@ export default function Dashboard() {
       <div className="grid gap-4 lg:grid-cols-2">
         {/* Category Breakdown */}
         <Card className="border-0 bg-gradient-to-br from-card to-muted/20 shadow-lg">
-          <CardHeader className="pb-3">
+          <CardHeader className="pb-2">
             <CardTitle className="text-lg font-bold">Distribuição de Despesas</CardTitle>
             <CardDescription className="text-xs">Análise por categoria operacional</CardDescription>
           </CardHeader>
-          <CardContent className="pb-3">
-            <ResponsiveContainer width="100%" height={240}>
+          <CardContent className="pb-2">
+            <ResponsiveContainer width="100%" height={140}>
               <PieChart>
                 <Pie
                   data={categoryData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={60}
-                  outerRadius={100}
+                  innerRadius={45}
+                  outerRadius={75}
                   paddingAngle={2}
                   dataKey="value"
                 >
@@ -422,12 +422,12 @@ export default function Dashboard() {
                 <Tooltip content={<CustomTooltip />} />
               </PieChart>
             </ResponsiveContainer>
-            <div className="mt-4 grid grid-cols-2 gap-3">
+            <div className="mt-2 grid grid-cols-2 gap-2">
               {categoryData.map((cat, idx) => (
-                <div key={idx} className="flex items-center gap-2">
-                  <div className="h-3 w-3 rounded-sm" style={{ backgroundColor: cat.color }} />
-                  <div className="flex flex-col">
-                    <span className="text-xs font-medium">{cat.name}</span>
+                <div key={idx} className="flex items-center gap-1.5">
+                  <div className="h-2.5 w-2.5 rounded-sm shrink-0" style={{ backgroundColor: cat.color }} />
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-xs font-medium truncate">{cat.name}</span>
                     <span className="text-xs text-muted-foreground">{cat.percentage}%</span>
                   </div>
                 </div>
@@ -438,16 +438,16 @@ export default function Dashboard() {
 
         {/* Alerts Feed */}
         <Card className="border-0 bg-gradient-to-br from-card to-muted/20 shadow-lg">
-          <CardHeader className="pb-3">
+          <CardHeader className="pb-2">
             <CardTitle className="text-lg font-bold">Alertas & Insights</CardTitle>
             <CardDescription className="text-xs">Notificações importantes do sistema</CardDescription>
           </CardHeader>
-          <CardContent className="pb-3">
-            <div className="flex flex-col gap-3">
+          <CardContent className="pb-2">
+            <div className="flex flex-col gap-2">
               {alerts.map((alert, idx) => (
                 <div
                   key={idx}
-                  className={`flex items-start gap-3 p-3 rounded-lg border ${
+                  className={`flex items-start gap-2 p-2 rounded-lg border ${
                     alert.type === "warning"
                       ? "bg-orange-500/5 border-orange-500/20"
                       : alert.type === "success"
@@ -457,20 +457,20 @@ export default function Dashboard() {
                   data-testid={`alert-${idx}`}
                 >
                   {alert.type === "warning" ? (
-                    <AlertCircle className="h-4 w-4 text-orange-500 shrink-0 mt-0.5" />
+                    <AlertCircle className="h-3.5 w-3.5 text-orange-500 shrink-0 mt-0.5" />
                   ) : alert.type === "success" ? (
-                    <CheckCircle className="h-4 w-4 text-green-500 shrink-0 mt-0.5" />
+                    <CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0 mt-0.5" />
                   ) : (
-                    <Activity className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
+                    <Activity className="h-3.5 w-3.5 text-blue-500 shrink-0 mt-0.5" />
                   )}
-                  <div className="flex flex-col gap-1 flex-1 min-w-0">
-                    <p className="text-sm font-medium leading-tight">{alert.message}</p>
+                  <div className="flex flex-col gap-0.5 flex-1 min-w-0">
+                    <p className="text-xs font-medium leading-tight">{alert.message}</p>
                     <span className="text-xs text-muted-foreground">{alert.time}</span>
                   </div>
                 </div>
               ))}
               
-              <Separator className="my-2" />
+              <Separator className="my-1.5" />
               
               <Button variant="outline" size="sm" className="w-full">
                 Ver Todos os Alertas
@@ -482,11 +482,11 @@ export default function Dashboard() {
 
       {/* Últimas Transações */}
       <Card className="border-0 bg-gradient-to-br from-card to-muted/20 shadow-lg">
-          <CardHeader className="pb-3">
+          <CardHeader className="pb-2">
             <CardTitle className="text-lg font-bold">Últimas Transações</CardTitle>
             <CardDescription className="text-xs">Movimentações recentes com status de confirmação</CardDescription>
           </CardHeader>
-          <CardContent className="pb-3">
+          <CardContent className="pb-2">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
