@@ -418,16 +418,16 @@ export function AppSidebar() {
       collapsible="icon" 
       className="border-r bg-gradient-to-b from-background to-muted/20"
     >
-      <SidebarHeader className="border-b bg-gradient-to-br from-primary/5 to-transparent p-5">
-        <div className="flex items-center gap-3 rounded-xl bg-gradient-to-br from-card to-muted/30 p-4 border shadow-sm hover-elevate cursor-pointer mb-5" data-testid="profile-card">
-          <Avatar className="h-12 w-12 border-2 border-primary/20">
+      <SidebarHeader className="border-b bg-gradient-to-br from-primary/5 to-transparent p-3">
+        <div className="flex items-center gap-2.5 rounded-xl bg-gradient-to-br from-card to-muted/30 p-2.5 border shadow-sm hover-elevate cursor-pointer mb-3" data-testid="profile-card">
+          <Avatar className="h-9 w-9 border-2 border-primary/20">
             <AvatarImage src={user?.profileImageUrl || ""} alt={getUserDisplayName()} />
-            <AvatarFallback className="bg-gradient-to-br from-primary to-blue-600 text-white font-semibold text-sm">
+            <AvatarFallback className="bg-gradient-to-br from-primary to-blue-600 text-white font-semibold text-xs">
               {getUserInitials()}
             </AvatarFallback>
           </Avatar>
           <div className="flex flex-col flex-1 min-w-0">
-            <span className="font-semibold text-sm truncate" data-testid="text-user-name">
+            <span className="font-semibold text-xs truncate" data-testid="text-user-name">
               {getUserDisplayName()}
             </span>
             <span className="text-xs text-muted-foreground truncate">
@@ -436,19 +436,19 @@ export function AppSidebar() {
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-3 gap-1.5">
           {quickStats.map((stat, index) => (
             <div
               key={index}
-              className="flex flex-col items-center gap-2 rounded-xl bg-gradient-to-br from-muted/50 to-transparent p-3 border border-border/50 hover-elevate cursor-default"
+              className="flex flex-col items-center gap-1 rounded-xl bg-gradient-to-br from-muted/50 to-transparent p-2 border border-border/50 hover-elevate cursor-default"
               data-testid={`quick-stat-${index}`}
             >
-              <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${stat.color === 'text-green-500' ? 'from-green-500 to-emerald-600' : stat.color === 'text-blue-500' ? 'from-blue-500 to-indigo-600' : 'from-orange-500 to-amber-600'} shadow-sm`}>
-                <stat.icon className="h-4 w-4 text-white" />
+              <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${stat.color === 'text-green-500' ? 'from-green-500 to-emerald-600' : stat.color === 'text-blue-500' ? 'from-blue-500 to-indigo-600' : 'from-orange-500 to-amber-600'} shadow-sm`}>
+                <stat.icon className="h-3 w-3 text-white" />
               </div>
               <div className="flex flex-col items-center gap-0.5 w-full">
-                <span className="text-sm font-bold truncate">{stat.value}</span>
-                <span className="text-[10px] text-muted-foreground text-center truncate w-full">{stat.label}</span>
+                <span className="text-xs font-semibold truncate">{stat.value}</span>
+                <span className="text-[11px] text-muted-foreground text-center truncate w-full leading-tight">{stat.label}</span>
               </div>
             </div>
           ))}
