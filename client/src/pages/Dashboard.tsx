@@ -450,13 +450,13 @@ export default function Dashboard() {
                 <Tooltip content={<CustomTooltip />} />
               </PieChart>
             </ResponsiveContainer>
-            <div className="mt-2 grid grid-cols-2 gap-2">
+            <div className="mt-1.5 grid grid-cols-2 gap-1.5">
               {categoryData.map((cat, idx) => (
-                <div key={idx} className="flex items-center gap-1.5">
-                  <div className="h-2.5 w-2.5 rounded-sm shrink-0" style={{ backgroundColor: cat.color }} />
-                  <div className="flex flex-col min-w-0">
-                    <span className="text-xs font-medium truncate">{cat.name}</span>
-                    <span className="text-xs text-muted-foreground">{cat.percentage}%</span>
+                <div key={idx} className="flex items-center gap-1">
+                  <div className="h-2 w-2 rounded-sm shrink-0" style={{ backgroundColor: cat.color }} />
+                  <div className="flex items-baseline gap-1 min-w-0">
+                    <span className="text-[10px] font-medium truncate">{cat.name}</span>
+                    <span className="text-[10px] text-muted-foreground">{cat.percentage}%</span>
                   </div>
                 </div>
               ))}
