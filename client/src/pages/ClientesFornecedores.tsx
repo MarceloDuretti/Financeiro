@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRealtimeQuery } from "@/hooks/useRealtimeQuery";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -89,6 +89,10 @@ export default function ClientesFornecedores() {
   const [editingEntity, setEditingEntity] = useState<EntityWithStats | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Use ref for synchronous submission lock to prevent race conditions
+  const isSubmittingRef = useRef(false);
 
   // Fetch entities with real-time updates
   const { data: entities = [], isLoading } = useRealtimeQuery<EntityWithStats[]>({
@@ -137,6 +141,8 @@ export default function ClientesFornecedores() {
     setEditingEntity(null);
     form.reset();
     setWizardStep(1);
+    isSubmittingRef.current = false; // Reset submission lock
+    setIsSubmitting(false);
     setIsWizardOpen(true);
   };
 
@@ -220,6 +226,15 @@ export default function ClientesFornecedores() {
   };
 
   const onSubmit = async (data: InsertCustomerSupplier) => {
+    // Prevent multiple submissions using ref for synchronous check
+    if (isSubmittingRef.current) {
+      console.log('[Submit] Blocked - already submitting');
+      return;
+    }
+    
+    console.log('[Submit] Starting submission');
+    isSubmittingRef.current = true;
+    setIsSubmitting(true);
     try {
       if (editingEntity) {
         // Update existing entity
@@ -247,12 +262,17 @@ export default function ClientesFornecedores() {
       setIsWizardOpen(false);
       setEditingEntity(null);
       form.reset();
+      setWizardStep(1);
     } catch (error: any) {
       toast({
         title: "Erro",
         description: error.message || `Não foi possível ${editingEntity ? "atualizar" : "criar"} o registro`,
         variant: "destructive",
       });
+    } finally {
+      console.log('[Submit] Finished - resetting locks');
+      isSubmittingRef.current = false;
+      setIsSubmitting(false);
     }
   };
 
@@ -1739,9 +1759,17 @@ export default function ClientesFornecedores() {
                     <ChevronRight className="h-4 w-4 ml-2" />
                   </Button>
                 ) : (
-                  <Button type="submit" data-testid="button-wizard-submit">
-                    <Check className="h-4 w-4 mr-2" />
-                    Salvar
+                  <Button 
+                    type="submit" 
+                    disabled={isSubmitting || form.formState.isSubmitting} 
+                    data-testid="button-wizard-submit"
+                  >
+                    {(isSubmitting || form.formState.isSubmitting) ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Check className="h-4 w-4 mr-2" />
+                    )}
+                    {(isSubmitting || form.formState.isSubmitting) ? "Salvando..." : "Salvar"}
                   </Button>
                 )}
               </div>

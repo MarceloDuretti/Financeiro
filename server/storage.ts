@@ -1181,9 +1181,47 @@ export class DatabaseStorage implements IStorage {
     entityData: InsertCustomerSupplier
   ): Promise<CustomerSupplier> {
     return await db.transaction(async (tx) => {
-      // Use advisory lock to ensure thread-safe code generation
+      // Use advisory lock to ensure thread-safe code generation AND duplicate prevention
       const lockKey = this.hashStringToInt(`customer_supplier_code_${tenantId}`);
       await tx.execute(sql`SELECT pg_advisory_xact_lock(${lockKey})`);
+
+      // Check for duplicate by name (case-insensitive) and document if provided
+      const normalizedName = entityData.name.trim().toLowerCase();
+      const duplicateCheck = await tx
+        .select()
+        .from(customersSuppliers)
+        .where(
+          and(
+            eq(customersSuppliers.tenantId, tenantId),
+            eq(customersSuppliers.deleted, false),
+            sql`LOWER(TRIM(${customersSuppliers.name})) = ${normalizedName}`
+          )
+        )
+        .limit(1);
+
+      if (duplicateCheck.length > 0) {
+        throw new Error(`Já existe um registro com o nome "${entityData.name}"`);
+      }
+
+      // If document is provided, also check for duplicate document
+      if (entityData.document && entityData.document.trim()) {
+        const normalizedDocument = entityData.document.replace(/\D/g, ''); // Remove non-digits
+        const docDuplicateCheck = await tx
+          .select()
+          .from(customersSuppliers)
+          .where(
+            and(
+              eq(customersSuppliers.tenantId, tenantId),
+              eq(customersSuppliers.deleted, false),
+              sql`REGEXP_REPLACE(${customersSuppliers.document}, '[^0-9]', '', 'g') = ${normalizedDocument}`
+            )
+          )
+          .limit(1);
+
+        if (docDuplicateCheck.length > 0) {
+          throw new Error(`Já existe um registro com o documento "${entityData.document}"`);
+        }
+      }
 
       // Get the next code number for this tenant
       const result = await tx
