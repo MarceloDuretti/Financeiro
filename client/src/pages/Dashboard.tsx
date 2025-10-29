@@ -193,25 +193,25 @@ export default function Dashboard() {
               <div
                 className={`absolute -right-8 -top-8 h-32 w-32 rounded-full bg-gradient-to-br ${kpi.gradient} opacity-10 blur-3xl`}
               />
-              <CardHeader className="pb-3">
+              <CardHeader className="pb-2">
                 <div className="flex items-start justify-between gap-2">
-                  <div className="flex flex-col gap-1 flex-1 min-w-0">
+                  <div className="flex flex-col gap-0.5 flex-1 min-w-0">
                     <CardDescription className="text-xs font-medium">
                       {kpi.title}
                     </CardDescription>
-                    <CardTitle className="text-2xl font-bold truncate">{kpi.value}</CardTitle>
+                    <CardTitle className="text-xl font-bold truncate">{kpi.value}</CardTitle>
                   </div>
-                  <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${kpi.gradient} shadow-lg`}>
-                    <Icon className="h-5 w-5 text-white" strokeWidth={2.5} />
+                  <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${kpi.gradient} shadow-lg`}>
+                    <Icon className="h-4 w-4 text-white" strokeWidth={2.5} />
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="pb-4">
-                <div className="flex items-center gap-2 mb-3">
+              <CardContent className="pb-3">
+                <div className="flex items-center gap-2 mb-2">
                   {kpi.trend === "up" ? (
-                    <TrendingUp className="h-3.5 w-3.5 text-green-500" />
+                    <TrendingUp className="h-3 w-3 text-green-500" />
                   ) : (
-                    <TrendingDown className="h-3.5 w-3.5 text-red-500" />
+                    <TrendingDown className="h-3 w-3 text-red-500" />
                   )}
                   <span className={`text-xs font-semibold ${kpi.trend === "up" ? "text-green-500" : "text-red-500"}`}>
                     {kpi.change}
@@ -220,7 +220,7 @@ export default function Dashboard() {
                 </div>
                 
                 {/* Mini Sparkline */}
-                <div className="h-8 w-full">
+                <div className="h-6 w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={kpi.sparklineData.map((v, i) => ({ value: v }))}>
                       <defs>
