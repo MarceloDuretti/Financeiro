@@ -373,45 +373,41 @@ export function TransactionDetailSheet({
                     </div>
                   </div>
 
-                  {!isEditing && (
-                    <>
-                      <Separator className="my-2" />
+                  <Separator className="my-2" />
 
-                      {/* Gráfico de Tendência Semanal */}
-                      <div>
-                        <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-2">
-                          Tendência Semanal
-                        </p>
-                        <ResponsiveContainer width="100%" height={80}>
-                          <LineChart data={sparklineData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
-                            <XAxis 
-                              dataKey="day" 
-                              tick={{ fontSize: 10 }}
-                              stroke="hsl(var(--muted-foreground))"
-                              tickLine={false}
-                              axisLine={false}
-                            />
-                            <Tooltip 
-                              contentStyle={{ 
-                                fontSize: '11px',
-                                backgroundColor: 'hsl(var(--popover))',
-                                border: '1px solid hsl(var(--border))',
-                                borderRadius: '6px'
-                              }}
-                              formatter={(value: any) => [`R$ ${Number(value).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, 'Valor']}
-                            />
-                            <Line
-                              type="monotone"
-                              dataKey="value"
-                              stroke="hsl(var(--primary))"
-                              strokeWidth={2}
-                              dot={{ r: 3, fill: 'hsl(var(--primary))' }}
-                            />
-                          </LineChart>
-                        </ResponsiveContainer>
-                      </div>
-                    </>
-                  )}
+                  {/* Gráfico de Tendência Semanal */}
+                  <div>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-2">
+                      Tendência Semanal
+                    </p>
+                    <ResponsiveContainer width="100%" height={80}>
+                      <LineChart data={sparklineData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
+                        <XAxis 
+                          dataKey="day" 
+                          tick={{ fontSize: 10 }}
+                          stroke="hsl(var(--muted-foreground))"
+                          tickLine={false}
+                          axisLine={false}
+                        />
+                        <Tooltip 
+                          contentStyle={{ 
+                            fontSize: '11px',
+                            backgroundColor: 'hsl(var(--popover))',
+                            border: '1px solid hsl(var(--border))',
+                            borderRadius: '6px'
+                          }}
+                          formatter={(value: any) => [`R$ ${Number(value).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, 'Valor']}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="value"
+                          stroke="hsl(var(--primary))"
+                          strokeWidth={2}
+                          dot={{ r: 3, fill: 'hsl(var(--primary))' }}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
 
                 </CardContent>
               </Card>
@@ -880,7 +876,6 @@ export function TransactionDetailSheet({
                   <Button
                     variant="outline"
                     size="sm"
-                    className="flex-1"
                     onClick={handleCancelEdit}
                     disabled={isSaving}
                     data-testid="button-cancel"
@@ -891,7 +886,6 @@ export function TransactionDetailSheet({
                   <Button
                     variant="default"
                     size="sm"
-                    className="flex-1"
                     onClick={handleSaveEdit}
                     disabled={isSaving}
                     data-testid="button-save"
