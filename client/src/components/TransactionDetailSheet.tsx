@@ -265,8 +265,8 @@ export function TransactionDetailSheet({
   const dailyBalance = 850.25;
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange} modal={false}>
-      <SheetContent className="w-full sm:max-w-4xl overflow-y-auto">
+    <Sheet open={open} onOpenChange={onOpenChange} modal={true}>
+      <SheetContent className={`w-full ${isEditing ? 'sm:max-w-6xl' : 'sm:max-w-4xl'} overflow-y-auto`}>
         <Form {...form}>
           <SheetHeader>
             <div className="flex items-center justify-between">
@@ -373,120 +373,10 @@ export function TransactionDetailSheet({
                     </div>
                   </div>
 
-                </CardContent>
-              </Card>
+                  <Separator className="my-2" />
 
-              {/* Status, Emissão, Vencimento + Gráfico */}
-              <div className="flex flex-col justify-center space-y-3">
-                {/* Status */}
-                <div>
-                  {!isEditing ? (
-                    <div>
-                      <p className="text-xs text-muted-foreground mb-1.5">Status</p>
-                      <div className="border rounded-md px-3 py-2 bg-muted/20">
-                        <Badge variant="outline" className="text-xs">
-                          {transaction.status === "paid"
-                            ? "Pago"
-                            : transaction.status === "cancelled"
-                            ? "Cancelado"
-                            : "Pendente"}
-                        </Badge>
-                      </div>
-                    </div>
-                  ) : (
-                    <FormField
-                      control={form.control}
-                      name="status"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-xs">Status</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl>
-                              <SelectTrigger data-testid="select-status" className="h-8">
-                                <SelectValue placeholder="Selecione..." />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="pending">Pendente</SelectItem>
-                              <SelectItem value="paid">Pago</SelectItem>
-                              <SelectItem value="cancelled">Cancelado</SelectItem>
-                              <SelectItem value="overdue">Vencido</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  )}
-                </div>
-
-                {/* Emissão */}
-                <div>
-                  {!isEditing ? (
-                    <div>
-                      <p className="text-xs text-muted-foreground mb-1.5">Emissão</p>
-                      <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium">
-                        {transaction.issueDate ? format(new Date(transaction.issueDate), "dd/MM/yyyy") : "-"}
-                      </div>
-                    </div>
-                  ) : (
-                    <FormField
-                      control={form.control}
-                      name="issueDate"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-xs">Emissão</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="date"
-                              className="h-8"
-                              value={field.value ? format(new Date(field.value), "yyyy-MM-dd") : ""}
-                              onChange={(e) => field.onChange(new Date(e.target.value))}
-                              data-testid="input-issue-date"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  )}
-                </div>
-
-                {/* Vencimento */}
-                <div>
-                  {!isEditing ? (
-                    <div>
-                      <p className="text-xs text-muted-foreground mb-1.5">Vencimento</p>
-                      <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium">
-                        {transaction.dueDate ? format(new Date(transaction.dueDate), "dd/MM/yyyy") : "-"}
-                      </div>
-                    </div>
-                  ) : (
-                    <FormField
-                      control={form.control}
-                      name="dueDate"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-xs">Vencimento</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="date"
-                              className="h-8"
-                              value={field.value ? format(new Date(field.value), "yyyy-MM-dd") : ""}
-                              onChange={(e) => field.onChange(new Date(e.target.value))}
-                              data-testid="input-due-date"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  )}
-                </div>
-
-                {/* Gráfico de Tendência Semanal */}
-                <Card className="border-0 bg-gradient-to-br from-card to-muted/30 shadow-sm">
-                  <CardContent className="p-3">
+                  {/* Gráfico de Tendência Semanal */}
+                  <div>
                     <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-2">
                       Tendência Semanal
                     </p>
@@ -501,67 +391,65 @@ export function TransactionDetailSheet({
                         />
                       </LineChart>
                     </ResponsiveContainer>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-
-            <Separator className="my-2" />
-
-            {/* Grid de 2 colunas: Título, Pessoa */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {/* Título */}
-              <div>
-                {!isEditing ? (
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-1.5">Título</p>
-                    <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium">
-                      {transaction.title}
-                    </div>
                   </div>
-                ) : (
-                  <FormField
-                    control={form.control}
-                    name="title"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-xs">Título</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="Título do lançamento" data-testid="input-title" className="h-8" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
-              </div>
 
-              {/* Pessoa (Cliente/Fornecedor) */}
-              <div>
-                {!isEditing ? (
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-1.5">
-                      {transaction.type === "expense" ? "Fornecedor" : "Cliente"}
-                    </p>
-                    <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium">
-                      {person?.name || "-"}
+                </CardContent>
+              </Card>
+
+              {/* Título e Cliente (Vertical) */}
+              <div className="flex flex-col justify-center space-y-3">
+                {/* Título */}
+                <div>
+                  {!isEditing ? (
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1.5">Título</p>
+                      <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium">
+                        {transaction.title}
+                      </div>
                     </div>
-                  </div>
-                ) : (
-                  <FormField
-                    control={form.control}
-                    name="personId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-xs">{transaction.type === "expense" ? "Fornecedor" : "Cliente"}</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
+                  ) : (
+                    <FormField
+                      control={form.control}
+                      name="title"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-xs">Título</FormLabel>
                           <FormControl>
-                            <SelectTrigger data-testid="select-person" className="h-8">
-                              <SelectValue placeholder="Selecione..." />
-                            </SelectTrigger>
+                            <Input {...field} placeholder="Título do lançamento" data-testid="input-title" className="h-8" />
                           </FormControl>
-                          <SelectContent>
-                            {customersSuppliers.map((p) => (
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+                </div>
+
+                {/* Pessoa (Cliente/Fornecedor) */}
+                <div>
+                  {!isEditing ? (
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1.5">
+                        {transaction.type === "expense" ? "Fornecedor" : "Cliente"}
+                      </p>
+                      <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium">
+                        {person?.name || "-"}
+                      </div>
+                    </div>
+                  ) : (
+                    <FormField
+                      control={form.control}
+                      name="personId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-xs">{transaction.type === "expense" ? "Fornecedor" : "Cliente"}</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger data-testid="select-person" className="h-8">
+                                <SelectValue placeholder="Selecione..." />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {customersSuppliers.map((p) => (
                               <SelectItem key={p.id} value={p.id}>
                                 {p.name}
                               </SelectItem>
@@ -574,11 +462,121 @@ export function TransactionDetailSheet({
                   />
                 )}
               </div>
-
             </div>
 
-            {/* Grid de 2 colunas: Centro de Custo, Conta Contábil */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <Separator className="my-2" />
+
+            {/* Grid de 3 colunas: Status, Emissão, Vencimento */}
+            <div className={`grid grid-cols-1 ${isEditing ? 'md:grid-cols-3' : 'md:grid-cols-3'} gap-3`}>
+              {/* Status */}
+              <div>
+                {!isEditing ? (
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1.5">Status</p>
+                    <div className="border rounded-md px-3 py-2 bg-muted/20">
+                      <Badge variant="outline" className="text-xs">
+                        {transaction.status === "paid"
+                          ? "Pago"
+                          : transaction.status === "cancelled"
+                          ? "Cancelado"
+                          : "Pendente"}
+                      </Badge>
+                    </div>
+                  </div>
+                ) : (
+                  <FormField
+                    control={form.control}
+                    name="status"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-xs">Status</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger data-testid="select-status" className="h-8">
+                              <SelectValue placeholder="Selecione..." />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="pending">Pendente</SelectItem>
+                            <SelectItem value="paid">Pago</SelectItem>
+                            <SelectItem value="cancelled">Cancelado</SelectItem>
+                            <SelectItem value="overdue">Vencido</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+              </div>
+
+              {/* Emissão */}
+              <div>
+                {!isEditing ? (
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1.5">Emissão</p>
+                    <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium">
+                      {transaction.issueDate ? format(new Date(transaction.issueDate), "dd/MM/yyyy") : "-"}
+                    </div>
+                  </div>
+                ) : (
+                  <FormField
+                    control={form.control}
+                    name="issueDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-xs">Emissão</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="date"
+                            className="h-8"
+                            value={field.value ? format(new Date(field.value), "yyyy-MM-dd") : ""}
+                            onChange={(e) => field.onChange(new Date(e.target.value))}
+                            data-testid="input-issue-date"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+              </div>
+
+              {/* Vencimento */}
+              <div>
+                {!isEditing ? (
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1.5">Vencimento</p>
+                    <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium">
+                      {transaction.dueDate ? format(new Date(transaction.dueDate), "dd/MM/yyyy") : "-"}
+                    </div>
+                  </div>
+                ) : (
+                  <FormField
+                    control={form.control}
+                    name="dueDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-xs">Vencimento</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="date"
+                            className="h-8"
+                            value={field.value ? format(new Date(field.value), "yyyy-MM-dd") : ""}
+                            onChange={(e) => field.onChange(new Date(e.target.value))}
+                            data-testid="input-due-date"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+              </div>
+            </div>
+
+            {/* Grid de 3 colunas quando editando: Centro de Custo, Conta Contábil, Forma de Pagamento */}
+            <div className={`grid grid-cols-1 ${isEditing ? 'md:grid-cols-3' : 'md:grid-cols-2'} gap-3`}>
               {/* Centro de Custo */}
               <div>
                 {!isEditing ? (
@@ -652,20 +650,9 @@ export function TransactionDetailSheet({
                 )}
               </div>
 
-            </div>
-
-            {/* Grid de 2 colunas: Forma de Pagamento, Conta Bancária */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {/* Forma de Pagamento */}
-              <div>
-                {!isEditing ? (
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-1.5">Forma de Pagamento</p>
-                    <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium">
-                      {paymentMethod?.name || "-"}
-                    </div>
-                  </div>
-                ) : (
+              {/* Forma de Pagamento - só no grid de 3 quando editando */}
+              {isEditing && (
+                <div>
                   <FormField
                     control={form.control}
                     name="paymentMethodId"
@@ -690,46 +677,60 @@ export function TransactionDetailSheet({
                       </FormItem>
                     )}
                   />
-                )}
-              </div>
-
-              {/* Conta Bancária */}
-              <div>
-                {!isEditing ? (
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-1.5">Conta Bancária</p>
-                    <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium">
-                      {bankAccount?.accountNumber || "-"}
-                    </div>
-                  </div>
-                ) : (
-                  <FormField
-                    control={form.control}
-                    name="bankAccountId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-xs">Conta Bancária</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger data-testid="select-bank-account" className="h-8">
-                              <SelectValue placeholder="Selecione..." />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {bankAccounts.map((b) => (
-                              <SelectItem key={b.id} value={b.id}>
-                                {b.accountNumber}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
-              </div>
+                </div>
+              )}
             </div>
+
+            {/* Grid de 2 colunas: Forma de Pagamento (quando não editando), Conta Bancária */}
+            {!isEditing && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {/* Forma de Pagamento */}
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1.5">Forma de Pagamento</p>
+                  <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium">
+                    {paymentMethod?.name || "-"}
+                  </div>
+                </div>
+
+                {/* Conta Bancária */}
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1.5">Conta Bancária</p>
+                  <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium">
+                    {bankAccount?.accountNumber || "-"}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Conta Bancária quando editando - separado */}
+            {isEditing && (
+              <div>
+                <FormField
+                  control={form.control}
+                  name="bankAccountId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-xs">Conta Bancária</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-bank-account" className="h-8">
+                            <SelectValue placeholder="Selecione..." />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {bankAccounts.map((b) => (
+                            <SelectItem key={b.id} value={b.id}>
+                              {b.accountNumber}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
 
             <Separator className="my-2" />
 
@@ -764,83 +765,69 @@ export function TransactionDetailSheet({
               )}
             </div>
 
-            {/* Action Buttons - Apple Style */}
-            <div className="space-y-2 pt-4 mt-4">
+            {/* Action Buttons - com fundos coloridos */}
+            <div className="pt-4 mt-4">
               {!isEditing ? (
-                <>
-                  {/* Ações Principais */}
-                  <div className="flex gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleEdit}
-                      data-testid="button-edit"
-                      className="flex-1"
-                    >
-                      <Edit2 className="h-4 w-4 mr-2" />
-                      Editar
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        toast({
-                          title: "Clonar Lançamento",
-                          description: "Funcionalidade em desenvolvimento",
-                        });
-                      }}
-                      data-testid="button-clone"
-                      className="flex-1"
-                    >
-                      <Copy className="h-4 w-4 mr-2" />
-                      Clonar
-                    </Button>
-                  </div>
-
-                  {/* Ações Secundárias */}
-                  <div className="flex gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        toast({
-                          title: "Recorrência",
-                          description: "Funcionalidade em desenvolvimento",
-                        });
-                      }}
-                      data-testid="button-recurring"
-                      className="flex-1"
-                    >
-                      <Repeat className="h-4 w-4 mr-2" />
-                      Recorrente
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        toast({
-                          title: "Imprimir",
-                          description: "Funcionalidade em desenvolvimento",
-                        });
-                      }}
-                      data-testid="button-print"
-                      className="flex-1"
-                    >
-                      <Printer className="h-4 w-4 mr-2" />
-                      Imprimir
-                    </Button>
-                  </div>
-
-                  {/* Excluir */}
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={handleEdit}
+                    data-testid="button-edit"
+                  >
+                    <Edit2 className="h-4 w-4 mr-1.5" />
+                    Editar
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => {
+                      toast({
+                        title: "Clonar Lançamento",
+                        description: "Funcionalidade em desenvolvimento",
+                      });
+                    }}
+                    data-testid="button-clone"
+                  >
+                    <Copy className="h-4 w-4 mr-1.5" />
+                    Clonar
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      toast({
+                        title: "Recorrência",
+                        description: "Funcionalidade em desenvolvimento",
+                      });
+                    }}
+                    data-testid="button-recurring"
+                  >
+                    <Repeat className="h-4 w-4 mr-1.5" />
+                    Recorrente
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      toast({
+                        title: "Imprimir",
+                        description: "Funcionalidade em desenvolvimento",
+                      });
+                    }}
+                    data-testid="button-print"
+                  >
+                    <Printer className="h-4 w-4 mr-1.5" />
+                    Imprimir
+                  </Button>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button 
-                        variant="ghost" 
+                        variant="destructive" 
                         size="sm" 
                         data-testid="button-delete-trigger"
-                        className="w-full text-destructive hover:text-destructive"
                       >
-                        <Trash2 className="h-4 w-4 mr-2" />
+                        <Trash2 className="h-4 w-4 mr-1.5" />
                         Excluir
                       </Button>
                     </AlertDialogTrigger>
@@ -871,11 +858,11 @@ export function TransactionDetailSheet({
                       </AlertDialogFooter>
                     </AlertDialogContent>
                   </AlertDialog>
-                </>
+                </div>
               ) : (
                 <div className="flex gap-2">
                   <Button
-                    variant="ghost"
+                    variant="outline"
                     size="sm"
                     className="flex-1"
                     onClick={handleCancelEdit}
@@ -886,6 +873,7 @@ export function TransactionDetailSheet({
                     Cancelar
                   </Button>
                   <Button
+                    variant="default"
                     size="sm"
                     className="flex-1"
                     onClick={handleSaveEdit}
