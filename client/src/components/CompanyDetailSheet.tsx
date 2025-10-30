@@ -325,9 +325,6 @@ export function CompanyDetailSheet({
                           {company.porte}
                         </Badge>
                       )}
-                      {company.isActive && (
-                        <Badge className="bg-green-600 text-[10px]">Ativa</Badge>
-                      )}
                     </div>
                   </div>
 
