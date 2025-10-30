@@ -284,12 +284,12 @@ export function TransactionDetailSheet({
             </div>
           </SheetHeader>
 
-          <div className="mt-4 space-y-2">
+          <div className={`mt-3 ${isEditing ? 'space-y-1.5' : 'space-y-2'}`}>
             {/* Top Section: Amount Card + All Fields */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               {/* Amount Card - Financial Dashboard */}
               <Card className="border-0 bg-gradient-to-br from-card to-muted/30 shadow-md">
-                <CardContent className="p-4 space-y-2">
+                <CardContent className={isEditing ? "p-3 space-y-1.5" : "p-4 space-y-2"}>
                   {/* Título do Módulo */}
                   <div className="flex items-center justify-between">
                     <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
@@ -373,47 +373,51 @@ export function TransactionDetailSheet({
                     </div>
                   </div>
 
-                  <Separator className="my-2" />
+                  {!isEditing && (
+                    <>
+                      <Separator className="my-2" />
 
-                  {/* Gráfico de Tendência Semanal */}
-                  <div>
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-2">
-                      Tendência Semanal
-                    </p>
-                    <ResponsiveContainer width="100%" height={80}>
-                      <LineChart data={sparklineData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
-                        <XAxis 
-                          dataKey="day" 
-                          tick={{ fontSize: 10 }}
-                          stroke="hsl(var(--muted-foreground))"
-                          tickLine={false}
-                          axisLine={false}
-                        />
-                        <Tooltip 
-                          contentStyle={{ 
-                            fontSize: '11px',
-                            backgroundColor: 'hsl(var(--popover))',
-                            border: '1px solid hsl(var(--border))',
-                            borderRadius: '6px'
-                          }}
-                          formatter={(value: any) => [`R$ ${Number(value).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, 'Valor']}
-                        />
-                        <Line
-                          type="monotone"
-                          dataKey="value"
-                          stroke="hsl(var(--primary))"
-                          strokeWidth={2}
-                          dot={{ r: 3, fill: 'hsl(var(--primary))' }}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
+                      {/* Gráfico de Tendência Semanal */}
+                      <div>
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-2">
+                          Tendência Semanal
+                        </p>
+                        <ResponsiveContainer width="100%" height={80}>
+                          <LineChart data={sparklineData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
+                            <XAxis 
+                              dataKey="day" 
+                              tick={{ fontSize: 10 }}
+                              stroke="hsl(var(--muted-foreground))"
+                              tickLine={false}
+                              axisLine={false}
+                            />
+                            <Tooltip 
+                              contentStyle={{ 
+                                fontSize: '11px',
+                                backgroundColor: 'hsl(var(--popover))',
+                                border: '1px solid hsl(var(--border))',
+                                borderRadius: '6px'
+                              }}
+                              formatter={(value: any) => [`R$ ${Number(value).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, 'Valor']}
+                            />
+                            <Line
+                              type="monotone"
+                              dataKey="value"
+                              stroke="hsl(var(--primary))"
+                              strokeWidth={2}
+                              dot={{ r: 3, fill: 'hsl(var(--primary))' }}
+                            />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </>
+                  )}
 
                 </CardContent>
               </Card>
 
               {/* Status, Emissão, Vencimento, Título, Cliente (Vertical) */}
-              <div className="space-y-2">
+              <div className={isEditing ? "space-y-1.5" : "space-y-2"}>
                 {/* Status */}
                 <div>
                   {!isEditing ? (
@@ -587,8 +591,8 @@ export function TransactionDetailSheet({
               </div>
             </div>
 
-            {/* Grid de 3 colunas quando editando: Centro de Custo, Conta Contábil, Forma de Pagamento */}
-            <div className={`grid grid-cols-1 ${isEditing ? 'md:grid-cols-3' : 'md:grid-cols-2'} gap-2`}>
+            {/* Grid de 4 colunas quando editando: Centro de Custo, Conta Contábil, Forma de Pagamento, Conta Bancária */}
+            <div className={`grid grid-cols-1 ${isEditing ? 'md:grid-cols-4' : 'md:grid-cols-2'} ${isEditing ? 'gap-1.5' : 'gap-2'}`}>
               {/* Centro de Custo */}
               <div>
                 {!isEditing ? (
@@ -662,7 +666,7 @@ export function TransactionDetailSheet({
                 )}
               </div>
 
-              {/* Forma de Pagamento - só no grid de 3 quando editando */}
+              {/* Forma de Pagamento - só no grid quando editando */}
               {isEditing && (
                 <div>
                   <FormField
@@ -681,6 +685,36 @@ export function TransactionDetailSheet({
                             {paymentMethods.map((p) => (
                               <SelectItem key={p.id} value={p.id}>
                                 {p.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              )}
+
+              {/* Conta Bancária - só no grid quando editando */}
+              {isEditing && (
+                <div>
+                  <FormField
+                    control={form.control}
+                    name="bankAccountId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-xs">Conta Bancária</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger data-testid="select-bank-account" className="h-8">
+                              <SelectValue placeholder="Selecione..." />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {bankAccounts.map((b) => (
+                              <SelectItem key={b.id} value={b.id}>
+                                {b.accountNumber}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -714,37 +748,7 @@ export function TransactionDetailSheet({
               </div>
             )}
 
-            {/* Conta Bancária quando editando - separado */}
-            {isEditing && (
-              <div>
-                <FormField
-                  control={form.control}
-                  name="bankAccountId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-xs">Conta Bancária</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger data-testid="select-bank-account" className="h-8">
-                            <SelectValue placeholder="Selecione..." />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {bankAccounts.map((b) => (
-                            <SelectItem key={b.id} value={b.id}>
-                              {b.accountNumber}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            )}
-
-            <Separator className="my-2" />
+            <Separator className={isEditing ? "my-1" : "my-2"} />
 
             {/* Descrição */}
             <div>
@@ -778,7 +782,7 @@ export function TransactionDetailSheet({
             </div>
 
             {/* Action Buttons - com fundos coloridos */}
-            <div className="pt-4 mt-4">
+            <div className={isEditing ? "pt-2 mt-2" : "pt-4 mt-4"}>
               {!isEditing ? (
                 <div className="flex flex-wrap gap-2">
                   <Button
