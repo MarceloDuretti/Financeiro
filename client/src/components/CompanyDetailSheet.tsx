@@ -6,6 +6,7 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
+  SheetFooter,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -951,95 +952,95 @@ export function CompanyDetailSheet({
                 <CobrancaTab companyId={company.id} />
               </TabsContent>
             </Tabs>
-
-            {/* Action Buttons */}
-            <div className={isEditing ? "pt-2 mt-2" : "pt-4 mt-4 border-t"}>
-              {!isEditing ? (
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    variant="default"
-                    size="sm"
-                    onClick={handleEdit}
-                    data-testid="button-edit-company"
-                  >
-                    <Edit2 className="h-4 w-4 mr-1.5" />
-                    Editar
-                  </Button>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button 
-                        variant="destructive" 
-                        size="sm" 
-                        data-testid="button-delete-company"
-                      >
-                        <Trash2 className="h-4 w-4 mr-1.5" />
-                        Excluir
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Esta ação não pode ser desfeita. A empresa "{company.tradeName}" será permanentemente excluída.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel data-testid="button-cancel-delete">Cancelar</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={handleDelete}
-                          disabled={isDeleting}
-                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                          data-testid="button-confirm-delete"
-                        >
-                          {isDeleting ? (
-                            <>
-                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                              Excluindo...
-                            </>
-                          ) : (
-                            "Excluir"
-                          )}
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </div>
-              ) : (
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleCancelEdit}
-                    disabled={isSaving}
-                    data-testid="button-cancel-edit"
-                  >
-                    <X className="h-4 w-4 mr-2" />
-                    Cancelar
-                  </Button>
-                  <Button
-                    variant="default"
-                    size="sm"
-                    onClick={handleSaveEdit}
-                    disabled={isSaving}
-                    data-testid="button-save-edit"
-                  >
-                    {isSaving ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Salvando...
-                      </>
-                    ) : (
-                      <>
-                        <Edit2 className="h-4 w-4 mr-2" />
-                        Salvar
-                      </>
-                    )}
-                  </Button>
-                </div>
-              )}
-            </div>
           </div>
         </Form>
+
+        {/* Action Buttons Footer */}
+        <SheetFooter className={isEditing ? "pt-2 mt-2" : "pt-4 mt-4 border-t"}>
+          {!isEditing ? (
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant="default"
+                size="sm"
+                onClick={handleEdit}
+                data-testid="button-edit-company"
+              >
+                <Edit2 className="h-4 w-4 mr-1.5" />
+                Editar
+              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button 
+                    variant="destructive" 
+                    size="sm" 
+                    data-testid="button-delete-company"
+                  >
+                    <Trash2 className="h-4 w-4 mr-1.5" />
+                    Excluir
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Esta ação não pode ser desfeita. A empresa "{company.tradeName}" será permanentemente excluída.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel data-testid="button-cancel-delete">Cancelar</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleDelete}
+                      disabled={isDeleting}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      data-testid="button-confirm-delete"
+                    >
+                      {isDeleting ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Excluindo...
+                        </>
+                      ) : (
+                        "Excluir"
+                      )}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+          ) : (
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleCancelEdit}
+                disabled={isSaving}
+                data-testid="button-cancel-edit"
+              >
+                <X className="h-4 w-4 mr-2" />
+                Cancelar
+              </Button>
+              <Button
+                variant="default"
+                size="sm"
+                onClick={handleSaveEdit}
+                disabled={isSaving}
+                data-testid="button-save-edit"
+              >
+                {isSaving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Salvando...
+                  </>
+                ) : (
+                  <>
+                    <Edit2 className="h-4 w-4 mr-2" />
+                    Salvar
+                  </>
+                )}
+              </Button>
+            </div>
+          )}
+        </SheetFooter>
       </SheetContent>
     </Sheet>
   );
