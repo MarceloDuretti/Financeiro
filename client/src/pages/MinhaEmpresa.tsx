@@ -21,6 +21,7 @@ import type { InsertCompany } from "@shared/schema";
 import { TeamTab } from "@/components/TeamTab";
 import CobrancaTab from "@/components/CobrancaTab";
 import { formatCompanyCode } from "@/lib/formatters";
+import { CompanyDetailSheet } from "@/components/CompanyDetailSheet";
 
 const SELECTED_COMPANY_KEY = "fincontrol_selected_company_id";
 // Simple formatters for display and input masks
@@ -66,8 +67,6 @@ export default function MinhaEmpresa() {
   const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(() => {
     return localStorage.getItem(SELECTED_COMPANY_KEY);
   });
-  const [isEditing, setIsEditing] = useState(false);
-  const [editFormData, setEditFormData] = useState<Partial<Company>>({});
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [companiesViewMode, setCompaniesViewMode] = useState<'cards' | 'list'>(() => {
     const saved = localStorage.getItem('fincontrol_companies_view_mode');
@@ -133,28 +132,6 @@ export default function MinhaEmpresa() {
     },
   });
 
-  // Mutation para deletar empresa
-  const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      return await apiRequest("DELETE", `/api/companies/${id}`);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/companies"] });
-      setSelectedCompanyId(null);
-      toast({
-        title: "Sucesso",
-        description: "Empresa excluída com sucesso!",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Erro",
-        description: error.message || "Não foi possível excluir a empresa.",
-        variant: "destructive",
-      });
-    },
-  });
-
   useEffect(() => {
     if (selectedCompanyId) {
       localStorage.setItem(SELECTED_COMPANY_KEY, selectedCompanyId);
@@ -192,7 +169,7 @@ export default function MinhaEmpresa() {
       );
     }
     list = [...list].sort((a, b) => {
-      if (sortBy === 'code') return (a.code || '').localeCompare(b.code || '');
+      if (sortBy === 'code') return String(a.code || '').localeCompare(String(b.code || ''));
       return (a.tradeName || '').localeCompare(b.tradeName || '');
     });
     return list;
@@ -214,57 +191,8 @@ export default function MinhaEmpresa() {
     }
   });
 
-  const handleCloseDetails = () => {
-    setSelectedCompanyId(null);
-  };
-
-  const handleStartEdit = () => {
-    if (selectedCompany) {
-      setEditFormData(selectedCompany);
-      setIsEditing(true);
-    }
-  };
-
-  const handleCancelEdit = () => {
-    setIsEditing(false);
-    setEditFormData({});
-  };
-
-  const handleEditChange = (field: keyof Company, value: string) => {
-    setEditFormData(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handleSaveEdit = async () => {
-    if (!selectedCompanyId) return;
-
-    try {
-      await apiRequest("PATCH", `/api/companies/${selectedCompanyId}`, editFormData);
-
-      await queryClient.invalidateQueries({ queryKey: ["/api/companies"] });
-      await queryClient.invalidateQueries({ queryKey: ["/api/companies", selectedCompanyId] });
-
-      setIsEditing(false);
-      toast({
-        title: "Sucesso",
-        description: "Dados da empresa atualizados com sucesso!",
-      });
-    } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Não foi possível atualizar os dados da empresa.",
-        variant: "destructive",
-      });
-    }
-  };
-
   const handleCreateSubmit = (data: CreateCompanyFormData) => {
     createMutation.mutate(data);
-  };
-
-  const handleDelete = () => {
-    if (selectedCompanyId) {
-      deleteMutation.mutate(selectedCompanyId);
-    }
   };
 
   return (
@@ -520,672 +448,132 @@ export default function MinhaEmpresa() {
                   {companies.length === 0 ? 'Nenhuma empresa cadastrada' : 'Nenhuma empresa encontrada'}
                 </div>
               ) : (
-                <div className={companiesViewMode === 'cards' ? `grid gap-4 ${selectedCompanyId ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-2'}` : 'space-y-2'}>
-                  {filteredCompanies.map((company) => (
-                    <Card
-                      key={company.id}
-                      className={`h-full transition-all hover-elevate group ${
-                        selectedCompanyId === company.id ? "ring-2 ring-primary shadow-lg" : ""
-                      }`}
-                      data-testid={`card-company-${company.id}`}
-                      role="button"
-                      tabIndex={0}
-                      aria-selected={selectedCompanyId === company.id}
-                      onClick={() => setSelectedCompanyId(company.id)}
-                      onKeyDown={(e) => { if (e.key === 'Enter') setSelectedCompanyId(company.id); }}
-                    >
-                      <CardContent className="p-4 h-full">
-                        {companiesViewMode === 'list' ? (
-                          <div className="flex items-center gap-3">
-                            {/* Avatar (coluna 1) */}
-                            <Avatar className="h-8 w-8">
-                              <AvatarImage src="" alt={company.tradeName} />
-                              <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                                {company.tradeName.substring(0, 2).toUpperCase()}
-                              </AvatarFallback>
-                            </Avatar>
-                            {/* Conteúdo em colunas com separadores quando não estiver compactado */}
-                            <div className="flex-1 min-w-0">
-                              {compactCompaniesList ? (
-                                <>
-                                  <div className="flex items-center gap-2 min-w-0">
-                                    <Badge variant="secondary" className="text-[10px] px-2 py-0">{company.status}</Badge>
-                                    <span className="text-xs text-muted-foreground font-mono" data-testid={`text-code-${company.id}`}>{formatCompanyCode(company.code)}</span>
-                                  </div>
-                                  <div className="mt-0.5 min-w-0">
-                                    <span className="text-sm font-medium truncate" data-testid={`text-tradename-${company.id}`}>{company.tradeName}</span>
-                                  </div>
-                                </>
-                              ) : (
-                              <div className="flex-1 min-w-0 flex items-center divide-x divide-muted/30">
-                                {/* Coluna 2: Código (linha 1) + Nome (linha 2) */}
-                                <div className="px-3 first:pl-0 w-[40%] min-w-[220px]">
-                                  <div className="text-xs text-muted-foreground font-mono" data-testid={`text-code-${company.id}`}>{formatCompanyCode(company.code)}</div>
-                                  <div className="mt-0.5 min-w-0">
-                                    <span className="text-sm font-medium truncate" data-testid={`text-tradename-${company.id}`}>{company.tradeName}</span>
-                                  </div>
-                                </div>
-                                {/* Coluna 3: CNPJ */}
-                                <div className="px-3 w-[26%] min-w-[160px]">
-                                  <span className="font-mono text-xs text-muted-foreground" data-testid={`text-cnpj-${company.id}`}>{formatCNPJ(company.cnpj)}</span>
-                                </div>
-                                {/* Coluna 4: Email */}
-                                <div className="px-3 flex-1 min-w-[180px]">
-                                  {company.email && (
-                                    <span className="text-xs text-muted-foreground truncate">{company.email}</span>
-                                  )}
-                                </div>
-                                {/* Coluna 5: Status (última coluna) */}
-                                <div className="px-3 w-[120px] flex justify-end">
-                                  <Badge variant="secondary" className="text-[10px] px-2 py-0">{company.status}</Badge>
-                                </div>
-                              </div>
-                              )}
-                            </div>
-                            {/* Ações */}
-                            <div className="flex items-center gap-1 ml-1">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className={`h-8 w-8 p-0 ${favorites[company.id] ? 'text-amber-500' : 'text-muted-foreground'} opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity`}
-                                aria-label={favorites[company.id] ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
-                                onClick={(e) => { e.stopPropagation(); toggleFavorite(company.id); }}
-                                data-testid={`button-favorite-${company.id}`}
-                              >
-                                <Star className="w-4 h-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 p-0 text-muted-foreground opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity"
-                                aria-label="Editar"
-                                onClick={(e) => { e.stopPropagation(); setSelectedCompanyId(company.id); setIsEditing(true); }}
-                                data-testid={`button-quick-edit-${company.id}`}
-                              >
-                                <Edit2 className="w-4 h-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 p-0 text-muted-foreground opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity"
-                                aria-label="Alternar status"
-                                onClick={(e) => { e.stopPropagation(); const nextStatus = (company.status as string) === 'Ativa' ? 'Inativa' : 'Ativa'; toggleStatusMutation.mutate({ id: company.id, nextStatus }); }}
-                                data-testid={`button-toggle-status-${company.id}`}
-                              >
-                                <Power className="w-4 h-4" />
-                              </Button>
-                              {selectedCompanyId && selectedCompanyId !== company.id && (
-                                <Button 
-                                  variant="outline" 
-                                  size="sm"
-                                  onClick={(e) => { e.stopPropagation(); setSelectedCompanyId(company.id); }}
-                                  data-testid={`button-select-${company.id}`}
-                                >
-                                  Selecionar
-                                </Button>
-                              )}
-                            </div>
+                <div className={companiesViewMode === 'cards' ? `grid gap-2` : 'space-y-2'} style={companiesViewMode === 'cards' ? { gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' } : undefined}>
+                  {filteredCompanies.map((company) => {
+                    const getStatusBadgeClass = (status: string) => {
+                      if (status === "Ativa") return "bg-green-600 hover:bg-green-700 text-white";
+                      if (status === "Inativa") return "bg-gray-500 hover:bg-gray-600 text-white";
+                      if (status === "Pendente") return "bg-yellow-600 hover:bg-yellow-700 text-white";
+                      return "bg-gray-500 hover:bg-gray-600 text-white";
+                    };
+
+                    return companiesViewMode === 'cards' ? (
+                      <Card
+                        key={company.id}
+                        className="hover-elevate cursor-pointer bg-white/75 dark:bg-gray-900/75"
+                        onClick={() => setSelectedCompanyId(company.id)}
+                        data-testid={`card-company-${company.id}`}
+                      >
+                        <CardContent className="p-2 space-y-1">
+                          {/* Status Badge and Code */}
+                          <div className="flex items-center gap-1 flex-wrap">
+                            <Badge 
+                              className={`text-[10px] h-5 px-1.5 ${getStatusBadgeClass(company.status as string)}`}
+                            >
+                              {company.status}
+                            </Badge>
+                            {company.porte && (
+                              <Badge variant="outline" className="text-[10px] h-5 px-1.5">
+                                {company.porte}
+                              </Badge>
+                            )}
                           </div>
-                        ) : (
-                          // Cards view (sem formulário aberto): 4 linhas
-                          <div className="flex items-start gap-3">
-                            <Avatar className="h-10 w-10 flex-shrink-0">
-                              <AvatarImage src="" alt={company.tradeName} />
-                              <AvatarFallback className="bg-primary/10 text-primary">
-                                {company.tradeName.substring(0, 2).toUpperCase()}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1 min-w-0 space-y-1">
-                              {/* Linha 1: Código + Status */}
-                              <div className="flex items-center gap-2">
-                                <span className="text-xs text-muted-foreground font-mono">{formatCompanyCode(company.code)}</span>
-                                <Badge variant="secondary" className="text-[10px] px-2 py-0">{company.status}</Badge>
-                              </div>
-                              {/* Linha 2: Nome */}
-                              <div className="text-sm font-semibold truncate">{company.tradeName}</div>
-                              {/* Linha 3: CNPJ */}
-                              <div className="text-xs text-muted-foreground">
-                                <span className="font-mono">{formatCNPJ(company.cnpj)}</span>
-                              </div>
-                              {/* Linha 4: Telefone */}
-                              {company.phone && (
-                                <div className="text-xs text-muted-foreground">{formatPhoneBR(company.phone)}</div>
-                              )}
-                              {/* Linha 5: Email */}
-                              {company.email && (
-                                <div className="text-xs text-muted-foreground truncate">{company.email}</div>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-1 ml-1">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className={`h-8 w-8 p-0 ${favorites[company.id] ? 'text-amber-500' : 'text-muted-foreground'} opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity`}
-                                aria-label={favorites[company.id] ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
-                                onClick={(e) => { e.stopPropagation(); toggleFavorite(company.id); }}
-                                data-testid={`button-favorite-${company.id}`}
-                              >
-                                <Star className="w-4 h-4" />
-                              </Button>
-                            </div>
+
+                          {/* Company Code */}
+                          <div className="text-[10px] text-muted-foreground font-mono">
+                            {formatCompanyCode(company.code)}
                           </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  ))}
+
+                          {/* Company Name */}
+                          <div className="text-sm font-medium truncate" data-testid={`text-tradename-${company.id}`}>
+                            {company.tradeName}
+                          </div>
+
+                          {/* CNPJ */}
+                          <div className="text-[10px] text-muted-foreground font-mono">
+                            {formatCNPJ(company.cnpj)}
+                          </div>
+
+                          {/* Phone */}
+                          {company.phone && (
+                            <div className="text-[10px] text-muted-foreground">
+                              {formatPhoneBR(company.phone)}
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    ) : (
+                      <div
+                        key={company.id}
+                        className="flex items-center gap-3 px-4 py-3 border border-border/40 rounded-xl hover-elevate cursor-pointer transition-all duration-150"
+                        onClick={() => setSelectedCompanyId(company.id)}
+                        data-testid={`row-company-${company.id}`}
+                      >
+                        {/* Status */}
+                        <div className="w-[80px] flex-shrink-0">
+                          <Badge 
+                            className={`text-[11px] h-6 px-2 ${getStatusBadgeClass(company.status as string)}`}
+                          >
+                            {company.status}
+                          </Badge>
+                        </div>
+
+                        {/* Code */}
+                        <div className="w-24 flex-shrink-0 hidden md:block">
+                          <span className="text-xs text-muted-foreground font-mono">{formatCompanyCode(company.code)}</span>
+                        </div>
+
+                        {/* Name */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <Building2 className="w-3.5 h-3.5 text-muted-foreground/60" />
+                            <span className="truncate font-semibold text-[13px] tracking-tight">{company.tradeName}</span>
+                          </div>
+                        </div>
+
+                        {/* CNPJ */}
+                        <div className="w-44 flex-shrink-0 hidden lg:block">
+                          <span className="text-xs text-muted-foreground font-mono">{formatCNPJ(company.cnpj)}</span>
+                        </div>
+
+                        {/* Phone */}
+                        <div className="w-36 flex-shrink-0 hidden xl:block">
+                          {company.phone ? (
+                            <span className="text-xs text-muted-foreground">{formatPhoneBR(company.phone)}</span>
+                          ) : (
+                            <span className="text-xs text-muted-foreground/50">-</span>
+                          )}
+                        </div>
+
+                        {/* Porte */}
+                        <div className="w-20 flex-shrink-0 hidden xl:block">
+                          {company.porte && (
+                            <Badge variant="outline" className="text-[10px] h-5 px-1.5">
+                              {company.porte}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </CardContent>
           </Card>
         </div>
 
-        {/* Card de detalhes - Direita */}
-        {selectedCompanyId && selectedCompany && (
-          <div className="flex-1 overflow-auto">
-            <Card>
-              <CardHeader className="pb-4">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex items-center gap-4">
-                    <Avatar className="h-16 w-16">
-                      <AvatarImage src="" alt={selectedCompany.tradeName} />
-                      <AvatarFallback className="bg-primary/10 text-primary text-xl">
-                        {selectedCompany.tradeName.substring(0, 2).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      {isEditing ? (
-                        <div className="space-y-2">
-                          <Input
-                            value={editFormData.tradeName || ''}
-                            onChange={(e) => handleEditChange('tradeName', e.target.value)}
-                            placeholder="Nome Fantasia"
-                            className="h-8 text-lg font-bold"
-                            data-testid="input-edit-tradeName"
-                          />
-                          <Input
-                            value={editFormData.legalName || ''}
-                            onChange={(e) => handleEditChange('legalName', e.target.value)}
-                            placeholder="Razão Social"
-                            className="h-8 text-sm"
-                            data-testid="input-edit-legalName"
-                          />
-                        </div>
-                      ) : (
-                        <>
-                          <CardTitle className="text-2xl" data-testid="text-detail-trade-name">
-                            {selectedCompany.tradeName}
-                          </CardTitle>
-                          <p className="text-sm text-muted-foreground" data-testid="text-detail-legal-name">
-                            {selectedCompany.legalName}
-                          </p>
-                        </>
-                      )}
-                      <div className="flex flex-wrap items-center gap-2 mt-2">
-                        <span className="text-xs font-mono text-muted-foreground">{formatCompanyCode(selectedCompany.code)}</span>
-                        <Badge variant="outline">{selectedCompany.status}</Badge>
-                        {selectedCompany.porte && (
-                          <Badge variant="outline">{selectedCompany.porte}</Badge>
-                        )}
-                        {selectedCompany.isActive && (
-                          <Badge className="bg-green-500">Empresa Ativa</Badge>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {isEditing ? (
-                      <></>
-                    ) : (
-                      <>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              data-testid="button-delete-company"
-                            >
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Excluir
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Esta ação não pode ser desfeita. A empresa "{selectedCompany.tradeName}" será permanentemente excluída.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel data-testid="button-cancel-delete">Cancelar</AlertDialogCancel>
-                              <AlertDialogAction 
-                                onClick={handleDelete}
-                                data-testid="button-confirm-delete"
-                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                              >
-                                Excluir
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={handleStartEdit}
-                          data-testid="button-edit-company"
-                        >
-                          <Edit2 className="h-4 w-4 mr-2" />
-                          Editar
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={handleCloseDetails}
-                          data-testid="button-close-details"
-                          className="flex-shrink-0"
-                        >
-                          <X className="h-5 w-5" />
-                        </Button>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="p-0">
-                <Tabs defaultValue="info" className="w-full">
-                  <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0">
-                    <TabsTrigger 
-                      value="info" 
-                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
-                      data-testid="tab-info"
-                    >
-                      <Info className="h-4 w-4 mr-2" />
-                      Informações
-                    </TabsTrigger>
-                    <TabsTrigger 
-                      value="team" 
-                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
-                      data-testid="tab-team"
-                    >
-                      <Users className="h-4 w-4 mr-2" />
-                      Equipe
-                    </TabsTrigger>
-                    <TabsTrigger 
-                      value="billing" 
-                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
-                      data-testid="tab-billing"
-                    >
-                      <Receipt className="h-4 w-4 mr-2" />
-                      Cobrança
-                    </TabsTrigger>
-                  </TabsList>
-                  
-                  <TabsContent value="info" className="p-6 space-y-6 mt-0">
-                    {/* Dados Fiscais */}
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 text-primary">
-                    <FileText className="h-5 w-5" />
-                    <h3 className="font-semibold">Dados Fiscais</h3>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-7">
-                    <div>
-                      <p className="text-xs text-muted-foreground">CNPJ</p>
-                      {isEditing ? (
-                        <Input
-                          value={editFormData.cnpj || ''}
-                          onChange={(e) => handleEditChange('cnpj', e.target.value)}
-                          placeholder="CNPJ"
-                          className="h-8"
-                          data-testid="input-edit-cnpj"
-                        />
-                      ) : (
-                        <p className="font-medium" data-testid="text-detail-cnpj">{selectedCompany.cnpj}</p>
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Inscrição Estadual</p>
-                      {isEditing ? (
-                        <Input
-                          value={editFormData.ie || ''}
-                          onChange={(e) => handleEditChange('ie', e.target.value)}
-                          placeholder="IE"
-                          className="h-8"
-                          data-testid="input-edit-ie"
-                        />
-                      ) : (
-                        selectedCompany.ie && <p className="font-medium" data-testid="text-detail-ie">{selectedCompany.ie}</p>
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Inscrição Municipal</p>
-                      {isEditing ? (
-                        <Input
-                          value={editFormData.im || ''}
-                          onChange={(e) => handleEditChange('im', e.target.value)}
-                          placeholder="IM"
-                          className="h-8"
-                          data-testid="input-edit-im"
-                        />
-                      ) : (
-                        selectedCompany.im && <p className="font-medium" data-testid="text-detail-im">{selectedCompany.im}</p>
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Data de Abertura</p>
-                      {isEditing ? (
-                        <Input
-                          value={editFormData.dataAbertura || ''}
-                          onChange={(e) => handleEditChange('dataAbertura', e.target.value)}
-                          placeholder="DD/MM/AAAA"
-                          className="h-8"
-                          data-testid="input-edit-dataAbertura"
-                        />
-                      ) : (
-                        selectedCompany.dataAbertura && (
-                          <p className="font-medium" data-testid="text-detail-data-abertura">
-                            {selectedCompany.dataAbertura}
-                          </p>
-                        )
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Atividade Econômica */}
-                {selectedCompany.cnaePrincipal && (
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2 text-primary">
-                      <Briefcase className="h-5 w-5" />
-                      <h3 className="font-semibold">Atividade Econômica</h3>
-                    </div>
-                    <div className="pl-7">
-                      <p className="text-xs text-muted-foreground">CNAE Principal</p>
-                      <p className="font-medium" data-testid="text-detail-cnae">{selectedCompany.cnaePrincipal}</p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Endereço */}
-                {(selectedCompany.logradouro || isEditing) && (
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2 text-primary">
-                      <MapPin className="h-5 w-5" />
-                      <h3 className="font-semibold">Endereço</h3>
-                    </div>
-                    <div className="pl-7 space-y-3">
-                      {isEditing ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                          <div className="md:col-span-2">
-                            <p className="text-xs text-muted-foreground">Logradouro</p>
-                            <Input
-                              value={editFormData.logradouro || ''}
-                              onChange={(e) => handleEditChange('logradouro', e.target.value)}
-                              placeholder="Rua, Avenida..."
-                              className="h-8"
-                              data-testid="input-edit-logradouro"
-                            />
-                          </div>
-                          <div>
-                            <p className="text-xs text-muted-foreground">Número</p>
-                            <Input
-                              value={editFormData.numero || ''}
-                              onChange={(e) => handleEditChange('numero', e.target.value)}
-                              placeholder="Nº"
-                              className="h-8"
-                              data-testid="input-edit-numero"
-                            />
-                          </div>
-                          <div>
-                            <p className="text-xs text-muted-foreground">Complemento</p>
-                            <Input
-                              value={editFormData.complemento || ''}
-                              onChange={(e) => handleEditChange('complemento', e.target.value)}
-                              placeholder="Apto, Sala..."
-                              className="h-8"
-                              data-testid="input-edit-complemento"
-                            />
-                          </div>
-                          <div>
-                            <p className="text-xs text-muted-foreground">Bairro</p>
-                            <Input
-                              value={editFormData.bairro || ''}
-                              onChange={(e) => handleEditChange('bairro', e.target.value)}
-                              placeholder="Bairro"
-                              className="h-8"
-                              data-testid="input-edit-bairro"
-                            />
-                          </div>
-                          <div>
-                            <p className="text-xs text-muted-foreground">Cidade</p>
-                            <Input
-                              value={editFormData.cidade || ''}
-                              onChange={(e) => handleEditChange('cidade', e.target.value)}
-                              placeholder="Cidade"
-                              className="h-8"
-                              data-testid="input-edit-cidade"
-                            />
-                          </div>
-                          <div>
-                            <p className="text-xs text-muted-foreground">UF</p>
-                            <Input
-                              value={editFormData.uf || ''}
-                              onChange={(e) => handleEditChange('uf', e.target.value)}
-                              placeholder="UF"
-                              className="h-8"
-                              data-testid="input-edit-uf"
-                            />
-                          </div>
-                          <div>
-                            <p className="text-xs text-muted-foreground">CEP</p>
-                            <Input
-                              value={editFormData.cep || ''}
-                              onChange={(e) => handleEditChange('cep', e.target.value)}
-                              placeholder="CEP"
-                              className="h-8"
-                              data-testid="input-edit-cep"
-                            />
-                          </div>
-                        </div>
-                      ) : (
-                        <>
-                          <p className="font-medium" data-testid="text-detail-address">
-                            {selectedCompany.logradouro}
-                            {selectedCompany.numero && `, ${selectedCompany.numero}`}
-                            {selectedCompany.complemento && ` - ${selectedCompany.complemento}`}
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            {selectedCompany.bairro && `${selectedCompany.bairro}, `}
-                            {selectedCompany.cidade}/{selectedCompany.uf}
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            CEP: {selectedCompany.cep}
-                          </p>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Contato */}
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 text-primary">
-                    <Phone className="h-5 w-5" />
-                    <h3 className="font-semibold">Contato</h3>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-7">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <Phone className="h-3 w-3 text-muted-foreground" />
-                        <p className="text-xs text-muted-foreground">Telefone</p>
-                      </div>
-                      {isEditing ? (
-                        <Input
-                          value={editFormData.phone || ''}
-                          onChange={(e) => handleEditChange('phone', e.target.value)}
-                          placeholder="Telefone"
-                          className="h-8"
-                          data-testid="input-edit-phone"
-                        />
-                      ) : (
-                        <p className="font-medium" data-testid="text-detail-phone">{selectedCompany.phone}</p>
-                      )}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <Mail className="h-3 w-3 text-muted-foreground" />
-                        <p className="text-xs text-muted-foreground">Email</p>
-                      </div>
-                      {isEditing ? (
-                        <Input
-                          value={editFormData.email || ''}
-                          onChange={(e) => handleEditChange('email', e.target.value)}
-                          placeholder="Email"
-                          className="h-8"
-                          data-testid="input-edit-email"
-                        />
-                      ) : (
-                        selectedCompany.email && <p className="font-medium" data-testid="text-detail-email">{selectedCompany.email}</p>
-                      )}
-                    </div>
-                    <div className="md:col-span-2">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Globe className="h-3 w-3 text-muted-foreground" />
-                        <p className="text-xs text-muted-foreground">Website</p>
-                      </div>
-                      {isEditing ? (
-                        <Input
-                          value={editFormData.website || ''}
-                          onChange={(e) => handleEditChange('website', e.target.value)}
-                          placeholder="Website"
-                          className="h-8"
-                          data-testid="input-edit-website"
-                        />
-                      ) : (
-                        selectedCompany.website && (
-                          <a 
-                            href={selectedCompany.website} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="font-medium text-primary hover:underline"
-                            data-testid="link-detail-website"
-                          >
-                            {selectedCompany.website}
-                          </a>
-                        )
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Responsável */}
-                {(selectedCompany.responsavelNome || isEditing) && (
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2 text-primary">
-                      <User className="h-5 w-5" />
-                      <h3 className="font-semibold">Responsável</h3>
-                    </div>
-                    <div className="pl-7 space-y-3">
-                      {isEditing ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                          <div>
-                            <p className="text-xs text-muted-foreground">Nome</p>
-                            <Input
-                              value={editFormData.responsavelNome || ''}
-                              onChange={(e) => handleEditChange('responsavelNome', e.target.value)}
-                              placeholder="Nome do responsável"
-                              className="h-8"
-                              data-testid="input-edit-responsavelNome"
-                            />
-                          </div>
-                          <div>
-                            <p className="text-xs text-muted-foreground">Cargo</p>
-                            <Input
-                              value={editFormData.responsavelCargo || ''}
-                              onChange={(e) => handleEditChange('responsavelCargo', e.target.value)}
-                              placeholder="Cargo"
-                              className="h-8"
-                              data-testid="input-edit-responsavelCargo"
-                            />
-                          </div>
-                          <div>
-                            <p className="text-xs text-muted-foreground">Telefone</p>
-                            <Input
-                              value={editFormData.responsavelTelefone || ''}
-                              onChange={(e) => handleEditChange('responsavelTelefone', e.target.value)}
-                              placeholder="Telefone"
-                              className="h-8"
-                              data-testid="input-edit-responsavelTelefone"
-                            />
-                          </div>
-                          <div>
-                            <p className="text-xs text-muted-foreground">Email</p>
-                            <Input
-                              value={editFormData.responsavelEmail || ''}
-                              onChange={(e) => handleEditChange('responsavelEmail', e.target.value)}
-                              placeholder="Email"
-                              className="h-8"
-                              data-testid="input-edit-responsavelEmail"
-                            />
-                          </div>
-                        </div>
-                      ) : (
-                        <>
-                          <p className="font-medium" data-testid="text-detail-responsavel-nome">
-                            {selectedCompany.responsavelNome || ''}
-                            {selectedCompany.responsavelCargo && ` - ${selectedCompany.responsavelCargo}`}
-                          </p>
-                          {selectedCompany.responsavelTelefone && (
-                            <p className="text-sm text-muted-foreground" data-testid="text-detail-responsavel-telefone">
-                              Tel: {selectedCompany.responsavelTelefone}
-                            </p>
-                          )}
-                          {selectedCompany.responsavelEmail && (
-                            <p className="text-sm text-muted-foreground" data-testid="text-detail-responsavel-email">
-                              Email: {selectedCompany.responsavelEmail}
-                            </p>
-                          )}
-                        </>
-                      )}
-                    </div>
-                  </div>
-                )}
-                  </TabsContent>
-
-                  <TabsContent value="team" className="p-6 mt-0">
-                    <TeamTab companyId={selectedCompany.id} companyName={selectedCompany.tradeName} />
-                  </TabsContent>
-
-                  <TabsContent value="billing" className="p-6 mt-0">
-                    <CobrancaTab companyId={selectedCompany.id} />
-                  </TabsContent>
-              </Tabs>
-            </CardContent>
-            {isEditing && (
-              <div className="sticky bottom-0 left-0 right-0 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-                <div className="flex items-center justify-between gap-2 px-4 py-3">
-                  <Button 
-                    variant="ghost" 
-                    onClick={handleCancelEdit} 
-                    data-testid="button-footer-cancel"
-                  >
-                    Cancelar
-                  </Button>
-                  <div className="flex items-center gap-2">
-                    <Button 
-                      onClick={handleSaveEdit}
-                      data-testid="button-footer-save"
-                    >
-                      Salvar
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            )}
-          </Card>
-          </div>
-        )}
       </div>
+
+      {/* Company Detail Sheet */}
+      <CompanyDetailSheet
+        open={!!selectedCompanyId}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSelectedCompanyId(null);
+          }
+        }}
+        company={selectedCompany || null}
+      />
     </div>
   );
 }
-
-
