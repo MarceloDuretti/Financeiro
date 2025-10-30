@@ -401,9 +401,11 @@ export default function ClientesFornecedores() {
     setIsProcessingAI(true);
     try {
       const response = await apiRequest("POST", "/api/ai/process-entity", { input });
+      console.log("[ClientesFornecedores] AI API Response:", response);
       setAiPreviewData(response as unknown as ProcessedEntity);
       setShowAiPreview(true);
     } catch (error: any) {
+      console.error("[ClientesFornecedores] AI API Error:", error);
       toast({
         title: "Erro ao processar",
         description: error.message || "Não foi possível processar as informações",
