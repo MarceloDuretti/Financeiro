@@ -266,7 +266,7 @@ export function TransactionDetailSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange} modal={false}>
-      <SheetContent className="w-full sm:max-w-6xl overflow-y-auto">
+      <SheetContent className="w-full sm:max-w-4xl overflow-y-auto">
         <Form {...form}>
           <SheetHeader>
             <div className="flex items-center justify-between">
@@ -381,15 +381,17 @@ export function TransactionDetailSheet({
                 {/* Status */}
                 <div>
                   {!isEditing ? (
-                    <div className="flex items-center gap-2">
-                      <p className="text-xs text-muted-foreground w-20">Status:</p>
-                      <Badge variant="outline" className="text-xs">
-                        {transaction.status === "paid"
-                          ? "Pago"
-                          : transaction.status === "cancelled"
-                          ? "Cancelado"
-                          : "Pendente"}
-                      </Badge>
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1.5">Status</p>
+                      <div className="border rounded-md px-3 py-2 bg-muted/20">
+                        <Badge variant="outline" className="text-xs">
+                          {transaction.status === "paid"
+                            ? "Pago"
+                            : transaction.status === "cancelled"
+                            ? "Cancelado"
+                            : "Pendente"}
+                        </Badge>
+                      </div>
                     </div>
                   ) : (
                     <FormField
@@ -421,11 +423,11 @@ export function TransactionDetailSheet({
                 {/* Emissão */}
                 <div>
                   {!isEditing ? (
-                    <div className="flex items-center gap-2">
-                      <p className="text-xs text-muted-foreground w-20">Emissão:</p>
-                      <p className="text-sm font-medium">
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1.5">Emissão</p>
+                      <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium">
                         {transaction.issueDate ? format(new Date(transaction.issueDate), "dd/MM/yyyy") : "-"}
-                      </p>
+                      </div>
                     </div>
                   ) : (
                     <FormField
@@ -453,11 +455,11 @@ export function TransactionDetailSheet({
                 {/* Vencimento */}
                 <div>
                   {!isEditing ? (
-                    <div className="flex items-center gap-2">
-                      <p className="text-xs text-muted-foreground w-20">Vencimento:</p>
-                      <p className="text-sm font-medium">
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1.5">Vencimento</p>
+                      <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium">
                         {transaction.dueDate ? format(new Date(transaction.dueDate), "dd/MM/yyyy") : "-"}
-                      </p>
+                      </div>
                     </div>
                   ) : (
                     <FormField
@@ -511,10 +513,12 @@ export function TransactionDetailSheet({
               {/* Título */}
               <div>
                 {!isEditing ? (
-                  <>
-                    <p className="text-xs text-muted-foreground mb-1">Título</p>
-                    <p className="text-sm font-medium">{transaction.title}</p>
-                  </>
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1.5">Título</p>
+                    <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium">
+                      {transaction.title}
+                    </div>
+                  </div>
                 ) : (
                   <FormField
                     control={form.control}
@@ -535,12 +539,14 @@ export function TransactionDetailSheet({
               {/* Pessoa (Cliente/Fornecedor) */}
               <div>
                 {!isEditing ? (
-                  <>
-                    <p className="text-xs text-muted-foreground mb-1">
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1.5">
                       {transaction.type === "expense" ? "Fornecedor" : "Cliente"}
                     </p>
-                    <p className="text-sm font-medium">{person?.name || "-"}</p>
-                  </>
+                    <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium">
+                      {person?.name || "-"}
+                    </div>
+                  </div>
                 ) : (
                   <FormField
                     control={form.control}
@@ -576,10 +582,12 @@ export function TransactionDetailSheet({
               {/* Centro de Custo */}
               <div>
                 {!isEditing ? (
-                  <>
-                    <p className="text-xs text-muted-foreground mb-1">Centro de Custo</p>
-                    <p className="text-sm font-medium">{costCenter?.name || "-"}</p>
-                  </>
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1.5">Centro de Custo</p>
+                    <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium">
+                      {costCenter?.name || "-"}
+                    </div>
+                  </div>
                 ) : (
                   <FormField
                     control={form.control}
@@ -610,10 +618,12 @@ export function TransactionDetailSheet({
               {/* Conta Contábil */}
               <div>
                 {!isEditing ? (
-                  <>
-                    <p className="text-xs text-muted-foreground mb-1">Conta Contábil</p>
-                    <p className="text-sm font-medium">{chartAccount?.name || "-"}</p>
-                  </>
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1.5">Conta Contábil</p>
+                    <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium">
+                      {chartAccount?.name || "-"}
+                    </div>
+                  </div>
                 ) : (
                   <FormField
                     control={form.control}
@@ -649,10 +659,12 @@ export function TransactionDetailSheet({
               {/* Forma de Pagamento */}
               <div>
                 {!isEditing ? (
-                  <>
-                    <p className="text-xs text-muted-foreground mb-1">Forma de Pagamento</p>
-                    <p className="text-sm font-medium">{paymentMethod?.name || "-"}</p>
-                  </>
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1.5">Forma de Pagamento</p>
+                    <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium">
+                      {paymentMethod?.name || "-"}
+                    </div>
+                  </div>
                 ) : (
                   <FormField
                     control={form.control}
@@ -684,10 +696,12 @@ export function TransactionDetailSheet({
               {/* Conta Bancária */}
               <div>
                 {!isEditing ? (
-                  <>
-                    <p className="text-xs text-muted-foreground mb-1">Conta Bancária</p>
-                    <p className="text-sm font-medium">{bankAccount?.accountNumber || "-"}</p>
-                  </>
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1.5">Conta Bancária</p>
+                    <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium">
+                      {bankAccount?.accountNumber || "-"}
+                    </div>
+                  </div>
                 ) : (
                   <FormField
                     control={form.control}
@@ -722,10 +736,12 @@ export function TransactionDetailSheet({
             {/* Descrição */}
             <div>
               {!isEditing ? (
-                <>
-                  <p className="text-xs text-muted-foreground mb-1">Observações</p>
-                  <p className="text-sm whitespace-pre-wrap">{transaction.description || "Sem observações"}</p>
-                </>
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1.5">Observações</p>
+                  <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm whitespace-pre-wrap min-h-[80px]">
+                    {transaction.description || "Sem observações"}
+                  </div>
+                </div>
               ) : (
                 <FormField
                   control={form.control}
@@ -748,23 +764,24 @@ export function TransactionDetailSheet({
               )}
             </div>
 
-            {/* Action Buttons */}
-            <div className="space-y-2 pt-2 border-t mt-2">
+            {/* Action Buttons - Apple Style */}
+            <div className="space-y-2 pt-4 mt-4">
               {!isEditing ? (
                 <>
-                  {/* Primeira Linha: Ações Principais */}
-                  <div className="grid grid-cols-3 gap-2">
+                  {/* Ações Principais */}
+                  <div className="flex gap-2">
                     <Button
-                      variant="outline"
+                      variant="ghost"
                       size="sm"
                       onClick={handleEdit}
                       data-testid="button-edit"
+                      className="flex-1"
                     >
-                      <Edit2 className="h-3 w-3 mr-1.5" />
+                      <Edit2 className="h-4 w-4 mr-2" />
                       Editar
                     </Button>
                     <Button
-                      variant="outline"
+                      variant="ghost"
                       size="sm"
                       onClick={() => {
                         toast({
@@ -773,30 +790,17 @@ export function TransactionDetailSheet({
                         });
                       }}
                       data-testid="button-clone"
+                      className="flex-1"
                     >
-                      <Copy className="h-3 w-3 mr-1.5" />
+                      <Copy className="h-4 w-4 mr-2" />
                       Clonar
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        toast({
-                          title: "Imprimir",
-                          description: "Funcionalidade em desenvolvimento",
-                        });
-                      }}
-                      data-testid="button-print"
-                    >
-                      <Printer className="h-3 w-3 mr-1.5" />
-                      Imprimir
                     </Button>
                   </div>
 
-                  {/* Segunda Linha: Ações Secundárias */}
-                  <div className="grid grid-cols-2 gap-2">
+                  {/* Ações Secundárias */}
+                  <div className="flex gap-2">
                     <Button
-                      variant="outline"
+                      variant="ghost"
                       size="sm"
                       onClick={() => {
                         toast({
@@ -805,57 +809,80 @@ export function TransactionDetailSheet({
                         });
                       }}
                       data-testid="button-recurring"
+                      className="flex-1"
                     >
-                      <Repeat className="h-3 w-3 mr-1.5" />
+                      <Repeat className="h-4 w-4 mr-2" />
                       Recorrente
                     </Button>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="outline" size="sm" data-testid="button-delete-trigger">
-                          <Trash2 className="h-3 w-3 mr-1.5" />
-                          Excluir
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Tem certeza que deseja excluir este lançamento? Esta ação não pode ser desfeita.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={handleDelete}
-                            disabled={isDeleting}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                            data-testid="button-delete-confirm"
-                          >
-                            {isDeleting ? (
-                              <>
-                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                Excluindo...
-                              </>
-                            ) : (
-                              "Excluir"
-                            )}
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        toast({
+                          title: "Imprimir",
+                          description: "Funcionalidade em desenvolvimento",
+                        });
+                      }}
+                      data-testid="button-print"
+                      className="flex-1"
+                    >
+                      <Printer className="h-4 w-4 mr-2" />
+                      Imprimir
+                    </Button>
                   </div>
+
+                  {/* Excluir */}
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        data-testid="button-delete-trigger"
+                        className="w-full text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Excluir
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Tem certeza que deseja excluir este lançamento? Esta ação não pode ser desfeita.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={handleDelete}
+                          disabled={isDeleting}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          data-testid="button-delete-confirm"
+                        >
+                          {isDeleting ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              Excluindo...
+                            </>
+                          ) : (
+                            "Excluir"
+                          )}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </>
               ) : (
                 <div className="flex gap-2">
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
                     className="flex-1"
                     onClick={handleCancelEdit}
                     disabled={isSaving}
                     data-testid="button-cancel"
                   >
-                    <X className="h-3 w-3 mr-1.5" />
+                    <X className="h-4 w-4 mr-2" />
                     Cancelar
                   </Button>
                   <Button
@@ -867,12 +894,12 @@ export function TransactionDetailSheet({
                   >
                     {isSaving ? (
                       <>
-                        <Loader2 className="h-3 w-3 mr-1.5 animate-spin" />
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                         Salvando...
                       </>
                     ) : (
                       <>
-                        <Save className="h-3 w-3 mr-1.5" />
+                        <Save className="h-4 w-4 mr-2" />
                         Salvar
                       </>
                     )}
