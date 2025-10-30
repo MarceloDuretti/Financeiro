@@ -406,7 +406,7 @@ export function CompanyDetailSheet({
               </Card>
 
               {/* Main Fields (Vertical) */}
-              <div className={isEditing ? "space-y-1.5" : "space-y-2"}>
+              <div className={isEditing ? "space-y-1.5" : "flex flex-col justify-between h-full"}>
                 {/* Status */}
                 <div>
                   {!isEditing ? (
