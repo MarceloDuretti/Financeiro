@@ -165,7 +165,34 @@ export default function ClientesFornecedores() {
 
   const handleCreateNew = () => {
     setEditingEntity(null);
-    form.reset();
+    // Reset form to clean default values
+    form.reset({
+      isCustomer: false,
+      isSupplier: false,
+      name: "",
+      documentType: "none",
+      document: "",
+      phone: "",
+      whatsapp: "",
+      email: "",
+      website: "",
+      zipCode: "",
+      street: "",
+      number: "",
+      complement: "",
+      neighborhood: "",
+      city: "",
+      state: "",
+      country: "Brasil",
+      bankName: "",
+      accountAgency: "",
+      accountNumber: "",
+      pixKey: "",
+      pixKeyType: undefined,
+      imageUrl: "",
+      notes: "",
+      isActive: true,
+    });
     setWizardStep(1);
     isSubmittingRef.current = false; // Reset submission lock
     setIsSubmitting(false);
