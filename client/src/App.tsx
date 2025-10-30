@@ -48,27 +48,12 @@ function Router() {
       {/* Presentation page accessible by direct route */}
       <Route path="/apresentacao" component={Home} />
 
-      {/* Redirect to login if not authenticated or still loading */}
+      {/* Show login page if not authenticated */}
       {isLoading || !isAuthenticated ? (
         <>
-          <Route path="/">
-            {() => {
-              window.location.href = "/login";
-              return null;
-            }}
-          </Route>
-          <Route path="/dashboard">
-            {() => {
-              window.location.href = "/login";
-              return null;
-            }}
-          </Route>
-          <Route path="/dashboard/:rest*">
-            {() => {
-              window.location.href = "/login";
-              return null;
-            }}
-          </Route>
+          <Route path="/" component={Login} />
+          <Route path="/dashboard" component={Login} />
+          <Route path="/dashboard/:rest*" component={Login} />
           <Route component={NotFound} />
         </>
       ) : (
