@@ -55,7 +55,9 @@ import {
   FileText,
   Briefcase,
   Globe,
+  Loader2,
 } from "lucide-react";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import type { Company, InsertCompany } from "@shared/schema";
 import { insertCompanySchema } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -230,83 +232,12 @@ export function CompanyDetailSheet({
       <SheetContent className={`w-full ${isEditing ? 'sm:max-w-6xl' : 'sm:max-w-4xl'} overflow-y-auto`}>
         <Form {...form}>
           <SheetHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <SheetTitle className="text-xl flex items-center gap-2">
-                  {isEditing ? "Editando Empresa" : "Detalhes da Empresa"}
-                  <Badge className={getStatusBadgeClass(company.status as string)}>
-                    {company.status}
-                  </Badge>
-                </SheetTitle>
-              </div>
-              <div className="flex items-center gap-2">
-                {isEditing ? (
-                  <>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleCancelEdit}
-                      disabled={isSaving}
-                      data-testid="button-cancel-edit"
-                    >
-                      <X className="h-4 w-4 mr-2" />
-                      Cancelar
-                    </Button>
-                    <Button
-                      size="sm"
-                      onClick={handleSaveEdit}
-                      disabled={isSaving}
-                      data-testid="button-save-edit"
-                    >
-                      <Edit2 className="h-4 w-4 mr-2" />
-                      {isSaving ? "Salvando..." : "Salvar"}
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          data-testid="button-delete-company"
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Excluir
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Esta ação não pode ser desfeita. A empresa "{company.tradeName}" será permanentemente excluída.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel data-testid="button-cancel-delete">Cancelar</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={handleDelete}
-                            data-testid="button-confirm-delete"
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                          >
-                            {isDeleting ? "Excluindo..." : "Excluir"}
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleEdit}
-                      data-testid="button-edit-company"
-                    >
-                      <Edit2 className="h-4 w-4 mr-2" />
-                      Editar
-                    </Button>
-                  </>
-                )}
-              </div>
-            </div>
+            <SheetTitle className="text-xl flex items-center gap-2">
+              {isEditing ? "Editando Empresa" : "Detalhes da Empresa"}
+              <Badge className={getStatusBadgeClass(company.status as string)}>
+                {company.status}
+              </Badge>
+            </SheetTitle>
           </SheetHeader>
 
           <div className={`mt-3 ${isEditing ? 'space-y-1.5' : 'space-y-2'}`}>
@@ -392,24 +323,75 @@ export function CompanyDetailSheet({
 
                   <Separator />
 
-                  {/* Quick Info */}
-                  <div className="space-y-2">
-                    {company.cnpj && (
-                      <div>
-                        <p className="text-[10px] text-muted-foreground uppercase tracking-wide">CNPJ</p>
-                        <p className="text-xs font-medium font-mono">{formatCNPJ(company.cnpj)}</p>
-                      </div>
-                    )}
-                    {company.phone && (
-                      <div>
-                        <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Telefone</p>
-                        <p className="text-xs font-medium">{formatPhoneBR(company.phone)}</p>
-                      </div>
-                    )}
-                    {company.email && (
-                      <div>
-                        <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Email</p>
-                        <p className="text-xs font-medium truncate">{company.email}</p>
+                  {/* Quick Info + Chart */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {/* Quick Info */}
+                    <div className="space-y-2">
+                      {company.cnpj && (
+                        <div>
+                          <p className="text-[10px] text-muted-foreground uppercase tracking-wide">CNPJ</p>
+                          <p className="text-xs font-medium font-mono">{formatCNPJ(company.cnpj)}</p>
+                        </div>
+                      )}
+                      {company.phone && (
+                        <div>
+                          <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Telefone</p>
+                          <p className="text-xs font-medium">{formatPhoneBR(company.phone)}</p>
+                        </div>
+                      )}
+                      {company.email && (
+                        <div>
+                          <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Email</p>
+                          <p className="text-xs font-medium truncate">{company.email}</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Financial Chart */}
+                    {!isEditing && (
+                      <div className="flex items-center justify-center">
+                        <div className="w-32 h-32">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                              <Pie
+                                data={[
+                                  { name: 'Receitas', value: 65, fill: 'hsl(var(--chart-1))' },
+                                  { name: 'Despesas', value: 35, fill: 'hsl(var(--chart-2))' },
+                                ]}
+                                cx="50%"
+                                cy="50%"
+                                innerRadius={30}
+                                outerRadius={50}
+                                paddingAngle={2}
+                                dataKey="value"
+                              >
+                                {[
+                                  { name: 'Receitas', value: 65, fill: 'hsl(var(--chart-1))' },
+                                  { name: 'Despesas', value: 35, fill: 'hsl(var(--chart-2))' },
+                                ].map((entry, index) => (
+                                  <Cell key={`cell-${index}`} fill={entry.fill} />
+                                ))}
+                              </Pie>
+                              <Tooltip
+                                content={({ active, payload }) => {
+                                  if (active && payload && payload.length) {
+                                    return (
+                                      <div className="rounded-lg border bg-background p-2 shadow-sm">
+                                        <div className="grid gap-2">
+                                          <div className="flex items-center justify-between gap-2">
+                                            <span className="text-[10px] text-muted-foreground">{payload[0].name}</span>
+                                            <span className="text-[10px] font-bold">{payload[0].value}%</span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    );
+                                  }
+                                  return null;
+                                }}
+                              />
+                            </PieChart>
+                          </ResponsiveContainer>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -969,6 +951,93 @@ export function CompanyDetailSheet({
                 <CobrancaTab companyId={company.id} />
               </TabsContent>
             </Tabs>
+
+            {/* Action Buttons */}
+            <div className={isEditing ? "pt-2 mt-2" : "pt-4 mt-4 border-t"}>
+              {!isEditing ? (
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={handleEdit}
+                    data-testid="button-edit-company"
+                  >
+                    <Edit2 className="h-4 w-4 mr-1.5" />
+                    Editar
+                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button 
+                        variant="destructive" 
+                        size="sm" 
+                        data-testid="button-delete-company"
+                      >
+                        <Trash2 className="h-4 w-4 mr-1.5" />
+                        Excluir
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Esta ação não pode ser desfeita. A empresa "{company.tradeName}" será permanentemente excluída.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel data-testid="button-cancel-delete">Cancelar</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={handleDelete}
+                          disabled={isDeleting}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          data-testid="button-confirm-delete"
+                        >
+                          {isDeleting ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              Excluindo...
+                            </>
+                          ) : (
+                            "Excluir"
+                          )}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCancelEdit}
+                    disabled={isSaving}
+                    data-testid="button-cancel-edit"
+                  >
+                    <X className="h-4 w-4 mr-2" />
+                    Cancelar
+                  </Button>
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={handleSaveEdit}
+                    disabled={isSaving}
+                    data-testid="button-save-edit"
+                  >
+                    {isSaving ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Salvando...
+                      </>
+                    ) : (
+                      <>
+                        <Edit2 className="h-4 w-4 mr-2" />
+                        Salvar
+                      </>
+                    )}
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
         </Form>
       </SheetContent>
