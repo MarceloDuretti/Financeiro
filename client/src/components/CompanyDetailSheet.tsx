@@ -860,15 +860,16 @@ export function CompanyDetailSheet({
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {/* Dados Fiscais */}
-                    {(company.ie || company.im || company.dataAbertura) && (
-                      <div className="space-y-1.5">
-                        <div className="flex items-center gap-1.5">
-                          <FileText className="h-3.5 w-3.5 text-primary" />
-                          <h3 className="font-semibold text-xs text-primary">Dados Fiscais</h3>
-                        </div>
-                        <div className="pl-5">
-                          <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                    {/* Grid 3 Colunas: Dados Fiscais, Email, Website */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {/* Dados Fiscais */}
+                      {(company.ie || company.im) && (
+                        <div className="space-y-1.5">
+                          <div className="flex items-center gap-1.5">
+                            <FileText className="h-3.5 w-3.5 text-primary" />
+                            <h3 className="font-semibold text-xs text-primary">Dados Fiscais</h3>
+                          </div>
+                          <div className="pl-5 space-y-2">
                             {company.ie && (
                               <div>
                                 <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Inscrição Estadual</p>
@@ -881,13 +882,58 @@ export function CompanyDetailSheet({
                                 <p className="text-xs font-medium">{company.im}</p>
                               </div>
                             )}
-                            {company.dataAbertura && (
-                              <div className="col-span-2">
-                                <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Data de Abertura</p>
-                                <p className="text-xs font-medium">{company.dataAbertura}</p>
-                              </div>
-                            )}
                           </div>
+                        </div>
+                      )}
+
+                      {/* Email */}
+                      {company.email && (
+                        <div className="space-y-1.5">
+                          <div className="flex items-center gap-1.5">
+                            <Mail className="h-3.5 w-3.5 text-primary" />
+                            <h3 className="font-semibold text-xs text-primary">Email</h3>
+                          </div>
+                          <div className="pl-5">
+                            <a
+                              href={`mailto:${company.email}`}
+                              className="text-xs font-medium text-primary hover:underline break-all"
+                            >
+                              {company.email}
+                            </a>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Website */}
+                      {company.website && (
+                        <div className="space-y-1.5">
+                          <div className="flex items-center gap-1.5">
+                            <Globe className="h-3.5 w-3.5 text-primary" />
+                            <h3 className="font-semibold text-xs text-primary">Website</h3>
+                          </div>
+                          <div className="pl-5">
+                            <a
+                              href={company.website.startsWith('http') ? company.website : `https://${company.website}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs font-medium text-primary hover:underline break-all"
+                            >
+                              {company.website}
+                            </a>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Data de Abertura (linha separada se existir) */}
+                    {company.dataAbertura && (
+                      <div className="space-y-1.5">
+                        <div className="flex items-center gap-1.5">
+                          <FileText className="h-3.5 w-3.5 text-primary" />
+                          <h3 className="font-semibold text-xs text-primary">Data de Abertura</h3>
+                        </div>
+                        <div className="pl-5">
+                          <p className="text-xs font-medium">{company.dataAbertura}</p>
                         </div>
                       </div>
                     )}
@@ -902,26 +948,6 @@ export function CompanyDetailSheet({
                         <div className="pl-5">
                           <p className="text-[10px] text-muted-foreground uppercase tracking-wide">CNAE Principal</p>
                           <p className="text-xs font-medium">{company.cnaePrincipal}</p>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Website */}
-                    {company.website && (
-                      <div className="space-y-1.5">
-                        <div className="flex items-center gap-1.5">
-                          <Globe className="h-3.5 w-3.5 text-primary" />
-                          <h3 className="font-semibold text-xs text-primary">Website</h3>
-                        </div>
-                        <div className="pl-5">
-                          <a
-                            href={company.website.startsWith('http') ? company.website : `https://${company.website}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-xs font-medium text-primary hover:underline"
-                          >
-                            {company.website}
-                          </a>
                         </div>
                       </div>
                     )}
