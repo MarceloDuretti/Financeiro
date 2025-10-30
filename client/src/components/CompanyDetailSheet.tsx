@@ -41,12 +41,10 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -65,6 +63,8 @@ import {
   Globe,
   Loader2,
   BarChart3,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import type { Company, InsertCompany } from "@shared/schema";
@@ -117,6 +117,7 @@ export function CompanyDetailSheet({
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isDashboardOpen, setIsDashboardOpen] = useState(false);
   const { toast } = useToast();
 
   // Form setup
@@ -979,36 +980,35 @@ export function CompanyDetailSheet({
               </TabsContent>
             </Tabs>
 
-            {/* Company Dashboard - Desktop: inline, Mobile: Dialog */}
+            {/* Company Dashboard - Collapsible */}
             {!isEditing && (
-              <>
-                {/* Desktop - Inline */}
-                <div className="hidden lg:block">
-                  <CompanyDashboard companyId={company.id} />
-                </div>
-
-                {/* Mobile - Button + Dialog */}
-                <div className="lg:hidden py-4 border-t">
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full rounded-lg"
-                        data-testid="button-view-dashboard-mobile"
-                      >
-                        <BarChart3 className="h-4 w-4 mr-2" />
-                        Ver Painel Executivo
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto rounded-xl">
-                      <DialogHeader>
-                        <DialogTitle>Painel Executivo - {company.tradeName}</DialogTitle>
-                      </DialogHeader>
-                      <CompanyDashboard companyId={company.id} />
-                    </DialogContent>
-                  </Dialog>
-                </div>
-              </>
+              <div className="py-4 border-t">
+                <Collapsible
+                  open={isDashboardOpen}
+                  onOpenChange={setIsDashboardOpen}
+                >
+                  <CollapsibleTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full rounded-lg justify-between hover-elevate"
+                      data-testid="button-toggle-dashboard"
+                    >
+                      <div className="flex items-center gap-2">
+                        <BarChart3 className="h-4 w-4" />
+                        <span className="font-medium">Painel Executivo</span>
+                      </div>
+                      {isDashboardOpen ? (
+                        <ChevronUp className="h-4 w-4" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="pt-4">
+                    <CompanyDashboard companyId={company.id} />
+                  </CollapsibleContent>
+                </Collapsible>
+              </div>
             )}
           </div>
         </Form>
