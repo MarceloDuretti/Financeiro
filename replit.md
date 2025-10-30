@@ -24,6 +24,20 @@ FinControl is built as a full-stack TypeScript application. The frontend uses Re
 - Progressive disclosure in forms and summaries.
 - Enhanced month navigation with YoY indicators and keyboard shortcuts.
 
+**Apple Top Design Pattern:**
+FinControl follows a standardized design pattern called "Apple Top" for all detail sheets and master-detail views:
+- **Sheet Component:** Uses shadcn Sheet with `modal={true}` for focused interactions
+- **Two-Column Layout:** Left side displays a compact info card with key data; right side shows detailed fields
+- **Status Badges:** Color-coded badges (Ativa=green `bg-green-600`, Inativa=gray `bg-gray-500`, Pendente=yellow `bg-yellow-600`)
+- **Responsive Width:** `sm:max-w-4xl` (view mode) / `sm:max-w-6xl` (edit mode)
+- **Spacing:** `space-y-2` (view mode) / `space-y-1.5` (edit mode) for compact, clean layouts
+- **Grid Layout:** 4-column grid (`grid-cols-4 gap-4`) for related fields when editing
+- **Read-Only Styling:** `border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium` for non-editable fields
+- **Action Buttons:** Positioned in footer (bottom) of Sheet, not in header
+- **Typography:** SF Pro Display font family for clean, Apple-like text rendering
+- **Visual Hierarchy:** Cards use `p-2 space-y-1` for compact layouts in list views, badges at `text-[10px] h-5 px-1.5`
+- **Interactive States:** `hover-elevate` and `active-elevate-2` for smooth, elevated interactions
+
 **Technical Implementations & Feature Specifications:**
 
 *   **Authentication:** Custom local email/password authentication using `bcryptjs` and session-based storage. Hierarchical user management (admin/collaborator) with email invitations.
