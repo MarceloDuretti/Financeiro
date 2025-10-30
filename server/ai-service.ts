@@ -76,31 +76,46 @@ async function fetchCNPJData(cnpj: string): Promise<ReceitaWSResponse | null> {
  */
 export async function processEntityInput(input: string): Promise<ProcessedEntity> {
   // Step 1: Use AI to extract and interpret the input
-  const systemPrompt = `Você é um assistente especializado em extrair informações de empresas e pessoas para cadastro.
+  const systemPrompt = `Você é um assistente especializado em extrair informações de empresas e pessoas para cadastro no Brasil.
   
 Analise o texto fornecido e extraia TODAS as informações disponíveis no seguinte formato JSON:
 
 {
   "name": "nome da empresa ou pessoa (obrigatório)",
   "documentType": "cpf, cnpj, foreign ou none",
-  "document": "número do documento sem formatação",
+  "document": "número do documento sem formatação (14 dígitos para CNPJ)",
   "phone": "telefone com DDD",
   "email": "email se mencionado",
   "website": "site se mencionado",
   "confidence": número de 0 a 1 indicando sua confiança nos dados extraídos
 }
 
+RECURSO ESPECIAL - DESCOBERTA INTELIGENTE DE CNPJ:
+Se o usuário fornecer APENAS o nome de uma empresa brasileira conhecida (sem CNPJ), tente descobrir o CNPJ da empresa usando seu conhecimento.
+- Se você conhece a empresa e tem alta confiança no CNPJ, retorne: "documentType": "cnpj", "document": "14 dígitos sem formatação"
+- Se você não conhece ou não tem certeza, retorne: "documentType": "none", "document": null
+
 Exemplos:
 - Input: "CEMIG"
-  Output: {"name": "CEMIG", "documentType": "none", "confidence": 0.6}
+  Output: {"name": "CEMIG", "documentType": "cnpj", "document": "17155730000164", "confidence": 0.85}
+  (Você conhece a CEMIG - Companhia Energética de Minas Gerais)
+
+- Input: "Petrobras"
+  Output: {"name": "Petrobras", "documentType": "cnpj", "document": "33000167000101", "confidence": 0.85}
+
+- Input: "Padaria do João"
+  Output: {"name": "Padaria do João", "documentType": "none", "confidence": 0.5}
+  (Empresa pequena/local - você não conhece o CNPJ)
 
 - Input: "Fornecedor ABC, CNPJ 12.345.678/0001-90, telefone (31) 3333-4444"
   Output: {"name": "Fornecedor ABC", "documentType": "cnpj", "document": "12345678000190", "phone": "(31) 3333-4444", "confidence": 0.95}
+  (CNPJ fornecido explicitamente pelo usuário)
 
 IMPORTANTE:
 - Sempre retorne pelo menos o "name"
-- Se detectar CNPJ, extraia apenas os números
-- Seja conservador com "confidence" - use valores baixos se não tiver certeza
+- CNPJs brasileiros têm EXATAMENTE 14 dígitos numéricos
+- Para empresas conhecidas (grandes empresas, marcas famosas), tente fornecer o CNPJ
+- Seja conservador com "confidence" - use 0.85 para empresas conhecidas, 0.95 quando CNPJ fornecido pelo usuário, 0.5 ou menos quando incerto
 - Retorne APENAS o JSON, sem texto adicional`;
 
   const aiResponse = await callOpenAI(

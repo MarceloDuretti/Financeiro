@@ -414,6 +414,32 @@ export default function ClientesFornecedores() {
     }
   };
 
+  const handleEnrichWithCNPJ = async (cnpj: string) => {
+    try {
+      // Re-process with the original name + CNPJ
+      const originalName = aiPreviewData?.name || "";
+      const enrichedInput = `${originalName}, CNPJ ${cnpj}`;
+      
+      const response = await apiRequest("POST", "/api/ai/process-entity", { input: enrichedInput });
+      const enrichedData = response as unknown as ProcessedEntity;
+      
+      // Update preview with enriched data
+      setAiPreviewData(enrichedData);
+      
+      toast({
+        title: "Dados enriquecidos com sucesso!",
+        description: "Informações completas obtidas da Receita Federal",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Erro ao enriquecer dados",
+        description: error.message || "Não foi possível buscar os dados do CNPJ",
+        variant: "destructive",
+      });
+      throw error; // Re-throw to stop loading state
+    }
+  };
+
   const handleConfirmAIData = (data: ProcessedEntity) => {
     // Populate form with AI data
     form.reset({
@@ -1877,6 +1903,7 @@ export default function ClientesFornecedores() {
         data={aiPreviewData}
         onConfirm={handleConfirmAIData}
         onDiscard={handleDiscardAIData}
+        onEnrich={handleEnrichWithCNPJ}
       />
     </div>
   );
