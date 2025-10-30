@@ -40,6 +40,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -57,6 +64,7 @@ import {
   Briefcase,
   Globe,
   Loader2,
+  BarChart3,
 } from "lucide-react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import type { Company, InsertCompany } from "@shared/schema";
@@ -66,6 +74,7 @@ import { useToast } from "@/hooks/use-toast";
 import { formatCompanyCode } from "@/lib/formatters";
 import { TeamTab } from "@/components/TeamTab";
 import CobrancaTab from "@/components/CobrancaTab";
+import { CompanyDashboard } from "@/components/CompanyDashboard";
 
 // Simple formatters for display and input masks
 function formatCNPJ(value?: string) {
@@ -969,6 +978,38 @@ export function CompanyDetailSheet({
                 <CobrancaTab companyId={company.id} />
               </TabsContent>
             </Tabs>
+
+            {/* Company Dashboard - Desktop: inline, Mobile: Dialog */}
+            {!isEditing && (
+              <>
+                {/* Desktop - Inline */}
+                <div className="hidden lg:block">
+                  <CompanyDashboard companyId={company.id} />
+                </div>
+
+                {/* Mobile - Button + Dialog */}
+                <div className="lg:hidden py-4 border-t">
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full rounded-lg"
+                        data-testid="button-view-dashboard-mobile"
+                      >
+                        <BarChart3 className="h-4 w-4 mr-2" />
+                        Ver Painel Executivo
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto rounded-xl">
+                      <DialogHeader>
+                        <DialogTitle>Painel Executivo - {company.tradeName}</DialogTitle>
+                      </DialogHeader>
+                      <CompanyDashboard companyId={company.id} />
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              </>
+            )}
           </div>
         </Form>
 

@@ -209,6 +209,119 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Company Dashboard - Analytics
+  app.get("/api/companies/:id/dashboard", isAuthenticated, async (req: any, res) => {
+    try {
+      const tenantId = getTenantId(req.user);
+      const companyId = req.params.id;
+      
+      // Verificar se a empresa pertence ao tenant
+      const company = await storage.getCompanyById(tenantId, companyId);
+      if (!company) {
+        return res.status(404).json({ error: "Company not found" });
+      }
+
+      // Buscar todas as transações da empresa
+      const transactions = await storage.listTransactions(tenantId, companyId);
+      
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const startOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+      
+      const startOfYear = new Date(now.getFullYear(), 0, 1);
+      const startOfNextYear = new Date(now.getFullYear() + 1, 0, 1);
+      
+      const last30Days = new Date(now);
+      last30Days.setDate(last30Days.getDate() - 30);
+
+      // Agregar dados
+      const dashboard = {
+        today: { revenue: 0, expense: 0, balance: 0 },
+        month: { revenue: 0, expense: 0, balance: 0 },
+        year: { revenue: 0, expense: 0, balance: 0 },
+        cashFlow: [] as Array<{ date: string; revenue: number; expense: number; balance: number }>,
+      };
+
+      // Processar transações
+      transactions.forEach((tx: any) => {
+        const txDate = new Date(tx.date);
+        const amount = parseFloat(tx.totalAmount || '0');
+        const isRevenue = tx.transactionType === 'Receita';
+
+        // Hoje (>= today e < tomorrow)
+        if (txDate >= today && txDate < tomorrow) {
+          if (isRevenue) {
+            dashboard.today.revenue += amount;
+          } else {
+            dashboard.today.expense += amount;
+          }
+        }
+
+        // Mês (>= startOfMonth e < startOfNextMonth)
+        if (txDate >= startOfMonth && txDate < startOfNextMonth) {
+          if (isRevenue) {
+            dashboard.month.revenue += amount;
+          } else {
+            dashboard.month.expense += amount;
+          }
+        }
+
+        // Ano (>= startOfYear e < startOfNextYear)
+        if (txDate >= startOfYear && txDate < startOfNextYear) {
+          if (isRevenue) {
+            dashboard.year.revenue += amount;
+          } else {
+            dashboard.year.expense += amount;
+          }
+        }
+      });
+
+      // Calcular saldos
+      dashboard.today.balance = dashboard.today.revenue - dashboard.today.expense;
+      dashboard.month.balance = dashboard.month.revenue - dashboard.month.expense;
+      dashboard.year.balance = dashboard.year.revenue - dashboard.year.expense;
+
+      // Gerar dados do fluxo de caixa (últimos 30 dias, até hoje inclusive)
+      const cashFlowMap = new Map<string, { revenue: number; expense: number }>();
+      
+      transactions.forEach((tx: any) => {
+        const txDate = new Date(tx.date);
+        if (txDate >= last30Days && txDate < tomorrow) {
+          const dateStr = txDate.toISOString().split('T')[0];
+          const existing = cashFlowMap.get(dateStr) || { revenue: 0, expense: 0 };
+          const amount = parseFloat(tx.totalAmount || '0');
+          
+          if (tx.transactionType === 'Receita') {
+            existing.revenue += amount;
+          } else {
+            existing.expense += amount;
+          }
+          
+          cashFlowMap.set(dateStr, existing);
+        }
+      });
+
+      // Converter para array e ordenar
+      dashboard.cashFlow = Array.from(cashFlowMap.entries())
+        .map(([date, data]) => ({
+          date,
+          revenue: data.revenue,
+          expense: data.expense,
+          balance: data.revenue - data.expense,
+        }))
+        .sort((a, b) => a.date.localeCompare(b.date));
+
+      res.json(dashboard);
+    } catch (error) {
+      console.error("Error getting company dashboard:", error);
+      res.status(500).json({ error: "Failed to get company dashboard" });
+    }
+  });
+
   // Company Members routes - with tenant isolation
 
   app.get("/api/companies/:companyId/members", isAuthenticated, async (req: any, res) => {
