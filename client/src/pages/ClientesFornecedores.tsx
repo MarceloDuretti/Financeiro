@@ -429,7 +429,6 @@ export default function ClientesFornecedores() {
     try {
       const response = await apiRequest("POST", "/api/ai/process-entity", { input });
       const data = await response.json();
-      console.log("[ClientesFornecedores] AI API Response:", data);
       setAiPreviewData(data as ProcessedEntity);
       setShowAiPreview(true);
     } catch (error: any) {
@@ -471,11 +470,8 @@ export default function ClientesFornecedores() {
   };
 
   const handleConfirmAIData = (data: ProcessedEntity) => {
-    console.log("[ClientesFornecedores] Confirming AI data:", data);
-    console.log("[ClientesFornecedores] documentType from AI:", data.documentType);
-    
     // Populate form with AI data
-    const formData = {
+    form.reset({
       ...form.getValues(),
       name: data.name,
       documentType: data.documentType || "none",
@@ -494,10 +490,7 @@ export default function ClientesFornecedores() {
       // Auto-mark as both customer and supplier when using AI
       isCustomer: true,
       isSupplier: true,
-    };
-    
-    console.log("[ClientesFornecedores] Form data to reset:", formData);
-    form.reset(formData);
+    });
 
     setShowAiPreview(false);
     setAiPreviewData(null);
@@ -1537,7 +1530,7 @@ export default function ClientesFornecedores() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Tipo de Documento</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value || "none"}>
                           <FormControl>
                             <SelectTrigger data-testid="select-document-type">
                               <SelectValue />
