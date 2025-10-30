@@ -243,11 +243,8 @@ export function CompanyDetailSheet({
       <SheetContent className={`w-full ${isEditing ? 'sm:max-w-6xl' : 'sm:max-w-4xl'} overflow-y-auto`}>
         <Form {...form}>
           <SheetHeader>
-            <SheetTitle className="text-xl flex items-center gap-2">
+            <SheetTitle className="text-xl">
               {isEditing ? "Editando Empresa" : "Detalhes da Empresa"}
-              <Badge className={getStatusBadgeClass(company.status as string)}>
-                {company.status}
-              </Badge>
             </SheetTitle>
           </SheetHeader>
 
@@ -314,22 +311,24 @@ export function CompanyDetailSheet({
 
                   <Separator />
 
-                  {/* Código e Badges */}
-                  <div className="flex flex-wrap items-center gap-2">
+                  {/* Código */}
+                  <div className="flex flex-col gap-1">
                     <span className="text-xs font-mono text-muted-foreground">
                       {formatCompanyCode(company.code)}
                     </span>
-                    <Badge className={`text-[10px] ${getStatusBadgeClass(company.status as string)}`}>
-                      {company.status}
-                    </Badge>
-                    {company.porte && (
-                      <Badge variant="outline" className="text-[10px]">
-                        {company.porte}
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge className={`text-[10px] ${getStatusBadgeClass(company.status as string)}`}>
+                        {company.status}
                       </Badge>
-                    )}
-                    {company.isActive && (
-                      <Badge className="bg-green-600 text-[10px]">Ativa</Badge>
-                    )}
+                      {company.porte && (
+                        <Badge variant="outline" className="text-[10px]">
+                          {company.porte}
+                        </Badge>
+                      )}
+                      {company.isActive && (
+                        <Badge className="bg-green-600 text-[10px]">Ativa</Badge>
+                      )}
+                    </div>
                   </div>
 
                   <Separator />
@@ -1014,26 +1013,26 @@ export function CompanyDetailSheet({
         </Form>
 
         {/* Action Buttons Footer - Apple Style */}
-        <SheetFooter className={isEditing ? "pt-2 mt-2" : "pt-4 mt-4 border-t"}>
+        <SheetFooter className={isEditing ? "pt-3 mt-3" : "pt-6 mt-6 border-t"}>
           {!isEditing ? (
-            <div className="flex flex-wrap gap-2.5">
+            <div className="flex flex-wrap gap-3 w-full">
               <Button
                 variant="default"
                 onClick={handleEdit}
-                className="rounded-lg px-4 py-2 h-auto font-medium"
+                className="rounded-xl px-6 py-3 h-auto font-semibold text-base flex-1 min-w-[140px]"
                 data-testid="button-edit-company"
               >
-                <Edit2 className="h-4 w-4 mr-2" />
+                <Edit2 className="h-5 w-5 mr-2" />
                 Editar
               </Button>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button 
                     variant="destructive" 
-                    className="rounded-lg px-4 py-2 h-auto font-medium"
+                    className="rounded-xl px-6 py-3 h-auto font-semibold text-base flex-1 min-w-[140px]"
                     data-testid="button-delete-company"
                   >
-                    <Trash2 className="h-4 w-4 mr-2" />
+                    <Trash2 className="h-5 w-5 mr-2" />
                     Excluir
                   </Button>
                 </AlertDialogTrigger>
@@ -1045,11 +1044,11 @@ export function CompanyDetailSheet({
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel className="rounded-lg" data-testid="button-cancel-delete">Cancelar</AlertDialogCancel>
+                    <AlertDialogCancel className="rounded-xl px-5 py-2.5" data-testid="button-cancel-delete">Cancelar</AlertDialogCancel>
                     <AlertDialogAction
                       onClick={handleDelete}
                       disabled={isDeleting}
-                      className="rounded-lg bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      className="rounded-xl px-5 py-2.5 bg-destructive text-destructive-foreground hover:bg-destructive/90"
                       data-testid="button-confirm-delete"
                     >
                       {isDeleting ? (
@@ -1066,32 +1065,32 @@ export function CompanyDetailSheet({
               </AlertDialog>
             </div>
           ) : (
-            <div className="flex gap-2.5">
+            <div className="flex gap-3 w-full">
               <Button
                 variant="outline"
                 onClick={handleCancelEdit}
                 disabled={isSaving}
-                className="rounded-lg px-4 py-2 h-auto font-medium"
+                className="rounded-xl px-6 py-3 h-auto font-semibold text-base flex-1"
                 data-testid="button-cancel-edit"
               >
-                <X className="h-4 w-4 mr-2" />
+                <X className="h-5 w-5 mr-2" />
                 Cancelar
               </Button>
               <Button
                 variant="default"
                 onClick={handleSaveEdit}
                 disabled={isSaving}
-                className="rounded-lg px-5 py-2 h-auto font-semibold"
+                className="rounded-xl px-6 py-3 h-auto font-semibold text-base flex-1"
                 data-testid="button-save-edit"
               >
                 {isSaving ? (
                   <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    <Loader2 className="h-5 w-5 mr-2 animate-spin" />
                     Salvando...
                   </>
                 ) : (
                   <>
-                    <Edit2 className="h-4 w-4 mr-2" />
+                    <Edit2 className="h-5 w-5 mr-2" />
                     Salvar
                   </>
                 )}
