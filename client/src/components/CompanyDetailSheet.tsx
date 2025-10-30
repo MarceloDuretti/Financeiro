@@ -860,46 +860,30 @@ export function CompanyDetailSheet({
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {/* Grid 3 Colunas: Dados Fiscais, Email, Website */}
+                    {/* Grid 3 Colunas: Inscrição Estadual, Municipal, Website */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {/* Dados Fiscais */}
-                      {(company.ie || company.im) && (
+                      {/* Inscrição Estadual */}
+                      {company.ie && (
                         <div className="space-y-1.5">
                           <div className="flex items-center gap-1.5">
                             <FileText className="h-3.5 w-3.5 text-primary" />
-                            <h3 className="font-semibold text-xs text-primary">Dados Fiscais</h3>
+                            <h3 className="font-semibold text-xs text-primary">Inscrição Estadual</h3>
                           </div>
-                          <div className="pl-5 space-y-2">
-                            {company.ie && (
-                              <div>
-                                <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Inscrição Estadual</p>
-                                <p className="text-xs font-medium">{company.ie}</p>
-                              </div>
-                            )}
-                            {company.im && (
-                              <div>
-                                <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Inscrição Municipal</p>
-                                <p className="text-xs font-medium">{company.im}</p>
-                              </div>
-                            )}
+                          <div className="pl-5">
+                            <p className="text-xs font-medium">{company.ie}</p>
                           </div>
                         </div>
                       )}
 
-                      {/* Email */}
-                      {company.email && (
+                      {/* Inscrição Municipal */}
+                      {company.im && (
                         <div className="space-y-1.5">
                           <div className="flex items-center gap-1.5">
-                            <Mail className="h-3.5 w-3.5 text-primary" />
-                            <h3 className="font-semibold text-xs text-primary">Email</h3>
+                            <FileText className="h-3.5 w-3.5 text-primary" />
+                            <h3 className="font-semibold text-xs text-primary">Inscrição Municipal</h3>
                           </div>
                           <div className="pl-5">
-                            <a
-                              href={`mailto:${company.email}`}
-                              className="text-xs font-medium text-primary hover:underline break-all"
-                            >
-                              {company.email}
-                            </a>
+                            <p className="text-xs font-medium">{company.im}</p>
                           </div>
                         </div>
                       )}
