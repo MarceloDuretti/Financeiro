@@ -316,16 +316,11 @@ export function CompanyDetailSheet({
                     <span className="text-xs font-mono text-muted-foreground">
                       {formatCompanyCode(company.code)}
                     </span>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Badge className={`text-[10px] ${getStatusBadgeClass(company.status as string)}`}>
-                        {company.status}
+                    {company.porte && (
+                      <Badge variant="outline" className="text-[10px] w-fit">
+                        {company.porte}
                       </Badge>
-                      {company.porte && (
-                        <Badge variant="outline" className="text-[10px]">
-                          {company.porte}
-                        </Badge>
-                      )}
-                    </div>
+                    )}
                   </div>
 
                   <Separator />
