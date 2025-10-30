@@ -396,26 +396,74 @@ export function TransactionDetailSheet({
                 </CardContent>
               </Card>
 
-              {/* Título e Cliente (Vertical) */}
+              {/* Status, Emissão, Vencimento (Vertical) */}
               <div className="flex flex-col justify-center space-y-3">
-                {/* Título */}
+                {/* Status */}
                 <div>
                   {!isEditing ? (
                     <div>
-                      <p className="text-xs text-muted-foreground mb-1.5">Título</p>
-                      <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium">
-                        {transaction.title}
+                      <p className="text-xs text-muted-foreground mb-1.5">Status</p>
+                      <div className="border rounded-md px-3 py-2 bg-muted/20">
+                        <Badge variant="outline" className="text-xs">
+                          {transaction.status === "paid"
+                            ? "Pago"
+                            : transaction.status === "cancelled"
+                            ? "Cancelado"
+                            : "Pendente"}
+                        </Badge>
                       </div>
                     </div>
                   ) : (
                     <FormField
                       control={form.control}
-                      name="title"
+                      name="status"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-xs">Título</FormLabel>
+                          <FormLabel className="text-xs">Status</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger data-testid="select-status" className="h-8">
+                                <SelectValue placeholder="Selecione..." />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="pending">Pendente</SelectItem>
+                              <SelectItem value="paid">Pago</SelectItem>
+                              <SelectItem value="cancelled">Cancelado</SelectItem>
+                              <SelectItem value="overdue">Vencido</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+                </div>
+
+                {/* Emissão */}
+                <div>
+                  {!isEditing ? (
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1.5">Emissão</p>
+                      <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium">
+                        {transaction.issueDate ? format(new Date(transaction.issueDate), "dd/MM/yyyy") : "-"}
+                      </div>
+                    </div>
+                  ) : (
+                    <FormField
+                      control={form.control}
+                      name="issueDate"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-xs">Emissão</FormLabel>
                           <FormControl>
-                            <Input {...field} placeholder="Título do lançamento" data-testid="input-title" className="h-8" />
+                            <Input
+                              type="date"
+                              className="h-8"
+                              value={field.value ? format(new Date(field.value), "yyyy-MM-dd") : ""}
+                              onChange={(e) => field.onChange(new Date(e.target.value))}
+                              data-testid="input-issue-date"
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -424,150 +472,102 @@ export function TransactionDetailSheet({
                   )}
                 </div>
 
-                {/* Pessoa (Cliente/Fornecedor) */}
+                {/* Vencimento */}
                 <div>
                   {!isEditing ? (
                     <div>
-                      <p className="text-xs text-muted-foreground mb-1.5">
-                        {transaction.type === "expense" ? "Fornecedor" : "Cliente"}
-                      </p>
+                      <p className="text-xs text-muted-foreground mb-1.5">Vencimento</p>
                       <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium">
-                        {person?.name || "-"}
+                        {transaction.dueDate ? format(new Date(transaction.dueDate), "dd/MM/yyyy") : "-"}
                       </div>
                     </div>
                   ) : (
                     <FormField
                       control={form.control}
-                      name="personId"
+                      name="dueDate"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-xs">{transaction.type === "expense" ? "Fornecedor" : "Cliente"}</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl>
-                              <SelectTrigger data-testid="select-person" className="h-8">
-                                <SelectValue placeholder="Selecione..." />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {customersSuppliers.map((p) => (
+                          <FormLabel className="text-xs">Vencimento</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="date"
+                              className="h-8"
+                              value={field.value ? format(new Date(field.value), "yyyy-MM-dd") : ""}
+                              onChange={(e) => field.onChange(new Date(e.target.value))}
+                              data-testid="input-due-date"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <Separator className="my-2" />
+
+            {/* Título e Cliente/Fornecedor */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {/* Título */}
+              <div>
+                {!isEditing ? (
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1.5">Título</p>
+                    <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium">
+                      {transaction.title}
+                    </div>
+                  </div>
+                ) : (
+                  <FormField
+                    control={form.control}
+                    name="title"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-xs">Título</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="Título do lançamento" data-testid="input-title" className="h-8" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+              </div>
+
+              {/* Pessoa (Cliente/Fornecedor) */}
+              <div>
+                {!isEditing ? (
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1.5">
+                      {transaction.type === "expense" ? "Fornecedor" : "Cliente"}
+                    </p>
+                    <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium">
+                      {person?.name || "-"}
+                    </div>
+                  </div>
+                ) : (
+                  <FormField
+                    control={form.control}
+                    name="personId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-xs">{transaction.type === "expense" ? "Fornecedor" : "Cliente"}</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger data-testid="select-person" className="h-8">
+                              <SelectValue placeholder="Selecione..." />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {customersSuppliers.map((p) => (
                               <SelectItem key={p.id} value={p.id}>
                                 {p.name}
                               </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
-              </div>
-            </div>
-            </div>
-
-            <Separator className="my-2" />
-
-            {/* Grid de 3 colunas: Status, Emissão, Vencimento */}
-            <div className={`grid grid-cols-1 ${isEditing ? 'md:grid-cols-3' : 'md:grid-cols-3'} gap-3`}>
-              {/* Status */}
-              <div>
-                {!isEditing ? (
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-1.5">Status</p>
-                    <div className="border rounded-md px-3 py-2 bg-muted/20">
-                      <Badge variant="outline" className="text-xs">
-                        {transaction.status === "paid"
-                          ? "Pago"
-                          : transaction.status === "cancelled"
-                          ? "Cancelado"
-                          : "Pendente"}
-                      </Badge>
-                    </div>
-                  </div>
-                ) : (
-                  <FormField
-                    control={form.control}
-                    name="status"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-xs">Status</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger data-testid="select-status" className="h-8">
-                              <SelectValue placeholder="Selecione..." />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="pending">Pendente</SelectItem>
-                            <SelectItem value="paid">Pago</SelectItem>
-                            <SelectItem value="cancelled">Cancelado</SelectItem>
-                            <SelectItem value="overdue">Vencido</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
-              </div>
-
-              {/* Emissão */}
-              <div>
-                {!isEditing ? (
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-1.5">Emissão</p>
-                    <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium">
-                      {transaction.issueDate ? format(new Date(transaction.issueDate), "dd/MM/yyyy") : "-"}
-                    </div>
-                  </div>
-                ) : (
-                  <FormField
-                    control={form.control}
-                    name="issueDate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-xs">Emissão</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="date"
-                            className="h-8"
-                            value={field.value ? format(new Date(field.value), "yyyy-MM-dd") : ""}
-                            onChange={(e) => field.onChange(new Date(e.target.value))}
-                            data-testid="input-issue-date"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
-              </div>
-
-              {/* Vencimento */}
-              <div>
-                {!isEditing ? (
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-1.5">Vencimento</p>
-                    <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium">
-                      {transaction.dueDate ? format(new Date(transaction.dueDate), "dd/MM/yyyy") : "-"}
-                    </div>
-                  </div>
-                ) : (
-                  <FormField
-                    control={form.control}
-                    name="dueDate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-xs">Vencimento</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="date"
-                            className="h-8"
-                            value={field.value ? format(new Date(field.value), "yyyy-MM-dd") : ""}
-                            onChange={(e) => field.onChange(new Date(e.target.value))}
-                            data-testid="input-due-date"
-                          />
-                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
