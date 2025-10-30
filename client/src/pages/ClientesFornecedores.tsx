@@ -471,8 +471,11 @@ export default function ClientesFornecedores() {
   };
 
   const handleConfirmAIData = (data: ProcessedEntity) => {
+    console.log("[ClientesFornecedores] Confirming AI data:", data);
+    console.log("[ClientesFornecedores] documentType from AI:", data.documentType);
+    
     // Populate form with AI data
-    form.reset({
+    const formData = {
       ...form.getValues(),
       name: data.name,
       documentType: data.documentType || "none",
@@ -491,7 +494,10 @@ export default function ClientesFornecedores() {
       // Auto-mark as both customer and supplier when using AI
       isCustomer: true,
       isSupplier: true,
-    });
+    };
+    
+    console.log("[ClientesFornecedores] Form data to reset:", formData);
+    form.reset(formData);
 
     setShowAiPreview(false);
     setAiPreviewData(null);
