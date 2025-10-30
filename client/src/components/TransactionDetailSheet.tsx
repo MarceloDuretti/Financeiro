@@ -463,6 +463,7 @@ export function TransactionDetailSheet({
                 )}
               </div>
             </div>
+            </div>
 
             <Separator className="my-2" />
 
