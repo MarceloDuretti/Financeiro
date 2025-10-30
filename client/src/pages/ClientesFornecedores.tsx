@@ -401,8 +401,9 @@ export default function ClientesFornecedores() {
     setIsProcessingAI(true);
     try {
       const response = await apiRequest("POST", "/api/ai/process-entity", { input });
-      console.log("[ClientesFornecedores] AI API Response:", response);
-      setAiPreviewData(response as unknown as ProcessedEntity);
+      const data = await response.json();
+      console.log("[ClientesFornecedores] AI API Response:", data);
+      setAiPreviewData(data as ProcessedEntity);
       setShowAiPreview(true);
     } catch (error: any) {
       console.error("[ClientesFornecedores] AI API Error:", error);
@@ -423,10 +424,10 @@ export default function ClientesFornecedores() {
       const enrichedInput = `${originalName}, CNPJ ${cnpj}`;
       
       const response = await apiRequest("POST", "/api/ai/process-entity", { input: enrichedInput });
-      const enrichedData = response as unknown as ProcessedEntity;
+      const enrichedData = await response.json();
       
       // Update preview with enriched data
-      setAiPreviewData(enrichedData);
+      setAiPreviewData(enrichedData as ProcessedEntity);
       
       toast({
         title: "Dados enriquecidos com sucesso!",
