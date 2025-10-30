@@ -285,7 +285,7 @@ export function TransactionDetailSheet({
           </SheetHeader>
 
           <div className="mt-4 space-y-3">
-            {/* Top Section: Amount Card + Status/Dates */}
+            {/* Top Section: Amount Card + All Fields */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {/* Amount Card - Financial Dashboard */}
               <Card className="border-0 bg-gradient-to-br from-card to-muted/30 shadow-md">
@@ -396,8 +396,8 @@ export function TransactionDetailSheet({
                 </CardContent>
               </Card>
 
-              {/* Status, Emissão, Vencimento (Vertical) */}
-              <div className="flex flex-col justify-center space-y-3">
+              {/* Status, Emissão, Vencimento, Título, Cliente (Vertical) */}
+              <div className="space-y-3">
                 {/* Status */}
                 <div>
                   {!isEditing ? (
@@ -503,76 +503,71 @@ export function TransactionDetailSheet({
                     />
                   )}
                 </div>
-              </div>
-            </div>
 
-            <Separator className="my-2" />
-
-            {/* Título e Cliente/Fornecedor */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {/* Título */}
-              <div>
-                {!isEditing ? (
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-1.5">Título</p>
-                    <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium">
-                      {transaction.title}
+                {/* Título */}
+                <div>
+                  {!isEditing ? (
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1.5">Título</p>
+                      <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium">
+                        {transaction.title}
+                      </div>
                     </div>
-                  </div>
-                ) : (
-                  <FormField
-                    control={form.control}
-                    name="title"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-xs">Título</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="Título do lançamento" data-testid="input-title" className="h-8" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
-              </div>
-
-              {/* Pessoa (Cliente/Fornecedor) */}
-              <div>
-                {!isEditing ? (
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-1.5">
-                      {transaction.type === "expense" ? "Fornecedor" : "Cliente"}
-                    </p>
-                    <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium">
-                      {person?.name || "-"}
-                    </div>
-                  </div>
-                ) : (
-                  <FormField
-                    control={form.control}
-                    name="personId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-xs">{transaction.type === "expense" ? "Fornecedor" : "Cliente"}</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
+                  ) : (
+                    <FormField
+                      control={form.control}
+                      name="title"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-xs">Título</FormLabel>
                           <FormControl>
-                            <SelectTrigger data-testid="select-person" className="h-8">
-                              <SelectValue placeholder="Selecione..." />
-                            </SelectTrigger>
+                            <Input {...field} placeholder="Título do lançamento" data-testid="input-title" className="h-8" />
                           </FormControl>
-                          <SelectContent>
-                            {customersSuppliers.map((p) => (
-                              <SelectItem key={p.id} value={p.id}>
-                                {p.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+                </div>
+
+                {/* Pessoa (Cliente/Fornecedor) */}
+                <div>
+                  {!isEditing ? (
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1.5">
+                        {transaction.type === "expense" ? "Fornecedor" : "Cliente"}
+                      </p>
+                      <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium">
+                        {person?.name || "-"}
+                      </div>
+                    </div>
+                  ) : (
+                    <FormField
+                      control={form.control}
+                      name="personId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-xs">{transaction.type === "expense" ? "Fornecedor" : "Cliente"}</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger data-testid="select-person" className="h-8">
+                                <SelectValue placeholder="Selecione..." />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {customersSuppliers.map((p) => (
+                                <SelectItem key={p.id} value={p.id}>
+                                  {p.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+                </div>
               </div>
             </div>
 
