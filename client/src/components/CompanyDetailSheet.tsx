@@ -1009,9 +1009,9 @@ export function CompanyDetailSheet({
           {!isEditing ? (
             <div className="flex flex-wrap gap-3 w-full">
               <Button
-                variant="default"
+                variant="outline"
                 onClick={handleEdit}
-                className="rounded-xl px-6 py-3 h-auto font-semibold text-base flex-1 min-w-[140px]"
+                className="rounded-xl px-6 py-3 h-auto font-semibold text-base flex-1 min-w-[140px] border-primary/30 text-primary hover:bg-primary/5"
                 data-testid="button-edit-company"
               >
                 <Edit2 className="h-5 w-5 mr-2" />
@@ -1020,8 +1020,8 @@ export function CompanyDetailSheet({
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button 
-                    variant="destructive" 
-                    className="rounded-xl px-6 py-3 h-auto font-semibold text-base flex-1 min-w-[140px]"
+                    variant="outline" 
+                    className="rounded-xl px-6 py-3 h-auto font-semibold text-base flex-1 min-w-[140px] border-destructive/30 text-destructive hover:bg-destructive/5"
                     data-testid="button-delete-company"
                   >
                     <Trash2 className="h-5 w-5 mr-2" />
@@ -1036,11 +1036,11 @@ export function CompanyDetailSheet({
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel className="rounded-xl px-5 py-2.5" data-testid="button-cancel-delete">Cancelar</AlertDialogCancel>
+                    <AlertDialogCancel className="rounded-xl px-5 py-2.5 border-border/50" data-testid="button-cancel-delete">Cancelar</AlertDialogCancel>
                     <AlertDialogAction
                       onClick={handleDelete}
                       disabled={isDeleting}
-                      className="rounded-xl px-5 py-2.5 bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      className="rounded-xl px-5 py-2.5 bg-transparent border border-destructive/30 text-destructive hover:bg-destructive/10"
                       data-testid="button-confirm-delete"
                     >
                       {isDeleting ? (
