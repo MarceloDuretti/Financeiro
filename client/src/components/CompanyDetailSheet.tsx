@@ -1011,7 +1011,7 @@ export function CompanyDetailSheet({
               <Button
                 variant="outline"
                 onClick={handleEdit}
-                className="rounded-xl px-6 py-3 h-auto font-semibold text-base flex-1 min-w-[140px] border-primary/30 text-primary hover:bg-primary/5"
+                className="rounded-xl px-6 py-3 h-auto font-semibold text-base flex-1 min-w-[140px] border-primary/30 text-primary bg-primary/5 hover:bg-primary/10"
                 data-testid="button-edit-company"
               >
                 <Edit2 className="h-5 w-5 mr-2" />
@@ -1021,7 +1021,7 @@ export function CompanyDetailSheet({
                 <AlertDialogTrigger asChild>
                   <Button 
                     variant="outline" 
-                    className="rounded-xl px-6 py-3 h-auto font-semibold text-base flex-1 min-w-[140px] border-destructive/30 text-destructive hover:bg-destructive/5"
+                    className="rounded-xl px-6 py-3 h-auto font-semibold text-base flex-1 min-w-[140px] border-destructive/30 text-destructive bg-destructive/5 hover:bg-destructive/10"
                     data-testid="button-delete-company"
                   >
                     <Trash2 className="h-5 w-5 mr-2" />
@@ -1040,7 +1040,7 @@ export function CompanyDetailSheet({
                     <AlertDialogAction
                       onClick={handleDelete}
                       disabled={isDeleting}
-                      className="rounded-xl px-5 py-2.5 bg-transparent border border-destructive/30 text-destructive hover:bg-destructive/10"
+                      className="rounded-xl px-5 py-2.5 bg-destructive/5 border border-destructive/30 text-destructive hover:bg-destructive/15"
                       data-testid="button-confirm-delete"
                     >
                       {isDeleting ? (
