@@ -90,13 +90,19 @@ export function AIPreviewDialog({ open, onOpenChange, data, onConfirm, onDiscard
 
   if (!data) return null;
 
+  // Debug: log received data
+  console.log("[AIPreviewDialog] Received data:", data);
+
   // Guard against undefined values
   const confidence = data.confidence ?? 0.5;
   const source = getSourceLabel(data.source || "ai");
   const hasAddress = data.street || data.city || data.state;
   
   // Determine if we should show enrichment option
-  const needsEnrichment = (!data.document || data.documentType === "none") && source.label === "Processado por IA";
+  // Only show enrichment if source is purely "ai" (not hybrid or cnpj_api) and no document
+  const needsEnrichment = (!data.document || data.documentType === "none") && data.source === "ai";
+  
+  console.log("[AIPreviewDialog] needsEnrichment:", needsEnrichment, "source:", data.source, "document:", data.document);
 
   const handleEnrich = async () => {
     if (!onEnrich || !manualCnpj.trim()) return;
