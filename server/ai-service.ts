@@ -20,6 +20,51 @@ export interface ProcessedEntity {
   source: "ai" | "cnpj_api" | "hybrid";
 }
 
+/**
+ * Validates CNPJ using official algorithm (check digits)
+ * Returns true if CNPJ is mathematically valid
+ */
+function isValidCNPJ(cnpj: string): boolean {
+  // Remove formatting
+  const clean = cnpj.replace(/[^\d]/g, "");
+  
+  // Must be exactly 14 digits
+  if (clean.length !== 14) {
+    return false;
+  }
+  
+  // Reject known invalid patterns (all same digit)
+  if (/^(\d)\1{13}$/.test(clean)) {
+    return false;
+  }
+  
+  // Validate first check digit
+  let sum = 0;
+  let weight = 5;
+  for (let i = 0; i < 12; i++) {
+    sum += parseInt(clean[i]) * weight;
+    weight = weight === 2 ? 9 : weight - 1;
+  }
+  let checkDigit1 = sum % 11 < 2 ? 0 : 11 - (sum % 11);
+  if (checkDigit1 !== parseInt(clean[12])) {
+    return false;
+  }
+  
+  // Validate second check digit
+  sum = 0;
+  weight = 6;
+  for (let i = 0; i < 13; i++) {
+    sum += parseInt(clean[i]) * weight;
+    weight = weight === 2 ? 9 : weight - 1;
+  }
+  let checkDigit2 = sum % 11 < 2 ? 0 : 11 - (sum % 11);
+  if (checkDigit2 !== parseInt(clean[13])) {
+    return false;
+  }
+  
+  return true;
+}
+
 interface ReceitaWSResponse {
   nome: string;
   fantasia: string;
@@ -82,44 +127,62 @@ export async function processEntityInput(input: string): Promise<ProcessedEntity
   // Step 1: Use AI to extract and interpret the input
   const systemPrompt = `Você é um assistente especializado em extrair informações de empresas e pessoas para cadastro no Brasil.
   
-Analise o texto fornecido e extraia TODAS as informações disponíveis no seguinte formato JSON:
+Analise o texto fornecido e extraia APENAS as informações que estiverem EXPLICITAMENTE presentes no formato JSON:
 
 {
   "name": "nome da empresa ou pessoa (obrigatório)",
   "documentType": "cpf, cnpj, foreign ou none",
-  "document": "número do documento sem formatação (14 dígitos para CNPJ)",
-  "phone": "telefone com DDD",
-  "email": "email se mencionado",
-  "website": "site se mencionado",
+  "document": "número do documento sem formatação (SOMENTE se fornecido pelo usuário)",
+  "phone": "telefone com DDD (SOMENTE se fornecido)",
+  "email": "email (SOMENTE se fornecido)",
+  "website": "site (SOMENTE se fornecido)",
   "confidence": número de 0 a 1 indicando sua confiança nos dados extraídos
 }
 
-RECURSO ESPECIAL - DESCOBERTA INTELIGENTE DE CNPJ:
-Se o usuário fornecer APENAS o nome de uma empresa brasileira conhecida (sem CNPJ), tente descobrir o CNPJ da empresa usando seu conhecimento.
-- Se você conhece a empresa e tem alta confiança no CNPJ, retorne: "documentType": "cnpj", "document": "14 dígitos sem formatação"
-- Se você não conhece ou não tem certeza, retorne: "documentType": "none", "document": null
+⚠️ REGRAS CRÍTICAS - LEIA COM ATENÇÃO:
 
-Exemplos:
-- Input: "CEMIG"
-  Output: {"name": "CEMIG", "documentType": "cnpj", "document": "17155730000164", "confidence": 0.85}
-  (Você conhece a CEMIG - Companhia Energética de Minas Gerais)
+1. NUNCA INVENTE OU ADIVINHE CNPJs
+   - Só retorne CNPJ se o usuário fornecer explicitamente no input
+   - Se não houver CNPJ no input, retorne: "documentType": "none", "document": null
+   - NUNCA use seu conhecimento para "adivinhar" CNPJs de empresas conhecidas
+   - Mesmo para empresas famosas (CEMIG, Petrobras, Prefeitura, etc), retorne "none"
 
-- Input: "Petrobras"
-  Output: {"name": "Petrobras", "documentType": "cnpj", "document": "33000167000101", "confidence": 0.85}
+2. VALIDAÇÃO DE CNPJ
+   - CNPJs DEVEM ter EXATAMENTE 14 dígitos numéricos
+   - Se o CNPJ fornecido não tiver 14 dígitos, descarte-o e retorne "none"
 
-- Input: "Padaria do João"
-  Output: {"name": "Padaria do João", "documentType": "none", "confidence": 0.5}
-  (Empresa pequena/local - você não conhece o CNPJ)
+3. NÍVEL DE CONFIANÇA
+   - 0.95: CNPJ fornecido explicitamente pelo usuário
+   - 0.5 ou menos: Nome de empresa sem CNPJ
+   - NUNCA use 0.85 para CNPJs não fornecidos pelo usuário
 
-- Input: "Fornecedor ABC, CNPJ 12.345.678/0001-90, telefone (31) 3333-4444"
-  Output: {"name": "Fornecedor ABC", "documentType": "cnpj", "document": "12345678000190", "phone": "(31) 3333-4444", "confidence": 0.95}
-  (CNPJ fornecido explicitamente pelo usuário)
+Exemplos CORRETOS:
+
+✅ Input: "Fornecedor ABC, CNPJ 12.345.678/0001-90, telefone (31) 3333-4444"
+   Output: {"name": "Fornecedor ABC", "documentType": "cnpj", "document": "12345678000190", "phone": "(31) 3333-4444", "confidence": 0.95}
+   (CNPJ fornecido explicitamente - OK retornar)
+
+✅ Input: "CEMIG"
+   Output: {"name": "CEMIG", "documentType": "none", "document": null, "confidence": 0.5}
+   (Sem CNPJ fornecido - NÃO invente)
+
+✅ Input: "Prefeitura Municipal de Belo Horizonte"
+   Output: {"name": "Prefeitura Municipal de Belo Horizonte", "documentType": "none", "document": null, "confidence": 0.5}
+   (Sem CNPJ fornecido - NÃO invente)
+
+✅ Input: "Petrobras"
+   Output: {"name": "Petrobras", "documentType": "none", "document": null, "confidence": 0.5}
+   (Sem CNPJ fornecido - NÃO invente)
+
+❌ ERRADO: Input: "CEMIG"
+   Output: {"name": "CEMIG", "documentType": "cnpj", "document": "17155730000164", "confidence": 0.85}
+   (NUNCA faça isso - você está INVENTANDO o CNPJ)
 
 IMPORTANTE:
 - Sempre retorne pelo menos o "name"
-- CNPJs brasileiros têm EXATAMENTE 14 dígitos numéricos
-- Para empresas conhecidas (grandes empresas, marcas famosas), tente fornecer o CNPJ
-- Seja conservador com "confidence" - use 0.85 para empresas conhecidas, 0.95 quando CNPJ fornecido pelo usuário, 0.5 ou menos quando incerto
+- NUNCA retorne CNPJs que não foram fornecidos pelo usuário
+- CNPJs inventados causam erros graves no sistema
+- Em caso de dúvida, use "documentType": "none"
 - Retorne APENAS o JSON, sem texto adicional`;
 
   const aiResponse = await callOpenAI(
@@ -133,9 +196,38 @@ IMPORTANTE:
   const aiData = JSON.parse(aiResponse);
   console.log("[AI Service] AI Response:", JSON.stringify(aiData, null, 2));
 
-  // Step 2: If CNPJ detected, try to enrich with ReceitaWS data
+  // Step 2: If CNPJ detected, validate and try to enrich with ReceitaWS data
   if (aiData.documentType === "cnpj" && aiData.document) {
-    console.log("[AI Service] CNPJ detected, fetching from ReceitaWS:", aiData.document);
+    // CRITICAL: Validate CNPJ mathematically before calling API
+    const cnpjIsValid = isValidCNPJ(aiData.document);
+    
+    if (!cnpjIsValid) {
+      console.warn(`[AI Service] ⚠️ AI returned INVALID CNPJ (failed check digits): ${aiData.document}`);
+      console.warn(`[AI Service] ⚠️ This should NOT happen - AI is hallucinating CNPJs!`);
+      console.warn(`[AI Service] Discarding invalid CNPJ and returning AI-only data with reduced confidence`);
+      
+      // Discard invalid CNPJ and return AI-only data with LOW confidence
+      return {
+        name: aiData.name,
+        documentType: "none", // Discard invalid CNPJ
+        document: undefined,
+        phone: aiData.phone,
+        email: aiData.email,
+        website: aiData.website,
+        zipCode: aiData.zipCode,
+        street: aiData.street,
+        number: aiData.number,
+        complement: aiData.complement,
+        neighborhood: aiData.neighborhood,
+        city: aiData.city,
+        state: aiData.state,
+        country: aiData.country,
+        confidence: 0.3, // LOW confidence - AI hallucinated
+        source: "ai" as const,
+      };
+    }
+    
+    console.log("[AI Service] ✓ CNPJ validation passed, fetching from ReceitaWS:", aiData.document);
     const cnpjData = await fetchCNPJData(aiData.document);
 
     if (cnpjData) {
@@ -160,7 +252,29 @@ IMPORTANTE:
         source: "hybrid",
       };
     } else {
-      console.log("[AI Service] ReceitaWS returned no data for CNPJ:", aiData.document);
+      console.warn("[AI Service] ⚠️ ReceitaWS returned no data for CNPJ:", aiData.document);
+      console.warn("[AI Service] CNPJ may be valid but inactive/not found in ReceitaWS");
+      console.warn("[AI Service] Returning AI-only data with reduced confidence");
+      
+      // ReceitaWS failed - return AI data with reduced confidence
+      return {
+        name: aiData.name,
+        documentType: "cnpj", // Keep CNPJ since it's mathematically valid
+        document: aiData.document,
+        phone: aiData.phone,
+        email: aiData.email,
+        website: aiData.website,
+        zipCode: aiData.zipCode,
+        street: aiData.street,
+        number: aiData.number,
+        complement: aiData.complement,
+        neighborhood: aiData.neighborhood,
+        city: aiData.city,
+        state: aiData.state,
+        country: aiData.country,
+        confidence: 0.4, // Reduced confidence - CNPJ valid but not enriched
+        source: "ai" as const,
+      };
     }
   }
 

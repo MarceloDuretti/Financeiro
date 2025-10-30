@@ -65,13 +65,17 @@ function formatZipCode(zipCode: string): string {
   return zipCode;
 }
 
-function getSourceLabel(source: string): { label: string; color: string } {
+function getSourceLabel(source: string, confidence: number): { label: string; color: string } {
   switch (source) {
     case "hybrid":
-      return { label: "Dados da Receita Federal + IA", color: "bg-green-600" };
+      return { label: "✓ Dados da Receita Federal", color: "bg-green-600" };
     case "cnpj_api":
-      return { label: "Dados da Receita Federal", color: "bg-green-600" };
+      return { label: "✓ Dados da Receita Federal", color: "bg-green-600" };
     case "ai":
+      // Low confidence = warning (yellow)
+      if (confidence < 0.5) {
+        return { label: "⚠️ Revise os Dados", color: "bg-yellow-600" };
+      }
       return { label: "Processado por IA", color: "bg-blue-600" };
     default:
       return { label: "Desconhecido", color: "bg-gray-600" };
@@ -80,8 +84,9 @@ function getSourceLabel(source: string): { label: string; color: string } {
 
 function getConfidenceColor(confidence: number): string {
   if (confidence >= 0.9) return "bg-green-600";
-  if (confidence >= 0.7) return "bg-yellow-600";
-  return "bg-orange-600";
+  if (confidence >= 0.5) return "bg-blue-600"; // Medium confidence = blue (neutral)
+  if (confidence >= 0.3) return "bg-yellow-600"; // Low confidence = yellow (warning)
+  return "bg-orange-600"; // Very low confidence = orange (alert)
 }
 
 export function AIPreviewDialog({ open, onOpenChange, data, onConfirm, onDiscard, onEnrich }: AIPreviewDialogProps) {
@@ -92,7 +97,7 @@ export function AIPreviewDialog({ open, onOpenChange, data, onConfirm, onDiscard
 
   // Guard against undefined values
   const confidence = data.confidence ?? 0.5;
-  const source = getSourceLabel(data.source || "ai");
+  const source = getSourceLabel(data.source || "ai", confidence);
   const hasAddress = data.street || data.city || data.state;
   
   // Determine if we should show enrichment option
