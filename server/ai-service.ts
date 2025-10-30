@@ -120,6 +120,115 @@ async function fetchCNPJData(cnpj: string): Promise<ReceitaWSResponse | null> {
 }
 
 /**
+ * Discovers CNPJ for a company using AI knowledge + validation
+ * Uses GPT-4o-mini's knowledge of well-known Brazilian companies, but ALWAYS validates
+ */
+async function discoverCNPJByName(companyName: string): Promise<string | null> {
+  try {
+    console.log(`[CNPJ Discovery] Attempting to discover CNPJ for: "${companyName}"`);
+    
+    const discoveryPrompt = `Você tem conhecimento sobre empresas brasileiras. Se você conhece o CNPJ da empresa "${companyName}", forneça-o.
+
+EMPRESA: "${companyName}"
+
+⚠️ REGRAS CRÍTICAS:
+1. APENAS retorne o CNPJ se você tem CERTEZA ABSOLUTA que conhece esta empresa
+2. O CNPJ deve ser de uma empresa MUITO CONHECIDA nacionalmente (CEMIG, Petrobras, Copasa, Correios, etc)
+3. Se você NÃO tem certeza ou não conhece, retorne null
+4. CNPJs DEVEM ter EXATAMENTE 14 dígitos
+5. NÃO invente ou adivinhe - se não tem certeza, retorne null
+
+Retorne APENAS um JSON válido:
+{
+  "cnpj": "CNPJ sem formatação (14 dígitos)" ou null,
+  "confidence": número de 0 a 1,
+  "companyFullName": "nome jurídico completo da empresa" ou null
+}
+
+Exemplos de empresas MUITO CONHECIDAS que você pode retornar:
+- CEMIG (Companhia Energética de Minas Gerais)
+- Petrobras
+- Copasa (Companhia de Saneamento de Minas Gerais)
+- Banco do Brasil
+- Caixa Econômica Federal
+- Correios
+- Oi S.A.
+- Vale S.A.
+
+Se a empresa NÃO está nesta lista de empresas nacionalmente famosas, retorne:
+{"cnpj": null, "confidence": 0, "companyFullName": null}`;
+
+    const aiResponse = await callOpenAI(
+      [
+        { role: "system", content: "Você conhece CNPJs de grandes empresas brasileiras, mas só retorna quando tem certeza absoluta." },
+        { role: "user", content: discoveryPrompt }
+      ],
+      { jsonMode: true, maxTokens: 300 }
+    );
+
+    const result = JSON.parse(aiResponse);
+    console.log(`[CNPJ Discovery] AI result:`, result);
+
+    if (!result.cnpj) {
+      console.log(`[CNPJ Discovery] AI doesn't know CNPJ for this company`);
+      return null;
+    }
+
+    const cleanCNPJ = result.cnpj.replace(/[^\d]/g, "");
+    
+    if (cleanCNPJ.length !== 14) {
+      console.warn(`[CNPJ Discovery] ⚠️ AI returned CNPJ with invalid length: ${cleanCNPJ.length} digits`);
+      return null;
+    }
+
+    // CRITICAL: Validate mathematically
+    const isValid = isValidCNPJ(cleanCNPJ);
+    if (!isValid) {
+      console.warn(`[CNPJ Discovery] ⚠️ AI returned INVALID CNPJ (failed check digits): ${cleanCNPJ}`);
+      console.warn(`[CNPJ Discovery] This is a hallucination - discarding`);
+      return null;
+    }
+
+    console.log(`[CNPJ Discovery] ✓ AI provided valid CNPJ: ${cleanCNPJ}`);
+    console.log(`[CNPJ Discovery] Now validating with ReceitaWS to confirm...`);
+    
+    // CRITICAL: Always validate with ReceitaWS before trusting
+    const receitaData = await fetchCNPJData(cleanCNPJ);
+    if (!receitaData) {
+      console.warn(`[CNPJ Discovery] ⚠️ ReceitaWS validation FAILED for AI-provided CNPJ`);
+      console.warn(`[CNPJ Discovery] CNPJ may be invalid or inactive - discarding`);
+      return null;
+    }
+
+    // Verify the company name matches (safely handle null/undefined fantasia)
+    const companyLower = companyName.toLowerCase();
+    const nomeLower = (receitaData.nome || "").toLowerCase();
+    const fantasiaLower = (receitaData.fantasia || "").toLowerCase();
+    
+    const nameMatches = 
+      nomeLower.includes(companyLower) ||
+      fantasiaLower.includes(companyLower) ||
+      companyLower.includes(nomeLower) ||
+      (fantasiaLower && companyLower.includes(fantasiaLower));
+
+    if (!nameMatches) {
+      console.warn(`[CNPJ Discovery] ⚠️ Company name mismatch!`);
+      console.warn(`[CNPJ Discovery] Searched for: "${companyName}"`);
+      console.warn(`[CNPJ Discovery] ReceitaWS returned: "${receitaData.nome}" / "${receitaData.fantasia}"`);
+      console.warn(`[CNPJ Discovery] Discarding - names don't match`);
+      return null;
+    }
+
+    console.log(`[CNPJ Discovery] ✅ SUCCESS! Discovered and validated CNPJ: ${cleanCNPJ}`);
+    console.log(`[CNPJ Discovery] Company: ${receitaData.nome} / ${receitaData.fantasia}`);
+    return cleanCNPJ;
+  } catch (error) {
+    console.error("[CNPJ Discovery] Error during discovery:", error);
+    return null;
+  }
+}
+
+/**
  * Processes user input (text or voice transcription) to extract entity information
  * Uses GPT-4o-mini for cost-effective processing
  */
@@ -278,7 +387,43 @@ IMPORTANTE:
     }
   }
 
-  // Step 3: Return AI-only data if no CNPJ enrichment
+  // Step 3: Try to discover CNPJ automatically if not provided
+  if (!aiData.document || aiData.documentType === "none") {
+    console.log("[AI Service] No CNPJ provided by user - attempting automatic discovery...");
+    const discoveredCNPJ = await discoverCNPJByName(aiData.name);
+    
+    if (discoveredCNPJ) {
+      console.log("[AI Service] 🎉 Auto-discovery SUCCESS! Found CNPJ:", discoveredCNPJ);
+      console.log("[AI Service] Fetching complete data from ReceitaWS...");
+      
+      const cnpjData = await fetchCNPJData(discoveredCNPJ);
+      if (cnpjData) {
+        console.log("[AI Service] ✅ Complete! Returning enriched data from auto-discovery");
+        return {
+          name: cnpjData.fantasia || cnpjData.nome || aiData.name,
+          documentType: "cnpj",
+          document: cnpjData.cnpj.replace(/[^\d]/g, ""),
+          phone: cnpjData.telefone || aiData.phone,
+          email: cnpjData.email || aiData.email,
+          website: aiData.website,
+          zipCode: cnpjData.cep?.replace(/[^\d]/g, ""),
+          street: cnpjData.logradouro,
+          number: cnpjData.numero,
+          complement: cnpjData.complemento,
+          neighborhood: cnpjData.bairro,
+          city: cnpjData.municipio,
+          state: cnpjData.uf,
+          country: "Brasil",
+          confidence: 0.95, // High confidence - validated with ReceitaWS
+          source: "hybrid",
+        };
+      }
+    } else {
+      console.log("[AI Service] Auto-discovery failed - company not recognized or not well-known");
+    }
+  }
+
+  // Step 4: Return AI-only data if no CNPJ enrichment
   console.log("[AI Service] Returning AI-only data");
   return {
     name: aiData.name,
