@@ -43,6 +43,7 @@ async function fetchCNPJData(cnpj: string): Promise<ReceitaWSResponse | null> {
   try {
     // Clean CNPJ (remove formatting)
     const cleanCNPJ = cnpj.replace(/[^\d]/g, "");
+    console.log(`[ReceitaWS] Fetching data for CNPJ: ${cleanCNPJ}`);
     
     const response = await fetch(`https://www.receitaws.com.br/v1/cnpj/${cleanCNPJ}`, {
       headers: {
@@ -50,22 +51,25 @@ async function fetchCNPJData(cnpj: string): Promise<ReceitaWSResponse | null> {
       },
     });
 
+    console.log(`[ReceitaWS] Response status: ${response.status}`);
+
     if (!response.ok) {
-      console.error(`ReceitaWS API error: ${response.status}`);
+      console.error(`[ReceitaWS] API error: ${response.status}`);
       return null;
     }
 
     const data = await response.json();
+    console.log(`[ReceitaWS] Response data:`, JSON.stringify(data, null, 2));
     
     // Check if CNPJ is active
     if (data.status === "ERROR") {
-      console.error(`ReceitaWS returned error: ${data.message}`);
+      console.error(`[ReceitaWS] Returned error: ${data.message}`);
       return null;
     }
 
     return data;
   } catch (error) {
-    console.error("Error fetching CNPJ data:", error);
+    console.error("[ReceitaWS] Error fetching CNPJ data:", error);
     return null;
   }
 }
@@ -127,12 +131,15 @@ IMPORTANTE:
   );
 
   const aiData = JSON.parse(aiResponse);
+  console.log("[AI Service] AI Response:", JSON.stringify(aiData, null, 2));
 
   // Step 2: If CNPJ detected, try to enrich with ReceitaWS data
   if (aiData.documentType === "cnpj" && aiData.document) {
+    console.log("[AI Service] CNPJ detected, fetching from ReceitaWS:", aiData.document);
     const cnpjData = await fetchCNPJData(aiData.document);
 
     if (cnpjData) {
+      console.log("[AI Service] ReceitaWS data received:", cnpjData.nome);
       // Merge AI data with CNPJ API data (API data takes precedence)
       return {
         name: cnpjData.fantasia || cnpjData.nome || aiData.name,
@@ -152,10 +159,13 @@ IMPORTANTE:
         confidence: 0.95, // High confidence with official data
         source: "hybrid",
       };
+    } else {
+      console.log("[AI Service] ReceitaWS returned no data for CNPJ:", aiData.document);
     }
   }
 
   // Step 3: Return AI-only data if no CNPJ enrichment
+  console.log("[AI Service] Returning AI-only data");
   return {
     name: aiData.name,
     documentType: aiData.documentType,
