@@ -52,7 +52,7 @@ import {
   Repeat,
   Printer,
 } from "lucide-react";
-import { LineChart, Line, ResponsiveContainer } from "recharts";
+import { LineChart, Line, ResponsiveContainer, XAxis, Tooltip } from "recharts";
 import type { Transaction, InsertTransaction } from "@shared/schema";
 import { insertTransactionSchema } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -250,13 +250,13 @@ export function TransactionDetailSheet({
   // Mock data for sparkline - simulating weekly cash flow
   // TODO: Replace with real API data from transactions
   const sparklineData = [
-    { value: 1200 },
-    { value: 2400 },
-    { value: 1800 },
-    { value: 3200 },
-    { value: 2800 },
-    { value: 3500 },
-    { value: 4100 },
+    { day: "Seg", value: 1200 },
+    { day: "Ter", value: 2400 },
+    { day: "Qua", value: 1800 },
+    { day: "Qui", value: 3200 },
+    { day: "Sex", value: 2800 },
+    { day: "Sáb", value: 3500 },
+    { day: "Dom", value: 4100 },
   ];
 
   // Mock cash flow metrics
@@ -380,14 +380,30 @@ export function TransactionDetailSheet({
                     <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-2">
                       Tendência Semanal
                     </p>
-                    <ResponsiveContainer width="100%" height={50}>
-                      <LineChart data={sparklineData}>
+                    <ResponsiveContainer width="100%" height={80}>
+                      <LineChart data={sparklineData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
+                        <XAxis 
+                          dataKey="day" 
+                          tick={{ fontSize: 10 }}
+                          stroke="hsl(var(--muted-foreground))"
+                          tickLine={false}
+                          axisLine={false}
+                        />
+                        <Tooltip 
+                          contentStyle={{ 
+                            fontSize: '11px',
+                            backgroundColor: 'hsl(var(--popover))',
+                            border: '1px solid hsl(var(--border))',
+                            borderRadius: '6px'
+                          }}
+                          formatter={(value: any) => [`R$ ${Number(value).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, 'Valor']}
+                        />
                         <Line
                           type="monotone"
                           dataKey="value"
                           stroke="hsl(var(--primary))"
                           strokeWidth={2}
-                          dot={false}
+                          dot={{ r: 3, fill: 'hsl(var(--primary))' }}
                         />
                       </LineChart>
                     </ResponsiveContainer>
