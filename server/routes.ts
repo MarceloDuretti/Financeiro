@@ -930,6 +930,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // AI Assistant routes (authenticated + multi-tenant)
+  
+  // Process entity input with AI (for customers/suppliers)
+  app.post("/api/ai/process-entity", isAuthenticated, async (req, res) => {
+    try {
+      const { input } = req.body;
+      
+      if (!input || typeof input !== "string" || input.trim().length === 0) {
+        return res.status(400).json({ message: "Input inválido" });
+      }
+      
+      // Import dynamically to avoid circular dependencies
+      const { processEntityInput } = await import("./ai-service");
+      
+      const processedData = await processEntityInput(input.trim());
+      
+      res.json(processedData);
+    } catch (error: any) {
+      console.error("Error processing entity input:", error);
+      res.status(500).json({ 
+        message: "Erro ao processar informações",
+        error: error.message 
+      });
+    }
+  });
+
   // Customers/Suppliers routes (authenticated + multi-tenant)
 
   // List all customers/suppliers

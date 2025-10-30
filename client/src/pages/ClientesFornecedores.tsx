@@ -73,11 +73,32 @@ import {
   Edit2,
 } from "lucide-react";
 import { SiWhatsapp } from "react-icons/si";
+import { AIEntityInput } from "@/components/AIEntityInput";
+import { AIPreviewDialog } from "@/components/AIPreviewDialog";
 
 type EntityWithStats = CustomerSupplier & {
   revenuePercentage: number | null;
   expensePercentage: number | null;
 };
+
+interface ProcessedEntity {
+  name: string;
+  documentType?: "cpf" | "cnpj" | "foreign" | "none";
+  document?: string;
+  phone?: string;
+  email?: string;
+  website?: string;
+  zipCode?: string;
+  street?: string;
+  number?: string;
+  complement?: string;
+  neighborhood?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  confidence: number;
+  source: "ai" | "cnpj_api" | "hybrid";
+}
 
 export default function ClientesFornecedores() {
   const { toast } = useToast();
@@ -90,6 +111,11 @@ export default function ClientesFornecedores() {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // AI Assistant states
+  const [isProcessingAI, setIsProcessingAI] = useState(false);
+  const [aiPreviewData, setAiPreviewData] = useState<ProcessedEntity | null>(null);
+  const [showAiPreview, setShowAiPreview] = useState(false);
   
   // Use ref for synchronous submission lock to prevent race conditions
   const isSubmittingRef = useRef(false);
@@ -368,6 +394,58 @@ export default function ClientesFornecedores() {
       return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
     }
     return name.substring(0, 2).toUpperCase();
+  };
+
+  // AI Assistant functions
+  const handleProcessAI = async (input: string) => {
+    setIsProcessingAI(true);
+    try {
+      const response = await apiRequest("POST", "/api/ai/process-entity", { input });
+      setAiPreviewData(response as unknown as ProcessedEntity);
+      setShowAiPreview(true);
+    } catch (error: any) {
+      toast({
+        title: "Erro ao processar",
+        description: error.message || "Não foi possível processar as informações",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessingAI(false);
+    }
+  };
+
+  const handleConfirmAIData = (data: ProcessedEntity) => {
+    // Populate form with AI data
+    form.reset({
+      ...form.getValues(),
+      name: data.name,
+      documentType: data.documentType || "none",
+      document: data.document || "",
+      phone: data.phone || "",
+      email: data.email || "",
+      website: data.website || "",
+      zipCode: data.zipCode || "",
+      street: data.street || "",
+      number: data.number || "",
+      complement: data.complement || "",
+      neighborhood: data.neighborhood || "",
+      city: data.city || "",
+      state: data.state || "",
+      country: data.country || "Brasil",
+    });
+
+    setShowAiPreview(false);
+    setAiPreviewData(null);
+
+    toast({
+      title: "Dados importados!",
+      description: "As informações foram preenchidas automaticamente",
+    });
+  };
+
+  const handleDiscardAIData = () => {
+    setShowAiPreview(false);
+    setAiPreviewData(null);
   };
 
   if (isLoading) {
@@ -1319,6 +1397,20 @@ export default function ClientesFornecedores() {
                 <div className="space-y-4">
                   <h3 className="font-semibold">Tipo e Identificação</h3>
                   
+                  {/* AI Assistant - Only show in creation mode */}
+                  {!editingEntity && (
+                    <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
+                      <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                        <span className="text-primary">🤖</span>
+                        Assistente Inteligente
+                      </h4>
+                      <AIEntityInput 
+                        onProcess={handleProcessAI}
+                        isProcessing={isProcessingAI}
+                      />
+                    </div>
+                  )}
+                  
                   <div className="flex gap-4">
                     <FormField
                       control={form.control}
@@ -1777,6 +1869,15 @@ export default function ClientesFornecedores() {
           </Form>
         </DialogContent>
       </Dialog>
+
+      {/* AI Preview Dialog */}
+      <AIPreviewDialog
+        open={showAiPreview}
+        onOpenChange={setShowAiPreview}
+        data={aiPreviewData}
+        onConfirm={handleConfirmAIData}
+        onDiscard={handleDiscardAIData}
+      />
     </div>
   );
 }

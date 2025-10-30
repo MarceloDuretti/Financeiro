@@ -51,7 +51,7 @@ FinControl follows a standardized design pattern called "Apple Top" for all deta
     *   **Chart of Accounts:** Hierarchical tree structure (max 5 levels) with auto-seeded defaults, VS Code-inspired UI, and auto-generated codes using materialized path.
     *   **Bank Accounts:** Management of financial control fields and PIX keys, prepared for Open Banking.
     *   **Payment Methods:** Pre-defined, user-activatable/deactivatable methods.
-    *   **Customers & Suppliers:** Dual-role entities, multi-step wizard for creation, inline editing, and WebSocket updates.
+    *   **Customers & Suppliers:** Dual-role entities, multi-step wizard for creation, inline editing, and WebSocket updates. **AI Assistant Integration:** Intelligent entity registration using OpenAI GPT-4o-mini with voice recognition (Web Speech API) and automatic CNPJ enrichment via ReceitaWS public API. Users can speak or type entity names (e.g., "CEMIG"), and the system automatically extracts data, queries Brazil's Federal Revenue database for CNPJ details, and pre-fills the registration form. Features confidence scoring, source attribution (AI/Receita Federal/Hybrid), and preview confirmation dialog before data insertion.
     *   **Cash Registers:** Auto-generated codes, financial info display, operation history, and WebSocket updates.
     *   **Transactions:** Redesigned layout prioritizing the transaction list, temporal navigation system with YoY comparison, compact KPI cards, essential filters, virtualized list for performance, and a 5-step multi-step wizard for creation/editing with progressive summaries and consistent color coding (blue for revenue, red for expense). **Three view modes:** cards (grid), list (detailed), and week (7-column calendar). **Week View Features:** Complete week visualization with buffer data for weeks crossing month boundaries, dedicated navigation (Anterior/Próxima/Hoje), and day-by-day grouping. **KPI Consistency:** All KPIs (monetary values and counters) remain month-scoped regardless of view mode or selected week, ensuring accurate financial metrics. **Smart Data Flow:** Single query with buffer (startOfWeek to endOfWeek) for complete weeks, filtered to monthOnlyTransactions for KPIs, and further filtered by week range only in week view mode.
 *   **Performance:** Optimized with composite indexes and virtualized lists for large datasets.
@@ -68,3 +68,4 @@ FinControl follows a standardized design pattern called "Apple Top" for all deta
 *   **Session Management:** connect-pg-simple
 *   **Email:** Nodemailer (for Gmail SMTP)
 *   **Utilities:** date-fns, clsx, tailwind-merge, class-variance-authority, nanoid
+*   **AI/ML:** OpenAI GPT-4o-mini (via direct API calls using fetch, cost-optimized for production)
