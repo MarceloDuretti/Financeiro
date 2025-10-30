@@ -348,16 +348,16 @@ export function CompanyDetailSheet({
                       )}
                     </div>
 
-                    {/* Financial Chart */}
+                    {/* Financial Chart - Participação da Empresa no Grupo */}
                     {!isEditing && (
-                      <div className="flex items-center justify-center">
+                      <div className="flex flex-col items-center justify-center gap-1">
                         <div className="w-32 h-32">
                           <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
                               <Pie
                                 data={[
-                                  { name: 'Receitas', value: 65, fill: 'hsl(var(--chart-1))' },
-                                  { name: 'Despesas', value: 35, fill: 'hsl(var(--chart-2))' },
+                                  { name: company.tradeName, value: 65, isCurrentCompany: true, fill: 'hsl(var(--chart-1))' },
+                                  { name: 'Outras Empresas', value: 35, isCurrentCompany: false, fill: 'hsl(var(--chart-2))' },
                                 ]}
                                 cx="50%"
                                 cy="50%"
@@ -367,10 +367,14 @@ export function CompanyDetailSheet({
                                 dataKey="value"
                               >
                                 {[
-                                  { name: 'Receitas', value: 65, fill: 'hsl(var(--chart-1))' },
-                                  { name: 'Despesas', value: 35, fill: 'hsl(var(--chart-2))' },
+                                  { name: company.tradeName, value: 65, isCurrentCompany: true, fill: 'hsl(var(--chart-1))' },
+                                  { name: 'Outras Empresas', value: 35, isCurrentCompany: false, fill: 'hsl(var(--chart-2))' },
                                 ].map((entry, index) => (
-                                  <Cell key={`cell-${index}`} fill={entry.fill} />
+                                  <Cell 
+                                    key={`cell-${index}`} 
+                                    fill={entry.fill} 
+                                    fillOpacity={entry.isCurrentCompany ? 1 : 0.3}
+                                  />
                                 ))}
                               </Pie>
                               <Tooltip
@@ -379,9 +383,9 @@ export function CompanyDetailSheet({
                                     return (
                                       <div className="rounded-lg border bg-background p-2 shadow-sm">
                                         <div className="grid gap-2">
-                                          <div className="flex items-center justify-between gap-2">
+                                          <div className="flex flex-col gap-1">
                                             <span className="text-[10px] text-muted-foreground">{payload[0].name}</span>
-                                            <span className="text-[10px] font-bold">{payload[0].value}%</span>
+                                            <span className="text-xs font-bold">{payload[0].value}%</span>
                                           </div>
                                         </div>
                                       </div>
@@ -393,6 +397,7 @@ export function CompanyDetailSheet({
                             </PieChart>
                           </ResponsiveContainer>
                         </div>
+                        <p className="text-[9px] text-muted-foreground text-center">Participação no Grupo</p>
                       </div>
                     )}
                   </div>
@@ -854,64 +859,66 @@ export function CompanyDetailSheet({
                     </div>
                   </div>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     {/* Dados Fiscais */}
                     {(company.ie || company.im || company.dataAbertura) && (
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2 text-primary">
-                          <FileText className="h-4 w-4" />
-                          <h3 className="font-semibold text-sm">Dados Fiscais</h3>
+                      <div className="space-y-1.5">
+                        <div className="flex items-center gap-1.5">
+                          <FileText className="h-3.5 w-3.5 text-primary" />
+                          <h3 className="font-semibold text-xs text-primary">Dados Fiscais</h3>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pl-6">
-                          {company.ie && (
-                            <div>
-                              <p className="text-xs text-muted-foreground">Inscrição Estadual</p>
-                              <p className="text-sm font-medium">{company.ie}</p>
-                            </div>
-                          )}
-                          {company.im && (
-                            <div>
-                              <p className="text-xs text-muted-foreground">Inscrição Municipal</p>
-                              <p className="text-sm font-medium">{company.im}</p>
-                            </div>
-                          )}
-                          {company.dataAbertura && (
-                            <div>
-                              <p className="text-xs text-muted-foreground">Data de Abertura</p>
-                              <p className="text-sm font-medium">{company.dataAbertura}</p>
-                            </div>
-                          )}
+                        <div className="pl-5">
+                          <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                            {company.ie && (
+                              <div>
+                                <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Inscrição Estadual</p>
+                                <p className="text-xs font-medium">{company.ie}</p>
+                              </div>
+                            )}
+                            {company.im && (
+                              <div>
+                                <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Inscrição Municipal</p>
+                                <p className="text-xs font-medium">{company.im}</p>
+                              </div>
+                            )}
+                            {company.dataAbertura && (
+                              <div className="col-span-2">
+                                <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Data de Abertura</p>
+                                <p className="text-xs font-medium">{company.dataAbertura}</p>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
                     )}
 
                     {/* Atividade Econômica */}
                     {company.cnaePrincipal && (
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2 text-primary">
-                          <Briefcase className="h-4 w-4" />
-                          <h3 className="font-semibold text-sm">Atividade Econômica</h3>
+                      <div className="space-y-1.5">
+                        <div className="flex items-center gap-1.5">
+                          <Briefcase className="h-3.5 w-3.5 text-primary" />
+                          <h3 className="font-semibold text-xs text-primary">Atividade Econômica</h3>
                         </div>
-                        <div className="pl-6">
-                          <p className="text-xs text-muted-foreground">CNAE Principal</p>
-                          <p className="text-sm font-medium">{company.cnaePrincipal}</p>
+                        <div className="pl-5">
+                          <p className="text-[10px] text-muted-foreground uppercase tracking-wide">CNAE Principal</p>
+                          <p className="text-xs font-medium">{company.cnaePrincipal}</p>
                         </div>
                       </div>
                     )}
 
                     {/* Website */}
                     {company.website && (
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2 text-primary">
-                          <Globe className="h-4 w-4" />
-                          <h3 className="font-semibold text-sm">Website</h3>
+                      <div className="space-y-1.5">
+                        <div className="flex items-center gap-1.5">
+                          <Globe className="h-3.5 w-3.5 text-primary" />
+                          <h3 className="font-semibold text-xs text-primary">Website</h3>
                         </div>
-                        <div className="pl-6">
+                        <div className="pl-5">
                           <a
                             href={company.website.startsWith('http') ? company.website : `https://${company.website}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-sm font-medium text-primary hover:underline"
+                            className="text-xs font-medium text-primary hover:underline"
                           >
                             {company.website}
                           </a>
@@ -921,21 +928,21 @@ export function CompanyDetailSheet({
 
                     {/* Endereço */}
                     {company.logradouro && (
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2 text-primary">
-                          <MapPin className="h-4 w-4" />
-                          <h3 className="font-semibold text-sm">Endereço</h3>
+                      <div className="space-y-1.5">
+                        <div className="flex items-center gap-1.5">
+                          <MapPin className="h-3.5 w-3.5 text-primary" />
+                          <h3 className="font-semibold text-xs text-primary">Endereço</h3>
                         </div>
-                        <div className="pl-6">
-                          <p className="text-sm font-medium">
+                        <div className="pl-5">
+                          <p className="text-xs font-medium">
                             {company.logradouro}, {company.numero}
                             {company.complemento && ` - ${company.complemento}`}
                           </p>
-                          <p className="text-sm text-muted-foreground">
+                          <p className="text-xs text-muted-foreground">
                             {company.bairro} - {company.cidade}/{company.uf}
                           </p>
                           {company.cep && (
-                            <p className="text-sm text-muted-foreground">CEP: {company.cep}</p>
+                            <p className="text-xs text-muted-foreground">CEP: {company.cep}</p>
                           )}
                         </div>
                       </div>
@@ -955,31 +962,31 @@ export function CompanyDetailSheet({
           </div>
         </Form>
 
-        {/* Action Buttons Footer */}
+        {/* Action Buttons Footer - Apple Style */}
         <SheetFooter className={isEditing ? "pt-2 mt-2" : "pt-4 mt-4 border-t"}>
           {!isEditing ? (
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2.5">
               <Button
                 variant="default"
-                size="sm"
                 onClick={handleEdit}
+                className="rounded-lg px-4 py-2 h-auto font-medium"
                 data-testid="button-edit-company"
               >
-                <Edit2 className="h-4 w-4 mr-1.5" />
+                <Edit2 className="h-4 w-4 mr-2" />
                 Editar
               </Button>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button 
                     variant="destructive" 
-                    size="sm" 
+                    className="rounded-lg px-4 py-2 h-auto font-medium"
                     data-testid="button-delete-company"
                   >
-                    <Trash2 className="h-4 w-4 mr-1.5" />
+                    <Trash2 className="h-4 w-4 mr-2" />
                     Excluir
                   </Button>
                 </AlertDialogTrigger>
-                <AlertDialogContent>
+                <AlertDialogContent className="rounded-xl">
                   <AlertDialogHeader>
                     <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
                     <AlertDialogDescription>
@@ -987,11 +994,11 @@ export function CompanyDetailSheet({
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel data-testid="button-cancel-delete">Cancelar</AlertDialogCancel>
+                    <AlertDialogCancel className="rounded-lg" data-testid="button-cancel-delete">Cancelar</AlertDialogCancel>
                     <AlertDialogAction
                       onClick={handleDelete}
                       disabled={isDeleting}
-                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      className="rounded-lg bg-destructive text-destructive-foreground hover:bg-destructive/90"
                       data-testid="button-confirm-delete"
                     >
                       {isDeleting ? (
@@ -1008,12 +1015,12 @@ export function CompanyDetailSheet({
               </AlertDialog>
             </div>
           ) : (
-            <div className="flex gap-2">
+            <div className="flex gap-2.5">
               <Button
                 variant="outline"
-                size="sm"
                 onClick={handleCancelEdit}
                 disabled={isSaving}
+                className="rounded-lg px-4 py-2 h-auto font-medium"
                 data-testid="button-cancel-edit"
               >
                 <X className="h-4 w-4 mr-2" />
@@ -1021,9 +1028,9 @@ export function CompanyDetailSheet({
               </Button>
               <Button
                 variant="default"
-                size="sm"
                 onClick={handleSaveEdit}
                 disabled={isSaving}
+                className="rounded-lg px-5 py-2 h-auto font-semibold"
                 data-testid="button-save-edit"
               >
                 {isSaving ? (
