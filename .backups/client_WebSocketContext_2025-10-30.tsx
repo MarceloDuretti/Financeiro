@@ -1,5 +1,4 @@
 import { createContext, useContext, useEffect, useRef, useState, useCallback, type ReactNode } from "react";
-import { useAuth } from "@/hooks/useAuth";
 
 export type WebSocketMessage = {
   type: string;
@@ -33,7 +32,6 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
   const reconnectAttempts = useRef(0);
   const maxReconnectAttempts = 10;
   const isIntentionallyClosed = useRef(false);
-  const { isAuthenticated, isLoading } = useAuth();
 
   const connect = useCallback(() => {
     // Don't reconnect if intentionally closed
@@ -149,24 +147,15 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  // Conectar somente quando autenticado; desconectar ao desautenticar
+  // Connect on mount, disconnect on unmount
   useEffect(() => {
-    if (isLoading) {
-      return;
-    }
-
-    if (isAuthenticated) {
-      isIntentionallyClosed.current = false;
-      connect();
-    } else {
-      disconnect();
-      setError(null);
-    }
+    isIntentionallyClosed.current = false;
+    connect();
 
     return () => {
       disconnect();
     };
-  }, [connect, disconnect, isAuthenticated, isLoading]);
+  }, [connect, disconnect]);
 
   const value: WebSocketContextValue = {
     status,

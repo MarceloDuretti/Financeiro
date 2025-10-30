@@ -45,8 +45,6 @@ function Router() {
       <Route path="/signup" component={Signup} />
       <Route path="/forgot-password" component={ForgotPassword} />
       <Route path="/accept-invite/:token" component={AcceptInvite} />
-      {/* Presentation page accessible by direct route */}
-      <Route path="/apresentacao" component={Home} />
 
       {/* Show landing page if not authenticated or still loading */}
       {isLoading || !isAuthenticated ? (
@@ -65,8 +63,6 @@ function Router() {
               return null;
             }}
           </Route>
-          {/* Presentation page also accessible when authenticated */}
-          <Route path="/apresentacao" component={Home} />
 
           {/* Protected Dashboard Routes */}
           <Route path="/dashboard">

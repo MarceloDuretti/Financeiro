@@ -3,13 +3,12 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Building2, Phone, Mail, MapPin, FileText, Briefcase, Globe, User, X, ChevronRight, Edit2, Plus, Trash2, Info, Users, Receipt, Search, LayoutGrid, List, Star, Power } from "lucide-react";
+import { Building2, Phone, Mail, MapPin, FileText, Briefcase, Globe, User, X, ChevronRight, Edit2, Plus, Trash2, Info, Users, Receipt, Search, LayoutGrid, List } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -23,29 +22,6 @@ import CobrancaTab from "@/components/CobrancaTab";
 import { formatCompanyCode } from "@/lib/formatters";
 
 const SELECTED_COMPANY_KEY = "fincontrol_selected_company_id";
-// Simple formatters for display and input masks
-function formatCNPJ(value?: string) {
-  const v = (value || '').replace(/\D/g, '').slice(0,14);
-  return v
-    .replace(/(\d{2})(\d)/, '$1.$2')
-    .replace(/(\d{3})(\d)/, '$1.$2')
-    .replace(/(\d{3})(\d)/, '$1/$2')
-    .replace(/(\d{4})(\d)/, '$1-$2');
-}
-function maskCNPJInput(v: string) { return formatCNPJ(v); }
-function formatPhoneBR(value?: string) {
-  const d = (value || '').replace(/\D/g, '').slice(0,11);
-  if (d.length <= 10) {
-    return d
-      .replace(/(\d{2})(\d)/, '($1) $2')
-      .replace(/(\d{4})(\d)/, '$1-$2');
-  }
-  return d
-    .replace(/(\d{2})(\d)/, '($1) $2')
-    .replace(/(\d{5})(\d)/, '$1-$2');
-}
-function maskPhoneInput(v: string) { return formatPhoneBR(v); }
-const FAVORITES_KEY = "fincontrol_company_favorites";
 
 // Zod schema para criação de empresa (campos obrigatórios)
 const createCompanySchema = insertCompanySchema.omit({ 
@@ -74,15 +50,6 @@ export default function MinhaEmpresa() {
     return saved === 'list' ? 'list' : 'cards';
   });
   const [companySearch, setCompanySearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<'all' | 'Ativa' | 'Inativa' | 'Pendente'>('all');
-  const [sortBy, setSortBy] = useState<'name' | 'code'>('name');
-  const [favorites, setFavorites] = useState<Record<string, boolean>>(() => {
-    try {
-      return JSON.parse(localStorage.getItem(FAVORITES_KEY) || '{}');
-    } catch {
-      return {};
-    }
-  });
 
   const { data: companies = [], isLoading } = useQuery<Company[]>({
     queryKey: ["/api/companies"],
@@ -92,11 +59,6 @@ export default function MinhaEmpresa() {
     queryKey: ["/api/companies", selectedCompanyId],
     enabled: !!selectedCompanyId,
   });
-  const compactCompaniesList = !!selectedCompanyId;
-
-  useEffect(() => {
-    localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
-  }, [favorites]);
 
   // Form para criação
   const form = useForm<CreateCompanyFormData>({
@@ -168,51 +130,16 @@ export default function MinhaEmpresa() {
     localStorage.setItem('fincontrol_companies_view_mode', companiesViewMode);
   }, [companiesViewMode]);
 
-  const statusCounts = useMemo(() => {
-    const counts = { total: companies.length, Ativa: 0, Inativa: 0, Pendente: 0 } as Record<string, number>;
-    companies.forEach(c => {
-      const s = (c.status as string) || 'Ativa';
-      if (counts[s] !== undefined) counts[s]++;
-    });
-    return counts;
-  }, [companies]);
-
   const filteredCompanies = useMemo(() => {
-    let list = companies;
-    if (statusFilter !== 'all') {
-      list = list.filter(c => (c.status as string) === statusFilter);
-    }
-    if (companySearch) {
-      const q = companySearch.toLowerCase();
-      list = list.filter(c =>
-        c.tradeName?.toLowerCase().includes(q) ||
-        c.legalName?.toLowerCase().includes(q) ||
-        c.cnpj?.toLowerCase().includes(q) ||
-        c.email?.toLowerCase().includes(q)
-      );
-    }
-    list = [...list].sort((a, b) => {
-      if (sortBy === 'code') return (a.code || '').localeCompare(b.code || '');
-      return (a.tradeName || '').localeCompare(b.tradeName || '');
-    });
-    return list;
-  }, [companies, companySearch, statusFilter, sortBy]);
-
-  const toggleFavorite = (id: string) => {
-    setFavorites(prev => ({ ...prev, [id]: !prev[id] }));
-  };
-
-  const toggleStatusMutation = useMutation({
-    mutationFn: async ({ id, nextStatus }: { id: string; nextStatus: string }) => {
-      return await apiRequest("PATCH", `/api/companies/${id}`, { status: nextStatus });
-    },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["/api/companies"] });
-      if (selectedCompanyId) {
-        await queryClient.invalidateQueries({ queryKey: ["/api/companies", selectedCompanyId] });
-      }
-    }
-  });
+    if (!companySearch) return companies;
+    const q = companySearch.toLowerCase();
+    return companies.filter(c =>
+      c.tradeName?.toLowerCase().includes(q) ||
+      c.legalName?.toLowerCase().includes(q) ||
+      c.cnpj?.toLowerCase().includes(q) ||
+      c.email?.toLowerCase().includes(q)
+    );
+  }, [companies, companySearch]);
 
   const handleCloseDetails = () => {
     setSelectedCompanyId(null);
@@ -349,7 +276,7 @@ export default function MinhaEmpresa() {
                               <FormItem>
                                 <FormLabel>CNPJ *</FormLabel>
                                 <FormControl>
-                                  <Input {...field} placeholder="00.000.000/0000-00" data-testid="input-create-cnpj" onChange={(e) => field.onChange(maskCNPJInput(e.target.value))} value={maskCNPJInput(field.value || "")} />
+                                  <Input {...field} placeholder="00.000.000/0000-00" data-testid="input-create-cnpj" />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -362,7 +289,7 @@ export default function MinhaEmpresa() {
                               <FormItem>
                                 <FormLabel>Telefone *</FormLabel>
                                 <FormControl>
-                                  <Input {...field} placeholder="(11) 98888-8888" data-testid="input-create-phone" onChange={(e) => field.onChange(maskPhoneInput(e.target.value))} value={maskPhoneInput(field.value || "")} />
+                                  <Input {...field} placeholder="(11) 98888-8888" data-testid="input-create-phone" />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -450,12 +377,6 @@ export default function MinhaEmpresa() {
                   </DialogContent>
                 </Dialog>
               </div>
-              <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                <span>Total: <span className="font-medium text-foreground">{statusCounts.total}</span></span>
-                <span>Ativas: <span className="font-medium text-foreground">{statusCounts.Ativa || 0}</span></span>
-                <span>Inativas: <span className="font-medium text-foreground">{statusCounts.Inativa || 0}</span></span>
-                <span>Pendentes: <span className="font-medium text-foreground">{statusCounts.Pendente || 0}</span></span>
-              </div>
             </CardHeader>
             <CardContent className="flex-1 overflow-auto p-4">
               {/* Toolbar: busca e alternância de visualização */}
@@ -470,26 +391,6 @@ export default function MinhaEmpresa() {
                     data-testid="input-search-company"
                   />
                 </div>
-                <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as any)}>
-                  <SelectTrigger className="h-8 w-[110px] text-xs" data-testid="select-company-status-filter">
-                    <SelectValue placeholder="Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos</SelectItem>
-                    <SelectItem value="Ativa">Ativa</SelectItem>
-                    <SelectItem value="Inativa">Inativa</SelectItem>
-                    <SelectItem value="Pendente">Pendente</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select value={sortBy} onValueChange={(v) => setSortBy(v as any)}>
-                  <SelectTrigger className="h-8 w-[120px] text-xs" data-testid="select-company-sort">
-                    <SelectValue placeholder="Ordenar" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="name">Nome</SelectItem>
-                    <SelectItem value="code">Código</SelectItem>
-                  </SelectContent>
-                </Select>
                 <div className="flex items-center gap-1">
                   <Button
                     variant={companiesViewMode === 'cards' ? 'default' : 'outline'}
@@ -524,7 +425,7 @@ export default function MinhaEmpresa() {
                   {filteredCompanies.map((company) => (
                     <Card
                       key={company.id}
-                      className={`h-full transition-all hover-elevate group ${
+                      className={`h-full transition-all hover-elevate ${
                         selectedCompanyId === company.id ? "ring-2 ring-primary shadow-lg" : ""
                       }`}
                       data-testid={`card-company-${company.id}`}
@@ -535,141 +436,44 @@ export default function MinhaEmpresa() {
                       onKeyDown={(e) => { if (e.key === 'Enter') setSelectedCompanyId(company.id); }}
                     >
                       <CardContent className="p-4 h-full">
-                        {companiesViewMode === 'list' ? (
-                          <div className="flex items-center gap-3">
-                            {/* Avatar (coluna 1) */}
-                            <Avatar className="h-8 w-8">
-                              <AvatarImage src="" alt={company.tradeName} />
-                              <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                                {company.tradeName.substring(0, 2).toUpperCase()}
-                              </AvatarFallback>
-                            </Avatar>
-                            {/* Conteúdo em colunas com separadores quando não estiver compactado */}
-                            <div className="flex-1 min-w-0">
-                              {compactCompaniesList ? (
-                                <>
-                                  <div className="flex items-center gap-2 min-w-0">
-                                    <Badge variant="secondary" className="text-[10px] px-2 py-0">{company.status}</Badge>
-                                    <span className="text-xs text-muted-foreground font-mono" data-testid={`text-code-${company.id}`}>{formatCompanyCode(company.code)}</span>
-                                  </div>
-                                  <div className="mt-0.5 min-w-0">
-                                    <span className="text-sm font-medium truncate" data-testid={`text-tradename-${company.id}`}>{company.tradeName}</span>
-                                  </div>
-                                </>
-                              ) : (
-                              <div className="flex-1 min-w-0 flex items-center divide-x divide-muted/30">
-                                {/* Coluna 2: Código (linha 1) + Nome (linha 2) */}
-                                <div className="px-3 first:pl-0 w-[40%] min-w-[220px]">
-                                  <div className="text-xs text-muted-foreground font-mono" data-testid={`text-code-${company.id}`}>{formatCompanyCode(company.code)}</div>
-                                  <div className="mt-0.5 min-w-0">
-                                    <span className="text-sm font-medium truncate" data-testid={`text-tradename-${company.id}`}>{company.tradeName}</span>
-                                  </div>
-                                </div>
-                                {/* Coluna 3: CNPJ */}
-                                <div className="px-3 w-[26%] min-w-[160px]">
-                                  <span className="font-mono text-xs text-muted-foreground" data-testid={`text-cnpj-${company.id}`}>{formatCNPJ(company.cnpj)}</span>
-                                </div>
-                                {/* Coluna 4: Email */}
-                                <div className="px-3 flex-1 min-w-[180px]">
-                                  {company.email && (
-                                    <span className="text-xs text-muted-foreground truncate">{company.email}</span>
-                                  )}
-                                </div>
-                                {/* Coluna 5: Status (última coluna) */}
-                                <div className="px-3 w-[120px] flex justify-end">
-                                  <Badge variant="secondary" className="text-[10px] px-2 py-0">{company.status}</Badge>
-                                </div>
+                        {/* Renderização fixa em modo lista para evitar erro de parsing */}
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage src="" alt={company.tradeName} />
+                            <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                              {company.tradeName.substring(0, 2).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <Badge variant="secondary" className="text-[10px] px-2 py-0">{company.status}</Badge>
+                              <span className="text-xs text-muted-foreground font-mono" data-testid={`text-code-${company.id}`}>{formatCompanyCode(company.code)}</span>
+                              <span className="text-sm font-medium truncate" data-testid={`text-tradename-${company.id}`}>{company.tradeName}</span>
+                              {selectedCompanyId !== company.id && company.legalName && (
+                                <span className="text-xs text-muted-foreground truncate">({company.legalName})</span>
+                              )}
+                            </div>
+                            {selectedCompanyId !== company.id && (
+                              <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                                <span className="font-mono" data-testid={`text-cnpj-${company.id}`}>{company.cnpj}</span>
+                                {company.phone && <span data-testid={`text-phone-${company.id}`}>{company.phone}</span>}
+                                {company.email && <span className="truncate">{company.email}</span>}
                               </div>
-                              )}
-                            </div>
-                            {/* Ações */}
-                            <div className="flex items-center gap-1 ml-1">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className={`h-8 w-8 p-0 ${favorites[company.id] ? 'text-amber-500' : 'text-muted-foreground'} opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity`}
-                                aria-label={favorites[company.id] ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
-                                onClick={(e) => { e.stopPropagation(); toggleFavorite(company.id); }}
-                                data-testid={`button-favorite-${company.id}`}
-                              >
-                                <Star className="w-4 h-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 p-0 text-muted-foreground opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity"
-                                aria-label="Editar"
-                                onClick={(e) => { e.stopPropagation(); setSelectedCompanyId(company.id); setIsEditing(true); }}
-                                data-testid={`button-quick-edit-${company.id}`}
-                              >
-                                <Edit2 className="w-4 h-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 p-0 text-muted-foreground opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity"
-                                aria-label="Alternar status"
-                                onClick={(e) => { e.stopPropagation(); const nextStatus = (company.status as string) === 'Ativa' ? 'Inativa' : 'Ativa'; toggleStatusMutation.mutate({ id: company.id, nextStatus }); }}
-                                data-testid={`button-toggle-status-${company.id}`}
-                              >
-                                <Power className="w-4 h-4" />
-                              </Button>
-                              {selectedCompanyId && selectedCompanyId !== company.id && (
-                                <Button 
-                                  variant="outline" 
-                                  size="sm"
-                                  onClick={(e) => { e.stopPropagation(); setSelectedCompanyId(company.id); }}
-                                  data-testid={`button-select-${company.id}`}
-                                >
-                                  Selecionar
-                                </Button>
-                              )}
-                            </div>
+                            )}
                           </div>
-                        ) : (
-                          // Cards view (sem formulário aberto): 4 linhas
-                          <div className="flex items-start gap-3">
-                            <Avatar className="h-10 w-10 flex-shrink-0">
-                              <AvatarImage src="" alt={company.tradeName} />
-                              <AvatarFallback className="bg-primary/10 text-primary">
-                                {company.tradeName.substring(0, 2).toUpperCase()}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1 min-w-0 space-y-1">
-                              {/* Linha 1: Código + Status */}
-                              <div className="flex items-center gap-2">
-                                <span className="text-xs text-muted-foreground font-mono">{formatCompanyCode(company.code)}</span>
-                                <Badge variant="secondary" className="text-[10px] px-2 py-0">{company.status}</Badge>
-                              </div>
-                              {/* Linha 2: Nome */}
-                              <div className="text-sm font-semibold truncate">{company.tradeName}</div>
-                              {/* Linha 3: CNPJ */}
-                              <div className="text-xs text-muted-foreground">
-                                <span className="font-mono">{formatCNPJ(company.cnpj)}</span>
-                              </div>
-                              {/* Linha 4: Telefone */}
-                              {company.phone && (
-                                <div className="text-xs text-muted-foreground">{formatPhoneBR(company.phone)}</div>
-                              )}
-                              {/* Linha 5: Email */}
-                              {company.email && (
-                                <div className="text-xs text-muted-foreground truncate">{company.email}</div>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-1 ml-1">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className={`h-8 w-8 p-0 ${favorites[company.id] ? 'text-amber-500' : 'text-muted-foreground'} opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity`}
-                                aria-label={favorites[company.id] ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
-                                onClick={(e) => { e.stopPropagation(); toggleFavorite(company.id); }}
-                                data-testid={`button-favorite-${company.id}`}
+                          <div className="flex items-center gap-2">
+                            {selectedCompanyId !== company.id && (
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={(e) => { e.stopPropagation(); setSelectedCompanyId(company.id); }}
+                                data-testid={`button-select-${company.id}`}
                               >
-                                <Star className="w-4 h-4" />
+                                Selecionar
                               </Button>
-                            </div>
+                            )}
                           </div>
-                        )}
+                        </div>
                       </CardContent>
                     </Card>
                   ))}
@@ -720,8 +524,7 @@ export default function MinhaEmpresa() {
                           </p>
                         </>
                       )}
-                      <div className="flex flex-wrap items-center gap-2 mt-2">
-                        <span className="text-xs font-mono text-muted-foreground">{formatCompanyCode(selectedCompany.code)}</span>
+                      <div className="flex gap-2 mt-2">
                         <Badge variant="outline">{selectedCompany.status}</Badge>
                         {selectedCompany.porte && (
                           <Badge variant="outline">{selectedCompany.porte}</Badge>
@@ -734,7 +537,23 @@ export default function MinhaEmpresa() {
                   </div>
                   <div className="flex items-center gap-2">
                     {isEditing ? (
-                      <></>
+                      <>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleCancelEdit}
+                          data-testid="button-cancel-edit"
+                        >
+                          Cancelar
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={handleSaveEdit}
+                          data-testid="button-save-edit"
+                        >
+                          Salvar
+                        </Button>
+                      </>
                     ) : (
                       <>
                         <AlertDialog>
@@ -887,6 +706,7 @@ export default function MinhaEmpresa() {
                         )
                       )}
                     </div>
+                    
                   </div>
                 </div>
 
@@ -1157,35 +977,12 @@ export default function MinhaEmpresa() {
                   <TabsContent value="billing" className="p-6 mt-0">
                     <CobrancaTab companyId={selectedCompany.id} />
                   </TabsContent>
-              </Tabs>
-            </CardContent>
-            {isEditing && (
-              <div className="sticky bottom-0 left-0 right-0 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-                <div className="flex items-center justify-between gap-2 px-4 py-3">
-                  <Button 
-                    variant="ghost" 
-                    onClick={handleCancelEdit} 
-                    data-testid="button-footer-cancel"
-                  >
-                    Cancelar
-                  </Button>
-                  <div className="flex items-center gap-2">
-                    <Button 
-                      onClick={handleSaveEdit}
-                      data-testid="button-footer-save"
-                    >
-                      Salvar
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            )}
-          </Card>
+                </Tabs>
+              </CardContent>
+            </Card>
           </div>
         )}
       </div>
     </div>
   );
 }
-
-

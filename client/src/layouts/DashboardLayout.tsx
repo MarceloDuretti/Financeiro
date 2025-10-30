@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
 import { CompanySelector } from "@/components/CompanySelector";
+import { Badge } from "@/components/ui/badge";
 import headerLogo from "@assets/image_1761141745101.png";
 
 interface DashboardLayoutProps {
@@ -75,6 +76,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             <div className="flex items-center gap-4">
               <SidebarTrigger data-testid="button-sidebar-toggle" />
               <CompanySelector />
+              {/* Subtle environment/version indicator (after the dropdown) */}
+              <Badge
+                variant="outline"
+                className="text-muted-foreground"
+                data-testid="badge-environment-trae"
+              >
+                TRAE
+              </Badge>
             </div>
             <div className="flex items-center gap-3">
               <img 
