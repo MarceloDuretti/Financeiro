@@ -763,10 +763,11 @@ export function TransactionDetailSheet({
                     <FormItem>
                       <FormLabel className="text-xs">Observações</FormLabel>
                       <FormControl>
-                        <Input
+                        <Textarea
                           {...field}
                           placeholder="Observações adicionais..."
-                          className="h-8"
+                          rows={3}
+                          className="resize-none"
                           data-testid="input-description"
                         />
                       </FormControl>
