@@ -284,12 +284,12 @@ export function TransactionDetailSheet({
             </div>
           </SheetHeader>
 
-          <div className="mt-4 space-y-3">
+          <div className="mt-4 space-y-2">
             {/* Top Section: Amount Card + All Fields */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               {/* Amount Card - Financial Dashboard */}
               <Card className="border-0 bg-gradient-to-br from-card to-muted/30 shadow-md">
-                <CardContent className="p-4 space-y-3">
+                <CardContent className="p-4 space-y-2">
                   {/* Título do Módulo */}
                   <div className="flex items-center justify-between">
                     <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
@@ -354,7 +354,7 @@ export function TransactionDetailSheet({
                   <Separator className="my-2" />
 
                   {/* Métricas de Fluxo de Caixa */}
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-2 gap-2">
                     <div>
                       <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-0.5">
                         Saldo Acumulado
@@ -397,7 +397,7 @@ export function TransactionDetailSheet({
               </Card>
 
               {/* Status, Emissão, Vencimento, Título, Cliente (Vertical) */}
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {/* Status */}
                 <div>
                   {!isEditing ? (
@@ -572,7 +572,7 @@ export function TransactionDetailSheet({
             </div>
 
             {/* Grid de 3 colunas quando editando: Centro de Custo, Conta Contábil, Forma de Pagamento */}
-            <div className={`grid grid-cols-1 ${isEditing ? 'md:grid-cols-3' : 'md:grid-cols-2'} gap-3`}>
+            <div className={`grid grid-cols-1 ${isEditing ? 'md:grid-cols-3' : 'md:grid-cols-2'} gap-2`}>
               {/* Centro de Custo */}
               <div>
                 {!isEditing ? (
@@ -679,7 +679,7 @@ export function TransactionDetailSheet({
 
             {/* Grid de 2 colunas: Forma de Pagamento (quando não editando), Conta Bancária */}
             {!isEditing && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 {/* Forma de Pagamento */}
                 <div>
                   <p className="text-xs text-muted-foreground mb-1.5">Forma de Pagamento</p>
@@ -735,7 +735,7 @@ export function TransactionDetailSheet({
               {!isEditing ? (
                 <div>
                   <p className="text-xs text-muted-foreground mb-1.5">Observações</p>
-                  <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm whitespace-pre-wrap min-h-[80px]">
+                  <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium">
                     {transaction.description || "Sem observações"}
                   </div>
                 </div>
@@ -747,10 +747,10 @@ export function TransactionDetailSheet({
                     <FormItem>
                       <FormLabel className="text-xs">Observações</FormLabel>
                       <FormControl>
-                        <Textarea
+                        <Input
                           {...field}
                           placeholder="Observações adicionais..."
-                          className="min-h-[60px]"
+                          className="h-8"
                           data-testid="input-description"
                         />
                       </FormControl>
