@@ -461,6 +461,9 @@ export default function ClientesFornecedores() {
       city: data.city || "",
       state: data.state || "",
       country: data.country || "Brasil",
+      // Auto-mark as both customer and supplier when using AI
+      isCustomer: true,
+      isSupplier: true,
     });
 
     setShowAiPreview(false);
