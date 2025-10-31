@@ -463,6 +463,116 @@ export default function PlanoDeContas() {
     }
   };
 
+  // Render compact node for columns view
+  const renderNodeCompact = (node: ChartAccountNode, depth: number = 0) => {
+    const isExpanded = expandedNodes.has(node.id);
+    const hasChildNodes = node.children.length > 0;
+    const indentSize = 12; // Reduced indent for columns
+    
+    const getTextSize = () => {
+      if (depth === 0) return "text-sm font-semibold";
+      if (depth === 1) return "text-xs font-medium";
+      return "text-xs font-normal";
+    };
+
+    return (
+      <div key={node.id} data-testid={`account-node-${node.id}`}>
+        <div
+          className={`group relative flex items-center gap-1.5 py-1 px-1.5 rounded-md hover-elevate transition-all ${
+            !hasChildNodes ? 'bg-muted/20 dark:bg-muted/10' : ''
+          }`}
+          style={{ paddingLeft: `${depth * indentSize + 4}px` }}
+        >
+          {/* Expand/collapse button - only if has children */}
+          {hasChildNodes ? (
+            <button
+              onClick={() => toggleExpand(node.id)}
+              className="flex-shrink-0 hover:bg-accent rounded p-0.5 transition-colors"
+              data-testid={`button-toggle-${node.id}`}
+            >
+              {isExpanded ? (
+                <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+              ) : (
+                <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
+              )}
+            </button>
+          ) : (
+            <div className="w-4" />
+          )}
+
+          {/* Code badge - smaller */}
+          <div className="flex-shrink-0">
+            <Badge 
+              variant="secondary" 
+              className="font-mono text-[9px] px-1 py-0 h-4"
+              data-testid={`text-code-${node.id}`}
+            >
+              {node.code}
+            </Badge>
+          </div>
+
+          {/* Name only - no description in compact mode */}
+          <div className="flex-1 min-w-0">
+            <div
+              className={`${getTextSize()} leading-tight truncate`}
+              data-testid={`text-name-${node.id}`}
+              title={node.description || node.name}
+            >
+              {node.name}
+            </div>
+          </div>
+
+          {/* Action buttons - only visible on hover */}
+          <div className="flex items-center gap-0 opacity-0 group-hover:opacity-100 transition-opacity">
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-6 w-6"
+              onClick={() => openCreateChildDialog(node)}
+              data-testid={`button-add-child-${node.id}`}
+              title="Adicionar subconta"
+            >
+              <Plus className="h-3 w-3" />
+            </Button>
+            {depth > 0 && (
+              <>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-6 w-6"
+                  onClick={() => openEditDialog(node)}
+                  data-testid={`button-edit-${node.id}`}
+                  title="Editar"
+                >
+                  <Edit className="h-3 w-3" />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-6 w-6"
+                  onClick={() => openDeleteDialog(node)}
+                  data-testid={`button-delete-${node.id}`}
+                  title="Excluir"
+                >
+                  <Trash2 className="h-3 w-3" />
+                </Button>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Children */}
+        {isExpanded && hasChildNodes && (
+          <div>
+            {node.children.map((child) => 
+              renderNodeCompact(child, depth + 1)
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   // Render tree node with modern visual hierarchy
   const renderNode = (node: ChartAccountNode, depth: number = 0, isLast: boolean = false) => {
     const isExpanded = expandedNodes.has(node.id);
@@ -836,87 +946,67 @@ export default function PlanoDeContas() {
         {accounts.length > 0 && viewMode === 'columns' && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
             {/* Receitas Column */}
-            <Card className="p-3">
-              <div className="flex items-center gap-2 mb-3 pb-2 border-b">
+            <Card className="p-2">
+              <div className="flex items-center gap-2 mb-2 pb-2 border-b">
                 <TrendingUp className="h-4 w-4 text-green-600 dark:text-green-400" />
                 <h3 className="font-semibold text-sm">Receitas</h3>
               </div>
-              <div className="space-y-1">
+              <div className="space-y-0.5">
                 {filteredTree
                   .filter(node => node.type === 'receita')
-                  .map(node => (
-                    <div key={node.id}>
-                      {renderNode(node, 0)}
-                    </div>
-                  ))}
+                  .map(node => renderNodeCompact(node, 0))}
               </div>
             </Card>
 
             {/* Despesas Column */}
-            <Card className="p-3">
-              <div className="flex items-center gap-2 mb-3 pb-2 border-b">
+            <Card className="p-2">
+              <div className="flex items-center gap-2 mb-2 pb-2 border-b">
                 <TrendingDown className="h-4 w-4 text-red-600 dark:text-red-400" />
                 <h3 className="font-semibold text-sm">Despesas</h3>
               </div>
-              <div className="space-y-1">
+              <div className="space-y-0.5">
                 {filteredTree
                   .filter(node => node.type === 'despesa')
-                  .map(node => (
-                    <div key={node.id}>
-                      {renderNode(node, 0)}
-                    </div>
-                  ))}
+                  .map(node => renderNodeCompact(node, 0))}
               </div>
             </Card>
 
             {/* Ativo Column */}
-            <Card className="p-3">
-              <div className="flex items-center gap-2 mb-3 pb-2 border-b">
+            <Card className="p-2">
+              <div className="flex items-center gap-2 mb-2 pb-2 border-b">
                 <Wallet className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                 <h3 className="font-semibold text-sm">Ativo</h3>
               </div>
-              <div className="space-y-1">
+              <div className="space-y-0.5">
                 {filteredTree
                   .filter(node => node.type === 'ativo')
-                  .map(node => (
-                    <div key={node.id}>
-                      {renderNode(node, 0)}
-                    </div>
-                  ))}
+                  .map(node => renderNodeCompact(node, 0))}
               </div>
             </Card>
 
             {/* Passivo Column */}
-            <Card className="p-3">
-              <div className="flex items-center gap-2 mb-3 pb-2 border-b">
+            <Card className="p-2">
+              <div className="flex items-center gap-2 mb-2 pb-2 border-b">
                 <CreditCard className="h-4 w-4 text-amber-600 dark:text-amber-400" />
                 <h3 className="font-semibold text-sm">Passivo</h3>
               </div>
-              <div className="space-y-1">
+              <div className="space-y-0.5">
                 {filteredTree
                   .filter(node => node.type === 'passivo')
-                  .map(node => (
-                    <div key={node.id}>
-                      {renderNode(node, 0)}
-                    </div>
-                  ))}
+                  .map(node => renderNodeCompact(node, 0))}
               </div>
             </Card>
 
             {/* Patrimônio Líquido Column */}
-            <Card className="p-3">
-              <div className="flex items-center gap-2 mb-3 pb-2 border-b">
+            <Card className="p-2">
+              <div className="flex items-center gap-2 mb-2 pb-2 border-b">
                 <PiggyBank className="h-4 w-4 text-violet-600 dark:text-violet-400" />
                 <h3 className="font-semibold text-sm">Patrimônio Líquido</h3>
               </div>
-              <div className="space-y-1">
+              <div className="space-y-0.5">
                 {filteredTree
                   .filter(node => node.type === 'patrimonio_liquido')
-                  .map(node => (
-                    <div key={node.id}>
-                      {renderNode(node, 0)}
-                    </div>
-                  ))}
+                  .map(node => renderNodeCompact(node, 0))}
               </div>
             </Card>
           </div>
