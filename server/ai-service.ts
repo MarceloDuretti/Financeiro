@@ -620,6 +620,7 @@ export interface ReportFilters {
   limit?: number;
   orderBy?: string;
   orderDirection?: 'asc' | 'desc';
+  selectedFields?: string[]; // Campos que o usuário quer visualizar
 }
 
 export interface ReportMetadata {
@@ -637,11 +638,11 @@ export async function generateReportFilters(prompt: string): Promise<ReportFilte
   try {
     console.log(`[AI Report] Processing prompt: "${prompt}"`);
 
-    const systemPrompt = `Você é um assistente de relatórios financeiros especializado em gerar filtros dinâmicos.
+    const systemPrompt = `Você é um assistente de relatórios financeiros especializado em gerar filtros dinâmicos e selecionar campos para visualização.
 
-IMPORTANTE: Você deve interpretar o pedido do usuário e retornar APENAS filtros JSON válidos.
+IMPORTANTE: Você deve interpretar o pedido do usuário e retornar APENAS filtros JSON válidos incluindo os campos que devem ser exibidos.
 
-Campos disponíveis em Clientes/Fornecedores:
+CAMPOS DE FILTRO disponíveis em Clientes/Fornecedores:
 - isCustomer (boolean): true se for cliente
 - isSupplier (boolean): true se for fornecedor
 - isActive (boolean): true se estiver ativo, false se inativo
@@ -653,25 +654,39 @@ Campos disponíveis em Clientes/Fornecedores:
 - orderBy (string): campo para ordenar - "name", "city", "state", "code"
 - orderDirection (string): "asc" ou "desc"
 
+CAMPOS PARA VISUALIZAÇÃO (selectedFields array de strings):
+- code: Código
+- name: Nome
+- document: Documento (CPF/CNPJ)
+- phone: Telefone
+- email: Email
+- city: Cidade
+- state: Estado
+- type: Tipo (Cliente/Fornecedor)
+- status: Status (Ativo/Inativo)
+
+REGRA IMPORTANTE: Quando o usuário mencionar EXPLICITAMENTE quais campos quer ver, use selectedFields.
+Se não mencionar, retorne todos os campos principais: ["code", "name", "type", "document", "city", "state", "status"]
+
 Exemplos de interpretação:
 
-Prompt: "Clientes de São Paulo"
-Filtros: { "isCustomer": true, "city": "São Paulo" }
+Prompt: "Lista com nome e telefone"
+Filtros: { "selectedFields": ["name", "phone"] }
 
-Prompt: "Top 10 fornecedores ativos"
-Filtros: { "isSupplier": true, "isActive": true, "limit": 10 }
+Prompt: "Clientes de São Paulo com nome e email"
+Filtros: { "isCustomer": true, "city": "São Paulo", "selectedFields": ["name", "email"] }
+
+Prompt: "Top 10 fornecedores ativos - apenas nome, documento e cidade"
+Filtros: { "isSupplier": true, "isActive": true, "limit": 10, "selectedFields": ["name", "document", "city"] }
 
 Prompt: "Clientes inativos"
-Filtros: { "isCustomer": true, "isActive": false }
+Filtros: { "isCustomer": true, "isActive": false, "selectedFields": ["code", "name", "type", "document", "city", "state", "status"] }
 
 Prompt: "Todos de Minas Gerais"
-Filtros: { "state": "MG" }
+Filtros: { "state": "MG", "selectedFields": ["code", "name", "type", "document", "city", "state", "status"] }
 
-Prompt: "Fornecedores com CNPJ do Rio de Janeiro ordenados por nome"
-Filtros: { "isSupplier": true, "documentType": "cnpj", "state": "RJ", "orderBy": "name", "orderDirection": "asc" }
-
-Prompt: "Clientes que são também fornecedores"
-Filtros: { "isCustomer": true, "isSupplier": true }
+Prompt: "Fornecedores com nome, telefone e email"
+Filtros: { "isSupplier": true, "selectedFields": ["name", "phone", "email"] }
 
 RETORNE APENAS O JSON, SEM EXPLICAÇÕES.`;
 

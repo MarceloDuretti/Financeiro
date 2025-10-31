@@ -1261,11 +1261,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`[AI Report] Found ${results.length} records`);
 
+      // Filter fields if selectedFields is provided
+      let filteredData = results;
+      if (filters.selectedFields && filters.selectedFields.length > 0) {
+        filteredData = results.map(record => {
+          const filtered: any = {};
+          filters.selectedFields!.forEach(field => {
+            if (field === 'type') {
+              // Computed field
+              if (record.isCustomer && record.isSupplier) {
+                filtered.type = 'Cliente/Fornecedor';
+              } else if (record.isCustomer) {
+                filtered.type = 'Cliente';
+              } else if (record.isSupplier) {
+                filtered.type = 'Fornecedor';
+              }
+            } else if (field === 'status') {
+              // Computed field
+              filtered.status = record.isActive ? 'Ativo' : 'Inativo';
+            } else if (field in record) {
+              // Direct field mapping
+              filtered[field] = (record as any)[field];
+            }
+          });
+          return filtered;
+        });
+      }
+
       // Return results with metadata
       res.json({
-        data: results,
+        data: filteredData,
         metadata: {
           totalRecords: results.length,
+          selectedFields: filters.selectedFields || ['code', 'name', 'type', 'document', 'city', 'state', 'status'],
           filters,
           prompt,
         }

@@ -215,12 +215,12 @@ export function AIReportDialog({ open, onOpenChange }: AIReportDialogProps) {
                   Exemplos de comandos
                 </p>
                 <ul className="text-sm text-muted-foreground space-y-1 ml-6 list-disc">
-                  <li>Clientes de São Paulo</li>
-                  <li>Top 10 fornecedores ativos</li>
+                  <li>Lista com nome e telefone</li>
+                  <li>Clientes de São Paulo com nome e email</li>
+                  <li>Top 10 fornecedores ativos - apenas nome, documento e cidade</li>
                   <li>Clientes inativos</li>
+                  <li>Fornecedores com nome, telefone e email</li>
                   <li>Todos de Minas Gerais ordenados por nome</li>
-                  <li>Fornecedores com CNPJ do Rio de Janeiro</li>
-                  <li>Clientes que são também fornecedores</li>
                 </ul>
               </div>
 
@@ -285,58 +285,69 @@ export function AIReportDialog({ open, onOpenChange }: AIReportDialogProps) {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Código</TableHead>
-                      <TableHead>Nome</TableHead>
-                      <TableHead>Tipo</TableHead>
-                      <TableHead>Documento</TableHead>
-                      <TableHead>Cidade/UF</TableHead>
-                      <TableHead>Status</TableHead>
+                      {reportMetadata?.selectedFields?.map((field: string) => (
+                        <TableHead key={field}>
+                          {field === 'code' && 'Código'}
+                          {field === 'name' && 'Nome'}
+                          {field === 'type' && 'Tipo'}
+                          {field === 'document' && 'Documento'}
+                          {field === 'phone' && 'Telefone'}
+                          {field === 'email' && 'Email'}
+                          {field === 'city' && 'Cidade'}
+                          {field === 'state' && 'Estado'}
+                          {field === 'status' && 'Status'}
+                        </TableHead>
+                      ))}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {reportData.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={6} className="text-center text-muted-foreground">
+                        <TableCell 
+                          colSpan={reportMetadata?.selectedFields?.length || 1} 
+                          className="text-center text-muted-foreground"
+                        >
                           Nenhum registro encontrado
                         </TableCell>
                       </TableRow>
                     ) : (
-                      reportData.map((entity) => (
-                        <TableRow key={entity.id} data-testid={`row-entity-${entity.id}`}>
-                          <TableCell className="font-mono text-sm">
-                            {String(entity.code).padStart(3, '0')}
-                          </TableCell>
-                          <TableCell className="font-medium">{entity.name}</TableCell>
-                          <TableCell>
-                            <div className="flex gap-1">
-                              {entity.isCustomer && (
-                                <Badge variant="secondary" className="text-[10px]">
-                                  Cliente
-                                </Badge>
+                      reportData.map((entity: any, idx: number) => (
+                        <TableRow key={entity.id || idx} data-testid={`row-entity-${idx}`}>
+                          {reportMetadata?.selectedFields?.map((field: string) => (
+                            <TableCell key={field}>
+                              {field === 'code' && (
+                                <span className="font-mono text-sm">
+                                  {String(entity.code).padStart(3, '0')}
+                                </span>
                               )}
-                              {entity.isSupplier && (
-                                <Badge variant="secondary" className="text-[10px]">
-                                  Fornecedor
-                                </Badge>
+                              {field === 'name' && (
+                                <span className="font-medium">{entity.name || '-'}</span>
                               )}
-                            </div>
-                          </TableCell>
-                          <TableCell className="font-mono text-xs">
-                            {formatDocument(entity.document, entity.documentType)}
-                          </TableCell>
-                          <TableCell className="text-sm">
-                            {entity.city && entity.state
-                              ? `${entity.city}/${entity.state}`
-                              : entity.city || entity.state || '-'}
-                          </TableCell>
-                          <TableCell>
-                            <Badge
-                              variant={entity.isActive ? "default" : "secondary"}
-                              className="text-[10px]"
-                            >
-                              {entity.isActive ? 'Ativo' : 'Inativo'}
-                            </Badge>
-                          </TableCell>
+                              {field === 'type' && (
+                                <span className="text-sm">{entity.type || '-'}</span>
+                              )}
+                              {field === 'document' && (
+                                <span className="font-mono text-xs">
+                                  {formatDocument(entity.document, entity.documentType)}
+                                </span>
+                              )}
+                              {field === 'phone' && (
+                                <span className="text-sm">{entity.phone || '-'}</span>
+                              )}
+                              {field === 'email' && (
+                                <span className="text-sm">{entity.email || '-'}</span>
+                              )}
+                              {field === 'city' && (
+                                <span className="text-sm">{entity.city || '-'}</span>
+                              )}
+                              {field === 'state' && (
+                                <span className="text-sm">{entity.state || '-'}</span>
+                              )}
+                              {field === 'status' && (
+                                <span className="text-sm">{entity.status || '-'}</span>
+                              )}
+                            </TableCell>
+                          ))}
                         </TableRow>
                       ))
                     )}
