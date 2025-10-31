@@ -65,6 +65,7 @@ import {
   Network,
   Columns3,
   Eye,
+  Workflow,
 } from "lucide-react";
 import { buildAccountTree, hasChildren, type ChartAccountNode } from "@/lib/chartAccountUtils";
 import type { ChartAccount } from "@shared/schema";
@@ -72,6 +73,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { AIChartAssistant } from "@/components/AIChartAssistant";
 import { ChartPreviewTree } from "@/components/ChartPreviewTree";
+import { ChartFlowView } from "@/components/ChartFlowView";
 
 type FormValues = z.infer<typeof insertChartAccountSchema>;
 
@@ -81,7 +83,7 @@ export default function PlanoDeContas() {
   
   // View states
   const [searchTerm, setSearchTerm] = useState("");
-  const [viewMode, setViewMode] = useState<'tree' | 'columns'>('tree');
+  const [viewMode, setViewMode] = useState<'tree' | 'columns' | 'flowchart'>('tree');
   
   // Dialog states
   const [createRootOpen, setCreateRootOpen] = useState(false);
@@ -810,7 +812,7 @@ export default function PlanoDeContas() {
               />
             </div>
             <div className="flex items-center gap-2">
-              {viewMode === 'columns' && (
+              {(viewMode === 'columns' || viewMode === 'flowchart') && (
                 <Badge variant="secondary" className="text-[10px] px-2 py-1">
                   <Eye className="h-3 w-3 mr-1" />
                   Somente Leitura
@@ -836,6 +838,16 @@ export default function PlanoDeContas() {
                   className="h-8"
                 >
                   <Columns3 className="h-4 w-4" />
+                </Button>
+                <Button
+                  size="sm"
+                  variant={viewMode === 'flowchart' ? 'default' : 'ghost'}
+                  onClick={() => setViewMode('flowchart')}
+                  data-testid="button-view-flowchart"
+                  title="Visualização em fluxograma"
+                  className="h-8"
+                >
+                  <Workflow className="h-4 w-4" />
                 </Button>
               </div>
             </div>
@@ -983,6 +995,15 @@ export default function PlanoDeContas() {
               </div>
             </Card>
           </div>
+        )}
+
+        {/* Account flowchart view */}
+        {accounts.length > 0 && viewMode === 'flowchart' && (
+          <ChartFlowView
+            tree={filteredTree}
+            expandedNodes={expandedNodes}
+            onToggleExpand={toggleExpand}
+          />
         )}
 
         {/* Create Root Account Dialog */}
