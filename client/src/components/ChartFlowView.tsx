@@ -127,24 +127,32 @@ export function ChartFlowView({ tree, expandedNodes, onToggleExpand }: ChartFlow
   const { nodes: initialNodes, edges: initialEdges } = useMemo(() => {
     const nodes: Node[] = [];
     const edges: Edge[] = [];
-    const levelWidths = new Map<number, number>();
     const nodePositions = new Map<string, { x: number; y: number }>();
 
-    const HORIZONTAL_SPACING = 280;
-    const VERTICAL_SPACING = 120;
+    const HORIZONTAL_SPACING = 350; // Increased from 280
+    const VERTICAL_SPACING = 200; // Increased from 120
+    const ROOT_SPACING = 500; // Space between root nodes
+
+    // Count total width needed for each subtree
+    const countSubtreeWidth = (node: ChartAccountNode): number => {
+      const isExpanded = expandedNodes.has(node.id);
+      if (!isExpanded || node.children.length === 0) {
+        return 1;
+      }
+      return node.children.reduce((sum, child) => sum + countSubtreeWidth(child), 0);
+    };
 
     // Calculate positions using hierarchical layout
     const calculatePositions = (
       node: ChartAccountNode,
       level: number,
-      parentX?: number
+      startX: number,
+      endX: number
     ) => {
-      const currentWidth = levelWidths.get(level) || 0;
-      const x = parentX !== undefined ? parentX : currentWidth * HORIZONTAL_SPACING;
+      const x = (startX + endX) / 2; // Center in available space
       const y = level * VERTICAL_SPACING;
 
       nodePositions.set(node.id, { x, y });
-      levelWidths.set(level, currentWidth + 1);
 
       const isExpanded = expandedNodes.has(node.id);
       const hasChildren = node.children.length > 0;
@@ -170,10 +178,14 @@ export function ChartFlowView({ tree, expandedNodes, onToggleExpand }: ChartFlow
 
       // Process children if expanded
       if (isExpanded && hasChildren) {
-        const childrenStartX = x - ((node.children.length - 1) * HORIZONTAL_SPACING) / 2;
-        node.children.forEach((child, index) => {
-          const childX = childrenStartX + index * HORIZONTAL_SPACING;
-          calculatePositions(child, level + 1, childX);
+        let currentX = startX;
+        node.children.forEach((child) => {
+          const childWidth = countSubtreeWidth(child) * HORIZONTAL_SPACING;
+          const childStartX = currentX;
+          const childEndX = currentX + childWidth;
+          
+          calculatePositions(child, level + 1, childStartX, childEndX);
+          currentX = childEndX;
 
           // Create edge
           edges.push({
@@ -191,9 +203,15 @@ export function ChartFlowView({ tree, expandedNodes, onToggleExpand }: ChartFlow
       }
     };
 
-    // Process each root node
-    tree.forEach((rootNode, index) => {
-      calculatePositions(rootNode, 0, index * HORIZONTAL_SPACING);
+    // Process each root node with proper spacing
+    let currentX = 0;
+    tree.forEach((rootNode) => {
+      const rootWidth = countSubtreeWidth(rootNode) * HORIZONTAL_SPACING;
+      const startX = currentX;
+      const endX = currentX + rootWidth;
+      
+      calculatePositions(rootNode, 0, startX, endX);
+      currentX = endX + ROOT_SPACING; // Add spacing between root trees
     });
 
     return { nodes, edges };
@@ -218,7 +236,7 @@ export function ChartFlowView({ tree, expandedNodes, onToggleExpand }: ChartFlow
   );
 
   return (
-    <div className="h-[600px] w-full border rounded-lg bg-background">
+    <div className="h-[700px] w-full border rounded-lg bg-background">
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -227,10 +245,10 @@ export function ChartFlowView({ tree, expandedNodes, onToggleExpand }: ChartFlow
         onNodeClick={onNodeClick}
         nodeTypes={nodeTypes}
         fitView
-        fitViewOptions={{ padding: 0.2 }}
+        fitViewOptions={{ padding: 0.3, minZoom: 0.5, maxZoom: 1 }}
         minZoom={0.1}
-        maxZoom={1.5}
-        defaultViewport={{ x: 0, y: 0, zoom: 0.8 }}
+        maxZoom={2}
+        defaultViewport={{ x: 0, y: 0, zoom: 0.6 }}
       >
         <Background variant={BackgroundVariant.Dots} gap={16} size={1} />
         <Controls />
