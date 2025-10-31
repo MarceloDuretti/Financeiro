@@ -61,6 +61,9 @@ import {
   FileText,
   Sparkles,
   Loader2,
+  Search,
+  Network,
+  Columns3,
 } from "lucide-react";
 import { buildAccountTree, hasChildren, type ChartAccountNode } from "@/lib/chartAccountUtils";
 import type { ChartAccount } from "@shared/schema";
@@ -74,6 +77,10 @@ type FormValues = z.infer<typeof insertChartAccountSchema>;
 export default function PlanoDeContas() {
   const { toast } = useToast();
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
+  
+  // View states
+  const [searchTerm, setSearchTerm] = useState("");
+  const [viewMode, setViewMode] = useState<'tree' | 'columns'>('tree');
   
   // Dialog states
   const [createRootOpen, setCreateRootOpen] = useState(false);
@@ -100,6 +107,53 @@ export default function PlanoDeContas() {
 
   // Check if chart is empty (only root accounts)
   const isChartEmpty = accounts.length > 0 && accounts.every(acc => acc.parentId === null);
+
+  // Filter accounts based on search term
+  const filterAccountTree = (nodes: ChartAccountNode[], term: string): ChartAccountNode[] => {
+    if (!term.trim()) return nodes;
+    
+    const searchLower = term.toLowerCase();
+    
+    const filterNode = (node: ChartAccountNode): ChartAccountNode | null => {
+      const matchesSearch = 
+        node.name.toLowerCase().includes(searchLower) ||
+        node.code.toLowerCase().includes(searchLower) ||
+        (node.description && node.description.toLowerCase().includes(searchLower));
+      
+      const filteredChildren = node.children
+        .map(child => filterNode(child))
+        .filter((child): child is ChartAccountNode => child !== null);
+      
+      if (matchesSearch || filteredChildren.length > 0) {
+        return { ...node, children: filteredChildren };
+      }
+      
+      return null;
+    };
+    
+    return nodes
+      .map(node => filterNode(node))
+      .filter((node): node is ChartAccountNode => node !== null);
+  };
+
+  const filteredTree = filterAccountTree(accountTree, searchTerm);
+
+  // Auto-expand filtered nodes
+  useEffect(() => {
+    if (searchTerm.trim() && filteredTree.length > 0) {
+      const allIds = new Set<string>();
+      const collectIds = (nodes: ChartAccountNode[]) => {
+        nodes.forEach(node => {
+          allIds.add(node.id);
+          if (node.children.length > 0) {
+            collectIds(node.children);
+          }
+        });
+      };
+      collectIds(filteredTree);
+      setExpandedNodes(allIds);
+    }
+  }, [searchTerm, filteredTree.length]);
 
   // Handlers for AI Assistant
   const handleAIGenerated = (accs: any[]) => {
@@ -622,7 +676,7 @@ export default function PlanoDeContas() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            {accounts.length > 0 && (
+            {accounts.length > 0 && viewMode === 'tree' && (
               expandedNodes.size === 0 ? (
                 <Button 
                   variant="outline" 
@@ -665,6 +719,45 @@ export default function PlanoDeContas() {
             )}
           </div>
         </div>
+
+        {/* Search and View Mode Controls */}
+        {accounts.length > 0 && (
+          <div className="flex items-center justify-between gap-3">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="Buscar conta..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-9"
+                data-testid="input-search"
+              />
+            </div>
+            <div className="flex items-center gap-1 border rounded-md p-1">
+              <Button
+                size="sm"
+                variant={viewMode === 'tree' ? 'default' : 'ghost'}
+                onClick={() => setViewMode('tree')}
+                data-testid="button-view-tree"
+                title="Visualização em árvore"
+                className="h-8"
+              >
+                <Network className="h-4 w-4" />
+              </Button>
+              <Button
+                size="sm"
+                variant={viewMode === 'columns' ? 'default' : 'ghost'}
+                onClick={() => setViewMode('columns')}
+                data-testid="button-view-columns"
+                title="Visualização em colunas"
+                className="h-8"
+              >
+                <Columns3 className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
 
         {/* Educational section (only show when no accounts) */}
         {accounts.length === 0 && (
@@ -720,17 +813,113 @@ export default function PlanoDeContas() {
           </Card>
         )}
 
-        {/* Account tree with improved spacing */}
-        {accounts.length > 0 && (
+        {/* Account tree view */}
+        {accounts.length > 0 && viewMode === 'tree' && (
           <Card className="p-3">
             <div className="space-y-1">
-              {accountTree.map((node, index) => (
-                <div key={node.id} className={index > 0 ? "pt-2 border-t" : ""}>
-                  {renderNode(node, 0)}
+              {filteredTree.length > 0 ? (
+                filteredTree.map((node, index) => (
+                  <div key={node.id} className={index > 0 ? "pt-2 border-t" : ""}>
+                    {renderNode(node, 0)}
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  Nenhuma conta encontrada
                 </div>
-              ))}
+              )}
             </div>
           </Card>
+        )}
+
+        {/* Account columns view */}
+        {accounts.length > 0 && viewMode === 'columns' && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
+            {/* Receitas Column */}
+            <Card className="p-3">
+              <div className="flex items-center gap-2 mb-3 pb-2 border-b">
+                <TrendingUp className="h-4 w-4 text-green-600 dark:text-green-400" />
+                <h3 className="font-semibold text-sm">Receitas</h3>
+              </div>
+              <div className="space-y-1">
+                {filteredTree
+                  .filter(node => node.type === 'receita')
+                  .map(node => (
+                    <div key={node.id}>
+                      {renderNode(node, 0)}
+                    </div>
+                  ))}
+              </div>
+            </Card>
+
+            {/* Despesas Column */}
+            <Card className="p-3">
+              <div className="flex items-center gap-2 mb-3 pb-2 border-b">
+                <TrendingDown className="h-4 w-4 text-red-600 dark:text-red-400" />
+                <h3 className="font-semibold text-sm">Despesas</h3>
+              </div>
+              <div className="space-y-1">
+                {filteredTree
+                  .filter(node => node.type === 'despesa')
+                  .map(node => (
+                    <div key={node.id}>
+                      {renderNode(node, 0)}
+                    </div>
+                  ))}
+              </div>
+            </Card>
+
+            {/* Ativo Column */}
+            <Card className="p-3">
+              <div className="flex items-center gap-2 mb-3 pb-2 border-b">
+                <Wallet className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                <h3 className="font-semibold text-sm">Ativo</h3>
+              </div>
+              <div className="space-y-1">
+                {filteredTree
+                  .filter(node => node.type === 'ativo')
+                  .map(node => (
+                    <div key={node.id}>
+                      {renderNode(node, 0)}
+                    </div>
+                  ))}
+              </div>
+            </Card>
+
+            {/* Passivo Column */}
+            <Card className="p-3">
+              <div className="flex items-center gap-2 mb-3 pb-2 border-b">
+                <CreditCard className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                <h3 className="font-semibold text-sm">Passivo</h3>
+              </div>
+              <div className="space-y-1">
+                {filteredTree
+                  .filter(node => node.type === 'passivo')
+                  .map(node => (
+                    <div key={node.id}>
+                      {renderNode(node, 0)}
+                    </div>
+                  ))}
+              </div>
+            </Card>
+
+            {/* Patrimônio Líquido Column */}
+            <Card className="p-3">
+              <div className="flex items-center gap-2 mb-3 pb-2 border-b">
+                <PiggyBank className="h-4 w-4 text-violet-600 dark:text-violet-400" />
+                <h3 className="font-semibold text-sm">Patrimônio Líquido</h3>
+              </div>
+              <div className="space-y-1">
+                {filteredTree
+                  .filter(node => node.type === 'patrimonio_liquido')
+                  .map(node => (
+                    <div key={node.id}>
+                      {renderNode(node, 0)}
+                    </div>
+                  ))}
+              </div>
+            </Card>
+          </div>
         )}
 
         {/* Create Root Account Dialog */}
