@@ -525,26 +525,30 @@ export default function PlanoDeContas() {
             >
               <Plus className="h-3.5 w-3.5" />
             </Button>
-            <Button
-              size="icon"
-              variant="ghost"
-              className="h-7 w-7"
-              onClick={() => openEditDialog(node)}
-              data-testid={`button-edit-${node.id}`}
-              title="Editar"
-            >
-              <Edit className="h-3.5 w-3.5" />
-            </Button>
-            <Button
-              size="icon"
-              variant="ghost"
-              className="h-7 w-7"
-              onClick={() => openDeleteDialog(node)}
-              data-testid={`button-delete-${node.id}`}
-              title="Excluir"
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-            </Button>
+            {depth > 0 && (
+              <>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-7 w-7"
+                  onClick={() => openEditDialog(node)}
+                  data-testid={`button-edit-${node.id}`}
+                  title="Editar"
+                >
+                  <Edit className="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-7 w-7"
+                  onClick={() => openDeleteDialog(node)}
+                  data-testid={`button-delete-${node.id}`}
+                  title="Excluir"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              </>
+            )}
           </div>
         </div>
 
