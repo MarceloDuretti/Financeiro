@@ -59,11 +59,14 @@ import {
   Folder,
   FolderOpen,
   FileText,
+  Sparkles,
 } from "lucide-react";
 import { buildAccountTree, hasChildren, type ChartAccountNode } from "@/lib/chartAccountUtils";
 import type { ChartAccount } from "@shared/schema";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
+import { AIChartAssistant } from "@/components/AIChartAssistant";
+import { ChartPreviewTree } from "@/components/ChartPreviewTree";
 
 type FormValues = z.infer<typeof insertChartAccountSchema>;
 
@@ -78,6 +81,11 @@ export default function PlanoDeContas() {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState<ChartAccount | null>(null);
   const [parentAccount, setParentAccount] = useState<ChartAccount | null>(null);
+  
+  // AI Assistant states
+  const [aiAssistantOpen, setAiAssistantOpen] = useState(false);
+  const [aiPreviewOpen, setAiPreviewOpen] = useState(false);
+  const [generatedAccounts, setGeneratedAccounts] = useState<any[]>([]);
 
   // Fetch accounts with real-time updates
   const { data: accounts = [], isLoading } = useRealtimeQuery<ChartAccount[]>({
@@ -87,6 +95,15 @@ export default function PlanoDeContas() {
 
   // Build tree structure
   const accountTree = buildAccountTree(accounts);
+
+  // Check if chart is empty (only root accounts)
+  const isChartEmpty = accounts.length > 0 && accounts.every(acc => acc.parentId === null);
+
+  // Handlers for AI Assistant
+  const handleAIGenerated = (accs: any[]) => {
+    setGeneratedAccounts(accs);
+    setAiPreviewOpen(true);
+  };
 
   // Auto-expand all nodes when accounts are loaded
   useEffect(() => {
@@ -600,10 +617,12 @@ export default function PlanoDeContas() {
                 </Button>
               )
             )}
-            <Button onClick={openCreateRootDialog} data-testid="button-create-root">
-              <Plus className="h-4 w-4 mr-2" />
-              Nova Conta Raiz
-            </Button>
+            {isChartEmpty && (
+              <Button onClick={() => setAiAssistantOpen(true)} data-testid="button-ai-assistant">
+                <Sparkles className="h-4 w-4 mr-2" />
+                Assistente IA
+              </Button>
+            )}
           </div>
         </div>
 
@@ -970,6 +989,20 @@ export default function PlanoDeContas() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {/* AI Assistant */}
+        <AIChartAssistant
+          open={aiAssistantOpen}
+          onOpenChange={setAiAssistantOpen}
+          onGenerated={handleAIGenerated}
+        />
+
+        {/* AI Preview */}
+        <ChartPreviewTree
+          open={aiPreviewOpen}
+          onOpenChange={setAiPreviewOpen}
+          accounts={generatedAccounts}
+        />
       </div>
     </div>
   );

@@ -704,6 +704,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const tenantId = getTenantId((req as any).user);
       const { id } = req.params;
       
+      // Check if this is a root account (protection)
+      const existingAccount = await storage.getChartAccount(tenantId, id);
+      if (!existingAccount) {
+        return res.status(404).json({ message: "Conta não encontrada" });
+      }
+      
+      if (existingAccount.parentId === null) {
+        return res.status(403).json({ 
+          message: "Não é permitido editar contas raiz do sistema" 
+        });
+      }
+      
       // Strip tenantId, code, parentId from payload (security)
       const { tenantId: _, code: __, parentId: ___, ...updates } = req.body;
       
@@ -728,6 +740,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const tenantId = getTenantId((req as any).user);
       const { id } = req.params;
       
+      // Check if this is a root account (protection)
+      const existingAccount = await storage.getChartAccount(tenantId, id);
+      if (!existingAccount) {
+        return res.status(404).json({ message: "Conta não encontrada" });
+      }
+      
+      if (existingAccount.parentId === null) {
+        return res.status(403).json({ 
+          message: "Não é permitido excluir contas raiz do sistema" 
+        });
+      }
+      
       const success = await storage.deleteChartAccount(tenantId, id);
       if (!success) {
         return res.status(404).json({ message: "Conta não encontrada" });
@@ -740,6 +764,116 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error("Error deleting chart account:", error);
       res.status(400).json({ message: error.message || "Failed to delete account" });
+    }
+  });
+
+  // Generate chart of accounts with AI
+  app.post("/api/chart-of-accounts/generate-with-ai", isAuthenticated, async (req, res) => {
+    try {
+      const tenantId = getTenantId((req as any).user);
+      const { businessDescription } = req.body;
+
+      if (!businessDescription || typeof businessDescription !== "string") {
+        return res.status(400).json({ message: "Descrição do negócio é obrigatória" });
+      }
+
+      // Import AI service
+      const { generateChartOfAccounts } = await import("./ai-service");
+
+      // Generate accounts using AI
+      const generatedAccounts = await generateChartOfAccounts(businessDescription);
+
+      res.json({ accounts: generatedAccounts });
+    } catch (error: any) {
+      console.error("Error generating chart with AI:", error);
+      res.status(500).json({ message: error.message || "Erro ao gerar plano de contas" });
+    }
+  });
+
+  // Confirm and insert AI-generated accounts
+  app.post("/api/chart-of-accounts/confirm-ai-generated", isAuthenticated, async (req, res) => {
+    try {
+      const tenantId = getTenantId((req as any).user);
+      const { accounts } = req.body;
+
+      if (!Array.isArray(accounts) || accounts.length === 0) {
+        return res.status(400).json({ message: "Lista de contas inválida" });
+      }
+
+      // Check if chart is empty (only root accounts should exist)
+      const existingAccounts = await storage.listChartOfAccounts(tenantId);
+      const nonRootAccounts = existingAccounts.filter(acc => acc.parentId !== null);
+      
+      if (nonRootAccounts.length > 0) {
+        return res.status(400).json({ 
+          message: "Plano de contas já possui subcontas. Exclua-as antes de usar o assistente." 
+        });
+      }
+
+      // Create a map to store account IDs by code
+      const accountMap = new Map<string, string>();
+      
+      // First, map root accounts (1,2,3,4,5) to their IDs
+      for (const rootAccount of existingAccounts) {
+        // Map based on type
+        const typeToCode: Record<string, string> = {
+          'receita': '1',
+          'despesa': '2',
+          'ativo': '3',
+          'passivo': '4',
+          'patrimonio_liquido': '5',
+        };
+        const code = typeToCode[rootAccount.type];
+        if (code) {
+          accountMap.set(code, rootAccount.id);
+        }
+      }
+
+      // Sort accounts by code hierarchy (parents before children)
+      const sortedAccounts = [...accounts].sort((a, b) => {
+        const aDepth = a.code.split('.').length;
+        const bDepth = b.code.split('.').length;
+        if (aDepth !== bDepth) return aDepth - bDepth;
+        return a.code.localeCompare(b.code);
+      });
+
+      // Insert accounts in order
+      const createdAccounts = [];
+      for (const account of sortedAccounts) {
+        // Find parent ID
+        let parentId: string | null = null;
+        if (account.parentCode) {
+          parentId = accountMap.get(account.parentCode) || null;
+        }
+
+        if (!parentId && account.parentCode) {
+          console.warn(`Parent not found for account ${account.code}, parent code: ${account.parentCode}`);
+          continue; // Skip if parent not found
+        }
+
+        // Create account
+        const created = await storage.createChartAccount(tenantId, {
+          name: account.name,
+          type: account.type,
+          description: account.description || "",
+          parentId,
+        });
+
+        // Store in map for children
+        accountMap.set(account.code, created.id);
+        createdAccounts.push(created);
+
+        // Broadcast creation
+        broadcastDataChange(tenantId, "chart-of-accounts", "created", created);
+      }
+
+      res.json({ 
+        message: `${createdAccounts.length} contas criadas com sucesso`,
+        accounts: createdAccounts 
+      });
+    } catch (error: any) {
+      console.error("Error confirming AI-generated accounts:", error);
+      res.status(500).json({ message: error.message || "Erro ao criar contas" });
     }
   });
 

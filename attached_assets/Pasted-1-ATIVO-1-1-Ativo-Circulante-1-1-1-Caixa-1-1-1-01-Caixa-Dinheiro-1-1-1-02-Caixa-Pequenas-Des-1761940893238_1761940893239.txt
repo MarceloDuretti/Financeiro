@@ -1,0 +1,165 @@
+1. ATIVO
+1.1 Ativo Circulante
+
+1.1.1 Caixa
+
+1.1.1.01 Caixa – Dinheiro
+
+1.1.1.02 Caixa – Pequenas Despesas
+
+1.1.2 Bancos
+
+1.1.2.01 Conta Corrente Banco do Brasil
+
+1.1.2.02 Conta Corrente Caixa Econômica
+
+1.1.3 Clientes / Contas a Receber
+
+1.1.3.01 Clientes – Serviços
+
+1.1.3.02 Clientes – Peças
+
+1.1.4 Estoques
+
+1.1.4.01 Peças e Acessórios
+
+1.1.4.02 Materiais de Consumo (óleo, graxa, produtos de limpeza)
+
+1.1.5 Adiantamentos
+
+1.1.5.01 Adiantamento a Funcionários
+
+1.1.5.02 Adiantamento a Fornecedores
+
+1.2 Ativo Não Circulante
+
+1.2.1 Imobilizado
+
+1.2.1.01 Equipamentos de Oficina (elevadores, compressores)
+
+1.2.1.02 Ferramentas
+
+1.2.1.03 Veículos de Serviço
+
+1.2.1.04 Móveis e Utensílios
+
+1.2.2 Depreciação Acumulada
+
+1.2.2.01 Depreciação – Equipamentos
+
+1.2.2.02 Depreciação – Ferramentas
+
+2. PASSIVO
+2.1 Passivo Circulante
+
+2.1.1 Fornecedores
+
+2.1.1.01 Peças e Acessórios
+
+2.1.1.02 Serviços Terceirizados (retífica, elétrica)
+
+2.1.2 Obrigações Trabalhistas
+
+2.1.2.01 Salários a Pagar
+
+2.1.2.02 Encargos Sociais (INSS, FGTS)
+
+2.1.2.03 Férias e 13º Provisões
+
+2.1.3 Obrigações Fiscais
+
+2.1.3.01 IRRF a Recolher
+
+2.1.3.02 ISS a Recolher
+
+2.1.3.03 Simples Nacional / DAS
+
+2.1.4 Empréstimos e Financiamentos
+
+2.1.4.01 Curto Prazo
+
+2.1.4.02 Longo Prazo
+
+3. PATRIMÔNIO LÍQUIDO
+
+3.1 Capital Social
+
+3.1.1 Capital Integralizado
+
+3.2 Lucros/Prejuízos Acumulados
+
+3.2.1 Lucro do Exercício
+
+3.2.2 Prejuízo Acumulado
+
+4. RECEITAS
+4.1 Receitas Operacionais
+
+4.1.1 Serviços Prestados
+
+4.1.1.01 Mão de Obra Mecânica
+
+4.1.1.02 Alinhamento e Balanceamento
+
+4.1.1.03 Troca de Óleo e Filtros
+
+4.1.1.04 Diagnóstico Eletrônico
+
+4.1.2 Vendas de Peças
+
+4.1.2.01 Peças Automotivas
+
+4.1.2.02 Acessórios
+
+4.2 Outras Receitas
+
+4.2.1 Juros Recebidos
+
+4.2.2 Descontos Obtidos
+
+5. DESPESAS
+5.1 Despesas Operacionais
+
+5.1.1 Custo de Peças Vendidas
+
+5.1.2 Mão de Obra Direta
+
+5.1.2.01 Salários Mecânicos
+
+5.1.2.02 Comissões sobre Serviços
+
+5.1.3 Materiais de Consumo
+
+5.1.4 Energia Elétrica e Água
+
+5.1.5 Manutenção de Equipamentos
+
+5.1.6 Despesas com Veículos da Oficina
+
+5.1.7 Despesas de Limpeza
+
+5.2 Despesas Administrativas
+
+5.2.1 Salários Administrativos
+
+5.2.2 Contabilidade e Consultorias
+
+5.2.3 Material de Escritório
+
+5.2.4 Telefone e Internet
+
+5.2.5 Despesas Bancárias
+
+5.3 Despesas Comerciais
+
+5.3.1 Publicidade e Divulgação
+
+5.3.2 Descontos Concedidos
+
+5.3.3 Bonificações e Brindes
+
+5.4 Despesas Financeiras
+
+5.4.1 Juros e Multas Pagas
+
+5.4.2 Tarifas Bancárias

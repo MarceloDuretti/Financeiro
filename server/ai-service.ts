@@ -482,3 +482,128 @@ IMPORTANTE:
     source: "ai" as const,
   };
 }
+
+// Types for Chart of Accounts AI generation
+export interface GeneratedAccount {
+  code: string;
+  name: string;
+  type: string;
+  description: string;
+  parentCode: string | null;
+}
+
+/**
+ * Generates a complete chart of accounts structure using AI
+ * Based on business description
+ */
+export async function generateChartOfAccounts(businessDescription: string): Promise<GeneratedAccount[]> {
+  console.log("[AI Chart] Generating chart of accounts for:", businessDescription);
+
+  const systemPrompt = `Você é um especialista em contabilidade brasileira. Sua tarefa é gerar um plano de contas completo e hierárquico para uma empresa.
+
+IMPORTANTE:
+- As 5 contas raiz JÁ EXISTEM no sistema: 1-Receitas, 2-Despesas, 3-Ativo, 4-Passivo, 5-Patrimônio Líquido
+- Você deve gerar APENAS as subcontas dentro dessas raízes
+- Use códigos numéricos hierárquicos: 1.1, 1.1.1, 1.1.1.01 (até 5 níveis)
+- Siga as normas contábeis brasileiras
+- Seja específico para o ramo de atividade informado
+
+Estrutura de códigos:
+- Nível 1: 1, 2, 3, 4, 5 (raízes - JÁ EXISTEM)
+- Nível 2: 1.1, 1.2, 2.1, 2.2, etc.
+- Nível 3: 1.1.1, 1.1.2, etc.
+- Nível 4: 1.1.1.01, 1.1.1.02, etc.
+- Nível 5: 1.1.1.01.001, etc.
+
+Types permitidos:
+- receita (para código 1.x)
+- despesa (para código 2.x)
+- ativo (para código 3.x)
+- passivo (para código 4.x)
+- patrimonio_liquido (para código 5.x)`;
+
+  const userPrompt = `Gere um plano de contas completo para: ${businessDescription}
+
+RETORNE APENAS UM ARRAY JSON com as subcontas (NÃO inclua as raízes 1,2,3,4,5).
+Cada conta deve ter:
+- code: código hierárquico (ex: "1.1", "1.1.1", "1.1.1.01")
+- name: nome da conta
+- type: tipo (receita|despesa|ativo|passivo|patrimonio_liquido)
+- description: descrição breve
+- parentCode: código da conta pai (ex: "1.1" é pai de "1.1.1")
+
+Exemplo de resposta:
+[
+  {
+    "code": "1.1",
+    "name": "Receitas Operacionais",
+    "type": "receita",
+    "description": "Receitas da atividade principal",
+    "parentCode": "1"
+  },
+  {
+    "code": "1.1.1",
+    "name": "Vendas de Serviços",
+    "type": "receita",
+    "description": "Receita de serviços prestados",
+    "parentCode": "1.1"
+  }
+]
+
+Gere pelo menos 30-50 contas relevantes para o negócio.`;
+
+  try {
+    const response = await callOpenAI(
+      [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+      {
+        jsonMode: true,
+        maxTokens: 4000,
+      }
+    );
+
+    console.log("[AI Chart] Raw AI response:", response);
+
+    // Parse response
+    let parsed: any;
+    try {
+      parsed = JSON.parse(response);
+    } catch (e) {
+      console.error("[AI Chart] Failed to parse JSON:", e);
+      throw new Error("IA retornou resposta inválida");
+    }
+
+    // Extract accounts array (handle different response formats)
+    const accounts: GeneratedAccount[] = parsed.accounts || parsed.contas || (Array.isArray(parsed) ? parsed : []);
+
+    if (!Array.isArray(accounts) || accounts.length === 0) {
+      console.error("[AI Chart] No accounts in response:", parsed);
+      throw new Error("IA não retornou contas válidas");
+    }
+
+    console.log(`[AI Chart] Generated ${accounts.length} accounts`);
+
+    // Validate and clean accounts
+    const validAccounts = accounts.filter((acc: any) => {
+      return (
+        acc.code &&
+        acc.name &&
+        acc.type &&
+        typeof acc.code === "string" &&
+        typeof acc.name === "string"
+      );
+    });
+
+    if (validAccounts.length === 0) {
+      throw new Error("Nenhuma conta válida foi gerada");
+    }
+
+    console.log(`[AI Chart] Validated ${validAccounts.length} accounts`);
+    return validAccounts;
+  } catch (error: any) {
+    console.error("[AI Chart] Error generating chart:", error);
+    throw new Error(error.message || "Erro ao gerar plano de contas com IA");
+  }
+}
