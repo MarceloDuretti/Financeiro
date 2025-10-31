@@ -142,27 +142,28 @@ export function AIChartAssistant({ open, onOpenChange, onGenerated }: AIChartAss
         <div className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="business-description">Descrição do Negócio</Label>
-            <div className="relative">
+            <div className="flex gap-2 items-start">
               <Input
                 id="business-description"
                 placeholder="Ex: oficina mecânica, restaurante, consultoria jurídica..."
                 value={businessDescription}
                 onChange={(e) => setBusinessDescription(e.target.value)}
                 disabled={isProcessing || isRecording}
-                className="pr-12"
+                className="flex-1"
               />
               <Button
                 type="button"
                 size="icon"
-                variant="ghost"
-                className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
+                variant={isRecording ? "destructive" : "outline"}
+                className="h-10 w-10 flex-shrink-0"
                 onClick={isRecording ? stopRecording : startRecording}
                 disabled={isProcessing}
+                title={isRecording ? "Parar gravação" : "Gravar com voz"}
               >
                 {isRecording ? (
-                  <MicOff className="h-4 w-4 text-destructive animate-pulse" />
+                  <MicOff className="h-5 w-5 animate-pulse" />
                 ) : (
-                  <Mic className="h-4 w-4" />
+                  <Mic className="h-5 w-5" />
                 )}
               </Button>
             </div>
