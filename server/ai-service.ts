@@ -607,3 +607,91 @@ Gere pelo menos 30-50 contas relevantes para o negócio.`;
     throw new Error(error.message || "Erro ao gerar plano de contas com IA");
   }
 }
+
+// Types for AI report generation
+export interface ReportFilters {
+  isCustomer?: boolean;
+  isSupplier?: boolean;
+  isActive?: boolean;
+  city?: string;
+  state?: string;
+  documentType?: string;
+  searchName?: string;
+  limit?: number;
+  orderBy?: string;
+  orderDirection?: 'asc' | 'desc';
+}
+
+export interface ReportMetadata {
+  title: string;
+  description: string;
+  columns: string[];
+  totalRecords: number;
+}
+
+/**
+ * Processes user prompt to generate dynamic report filters
+ * Uses GPT-4o-mini to interpret natural language and create SQL-like filters
+ */
+export async function generateReportFilters(prompt: string): Promise<ReportFilters> {
+  try {
+    console.log(`[AI Report] Processing prompt: "${prompt}"`);
+
+    const systemPrompt = `Você é um assistente de relatórios financeiros especializado em gerar filtros dinâmicos.
+
+IMPORTANTE: Você deve interpretar o pedido do usuário e retornar APENAS filtros JSON válidos.
+
+Campos disponíveis em Clientes/Fornecedores:
+- isCustomer (boolean): true se for cliente
+- isSupplier (boolean): true se for fornecedor
+- isActive (boolean): true se estiver ativo, false se inativo
+- city (string): cidade (ex: "São Paulo", "Rio de Janeiro")
+- state (string): estado com 2 letras (ex: "SP", "RJ", "MG")
+- documentType (string): "cpf", "cnpj", "foreign", "none"
+- searchName (string): busca parcial no nome
+- limit (number): quantidade máxima de registros (padrão 100)
+- orderBy (string): campo para ordenar - "name", "city", "state", "code"
+- orderDirection (string): "asc" ou "desc"
+
+Exemplos de interpretação:
+
+Prompt: "Clientes de São Paulo"
+Filtros: { "isCustomer": true, "city": "São Paulo" }
+
+Prompt: "Top 10 fornecedores ativos"
+Filtros: { "isSupplier": true, "isActive": true, "limit": 10 }
+
+Prompt: "Clientes inativos"
+Filtros: { "isCustomer": true, "isActive": false }
+
+Prompt: "Todos de Minas Gerais"
+Filtros: { "state": "MG" }
+
+Prompt: "Fornecedores com CNPJ do Rio de Janeiro ordenados por nome"
+Filtros: { "isSupplier": true, "documentType": "cnpj", "state": "RJ", "orderBy": "name", "orderDirection": "asc" }
+
+Prompt: "Clientes que são também fornecedores"
+Filtros: { "isCustomer": true, "isSupplier": true }
+
+RETORNE APENAS O JSON, SEM EXPLICAÇÕES.`;
+
+    const response = await callOpenAI(
+      [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: prompt },
+      ],
+      { jsonMode: true, maxTokens: 500 }
+    );
+
+    console.log(`[AI Report] Raw response:`, response);
+
+    const filters: ReportFilters = JSON.parse(response);
+    
+    console.log(`[AI Report] Generated filters:`, filters);
+    
+    return filters;
+  } catch (error: any) {
+    console.error("[AI Report] Error generating filters:", error);
+    throw new Error("Erro ao processar solicitação de relatório");
+  }
+}

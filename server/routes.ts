@@ -1238,6 +1238,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // AI Report for customers/suppliers
+  app.post("/api/ai-report/customers-suppliers", isAuthenticated, async (req, res) => {
+    try {
+      const tenantId = getTenantId((req as any).user);
+      const { prompt } = req.body;
+
+      if (!prompt || typeof prompt !== 'string') {
+        return res.status(400).json({ message: "Prompt é obrigatório" });
+      }
+
+      console.log(`[AI Report] Processing report request: "${prompt}"`);
+
+      // Use AI to generate filters from user prompt
+      const { generateReportFilters } = await import("./ai-service");
+      const filters = await generateReportFilters(prompt);
+
+      console.log(`[AI Report] Generated filters:`, filters);
+
+      // Execute query with filters
+      const results = await storage.reportCustomersSuppliers(tenantId, filters);
+
+      console.log(`[AI Report] Found ${results.length} records`);
+
+      // Return results with metadata
+      res.json({
+        data: results,
+        metadata: {
+          totalRecords: results.length,
+          filters,
+          prompt,
+        }
+      });
+    } catch (error: any) {
+      console.error("Error generating AI report:", error);
+      res.status(500).json({ message: error.message || "Erro ao gerar relatório" });
+    }
+  });
+
   // Cash Registers routes (authenticated + multi-tenant + multi-company)
 
   // List all cash registers for a company

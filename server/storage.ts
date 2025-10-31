@@ -150,6 +150,18 @@ export interface IStorage {
   ): Promise<CustomerSupplier | undefined>;
   deleteCustomerSupplier(tenantId: string, id: string): Promise<boolean>;
   toggleCustomerSupplierActive(tenantId: string, id: string): Promise<CustomerSupplier | undefined>;
+  reportCustomersSuppliers(tenantId: string, filters: {
+    isCustomer?: boolean;
+    isSupplier?: boolean;
+    isActive?: boolean;
+    city?: string;
+    state?: string;
+    documentType?: string;
+    searchName?: string;
+    limit?: number;
+    orderBy?: string;
+    orderDirection?: 'asc' | 'desc';
+  }): Promise<CustomerSupplier[]>;
 
   // Cash Registers operations - all require tenantId and companyId for multi-tenant isolation
   listCashRegisters(tenantId: string, companyId: string): Promise<CashRegister[]>;
@@ -1412,6 +1424,96 @@ export class DatabaseStorage implements IStorage {
       
       return entity;
     });
+  }
+
+  async reportCustomersSuppliers(
+    tenantId: string,
+    filters: {
+      isCustomer?: boolean;
+      isSupplier?: boolean;
+      isActive?: boolean;
+      city?: string;
+      state?: string;
+      documentType?: string;
+      searchName?: string;
+      limit?: number;
+      orderBy?: string;
+      orderDirection?: 'asc' | 'desc';
+    }
+  ): Promise<CustomerSupplier[]> {
+    // Build dynamic where conditions
+    const conditions = [
+      eq(customersSuppliers.tenantId, tenantId),
+      eq(customersSuppliers.deleted, false),
+    ];
+
+    if (filters.isCustomer !== undefined) {
+      conditions.push(eq(customersSuppliers.isCustomer, filters.isCustomer));
+    }
+
+    if (filters.isSupplier !== undefined) {
+      conditions.push(eq(customersSuppliers.isSupplier, filters.isSupplier));
+    }
+
+    if (filters.isActive !== undefined) {
+      conditions.push(eq(customersSuppliers.isActive, filters.isActive));
+    }
+
+    if (filters.city) {
+      conditions.push(
+        sql`LOWER(${customersSuppliers.city}) = ${filters.city.toLowerCase()}`
+      );
+    }
+
+    if (filters.state) {
+      conditions.push(eq(customersSuppliers.state, filters.state.toUpperCase()));
+    }
+
+    if (filters.documentType) {
+      conditions.push(eq(customersSuppliers.documentType, filters.documentType));
+    }
+
+    if (filters.searchName) {
+      conditions.push(
+        sql`LOWER(${customersSuppliers.name}) LIKE ${`%${filters.searchName.toLowerCase()}%`}`
+      );
+    }
+
+    // Build query
+    let query = db
+      .select()
+      .from(customersSuppliers)
+      .where(and(...conditions));
+
+    // Apply ordering
+    const orderBy = filters.orderBy || 'code';
+    const direction = filters.orderDirection || 'asc';
+
+    if (orderBy === 'name') {
+      query = query.orderBy(
+        direction === 'asc' ? customersSuppliers.name : desc(customersSuppliers.name)
+      );
+    } else if (orderBy === 'city') {
+      query = query.orderBy(
+        direction === 'asc' ? customersSuppliers.city : desc(customersSuppliers.city)
+      );
+    } else if (orderBy === 'state') {
+      query = query.orderBy(
+        direction === 'asc' ? customersSuppliers.state : desc(customersSuppliers.state)
+      );
+    } else {
+      // Default: code
+      query = query.orderBy(
+        direction === 'asc' ? customersSuppliers.code : desc(customersSuppliers.code)
+      );
+    }
+
+    // Apply limit
+    if (filters.limit && filters.limit > 0) {
+      query = query.limit(filters.limit);
+    }
+
+    return await query;
   }
 
   // Cash Registers operations - all require tenantId and companyId for multi-tenant isolation
