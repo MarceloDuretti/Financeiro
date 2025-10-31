@@ -500,16 +500,18 @@ export default function PlanoDeContas() {
             <div className="w-4" />
           )}
 
-          {/* Code badge - smaller */}
-          <div className="flex-shrink-0">
-            <Badge 
-              variant="secondary" 
-              className="font-mono text-[9px] px-1 py-0 h-4"
-              data-testid={`text-code-${node.id}`}
-            >
-              {node.code}
-            </Badge>
-          </div>
+          {/* Code badge - only show if has children (not last level) */}
+          {hasChildNodes && (
+            <div className="flex-shrink-0">
+              <Badge 
+                variant="secondary" 
+                className="font-mono text-[9px] px-1 py-0 h-4"
+                data-testid={`text-code-${node.id}`}
+              >
+                {node.code}
+              </Badge>
+            </div>
+          )}
 
           {/* Name only - no description in compact mode */}
           <div className="flex-1 min-w-0">
@@ -946,12 +948,12 @@ export default function PlanoDeContas() {
         {accounts.length > 0 && viewMode === 'columns' && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
             {/* Receitas Column */}
-            <Card className="p-2">
-              <div className="flex items-center gap-2 mb-2 pb-2 border-b">
+            <Card className="p-2 flex flex-col">
+              <div className="flex items-center gap-2 mb-2 pb-2 border-b flex-shrink-0">
                 <TrendingUp className="h-4 w-4 text-green-600 dark:text-green-400" />
                 <h3 className="font-semibold text-sm">Receitas</h3>
               </div>
-              <div className="space-y-0.5">
+              <div className="space-y-0.5 overflow-x-auto">
                 {filteredTree
                   .filter(node => node.type === 'receita')
                   .map(node => renderNodeCompact(node, 0))}
@@ -959,12 +961,12 @@ export default function PlanoDeContas() {
             </Card>
 
             {/* Despesas Column */}
-            <Card className="p-2">
-              <div className="flex items-center gap-2 mb-2 pb-2 border-b">
+            <Card className="p-2 flex flex-col">
+              <div className="flex items-center gap-2 mb-2 pb-2 border-b flex-shrink-0">
                 <TrendingDown className="h-4 w-4 text-red-600 dark:text-red-400" />
                 <h3 className="font-semibold text-sm">Despesas</h3>
               </div>
-              <div className="space-y-0.5">
+              <div className="space-y-0.5 overflow-x-auto">
                 {filteredTree
                   .filter(node => node.type === 'despesa')
                   .map(node => renderNodeCompact(node, 0))}
@@ -972,12 +974,12 @@ export default function PlanoDeContas() {
             </Card>
 
             {/* Ativo Column */}
-            <Card className="p-2">
-              <div className="flex items-center gap-2 mb-2 pb-2 border-b">
+            <Card className="p-2 flex flex-col">
+              <div className="flex items-center gap-2 mb-2 pb-2 border-b flex-shrink-0">
                 <Wallet className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                 <h3 className="font-semibold text-sm">Ativo</h3>
               </div>
-              <div className="space-y-0.5">
+              <div className="space-y-0.5 overflow-x-auto">
                 {filteredTree
                   .filter(node => node.type === 'ativo')
                   .map(node => renderNodeCompact(node, 0))}
@@ -985,12 +987,12 @@ export default function PlanoDeContas() {
             </Card>
 
             {/* Passivo Column */}
-            <Card className="p-2">
-              <div className="flex items-center gap-2 mb-2 pb-2 border-b">
+            <Card className="p-2 flex flex-col">
+              <div className="flex items-center gap-2 mb-2 pb-2 border-b flex-shrink-0">
                 <CreditCard className="h-4 w-4 text-amber-600 dark:text-amber-400" />
                 <h3 className="font-semibold text-sm">Passivo</h3>
               </div>
-              <div className="space-y-0.5">
+              <div className="space-y-0.5 overflow-x-auto">
                 {filteredTree
                   .filter(node => node.type === 'passivo')
                   .map(node => renderNodeCompact(node, 0))}
@@ -998,12 +1000,12 @@ export default function PlanoDeContas() {
             </Card>
 
             {/* Patrimônio Líquido Column */}
-            <Card className="p-2">
-              <div className="flex items-center gap-2 mb-2 pb-2 border-b">
+            <Card className="p-2 flex flex-col">
+              <div className="flex items-center gap-2 mb-2 pb-2 border-b flex-shrink-0">
                 <PiggyBank className="h-4 w-4 text-violet-600 dark:text-violet-400" />
                 <h3 className="font-semibold text-sm">Patrimônio Líquido</h3>
               </div>
-              <div className="space-y-0.5">
+              <div className="space-y-0.5 overflow-x-auto">
                 {filteredTree
                   .filter(node => node.type === 'patrimonio_liquido')
                   .map(node => renderNodeCompact(node, 0))}
