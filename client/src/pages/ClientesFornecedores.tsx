@@ -74,10 +74,12 @@ import {
   Search,
   LayoutGrid,
   List,
+  Sparkles,
 } from "lucide-react";
 import { SiWhatsapp } from "react-icons/si";
 import { AIEntityInput } from "@/components/AIEntityInput";
 import { AIPreviewDialog } from "@/components/AIPreviewDialog";
+import { AIReportDialog } from "@/components/AIReportDialog";
 
 type EntityWithStats = CustomerSupplier & {
   revenuePercentage: number | null;
@@ -119,6 +121,9 @@ export default function ClientesFornecedores() {
   const [isProcessingAI, setIsProcessingAI] = useState(false);
   const [aiPreviewData, setAiPreviewData] = useState<ProcessedEntity | null>(null);
   const [showAiPreview, setShowAiPreview] = useState(false);
+  
+  // AI Report Dialog state
+  const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
   
   // View mode and search
   const [viewMode, setViewMode] = useState<'cards' | 'list'>(() => {
@@ -569,10 +574,20 @@ export default function ClientesFornecedores() {
             {searchQuery && ` (filtrado de ${entities.length})`}
           </p>
         </div>
-        <Button onClick={handleCreateNew} data-testid="button-create-new">
-          <Plus className="h-4 w-4 mr-2" />
-          Novo Cadastro
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setIsReportDialogOpen(true)}
+            data-testid="button-ai-report"
+          >
+            <Sparkles className="h-4 w-4 mr-2" />
+            Relatório com IA
+          </Button>
+          <Button onClick={handleCreateNew} data-testid="button-create-new">
+            <Plus className="h-4 w-4 mr-2" />
+            Novo Cadastro
+          </Button>
+        </div>
       </div>
 
       {/* Toolbar: Search + View Toggle */}
@@ -1949,6 +1964,12 @@ export default function ClientesFornecedores() {
         onConfirm={handleConfirmAIData}
         onDiscard={handleDiscardAIData}
         onEnrich={handleEnrichWithCNPJ}
+      />
+
+      {/* AI Report Dialog */}
+      <AIReportDialog
+        open={isReportDialogOpen}
+        onOpenChange={setIsReportDialogOpen}
       />
     </div>
   );

@@ -1479,38 +1479,31 @@ export class DatabaseStorage implements IStorage {
       );
     }
 
-    // Build query
-    let query = db
-      .select()
-      .from(customersSuppliers)
-      .where(and(...conditions));
-
-    // Apply ordering
-    const orderBy = filters.orderBy || 'code';
+    // Build query with ordering
+    const orderField = filters.orderBy || 'code';
     const direction = filters.orderDirection || 'asc';
-
-    if (orderBy === 'name') {
-      query = query.orderBy(
-        direction === 'asc' ? customersSuppliers.name : desc(customersSuppliers.name)
-      );
-    } else if (orderBy === 'city') {
-      query = query.orderBy(
-        direction === 'asc' ? customersSuppliers.city : desc(customersSuppliers.city)
-      );
-    } else if (orderBy === 'state') {
-      query = query.orderBy(
-        direction === 'asc' ? customersSuppliers.state : desc(customersSuppliers.state)
-      );
+    
+    let orderColumn;
+    if (orderField === 'name') {
+      orderColumn = customersSuppliers.name;
+    } else if (orderField === 'city') {
+      orderColumn = customersSuppliers.city;
+    } else if (orderField === 'state') {
+      orderColumn = customersSuppliers.state;
     } else {
-      // Default: code
-      query = query.orderBy(
-        direction === 'asc' ? customersSuppliers.code : desc(customersSuppliers.code)
-      );
+      orderColumn = customersSuppliers.code;
     }
 
-    // Apply limit
+    const query = db
+      .select()
+      .from(customersSuppliers)
+      .where(and(...conditions))
+      .orderBy(direction === 'asc' ? orderColumn : desc(orderColumn))
+      .$dynamic();
+
+    // Apply limit if provided
     if (filters.limit && filters.limit > 0) {
-      query = query.limit(filters.limit);
+      return await query.limit(filters.limit);
     }
 
     return await query;
