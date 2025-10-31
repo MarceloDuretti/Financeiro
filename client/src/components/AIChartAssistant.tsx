@@ -142,7 +142,7 @@ export function AIChartAssistant({ open, onOpenChange, onGenerated }: AIChartAss
         <div className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="business-description">Descrição do Negócio</Label>
-            <div className="flex gap-2 items-start">
+            <div className="flex gap-2 items-center">
               <Input
                 id="business-description"
                 placeholder="Ex: oficina mecânica, restaurante, consultoria jurídica..."
