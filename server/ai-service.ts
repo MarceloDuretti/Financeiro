@@ -250,6 +250,63 @@ Exemplo se não encontrar:
  * Uses GPT-4o-mini for cost-effective processing
  */
 export async function processEntityInput(input: string): Promise<ProcessedEntity> {
+  // Step 0: Check if input is a pure CNPJ (before calling AI)
+  const inputTrimmed = input.trim();
+  const digitsOnly = inputTrimmed.replace(/\D/g, '');
+  
+  // If input contains 14 consecutive digits and looks like a CNPJ, treat it as such
+  if (digitsOnly.length === 14 && /^[\d.\-\/\s]+$/.test(inputTrimmed)) {
+    console.log("[AI Service] Pure CNPJ detected, validating and fetching from ReceitaWS:", digitsOnly);
+    
+    // Validate CNPJ mathematically
+    const cnpjIsValid = isValidCNPJ(digitsOnly);
+    
+    if (!cnpjIsValid) {
+      console.warn(`[AI Service] ⚠️ Invalid CNPJ provided: ${digitsOnly}`);
+      return {
+        name: "CNPJ inválido",
+        documentType: "none",
+        document: undefined,
+        confidence: 0.1,
+        source: "ai" as const,
+      };
+    }
+    
+    // Fetch from ReceitaWS
+    const cnpjData = await fetchCNPJData(digitsOnly);
+    
+    if (cnpjData) {
+      console.log("[AI Service] ✓ ReceitaWS data received for pure CNPJ:", cnpjData.nome);
+      return {
+        name: cnpjData.fantasia || cnpjData.nome,
+        documentType: "cnpj",
+        document: cnpjData.cnpj.replace(/[^\d]/g, ""),
+        phone: cnpjData.telefone,
+        email: cnpjData.email,
+        website: undefined,
+        zipCode: cnpjData.cep?.replace(/[^\d]/g, ""),
+        street: cnpjData.logradouro,
+        number: cnpjData.numero,
+        complement: cnpjData.complemento,
+        neighborhood: cnpjData.bairro,
+        city: cnpjData.municipio,
+        state: cnpjData.uf,
+        country: "Brasil",
+        confidence: 0.95,
+        source: "cnpj_api" as const,
+      };
+    } else {
+      console.warn(`[AI Service] ⚠️ ReceitaWS returned no data for CNPJ: ${digitsOnly}`);
+      return {
+        name: "CNPJ não encontrado na Receita Federal",
+        documentType: "cnpj",
+        document: digitsOnly,
+        confidence: 0.3,
+        source: "ai" as const,
+      };
+    }
+  }
+  
   // Step 1: Use AI to extract and interpret the input
   const systemPrompt = `Você é um assistente especializado em extrair informações de empresas e pessoas para cadastro no Brasil.
   
