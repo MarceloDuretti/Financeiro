@@ -734,6 +734,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Clear all children accounts (keep only root accounts)
+  app.delete("/api/chart-of-accounts/clear-children", isAuthenticated, async (req, res) => {
+    try {
+      const tenantId = getTenantId((req as any).user);
+      
+      const deletedIds = await storage.clearChildrenChartAccounts(tenantId);
+      
+      // Broadcast deletion for each account to update all connected clients
+      deletedIds.forEach(id => {
+        broadcastDataChange(tenantId, "chart-of-accounts", "deleted", { id });
+      });
+      
+      res.json({ 
+        message: `${deletedIds.length} subconta(s) excluída(s) com sucesso`,
+        deletedCount: deletedIds.length 
+      });
+    } catch (error: any) {
+      console.error("Error clearing children chart accounts:", error);
+      res.status(500).json({ message: error.message || "Erro ao limpar subcontas" });
+    }
+  });
+
   // Delete account (soft-delete)
   app.delete("/api/chart-of-accounts/:id", isAuthenticated, async (req, res) => {
     try {

@@ -79,6 +79,7 @@ export default function PlanoDeContas() {
   const [createChildOpen, setCreateChildOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [clearDialogOpen, setClearDialogOpen] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState<ChartAccount | null>(null);
   const [parentAccount, setParentAccount] = useState<ChartAccount | null>(null);
   
@@ -184,6 +185,28 @@ export default function PlanoDeContas() {
       toast({
         title: "Erro ao excluir conta",
         description: error.message || "Ocorreu um erro ao excluir a conta.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Clear children mutation
+  const clearChildrenMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("DELETE", "/api/chart-of-accounts/clear-children");
+    },
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/chart-of-accounts"] });
+      toast({
+        title: "Subcontas excluídas",
+        description: data.message || "Todas as subcontas foram excluídas com sucesso.",
+      });
+      setClearDialogOpen(false);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro ao limpar subcontas",
+        description: error.message || "Ocorreu um erro ao excluir as subcontas.",
         variant: "destructive",
       });
     },
@@ -621,6 +644,18 @@ export default function PlanoDeContas() {
                 </Button>
               )
             )}
+            {!isChartEmpty && accounts.length > 0 && (
+              <Button 
+                variant="outline" 
+                onClick={() => setClearDialogOpen(true)}
+                data-testid="button-clear-children"
+                title="Limpar todas as subcontas (manter apenas raiz)"
+                className="text-destructive hover:text-destructive"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Limpar Subcontas
+              </Button>
+            )}
             {isChartEmpty && (
               <Button onClick={() => setAiAssistantOpen(true)} data-testid="button-ai-assistant">
                 <Sparkles className="h-4 w-4 mr-2" />
@@ -989,6 +1024,32 @@ export default function PlanoDeContas() {
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               >
                 {deleteMutation.isPending ? "Excluindo..." : "Excluir"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Clear Children AlertDialog */}
+        <AlertDialog open={clearDialogOpen} onOpenChange={setClearDialogOpen}>
+          <AlertDialogContent data-testid="dialog-clear-children">
+            <AlertDialogHeader>
+              <AlertDialogTitle>Limpar Todas as Subcontas?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Esta ação vai <strong>excluir todas as subcontas</strong> do plano, mantendo apenas as 5 contas raiz (Receitas, Despesas, Ativo, Passivo e Patrimônio Líquido).
+                <br />
+                <br />
+                Esta ação não pode ser desfeita e é útil para reiniciar testes durante o desenvolvimento.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel data-testid="button-cancel">Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => clearChildrenMutation.mutate()}
+                disabled={clearChildrenMutation.isPending}
+                data-testid="button-confirm"
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                {clearChildrenMutation.isPending ? "Limpando..." : "Limpar Subcontas"}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

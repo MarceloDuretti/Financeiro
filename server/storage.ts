@@ -44,7 +44,7 @@ import {
   type InsertDiscoveredCompany,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, inArray, sql, max, gte, lte, like, or, desc } from "drizzle-orm";
+import { eq, and, inArray, sql, max, gte, lte, like, or, desc, gt } from "drizzle-orm";
 
 // Interface for storage operations
 export interface IStorage {
@@ -109,6 +109,7 @@ export interface IStorage {
     account: Partial<Omit<InsertChartAccount, 'code' | 'parentId'>>
   ): Promise<ChartAccount | undefined>;
   deleteChartAccount(tenantId: string, id: string): Promise<boolean>;
+  clearChildrenChartAccounts(tenantId: string): Promise<string[]>;
   seedDefaultChartAccounts(tenantId: string): Promise<void>;
 
   // Bank Accounts operations - all require tenantId for multi-tenant isolation
@@ -866,6 +867,25 @@ export class DatabaseStorage implements IStorage {
       ))
       .returning();
     return result.length > 0;
+  }
+
+  async clearChildrenChartAccounts(tenantId: string): Promise<string[]> {
+    // Delete all accounts with depth > 0 (keep only root accounts)
+    const result = await db
+      .update(chartOfAccounts)
+      .set({
+        deleted: true,
+        updatedAt: new Date(),
+        version: sql`${chartOfAccounts.version} + 1`,
+      })
+      .where(and(
+        eq(chartOfAccounts.tenantId, tenantId),
+        gt(chartOfAccounts.depth, 0),
+        eq(chartOfAccounts.deleted, false)
+      ))
+      .returning({ id: chartOfAccounts.id });
+    
+    return result.map(r => r.id);
   }
 
   // Seed default chart of accounts structure (5 root accounts)
