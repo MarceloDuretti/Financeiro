@@ -39,6 +39,9 @@ import {
   type InsertBankBillingConfig,
   type Transaction,
   type InsertTransaction,
+  discoveredCompanies,
+  type DiscoveredCompany,
+  type InsertDiscoveredCompany,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, inArray, sql, max, gte, lte, like, or, desc } from "drizzle-orm";
@@ -215,6 +218,11 @@ export interface IStorage {
   ): Promise<Transaction | undefined>;
   // Auto-create default cash register if none exists
   ensureDefaultCashRegister(tenantId: string, companyId: string): Promise<CashRegister>;
+
+  // Discovered Companies operations - CNPJ discovery cache (no tenant isolation)
+  getDiscoveredCompanyByName(nameNormalized: string): Promise<DiscoveredCompany | undefined>;
+  saveDiscoveredCompany(company: InsertDiscoveredCompany): Promise<DiscoveredCompany>;
+  incrementDiscoveredCompanyUsage(id: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1944,6 +1952,50 @@ export class DatabaseStorage implements IStorage {
 
       return updated;
     });
+  }
+
+  // Discovered Companies methods - CNPJ discovery cache
+  async getDiscoveredCompanyByName(nameNormalized: string): Promise<DiscoveredCompany | undefined> {
+    const [result] = await db
+      .select()
+      .from(discoveredCompanies)
+      .where(eq(discoveredCompanies.nameNormalized, nameNormalized))
+      .limit(1);
+
+    return result;
+  }
+
+  async saveDiscoveredCompany(company: InsertDiscoveredCompany): Promise<DiscoveredCompany> {
+    // Try to insert, if already exists due to unique constraint, update it
+    const [result] = await db
+      .insert(discoveredCompanies)
+      .values(company)
+      .onConflictDoUpdate({
+        target: discoveredCompanies.nameNormalized,
+        set: {
+          cnpj: company.cnpj,
+          legalName: company.legalName,
+          source: company.source,
+          confidence: company.confidence,
+          searchQuery: company.searchQuery,
+          googleSnippet: company.googleSnippet,
+          timesUsed: sql`${discoveredCompanies.timesUsed} + 1`,
+          lastUsedAt: new Date(),
+        },
+      })
+      .returning();
+
+    return result;
+  }
+
+  async incrementDiscoveredCompanyUsage(id: string): Promise<void> {
+    await db
+      .update(discoveredCompanies)
+      .set({
+        timesUsed: sql`${discoveredCompanies.timesUsed} + 1`,
+        lastUsedAt: new Date(),
+      })
+      .where(eq(discoveredCompanies.id, id));
   }
 }
 

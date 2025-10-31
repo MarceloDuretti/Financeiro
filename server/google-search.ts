@@ -1,0 +1,127 @@
+/**
+ * Google Custom Search API Service
+ * Uses Google Custom Search API to find CNPJs of Brazilian companies
+ */
+
+interface GoogleSearchResult {
+  items?: Array<{
+    title: string;
+    snippet: string;
+    link: string;
+  }>;
+}
+
+interface CNPJSearchResult {
+  found: boolean;
+  cnpj?: string;
+  snippet?: string;
+  query?: string;
+}
+
+/**
+ * Searches for a company's CNPJ using Google Custom Search API
+ * @param companyName - Name of the company to search for
+ * @returns Search result with CNPJ if found
+ */
+export async function searchCompanyCNPJ(companyName: string): Promise<CNPJSearchResult> {
+  const apiKey = process.env.GOOGLE_CUSTOM_SEARCH_API_KEY;
+  const searchEngineId = process.env.GOOGLE_SEARCH_ENGINE_ID;
+
+  if (!apiKey || !searchEngineId) {
+    console.error('[Google Search] Missing API credentials');
+    return { found: false };
+  }
+
+  try {
+    // Construct search query
+    // Focus on Brazilian sites and CNPJ-related content
+    const query = `"CNPJ" "${companyName}" site:.br`;
+    
+    // Call Google Custom Search API
+    const url = `https://www.googleapis.com/customsearch/v1?key=${apiKey}&cx=${searchEngineId}&q=${encodeURIComponent(query)}&num=5`;
+    
+    console.log(`[Google Search] Searching for: "${companyName}"`);
+    console.log(`[Google Search] Query: ${query}`);
+    
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('[Google Search] API error:', response.status, errorText);
+      return { found: false };
+    }
+
+    const data = await response.json() as GoogleSearchResult;
+    
+    if (!data.items || data.items.length === 0) {
+      console.log('[Google Search] No results found');
+      return { found: false };
+    }
+
+    // Try to extract CNPJ from search results
+    for (const item of data.items) {
+      const text = `${item.title} ${item.snippet}`;
+      const cnpj = extractCNPJFromText(text);
+      
+      if (cnpj) {
+        console.log(`[Google Search] Found CNPJ: ${cnpj}`);
+        console.log(`[Google Search] Source: ${item.link}`);
+        
+        return {
+          found: true,
+          cnpj,
+          snippet: item.snippet,
+          query
+        };
+      }
+    }
+
+    console.log('[Google Search] No CNPJ found in results');
+    return { found: false };
+
+  } catch (error) {
+    console.error('[Google Search] Error:', error);
+    return { found: false };
+  }
+}
+
+/**
+ * Extracts CNPJ from text using regex patterns
+ * Supports multiple formats: XX.XXX.XXX/XXXX-XX, XXXXXXXXXXXXXXXX
+ */
+function extractCNPJFromText(text: string): string | null {
+  // Pattern 1: Formatted CNPJ (XX.XXX.XXX/XXXX-XX)
+  const formattedPattern = /\b\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}\b/g;
+  const formattedMatch = text.match(formattedPattern);
+  
+  if (formattedMatch && formattedMatch.length > 0) {
+    return formattedMatch[0];
+  }
+
+  // Pattern 2: Unformatted CNPJ (14 digits)
+  // Look for "CNPJ" or "CNPJ:" followed by 14 digits
+  const unformattedPattern = /CNPJ[:\s]*(\d{14})\b/gi;
+  const unformattedMatch = text.match(unformattedPattern);
+  
+  if (unformattedMatch && unformattedMatch.length > 0) {
+    // Extract just the digits
+    const digits = unformattedMatch[0].replace(/\D/g, '');
+    if (digits.length === 14) {
+      // Format as XX.XXX.XXX/XXXX-XX
+      return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8, 12)}-${digits.slice(12, 14)}`;
+    }
+  }
+
+  // Pattern 3: Look for 14 consecutive digits near the word "CNPJ"
+  const contextPattern = /CNPJ.{0,20}?(\d{14})/gi;
+  const contextMatch = text.match(contextPattern);
+  
+  if (contextMatch && contextMatch.length > 0) {
+    const digits = contextMatch[0].replace(/\D/g, '');
+    if (digits.length === 14) {
+      return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8, 12)}-${digits.slice(12, 14)}`;
+    }
+  }
+
+  return null;
+}

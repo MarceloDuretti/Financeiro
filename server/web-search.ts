@@ -1,13 +1,19 @@
 /**
  * Web Search Module for discovering CNPJs
- * Uses a curated database of well-known Brazilian companies
+ * Hybrid 3-layer intelligent search system:
+ * 1. Static cache (~30 well-known companies) - Instant, free
+ * 2. PostgreSQL cache (previously discovered companies) - Fast, free
+ * 3. Google Custom Search API (new discoveries) - Slower, costs API credits
  */
+
+import { storage } from './storage';
+import { searchCompanyCNPJ } from './google-search';
 
 /**
  * Normalizes company name for matching
  * Removes accents, punctuation, stop words, and converts to uppercase
  */
-function normalizeCompanyName(name: string): string {
+export function normalizeCompanyName(name: string): string {
   // Common Portuguese stop words in company names
   const stopWords = ['DE', 'DA', 'DO', 'DAS', 'DOS', 'E', 'S A', 'SA', 'LTDA', 'ME', 'EPP'];
   
@@ -32,26 +38,10 @@ function normalizeCompanyName(name: string): string {
 }
 
 /**
- * Searches for company CNPJ using curated database
- * Returns text containing CNPJ information
+ * Static cache of ~30 well-known Brazilian companies
+ * Used as Layer 1 (fastest, always free)
  */
-export async function webSearch(query: string): Promise<string> {
-  console.log(`[Web Search] Searching for: "${query}"`);
-  
-  let results: string[] = [];
-  
-  // Extract company name from query
-  const companyMatch = query.match(/CNPJ da (.+?) site:/i);
-  const companyName = companyMatch ? companyMatch[1].trim() : query;
-  
-  console.log(`[Web Search] Extracted company name: "${companyName}"`);
-  
-  // Source 1: Curated database of known Brazilian companies
-  try {
-    
-    // Database of known Brazilian companies with validated CNPJs
-    // This is a curated list from official government sources (gov.br, cnpj.biz, Portal da Transparência)
-    const knownCompanies: Record<string, string> = {
+const STATIC_CACHE: Record<string, string> = {
       // Utilities & Infrastructure (Minas Gerais) - Multiple aliases per company
       "COPASA": "Companhia de Saneamento de Minas Gerais - COPASA MG - CNPJ: 17.281.106/0001-03",
       "COPASA MG": "Companhia de Saneamento de Minas Gerais - COPASA MG - CNPJ: 17.281.106/0001-03",
@@ -107,33 +97,99 @@ export async function webSearch(query: string): Promise<string> {
       "ENERGIA MINAS": "Companhia Energética de Minas Gerais - CEMIG - CNPJ: 17.155.730/0001-64",
       "MUNICIPIO BELO HORIZONTE": "Município de Belo Horizonte - CNPJ: 18.715.383/0001-40",
       "PREFEITURA MUNICIPAL BELO HORIZONTE": "Município de Belo Horizonte - CNPJ: 18.715.383/0001-40"
-    };
+};
+
+/**
+ * Hybrid 3-layer search for company CNPJs
+ * Layer 1: Static cache (instant, free)
+ * Layer 2: PostgreSQL cache (fast, free, grows over time)
+ * Layer 3: Google Custom Search API (slower, costs credits, auto-cached)
+ */
+export async function webSearch(query: string): Promise<string> {
+  console.log(`[Web Search] 🔍 Starting hybrid search for: "${query}"`);
+  
+  // Extract company name from query
+  const companyMatch = query.match(/CNPJ da (.+?) site:/i);
+  const companyName = companyMatch ? companyMatch[1].trim() : query;
+  
+  console.log(`[Web Search] 📝 Company name: "${companyName}"`);
+  
+  const normalizedName = normalizeCompanyName(companyName);
+  console.log(`[Web Search] 🔧 Normalized: "${normalizedName}"`);
+  
+  // LAYER 1: Static cache (instant, free)
+  console.log(`[Web Search] 🗄️  Layer 1: Searching static cache...`);
+  for (const [key, value] of Object.entries(STATIC_CACHE)) {
+    const normalizedKey = normalizeCompanyName(key);
     
-    // Normalize user input for robust matching
-    const normalizedInput = normalizeCompanyName(companyName);
-    console.log(`[Web Search] Normalized input: "${normalizedInput}"`);
+    if (normalizedName.includes(normalizedKey) || normalizedKey.includes(normalizedName)) {
+      console.log(`[Web Search] ✅ Layer 1 HIT: Found in static cache - "${key}"`);
+      console.log(`[Web Search] 💰 API credits saved: Using free static cache`);
+      return value;
+    }
+  }
+  console.log(`[Web Search] ⚠️  Layer 1 MISS: Not in static cache`);
+  
+  // LAYER 2: PostgreSQL cache (fast, free, growing)
+  console.log(`[Web Search] 💾 Layer 2: Searching PostgreSQL cache...`);
+  try {
+    const cached = await storage.getDiscoveredCompanyByName(normalizedName);
     
-    // Try to match company name with known companies using normalized strings
-    for (const [key, value] of Object.entries(knownCompanies)) {
-      const normalizedKey = normalizeCompanyName(key);
+    if (cached) {
+      console.log(`[Web Search] ✅ Layer 2 HIT: Found in database cache`);
+      console.log(`[Web Search] 📊 Usage count: ${cached.timesUsed + 1} times`);
+      console.log(`[Web Search] 💰 API credits saved: Using database cache`);
       
-      // Check for match (bidirectional contains check)
-      if (normalizedInput.includes(normalizedKey) || normalizedKey.includes(normalizedInput)) {
-        results.push(value);
-        console.log(`[Web Search] ✓ Found match: "${key}" → ${value}`);
-        break;
-      }
+      // Increment usage counter
+      await storage.incrementDiscoveredCompanyUsage(cached.id);
+      
+      // Format result
+      return `${cached.legalName} - CNPJ: ${cached.cnpj}`;
     }
-    
-    if (results.length === 0) {
-      console.log(`[Web Search] ✗ No match found in database for: "${companyName}"`);
-    }
+    console.log(`[Web Search] ⚠️  Layer 2 MISS: Not in database cache`);
   } catch (error) {
-    console.error(`[Web Search] Error in source 2:`, error);
+    console.error(`[Web Search] ❌ Layer 2 ERROR:`, error);
   }
   
-  const combinedResults = results.join("\n\n");
-  console.log(`[Web Search] Returning ${combinedResults.length} characters of results`);
+  // LAYER 3: Google Custom Search API (slower, costs credits, but finds anything)
+  console.log(`[Web Search] 🌐 Layer 3: Searching via Google Custom Search API...`);
+  console.log(`[Web Search] 💸 Using API credits (will be cached for future use)`);
   
-  return combinedResults;
+  try {
+    const googleResult = await searchCompanyCNPJ(companyName);
+    
+    if (googleResult.found && googleResult.cnpj) {
+      console.log(`[Web Search] ✅ Layer 3 HIT: Found via Google API`);
+      console.log(`[Web Search] 📥 Caching in PostgreSQL for future use...`);
+      
+      // Save to database for future use (auto-learning!)
+      try {
+        await storage.saveDiscoveredCompany({
+          nameNormalized: normalizedName,
+          cnpj: googleResult.cnpj,
+          legalName: companyName, // Will be enriched by ReceitaWS later
+          source: 'google_search',
+          confidence: '0.7', // Google search confidence
+          searchQuery: googleResult.query,
+          googleSnippet: googleResult.snippet,
+        });
+        
+        console.log(`[Web Search] ✅ Successfully cached in database`);
+        console.log(`[Web Search] 🎯 Next search for "${companyName}" will use Layer 2 (free)`);
+      } catch (cacheError) {
+        console.error(`[Web Search] ⚠️  Failed to cache result:`, cacheError);
+      }
+      
+      // Format result
+      return `${companyName} - CNPJ: ${googleResult.cnpj}`;
+    }
+    
+    console.log(`[Web Search] ⚠️  Layer 3 MISS: Google found no results`);
+  } catch (error) {
+    console.error(`[Web Search] ❌ Layer 3 ERROR:`, error);
+  }
+  
+  // All layers failed
+  console.log(`[Web Search] ❌ All 3 layers failed - no CNPJ found`);
+  return '';
 }

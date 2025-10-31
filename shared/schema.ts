@@ -801,3 +801,46 @@ export const insertTransactionSchema = createInsertSchema(transactions).omit({
 
 export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
 export type Transaction = typeof transactions.$inferSelect;
+
+// Discovered Companies - Cache for CNPJ discoveries via Google Custom Search API
+// Stores companies found through web search to avoid repeated API calls
+export const discoveredCompanies = pgTable("discovered_companies", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  // Search key (normalized company name for fast lookup)
+  nameNormalized: text("name_normalized").notNull().unique(), // Normalized name used for matching
+  
+  // CNPJ information
+  cnpj: text("cnpj").notNull(), // Validated CNPJ
+  legalName: text("legal_name").notNull(), // Official legal name from Receita Federal
+  
+  // Source tracking
+  source: text("source").notNull(), // "google_search", "static_db", "manual"
+  confidence: text("confidence").notNull().default("0.8"), // Confidence score (0-1)
+  
+  // Additional metadata
+  searchQuery: text("search_query"), // Original search query that found this company
+  googleSnippet: text("google_snippet"), // Snippet from Google search result
+  
+  // Audit trail
+  discoveredAt: timestamp("discovered_at").notNull().defaultNow(),
+  timesUsed: integer("times_used").notNull().default(1), // How many times this cache entry was used
+  lastUsedAt: timestamp("last_used_at").notNull().defaultNow(),
+}, (table) => [
+  // Fast lookup by normalized name
+  index("discovered_companies_name_idx").on(table.nameNormalized),
+  // Lookup by CNPJ
+  index("discovered_companies_cnpj_idx").on(table.cnpj),
+  // Track usage patterns
+  index("discovered_companies_usage_idx").on(table.timesUsed, table.lastUsedAt),
+]);
+
+export const insertDiscoveredCompanySchema = createInsertSchema(discoveredCompanies).omit({
+  id: true,
+  discoveredAt: true,
+  timesUsed: true,
+  lastUsedAt: true,
+});
+
+export type InsertDiscoveredCompany = z.infer<typeof insertDiscoveredCompanySchema>;
+export type DiscoveredCompany = typeof discoveredCompanies.$inferSelect;
