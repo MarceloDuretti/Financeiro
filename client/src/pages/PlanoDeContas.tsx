@@ -60,6 +60,7 @@ import {
   FolderOpen,
   FileText,
   Sparkles,
+  Loader2,
 } from "lucide-react";
 import { buildAccountTree, hasChildren, type ChartAccountNode } from "@/lib/chartAccountUtils";
 import type { ChartAccount } from "@shared/schema";
@@ -1054,6 +1055,24 @@ export default function PlanoDeContas() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {/* Loading Dialog */}
+        <Dialog open={clearChildrenMutation.isPending} onOpenChange={() => {}}>
+          <DialogContent 
+            className="sm:max-w-md [&>button]:hidden"
+            data-testid="dialog-loading-clear"
+          >
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-3">
+                <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                Excluindo subcontas...
+              </DialogTitle>
+              <DialogDescription>
+                Por favor, aguarde enquanto todas as subcontas são excluídas.
+              </DialogDescription>
+            </DialogHeader>
+          </DialogContent>
+        </Dialog>
 
         {/* AI Assistant */}
         <AIChartAssistant
