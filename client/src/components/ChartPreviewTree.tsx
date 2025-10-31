@@ -95,7 +95,10 @@ function getTypeLabel(type: string): string {
 
 export function ChartPreviewTree({ open, onOpenChange, accounts }: ChartPreviewTreeProps) {
   const { toast } = useToast();
-  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
+  // Start with all nodes expanded
+  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(() => 
+    new Set(accounts.map(acc => acc.code))
+  );
   const [isConfirming, setIsConfirming] = useState(false);
 
   // Build tree
@@ -191,9 +194,11 @@ export function ChartPreviewTree({ open, onOpenChange, accounts }: ChartPreviewT
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-xs font-mono text-muted-foreground">{node.code}</span>
-              <Badge className={`text-[10px] h-5 px-1.5 ${getTypeBadgeColor(node.type)}`}>
-                {getTypeLabel(node.type)}
-              </Badge>
+              {depth === 0 && (
+                <Badge className={`text-[10px] h-5 px-1.5 ${getTypeBadgeColor(node.type)}`}>
+                  {getTypeLabel(node.type)}
+                </Badge>
+              )}
             </div>
             <div className="text-sm font-medium mt-0.5">{node.name}</div>
             {node.description && (
@@ -259,7 +264,7 @@ export function ChartPreviewTree({ open, onOpenChange, accounts }: ChartPreviewT
         </div>
 
         {/* Tree */}
-        <ScrollArea className="flex-1 border rounded-lg p-2">
+        <ScrollArea className="h-[400px] border rounded-lg p-2">
           <div className="space-y-1">
             {tree.map(node => renderNode(node))}
           </div>
