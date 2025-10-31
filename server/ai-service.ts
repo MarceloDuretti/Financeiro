@@ -120,82 +120,99 @@ async function fetchCNPJData(cnpj: string): Promise<ReceitaWSResponse | null> {
 }
 
 /**
- * Discovers CNPJ for a company using AI knowledge + validation
- * Uses GPT-4o-mini's knowledge of well-known Brazilian companies, but ALWAYS validates
+ * Discovers CNPJ for a company using web search + AI extraction
+ * Uses real web search to find CNPJs from official Brazilian government sources
  */
 async function discoverCNPJByName(companyName: string): Promise<string | null> {
   try {
-    console.log(`[CNPJ Discovery] Attempting to discover CNPJ for: "${companyName}"`);
+    console.log(`[CNPJ Discovery] Starting web search for: "${companyName}"`);
     
-    const discoveryPrompt = `Você tem conhecimento sobre empresas brasileiras. Se você conhece o CNPJ da empresa "${companyName}", forneça-o.
+    // Use web search to find CNPJ from official sources
+    const searchQuery = `CNPJ da ${companyName} site:gov.br OR site:cnpj.biz OR site:portaldatransparencia.gov.br OR site:receitaws.com.br`;
+    console.log(`[CNPJ Discovery] Search query: ${searchQuery}`);
+    
+    // Import web_search dynamically
+    let searchResults: string;
+    try {
+      const { webSearch } = await import("./web-search");
+      searchResults = await webSearch(searchQuery);
+      console.log(`[CNPJ Discovery] Web search completed, ${searchResults.length} characters of results`);
+    } catch (importError) {
+      console.error(`[CNPJ Discovery] Could not import web-search module:`, importError);
+      console.log(`[CNPJ Discovery] Falling back to AI knowledge...`);
+      return null;
+    }
 
-EMPRESA: "${companyName}"
+    if (!searchResults || searchResults.length === 0) {
+      console.log(`[CNPJ Discovery] No web search results found`);
+      return null;
+    }
 
-⚠️ REGRAS CRÍTICAS:
-1. APENAS retorne o CNPJ se você tem CERTEZA ABSOLUTA que conhece esta empresa
-2. O CNPJ deve ser de uma empresa MUITO CONHECIDA nacionalmente (CEMIG, Petrobras, Copasa, Correios, etc)
-3. Se você NÃO tem certeza ou não conhece, retorne null
-4. CNPJs DEVEM ter EXATAMENTE 14 dígitos
-5. NÃO invente ou adivinhe - se não tem certeza, retorne null
+    // Use AI to extract CNPJ from search results
+    const extractionPrompt = `Você é um especialista em extrair CNPJs de textos. Analise os resultados de busca abaixo e extraia o CNPJ correto da empresa "${companyName}".
 
-Retorne APENAS um JSON válido:
+RESULTADOS DA BUSCA:
+${searchResults.substring(0, 4000)}
+
+INSTRUÇÕES CRÍTICAS:
+1. Procure por CNPJs no formato XX.XXX.XXX/XXXX-XX ou XXXXXXXXXXXXXX (14 dígitos)
+2. VERIFIQUE que o CNPJ está associado à empresa "${companyName}" no texto
+3. CNPJs DEVEM ter EXATAMENTE 14 dígitos
+4. Se houver múltiplos CNPJs, escolha o que está mais claramente associado à empresa
+5. Se NÃO encontrar um CNPJ válido e confirmado nos resultados, retorne null
+
+Retorne APENAS um JSON válido no formato:
 {
   "cnpj": "CNPJ sem formatação (14 dígitos)" ou null,
   "confidence": número de 0 a 1,
-  "companyFullName": "nome jurídico completo da empresa" ou null
+  "source": "descrição breve de onde encontrou o CNPJ"
 }
 
-Exemplos de empresas MUITO CONHECIDAS que você pode retornar:
-- CEMIG (Companhia Energética de Minas Gerais)
-- Petrobras
-- Copasa (Companhia de Saneamento de Minas Gerais)
-- Banco do Brasil
-- Caixa Econômica Federal
-- Correios
-- Oi S.A.
-- Vale S.A.
+Exemplo de resposta válida:
+{"cnpj": "17281106000103", "confidence": 0.95, "source": "Portal da Transparência"}
 
-Se a empresa NÃO está nesta lista de empresas nacionalmente famosas, retorne:
-{"cnpj": null, "confidence": 0, "companyFullName": null}`;
+Exemplo se não encontrar:
+{"cnpj": null, "confidence": 0, "source": "nenhum CNPJ encontrado nos resultados"}`;
 
     const aiResponse = await callOpenAI(
       [
-        { role: "system", content: "Você conhece CNPJs de grandes empresas brasileiras, mas só retorna quando tem certeza absoluta." },
-        { role: "user", content: discoveryPrompt }
+        { role: "system", content: "Você extrai CNPJs de textos com precisão." },
+        { role: "user", content: extractionPrompt }
       ],
       { jsonMode: true, maxTokens: 300 }
     );
 
     const result = JSON.parse(aiResponse);
-    console.log(`[CNPJ Discovery] AI result:`, result);
+    console.log(`[CNPJ Discovery] AI extraction result:`, result);
 
     if (!result.cnpj) {
-      console.log(`[CNPJ Discovery] AI doesn't know CNPJ for this company`);
+      console.log(`[CNPJ Discovery] AI could not find CNPJ in search results`);
       return null;
     }
 
     const cleanCNPJ = result.cnpj.replace(/[^\d]/g, "");
     
     if (cleanCNPJ.length !== 14) {
-      console.warn(`[CNPJ Discovery] ⚠️ AI returned CNPJ with invalid length: ${cleanCNPJ.length} digits`);
+      console.warn(`[CNPJ Discovery] ⚠️ Extracted CNPJ has invalid length: ${cleanCNPJ.length} digits`);
       return null;
     }
 
     // CRITICAL: Validate mathematically
     const isValid = isValidCNPJ(cleanCNPJ);
     if (!isValid) {
-      console.warn(`[CNPJ Discovery] ⚠️ AI returned INVALID CNPJ (failed check digits): ${cleanCNPJ}`);
-      console.warn(`[CNPJ Discovery] This is a hallucination - discarding`);
+      console.warn(`[CNPJ Discovery] ⚠️ Extracted CNPJ failed validation: ${cleanCNPJ}`);
+      console.warn(`[CNPJ Discovery] This is an invalid CNPJ - discarding`);
       return null;
     }
 
-    console.log(`[CNPJ Discovery] ✓ AI provided valid CNPJ: ${cleanCNPJ}`);
+    console.log(`[CNPJ Discovery] ✓ Valid CNPJ extracted from web: ${cleanCNPJ}`);
+    console.log(`[CNPJ Discovery] Source: ${result.source}`);
     console.log(`[CNPJ Discovery] Now validating with ReceitaWS to confirm...`);
     
     // CRITICAL: Always validate with ReceitaWS before trusting
     const receitaData = await fetchCNPJData(cleanCNPJ);
     if (!receitaData) {
-      console.warn(`[CNPJ Discovery] ⚠️ ReceitaWS validation FAILED for AI-provided CNPJ`);
+      console.warn(`[CNPJ Discovery] ⚠️ ReceitaWS validation FAILED`);
       console.warn(`[CNPJ Discovery] CNPJ may be invalid or inactive - discarding`);
       return null;
     }
