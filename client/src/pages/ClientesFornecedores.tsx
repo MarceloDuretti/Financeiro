@@ -71,6 +71,9 @@ import {
   Check,
   Power,
   Edit2,
+  Search,
+  LayoutGrid,
+  List,
 } from "lucide-react";
 import { SiWhatsapp } from "react-icons/si";
 import { AIEntityInput } from "@/components/AIEntityInput";
@@ -117,6 +120,13 @@ export default function ClientesFornecedores() {
   const [aiPreviewData, setAiPreviewData] = useState<ProcessedEntity | null>(null);
   const [showAiPreview, setShowAiPreview] = useState(false);
   
+  // View mode and search
+  const [viewMode, setViewMode] = useState<'cards' | 'list'>(() => {
+    const saved = localStorage.getItem('fincontrol_customers_view_mode');
+    return saved === 'list' ? 'list' : 'cards';
+  });
+  const [searchQuery, setSearchQuery] = useState('');
+  
   // Use ref for synchronous submission lock to prevent race conditions
   const isSubmittingRef = useRef(false);
 
@@ -125,6 +135,24 @@ export default function ClientesFornecedores() {
     queryKey: ["/api/customers-suppliers"],
     resource: "customers-suppliers",
   });
+
+  // Filter entities based on search query
+  const filteredEntities = entities.filter((entity) => {
+    if (!searchQuery) return true;
+    const q = searchQuery.toLowerCase();
+    return (
+      entity.name?.toLowerCase().includes(q) ||
+      entity.document?.toLowerCase().includes(q) ||
+      entity.email?.toLowerCase().includes(q) ||
+      entity.phone?.toLowerCase().includes(q)
+    );
+  });
+
+  // Handle view mode change
+  const handleViewModeChange = (mode: 'cards' | 'list') => {
+    setViewMode(mode);
+    localStorage.setItem('fincontrol_customers_view_mode', mode);
+  };
 
   // Form setup
   const form = useForm<InsertCustomerSupplier>({
@@ -537,7 +565,8 @@ export default function ClientesFornecedores() {
         <div className="space-y-1">
           <h1 className="text-2xl md:text-3xl font-bold">Clientes e Fornecedores</h1>
           <p className="text-sm text-muted-foreground">
-            {entities.length} {entities.length === 1 ? "registro" : "registros"}
+            {filteredEntities.length} {filteredEntities.length === 1 ? "registro" : "registros"}
+            {searchQuery && ` (filtrado de ${entities.length})`}
           </p>
         </div>
         <Button onClick={handleCreateNew} data-testid="button-create-new">
@@ -546,8 +575,40 @@ export default function ClientesFornecedores() {
         </Button>
       </div>
 
-      {/* Grid of Cards */}
-      {entities.length === 0 ? (
+      {/* Toolbar: Search + View Toggle */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <div className="relative flex-1 min-w-[200px]">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9"
+            data-testid="input-search"
+          />
+        </div>
+        <div className="flex items-center gap-1">
+          <Button
+            variant={viewMode === 'cards' ? 'default' : 'outline'}
+            size="icon"
+            onClick={() => handleViewModeChange('cards')}
+            data-testid="button-view-cards"
+          >
+            <LayoutGrid className="h-4 w-4" />
+          </Button>
+          <Button
+            variant={viewMode === 'list' ? 'default' : 'outline'}
+            size="icon"
+            onClick={() => handleViewModeChange('list')}
+            data-testid="button-view-list"
+          >
+            <List className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+
+      {/* Grid/List View */}
+      {filteredEntities.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center p-12 text-center">
             <Building2 className="h-16 w-16 text-muted-foreground mb-4" />
@@ -561,182 +622,134 @@ export default function ClientesFornecedores() {
             </Button>
           </CardContent>
         </Card>
-      ) : (
+      ) : viewMode === 'cards' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {entities.map((entity) => {
+          {filteredEntities.map((entity) => {
             const percentage = entity.isCustomer ? entity.revenuePercentage : entity.expensePercentage;
             
             return (
-              <div key={entity.id} className="relative">
-                {/* Floating Percentage Badge */}
-                {percentage !== null && percentage > 0 && (
-                  <div className="absolute -top-2 -right-2 z-10">
+              <Card
+                key={entity.id}
+                className="hover-elevate cursor-pointer bg-white/75 dark:bg-gray-900/75"
+                onClick={() => handleCardClick(entity)}
+                data-testid={`card-entity-${entity.id}`}
+              >
+                <CardContent className="p-2 space-y-1">
+                  {/* Status Badge and Type */}
+                  <div className="flex items-center gap-1 flex-wrap">
                     <Badge 
-                      className={`${getPercentageBadgeColor(percentage)} shadow-lg text-xs px-2 py-0.5`}
-                      data-testid={`badge-percentage-${entity.id}`}
+                      className={`text-[10px] h-5 px-1.5 ${getTypeBadgeColor(entity)}`}
                     >
-                      {percentage.toFixed(1)}%
+                      {getTypeLabel(entity)}
                     </Badge>
+                    {entity.isActive && (
+                      <Badge className="text-[10px] h-5 px-1.5 bg-green-600">
+                        Ativo
+                      </Badge>
+                    )}
+                    {percentage !== null && percentage > 0 && (
+                      <Badge className={`text-[10px] h-5 px-1.5 ${getPercentageBadgeColor(percentage)}`}>
+                        {percentage.toFixed(1)}%
+                      </Badge>
+                    )}
                   </div>
-                )}
 
-                <Card
-                  className={`h-full transition-all hover-elevate ${
-                    selectedEntity?.id === entity.id ? "ring-2 ring-primary" : ""
-                  } ${entity.isActive ? "bg-accent/70 shadow-lg" : ""}`}
-                  data-testid={`card-entity-${entity.id}`}
-                >
-                  <CardContent className="p-4 h-full">
-                    <div className="flex flex-col h-full justify-between gap-3">
-                      <div className="flex flex-col gap-2">
-                        {/* Header: Avatar + Info + Status */}
-                        <div className="flex items-start gap-3">
-                          <Avatar 
-                            className={`h-12 w-12 flex-shrink-0 transition-all cursor-pointer ${
-                              entity.isActive ? "ring-2 ring-primary/20" : "opacity-50"
-                            }`}
-                            onClick={() => handleCardClick(entity)}
-                          >
-                            <AvatarImage src={entity.imageUrl || undefined} alt={entity.name} />
-                            <AvatarFallback className="bg-primary/10 text-primary font-bold text-base">
-                              {getInitials(entity.name)}
-                            </AvatarFallback>
-                          </Avatar>
+                  {/* Code */}
+                  <div className="text-[10px] text-muted-foreground font-mono">
+                    {formatCode(entity.code)}
+                  </div>
 
-                          <div className="flex-1 min-w-0 space-y-1">
-                            {/* Code - Type */}
-                            <div className="flex items-center gap-2">
-                              <span 
-                                className={`text-xs font-mono transition-all ${
-                                  entity.isActive 
-                                    ? "text-muted-foreground" 
-                                    : "text-muted-foreground/50"
-                                }`}
-                                data-testid={`text-code-${entity.id}`}
-                              >
-                                {formatCode(entity.code)}
-                              </span>
-                              <span className={`text-xs transition-all ${
-                                entity.isActive 
-                                  ? "text-muted-foreground" 
-                                  : "text-muted-foreground/50"
-                              }`}>-</span>
-                              <Badge className={`${getTypeBadgeColor(entity)} text-xs`}>
-                                {getTypeLabel(entity)}
-                              </Badge>
-                            </div>
-                            
-                            {/* Name */}
-                            <h3 
-                              className={`text-sm transition-all ${
-                                entity.isActive 
-                                  ? "font-bold text-foreground" 
-                                  : "font-semibold opacity-50"
-                              }`}
-                              data-testid={`text-name-${entity.id}`}
-                            >
-                              {entity.name}
-                            </h3>
-                          </div>
+                  {/* Name */}
+                  <div className="text-sm font-medium truncate" data-testid={`text-name-${entity.id}`}>
+                    {entity.name}
+                  </div>
 
-                          {/* Status Badge */}
-                          {entity.isActive && (
-                            <Badge variant="default" className="gap-1 text-xs px-2 py-0 flex-shrink-0">
-                              <Check className="h-3 w-3" />
-                              Ativo
-                            </Badge>
-                          )}
-                        </div>
+                  {/* Document */}
+                  {entity.document && (
+                    <div className="text-[10px] text-muted-foreground font-mono">
+                      {entity.document}
+                    </div>
+                  )}
 
-                        {/* Contact Info - Compact */}
-                        {(entity.document || entity.phone || entity.email) && (
-                          <div className={`space-y-1 text-xs transition-opacity ${
-                            entity.isActive ? "opacity-100" : "opacity-50"
-                          }`}>
-                            {entity.document && (
-                              <div className="flex items-center justify-between gap-2">
-                                <div className="flex items-center gap-1.5 min-w-0">
-                                  <FileText className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-                                  <span className="font-mono truncate">{entity.document}</span>
-                                </div>
-                                {/* Ver Detalhes Link */}
-                                <button
-                                  onClick={() => handleCardClick(entity)}
-                                  className={`text-xs underline transition-colors flex-shrink-0 ${
-                                    entity.isActive 
-                                      ? "text-primary hover:text-primary/80" 
-                                      : "text-muted-foreground/50 hover:text-muted-foreground/70"
-                                  }`}
-                                  data-testid={`link-details-${entity.id}`}
-                                >
-                                  Ver detalhes
-                                </button>
-                              </div>
-                            )}
-                            {entity.phone && (
-                              <div className="flex items-center gap-1.5">
-                                <Phone className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-                                <span className="truncate">{entity.phone}</span>
-                                {entity.whatsapp && (
-                                  <a
-                                    href={formatWhatsAppLink(entity.whatsapp)}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    onClick={(e) => e.stopPropagation()}
-                                    className="ml-1 flex-shrink-0"
-                                    data-testid={`link-whatsapp-${entity.id}`}
-                                  >
-                                    <SiWhatsapp className="h-3.5 w-3.5 text-green-500 hover:text-green-600 transition-colors" />
-                                  </a>
-                                )}
-                              </div>
-                            )}
-                            {entity.email && (
-                              <div className="flex items-center gap-1.5">
-                                <Mail className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-                                <span className="truncate">{entity.email}</span>
-                              </div>
-                            )}
-                          </div>
-                        )}
+                  {/* Phone */}
+                  {entity.phone && (
+                    <div className="text-[10px] text-muted-foreground flex items-center gap-1">
+                      <Phone className="h-3 w-3" />
+                      {entity.phone}
+                    </div>
+                  )}
+
+                  {/* Email */}
+                  {entity.email && (
+                    <div className="text-[10px] text-muted-foreground truncate">
+                      {entity.email}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {filteredEntities.map((entity) => {
+            const percentage = entity.isCustomer ? entity.revenuePercentage : entity.expensePercentage;
+            
+            return (
+              <Card
+                key={entity.id}
+                className="hover-elevate cursor-pointer bg-white/75 dark:bg-gray-900/75"
+                onClick={() => handleCardClick(entity)}
+                data-testid={`card-entity-${entity.id}`}
+              >
+                <CardContent className="p-2">
+                  <div className="flex items-center gap-3">
+                    {/* Avatar */}
+                    <Avatar className="h-8 w-8 flex-shrink-0">
+                      <AvatarImage src={entity.imageUrl || undefined} alt={entity.name} />
+                      <AvatarFallback className="bg-primary/10 text-primary font-bold text-xs">
+                        {getInitials(entity.name)}
+                      </AvatarFallback>
+                    </Avatar>
+
+                    {/* Info Section */}
+                    <div className="flex-1 min-w-0 grid grid-cols-1 md:grid-cols-4 gap-2 items-center">
+                      {/* Name and Code */}
+                      <div className="min-w-0">
+                        <div className="text-sm font-medium truncate">{entity.name}</div>
+                        <div className="text-[10px] text-muted-foreground font-mono">{formatCode(entity.code)}</div>
                       </div>
 
-                      {/* Action - Always aligned at bottom */}
-                      {entity.isActive ? (
-                        <button
-                          onClick={() => handleToggleActive(entity)}
-                          disabled={isTogglingActive}
-                          className="text-xs text-destructive underline hover:text-destructive/80 transition-colors text-center disabled:opacity-50"
-                          data-testid={`button-toggle-${entity.id}`}
-                        >
-                          {isTogglingActive ? "Desativando..." : "Desativar"}
-                        </button>
-                      ) : (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="w-full h-8"
-                          onClick={() => handleToggleActive(entity)}
-                          disabled={isTogglingActive}
-                          data-testid={`button-toggle-${entity.id}`}
-                        >
-                          {isTogglingActive ? (
-                            <>
-                              <Loader2 className="h-3 w-3 mr-1.5 animate-spin" />
-                              <span className="text-xs">Ativando...</span>
-                            </>
-                          ) : (
-                            <>
-                              <Plus className="h-3 w-3 mr-1.5" />
-                              <span className="text-xs">Ativar</span>
-                            </>
-                          )}
-                        </Button>
-                      )}
+                      {/* Document */}
+                      <div className="text-[10px] text-muted-foreground font-mono truncate">
+                        {entity.document || '-'}
+                      </div>
+
+                      {/* Contact */}
+                      <div className="text-[10px] text-muted-foreground truncate">
+                        {entity.phone || entity.email || '-'}
+                      </div>
+
+                      {/* Badges */}
+                      <div className="flex items-center gap-1 flex-wrap justify-end">
+                        <Badge className={`text-[10px] h-5 px-1.5 ${getTypeBadgeColor(entity)}`}>
+                          {getTypeLabel(entity)}
+                        </Badge>
+                        {entity.isActive && (
+                          <Badge className="text-[10px] h-5 px-1.5 bg-green-600">
+                            Ativo
+                          </Badge>
+                        )}
+                        {percentage !== null && percentage > 0 && (
+                          <Badge className={`text-[10px] h-5 px-1.5 ${getPercentageBadgeColor(percentage)}`}>
+                            {percentage.toFixed(1)}%
+                          </Badge>
+                        )}
+                      </div>
                     </div>
-                  </CardContent>
-                </Card>
-              </div>
+                  </div>
+                </CardContent>
+              </Card>
             );
           })}
         </div>
