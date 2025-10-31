@@ -84,7 +84,7 @@ function AccountNode({ data }: { data: any }) {
 
   return (
     <div
-      className={`${colors.bg} ${colors.border} border-2 rounded-lg p-3 min-w-[200px] shadow-md cursor-pointer hover-elevate transition-all`}
+      className={`${colors.bg} ${colors.border} border-2 rounded-lg p-4 min-w-[280px] shadow-lg cursor-pointer hover-elevate transition-all`}
       onClick={() => data.onToggle?.(data.id)}
       data-testid={`flow-node-${data.id}`}
     >
@@ -92,26 +92,31 @@ function AccountNode({ data }: { data: any }) {
         <div className={colors.text}>
           {hasChildren ? (
             data.isExpanded ? (
-              <FolderOpen className="h-4 w-4" />
+              <FolderOpen className="h-5 w-5" />
             ) : (
-              <Folder className="h-4 w-4" />
+              <Folder className="h-5 w-5" />
             )
           ) : (
             colors.icon
           )}
         </div>
         {data.code && (
-          <Badge variant="secondary" className="font-mono text-[9px] px-1.5 py-0 h-4">
+          <Badge variant="secondary" className="font-mono text-[10px] px-2 py-0.5 h-5">
             {data.code}
           </Badge>
         )}
       </div>
-      <div className={`font-semibold text-sm ${colors.text} mb-1`}>
+      <div className={`font-semibold text-base ${colors.text} mb-1`}>
         {data.name}
       </div>
       {data.description && (
-        <div className="text-[10px] text-muted-foreground truncate">
+        <div className="text-xs text-muted-foreground line-clamp-2">
           {data.description}
+        </div>
+      )}
+      {hasChildren && !data.isExpanded && (
+        <div className="text-xs text-muted-foreground mt-2 italic">
+          Clique para expandir
         </div>
       )}
     </div>
@@ -123,39 +128,40 @@ const nodeTypes = {
 };
 
 export function ChartFlowView({ tree, expandedNodes, onToggleExpand }: ChartFlowViewProps) {
-  // Convert tree to nodes and edges with hierarchical layout
+  // Convert tree to nodes and edges with HORIZONTAL layout (left-to-right)
   const { nodes: initialNodes, edges: initialEdges } = useMemo(() => {
     const nodes: Node[] = [];
     const edges: Edge[] = [];
-    const nodePositions = new Map<string, { x: number; y: number }>();
 
-    const HORIZONTAL_SPACING = 350; // Increased from 280
-    const VERTICAL_SPACING = 200; // Increased from 120
-    const ROOT_SPACING = 500; // Space between root nodes
+    const LEVEL_SPACING = 400; // Horizontal spacing between levels (depth)
+    const NODE_SPACING = 150; // Vertical spacing between sibling nodes
+    const ROOT_SPACING = 50; // Initial Y offset for first root
 
-    // Count total width needed for each subtree
-    const countSubtreeWidth = (node: ChartAccountNode): number => {
-      const isExpanded = expandedNodes.has(node.id);
-      if (!isExpanded || node.children.length === 0) {
-        return 1;
-      }
-      return node.children.reduce((sum, child) => sum + countSubtreeWidth(child), 0);
-    };
+    // Track current Y position as we add nodes
+    let globalY = ROOT_SPACING;
 
-    // Calculate positions using hierarchical layout
+    // Calculate positions using horizontal layout (left-to-right)
     const calculatePositions = (
       node: ChartAccountNode,
       level: number,
-      startX: number,
-      endX: number
-    ) => {
-      const x = (startX + endX) / 2; // Center in available space
-      const y = level * VERTICAL_SPACING;
-
-      nodePositions.set(node.id, { x, y });
-
+      parentY?: number
+    ): number => {
+      const x = level * LEVEL_SPACING; // X = depth (level)
+      
       const isExpanded = expandedNodes.has(node.id);
       const hasChildren = node.children.length > 0;
+
+      // Calculate Y position
+      let y: number;
+      if (level === 0) {
+        // Root nodes: use and increment globalY
+        y = globalY;
+        globalY += NODE_SPACING;
+      } else {
+        // Child nodes: start from parent Y if first child, otherwise use globalY
+        y = globalY;
+        globalY += NODE_SPACING;
+      }
 
       // Create node
       nodes.push({
@@ -172,20 +178,18 @@ export function ChartFlowView({ tree, expandedNodes, onToggleExpand }: ChartFlow
           id: node.id,
           onToggle: onToggleExpand,
         },
-        sourcePosition: Position.Bottom,
-        targetPosition: Position.Top,
+        sourcePosition: Position.Right, // Nodes flow to the right
+        targetPosition: Position.Left,  // Connections come from the left
       });
+
+      // Track the last Y position for this subtree
+      let subtreeEndY = y;
 
       // Process children if expanded
       if (isExpanded && hasChildren) {
-        let currentX = startX;
         node.children.forEach((child) => {
-          const childWidth = countSubtreeWidth(child) * HORIZONTAL_SPACING;
-          const childStartX = currentX;
-          const childEndX = currentX + childWidth;
-          
-          calculatePositions(child, level + 1, childStartX, childEndX);
-          currentX = childEndX;
+          const childEndY = calculatePositions(child, level + 1, y);
+          subtreeEndY = Math.max(subtreeEndY, childEndY);
 
           // Create edge
           edges.push({
@@ -201,17 +205,13 @@ export function ChartFlowView({ tree, expandedNodes, onToggleExpand }: ChartFlow
           });
         });
       }
+
+      return subtreeEndY;
     };
 
-    // Process each root node with proper spacing
-    let currentX = 0;
+    // Process each root node
     tree.forEach((rootNode) => {
-      const rootWidth = countSubtreeWidth(rootNode) * HORIZONTAL_SPACING;
-      const startX = currentX;
-      const endX = currentX + rootWidth;
-      
-      calculatePositions(rootNode, 0, startX, endX);
-      currentX = endX + ROOT_SPACING; // Add spacing between root trees
+      calculatePositions(rootNode, 0);
     });
 
     return { nodes, edges };
@@ -236,7 +236,7 @@ export function ChartFlowView({ tree, expandedNodes, onToggleExpand }: ChartFlow
   );
 
   return (
-    <div className="h-[700px] w-full border rounded-lg bg-background">
+    <div className="h-[800px] w-full border rounded-lg bg-background">
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -245,12 +245,12 @@ export function ChartFlowView({ tree, expandedNodes, onToggleExpand }: ChartFlow
         onNodeClick={onNodeClick}
         nodeTypes={nodeTypes}
         fitView
-        fitViewOptions={{ padding: 0.3, minZoom: 0.5, maxZoom: 1 }}
+        fitViewOptions={{ padding: 0.2, minZoom: 0.3, maxZoom: 0.8 }}
         minZoom={0.1}
-        maxZoom={2}
-        defaultViewport={{ x: 0, y: 0, zoom: 0.6 }}
+        maxZoom={1.5}
+        defaultViewport={{ x: 0, y: 0, zoom: 0.5 }}
       >
-        <Background variant={BackgroundVariant.Dots} gap={16} size={1} />
+        <Background variant={BackgroundVariant.Dots} gap={20} size={1} />
         <Controls />
         <MiniMap
           nodeColor={(node) => {
