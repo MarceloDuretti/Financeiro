@@ -29,6 +29,9 @@ export async function searchCompanyCNPJ(companyName: string): Promise<CNPJSearch
 
   if (!apiKey || !searchEngineId) {
     console.error('[Google Search] Missing API credentials');
+    console.error('[Google Search] Please configure:');
+    console.error('[Google Search] - GOOGLE_CUSTOM_SEARCH_API_KEY');
+    console.error('[Google Search] - GOOGLE_SEARCH_ENGINE_ID');
     return { found: false };
   }
 
@@ -42,12 +45,47 @@ export async function searchCompanyCNPJ(companyName: string): Promise<CNPJSearch
     
     console.log(`[Google Search] Searching for: "${companyName}"`);
     console.log(`[Google Search] Query: ${query}`);
+    console.log(`[Google Search] API Key configured: ${apiKey.substring(0, 8)}...`);
+    console.log(`[Google Search] Search Engine ID: ${searchEngineId}`);
     
     const response = await fetch(url);
     
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('[Google Search] API error:', response.status, errorText);
+      const errorData = await response.json().catch(() => ({}));
+      
+      console.error('[Google Search] API error:', response.status);
+      console.error('[Google Search] Error details:', JSON.stringify(errorData, null, 2));
+      
+      if (response.status === 401) {
+        console.error('');
+        console.error('╔════════════════════════════════════════════════════════════════════╗');
+        console.error('║ GOOGLE CUSTOM SEARCH API - ERRO 401 (Não Autorizado)              ║');
+        console.error('╠════════════════════════════════════════════════════════════════════╣');
+        console.error('║ POSSÍVEIS CAUSAS:                                                  ║');
+        console.error('║ 1. A API "Custom Search API" não foi habilitada no Google Cloud   ║');
+        console.error('║ 2. A API Key tem restrições que bloqueiam esta requisição         ║');
+        console.error('║ 3. O Search Engine ID (cx) está incorreto                         ║');
+        console.error('╠════════════════════════════════════════════════════════════════════╣');
+        console.error('║ SOLUÇÃO:                                                           ║');
+        console.error('║                                                                    ║');
+        console.error('║ [1] Habilite a API no Google Cloud Console:                       ║');
+        console.error('║     https://console.cloud.google.com/apis/library                  ║');
+        console.error('║     Busque por "Custom Search API" e clique em "Habilitar"        ║');
+        console.error('║                                                                    ║');
+        console.error('║ [2] Verifique restrições da API Key:                              ║');
+        console.error('║     https://console.cloud.google.com/apis/credentials              ║');
+        console.error('║     - Remova restrições de IP/HTTP referrer (para teste)          ║');
+        console.error('║     - Em "API restrictions", permita "Custom Search API"          ║');
+        console.error('║                                                                    ║');
+        console.error('║ [3] Confirme o Search Engine ID:                                  ║');
+        console.error('║     https://programmablesearchengine.google.com/                   ║');
+        console.error('║     Copie o ID correto do seu Programmable Search Engine          ║');
+        console.error('║                                                                    ║');
+        console.error('║ Consulte GOOGLE_SEARCH_SETUP.md para guia completo                ║');
+        console.error('╚════════════════════════════════════════════════════════════════════╝');
+        console.error('');
+      }
+      
       return { found: false };
     }
 
