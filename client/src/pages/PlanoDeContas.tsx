@@ -64,6 +64,7 @@ import {
   Search,
   Network,
   Columns3,
+  Eye,
 } from "lucide-react";
 import { buildAccountTree, hasChildren, type ChartAccountNode } from "@/lib/chartAccountUtils";
 import type { ChartAccount } from "@shared/schema";
@@ -523,44 +524,6 @@ export default function PlanoDeContas() {
               {node.name}
             </div>
           </div>
-
-          {/* Action buttons - only visible on hover */}
-          <div className="flex items-center gap-0 opacity-0 group-hover:opacity-100 transition-opacity">
-            <Button
-              size="icon"
-              variant="ghost"
-              className="h-6 w-6"
-              onClick={() => openCreateChildDialog(node)}
-              data-testid={`button-add-child-${node.id}`}
-              title="Adicionar subconta"
-            >
-              <Plus className="h-3 w-3" />
-            </Button>
-            {depth > 0 && (
-              <>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-6 w-6"
-                  onClick={() => openEditDialog(node)}
-                  data-testid={`button-edit-${node.id}`}
-                  title="Editar"
-                >
-                  <Edit className="h-3 w-3" />
-                </Button>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-6 w-6"
-                  onClick={() => openDeleteDialog(node)}
-                  data-testid={`button-delete-${node.id}`}
-                  title="Excluir"
-                >
-                  <Trash2 className="h-3 w-3" />
-                </Button>
-              </>
-            )}
-          </div>
         </div>
 
         {/* Children */}
@@ -846,27 +809,35 @@ export default function PlanoDeContas() {
                 data-testid="input-search"
               />
             </div>
-            <div className="flex items-center gap-1 border rounded-md p-1">
-              <Button
-                size="sm"
-                variant={viewMode === 'tree' ? 'default' : 'ghost'}
-                onClick={() => setViewMode('tree')}
-                data-testid="button-view-tree"
-                title="Visualização em árvore"
-                className="h-8"
-              >
-                <Network className="h-4 w-4" />
-              </Button>
-              <Button
-                size="sm"
-                variant={viewMode === 'columns' ? 'default' : 'ghost'}
-                onClick={() => setViewMode('columns')}
-                data-testid="button-view-columns"
-                title="Visualização em colunas"
-                className="h-8"
-              >
-                <Columns3 className="h-4 w-4" />
-              </Button>
+            <div className="flex items-center gap-2">
+              {viewMode === 'columns' && (
+                <Badge variant="secondary" className="text-[10px] px-2 py-1">
+                  <Eye className="h-3 w-3 mr-1" />
+                  Somente Leitura
+                </Badge>
+              )}
+              <div className="flex items-center gap-1 border rounded-md p-1">
+                <Button
+                  size="sm"
+                  variant={viewMode === 'tree' ? 'default' : 'ghost'}
+                  onClick={() => setViewMode('tree')}
+                  data-testid="button-view-tree"
+                  title="Visualização em árvore"
+                  className="h-8"
+                >
+                  <Network className="h-4 w-4" />
+                </Button>
+                <Button
+                  size="sm"
+                  variant={viewMode === 'columns' ? 'default' : 'ghost'}
+                  onClick={() => setViewMode('columns')}
+                  data-testid="button-view-columns"
+                  title="Visualização em colunas"
+                  className="h-8"
+                >
+                  <Columns3 className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </div>
         )}
