@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Sparkles, Mic, MicOff, FileText } from "lucide-react";
+import { Loader2, Sparkles, Mic, MicOff, FileText, Printer, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { CustomerSupplier } from "@shared/schema";
 import {
@@ -22,6 +22,8 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 interface AIReportDialogProps {
   open: boolean;
@@ -158,6 +160,87 @@ export function AIReportDialog({ open, onOpenChange }: AIReportDialogProps) {
     return doc;
   };
 
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const handleGeneratePDF = () => {
+    if (!reportData || !reportMetadata) return;
+
+    const doc = new jsPDF();
+    
+    // Título
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    doc.text(reportMetadata.reportTitle || 'Relatório', 14, 20);
+    
+    // Data de geração
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    const now = new Date().toLocaleString('pt-BR');
+    doc.text(`Gerado em: ${now}`, 14, 28);
+    
+    // Total de registros
+    doc.text(`Total de registros: ${reportData.length}`, 14, 34);
+
+    // Configurar colunas da tabela
+    const columns = reportMetadata.selectedFields.map((field: string) => {
+      const labels: Record<string, string> = {
+        code: 'Código',
+        name: 'Nome',
+        type: 'Tipo',
+        document: 'Documento',
+        phone: 'Telefone',
+        email: 'Email',
+        city: 'Cidade',
+        state: 'Estado',
+        status: 'Status'
+      };
+      return labels[field] || field;
+    });
+
+    // Preparar dados da tabela
+    const rows = reportData.map((entity: any) => {
+      return reportMetadata.selectedFields.map((field: string) => {
+        if (field === 'code') {
+          return String(entity.code).padStart(3, '0');
+        } else if (field === 'document') {
+          return formatDocument(entity.document, entity.documentType);
+        } else {
+          return entity[field] || '-';
+        }
+      });
+    });
+
+    // Gerar tabela
+    autoTable(doc, {
+      startY: 40,
+      head: [columns],
+      body: rows,
+      styles: {
+        fontSize: 8,
+        cellPadding: 2,
+      },
+      headStyles: {
+        fillColor: [59, 130, 246],
+        textColor: [255, 255, 255],
+        fontStyle: 'bold',
+      },
+      alternateRowStyles: {
+        fillColor: [245, 245, 245],
+      },
+    });
+
+    // Salvar PDF
+    const filename = `${reportMetadata.reportTitle.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+    doc.save(filename);
+
+    toast({
+      title: "PDF gerado!",
+      description: "O arquivo foi baixado com sucesso",
+    });
+  };
+
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[900px] max-h-[90vh]">
@@ -257,27 +340,47 @@ export function AIReportDialog({ open, onOpenChange }: AIReportDialogProps) {
           {/* Results Section */}
           {reportData && (
             <>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium">
-                      Solicitação: <span className="text-muted-foreground">{reportMetadata?.prompt}</span>
-                    </p>
-                    <p className="text-sm text-muted-foreground">
+              <div className="space-y-2 border-b pb-4">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold">
+                      {reportMetadata?.reportTitle || 'Relatório'}
+                    </h3>
+                    <p className="text-xs text-muted-foreground">
                       {reportData.length} registro(s) encontrado(s)
                     </p>
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setReportData(null);
-                      setReportMetadata(null);
-                    }}
-                    data-testid="button-new-report"
-                  >
-                    Nova Consulta
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handlePrint}
+                      data-testid="button-print"
+                    >
+                      <Printer className="h-4 w-4 mr-2" />
+                      Imprimir
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleGeneratePDF}
+                      data-testid="button-generate-pdf"
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Gerar PDF
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setReportData(null);
+                        setReportMetadata(null);
+                      }}
+                      data-testid="button-new-report"
+                    >
+                      Nova Consulta
+                    </Button>
+                  </div>
                 </div>
               </div>
 

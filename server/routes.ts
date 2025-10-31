@@ -1294,6 +1294,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         metadata: {
           totalRecords: results.length,
           selectedFields: filters.selectedFields || ['code', 'name', 'type', 'document', 'city', 'state', 'status'],
+          reportTitle: filters.reportTitle || 'Relatório de Clientes e Fornecedores',
           filters,
           prompt,
         }
