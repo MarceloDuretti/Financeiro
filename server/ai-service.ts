@@ -404,43 +404,7 @@ IMPORTANTE:
     }
   }
 
-  // Step 3: Try to discover CNPJ automatically if not provided
-  if (!aiData.document || aiData.documentType === "none") {
-    console.log("[AI Service] No CNPJ provided by user - attempting automatic discovery...");
-    const discoveredCNPJ = await discoverCNPJByName(aiData.name);
-    
-    if (discoveredCNPJ) {
-      console.log("[AI Service] 🎉 Auto-discovery SUCCESS! Found CNPJ:", discoveredCNPJ);
-      console.log("[AI Service] Fetching complete data from ReceitaWS...");
-      
-      const cnpjData = await fetchCNPJData(discoveredCNPJ);
-      if (cnpjData) {
-        console.log("[AI Service] ✅ Complete! Returning enriched data from auto-discovery");
-        return {
-          name: cnpjData.fantasia || cnpjData.nome || aiData.name,
-          documentType: "cnpj",
-          document: cnpjData.cnpj.replace(/[^\d]/g, ""),
-          phone: cnpjData.telefone || aiData.phone,
-          email: cnpjData.email || aiData.email,
-          website: aiData.website,
-          zipCode: cnpjData.cep?.replace(/[^\d]/g, ""),
-          street: cnpjData.logradouro,
-          number: cnpjData.numero,
-          complement: cnpjData.complemento,
-          neighborhood: cnpjData.bairro,
-          city: cnpjData.municipio,
-          state: cnpjData.uf,
-          country: "Brasil",
-          confidence: 0.95, // High confidence - validated with ReceitaWS
-          source: "hybrid",
-        };
-      }
-    } else {
-      console.log("[AI Service] Auto-discovery failed - company not recognized or not well-known");
-    }
-  }
-
-  // Step 4: Return AI-only data if no CNPJ enrichment
+  // Step 3: Return AI-only data if no CNPJ enrichment
   console.log("[AI Service] Returning AI-only data");
   return {
     name: aiData.name,

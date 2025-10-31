@@ -10,12 +10,76 @@ interface AIEntityInputProps {
   placeholder?: string;
 }
 
-export function AIEntityInput({ onProcess, isProcessing = false, placeholder = "Digite ou fale o nome da empresa..." }: AIEntityInputProps) {
+export function AIEntityInput({ onProcess, isProcessing = false, placeholder = "Digite o CNPJ (ex: 12.345.678/0001-90) ou nome + CNPJ..." }: AIEntityInputProps) {
   const [input, setInput] = useState("");
   const [isListening, setIsListening] = useState(false);
   const [isSupported, setIsSupported] = useState(true);
   const recognitionRef = useRef<any>(null);
   const { toast } = useToast();
+
+  // Normalize text to ensure no more than 14 total digits
+  // Truncates after the 14th digit regardless of separators
+  const normalizeDigits = (text: string): string => {
+    let digitCount = 0;
+    let result = '';
+    
+    for (let i = 0; i < text.length; i++) {
+      const char = text[i];
+      if (/\d/.test(char)) {
+        digitCount++;
+        if (digitCount > 14) {
+          // Stop adding characters after 14th digit
+          break;
+        }
+      }
+      result += char;
+    }
+    
+    return result;
+  };
+
+  // Format CNPJ as user types: XX.XXX.XXX/XXXX-XX
+  const formatCNPJ = (value: string): string => {
+    // Remove all non-digit characters
+    const numbers = value.replace(/\D/g, '');
+    
+    // Return empty if no numbers
+    if (numbers.length === 0) return '';
+    
+    // Limit to maximum 14 digits (CNPJ length)
+    const limitedNumbers = numbers.slice(0, 14);
+    
+    // Apply CNPJ mask: XX.XXX.XXX/XXXX-XX
+    let formatted = limitedNumbers;
+    
+    if (limitedNumbers.length > 2) {
+      formatted = limitedNumbers.slice(0, 2) + '.' + limitedNumbers.slice(2);
+    }
+    if (limitedNumbers.length > 5) {
+      formatted = limitedNumbers.slice(0, 2) + '.' + limitedNumbers.slice(2, 5) + '.' + limitedNumbers.slice(5);
+    }
+    if (limitedNumbers.length > 8) {
+      formatted = limitedNumbers.slice(0, 2) + '.' + limitedNumbers.slice(2, 5) + '.' + limitedNumbers.slice(5, 8) + '/' + limitedNumbers.slice(8);
+    }
+    if (limitedNumbers.length > 12) {
+      formatted = limitedNumbers.slice(0, 2) + '.' + limitedNumbers.slice(2, 5) + '.' + limitedNumbers.slice(5, 8) + '/' + limitedNumbers.slice(8, 12) + '-' + limitedNumbers.slice(12);
+    }
+    
+    return formatted;
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    
+    // If input starts with digit or dot - treat as pure CNPJ and format
+    if (/^[\d.]/.test(value)) {
+      setInput(formatCNPJ(value));
+      return;
+    }
+    
+    // For free text, ensure total digits don't exceed 14
+    setInput(normalizeDigits(value));
+  };
 
   useEffect(() => {
     // Check if Web Speech API is supported
@@ -34,7 +98,16 @@ export function AIEntityInput({ onProcess, isProcessing = false, placeholder = "
 
     recognition.onresult = (event: any) => {
       const transcript = event.results[0][0].transcript;
-      setInput(transcript);
+      
+      // Apply the same formatting logic as manual input
+      if (/^[\d.]/.test(transcript)) {
+        // Starts with digit or dot - treat as pure CNPJ and format
+        setInput(formatCNPJ(transcript));
+      } else {
+        // Free text - ensure total digits don't exceed 14
+        setInput(normalizeDigits(transcript));
+      }
+      
       setIsListening(false);
       
       toast({
@@ -120,7 +193,7 @@ export function AIEntityInput({ onProcess, isProcessing = false, placeholder = "
         <div className="relative flex-1">
           <Input
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={handleInputChange}
             onKeyPress={handleKeyPress}
             placeholder={placeholder}
             disabled={isProcessing || isListening}
@@ -177,12 +250,12 @@ export function AIEntityInput({ onProcess, isProcessing = false, placeholder = "
 
       {!isSupported && (
         <p className="text-xs text-muted-foreground">
-          ⚠️ Reconhecimento de voz não disponível neste navegador. Use Chrome, Edge ou Safari.
+          Reconhecimento de voz não disponível neste navegador. Use Chrome, Edge ou Safari.
         </p>
       )}
 
       <p className="text-xs text-muted-foreground">
-        💡 Dica: Digite "CEMIG" ou "Fornecedor ABC, CNPJ 12.345.678/0001-90"
+        Forneça o CNPJ para buscar os dados completos na Receita Federal. Exemplo: "12.345.678/0001-90" ou "Fornecedor ABC, CNPJ 12.345.678/0001-90"
       </p>
     </div>
   );
