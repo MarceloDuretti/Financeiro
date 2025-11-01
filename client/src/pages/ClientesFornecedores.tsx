@@ -1447,19 +1447,6 @@ export default function ClientesFornecedores() {
 
                     {/* RIGHT COLUMN - Entity Details */}
                     <div className="space-y-2">
-                      {/* Document */}
-                      {selectedEntity.document && (
-                        <div>
-                          <p className="text-xs text-muted-foreground mb-1.5">
-                            {selectedEntity.documentType === "cpf" ? "CPF" : 
-                             selectedEntity.documentType === "cnpj" ? "CNPJ" : "Documento"}
-                          </p>
-                          <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium">
-                            {selectedEntity.document || "-"}
-                          </div>
-                        </div>
-                      )}
-
                       {/* Phone */}
                       {selectedEntity.phone && (
                         <div>
