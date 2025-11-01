@@ -865,7 +865,8 @@ export default function ClientesFornecedores() {
       <Sheet open={isDrawerOpen} onOpenChange={setIsDrawerOpen} modal={true}>
         <SheetContent className={`w-full flex flex-col ${isEditing ? 'sm:max-w-6xl' : 'sm:max-w-4xl'} max-h-[100vh]`}>
           {selectedEntity && (
-            <Form {...form} className="flex h-full flex-col">
+            <Form {...form}>
+              <div className="flex h-full flex-col">
               <SheetHeader className="flex-shrink-0">
                 <div className="flex items-center gap-4">
                   <Avatar className="h-16 w-16">
@@ -1443,6 +1444,20 @@ export default function ClientesFornecedores() {
 
                         <Separator className="my-0.5" />
 
+                        {/* Default Chart Account */}
+                        <div>
+                          <p className="text-[11px] [@media(min-height:700px)]:text-xs text-muted-foreground uppercase tracking-wide mb-0.5">
+                            Plano de Contas Padrão
+                          </p>
+                          <p className="text-xs [@media(min-height:700px)]:text-sm font-medium">
+                            {selectedEntity.defaultChartAccountId 
+                              ? (chartAccounts.find(ca => ca.id === selectedEntity.defaultChartAccountId)?.fullName || "Não encontrado")
+                              : "Não configurado"}
+                          </p>
+                        </div>
+
+                        <Separator className="my-0.5" />
+
                         {/* Line Chart */}
                         {entityStats && entityStats.monthlyTrend && entityStats.monthlyTrend.length > 0 && (
                           <div>
@@ -1740,30 +1755,31 @@ export default function ClientesFornecedores() {
                     </div>
                   </div>
                 )}
+              </div>
 
-                {/* Action Buttons Footer for Edit Mode */}
-                {isEditing && (
-                  <div className="flex gap-2 pt-4 border-t">
-                    <Button
-                      variant="outline"
-                      onClick={handleCancelEdit}
-                      disabled={isSaving}
-                      className="flex-1"
-                      data-testid="button-cancel-edit"
-                    >
-                      Cancelar
-                    </Button>
-                    <Button
-                      onClick={handleSaveEdit}
-                      disabled={isSaving}
-                      className="flex-1"
-                      data-testid="button-save-edit"
-                    >
-                      {isSaving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
-                      Salvar
-                    </Button>
-                  </div>
-                )}
+              {/* Action Buttons Footer for Edit Mode */}
+              {isEditing && (
+                <div className="flex gap-2 pt-4 border-t flex-shrink-0">
+                  <Button
+                    variant="outline"
+                    onClick={handleCancelEdit}
+                    disabled={isSaving}
+                    className="flex-1"
+                    data-testid="button-cancel-edit"
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    onClick={handleSaveEdit}
+                    disabled={isSaving}
+                    className="flex-1"
+                    data-testid="button-save-edit"
+                  >
+                    {isSaving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
+                    Salvar
+                  </Button>
+                </div>
+              )}
               </div>
             </Form>
           )}
