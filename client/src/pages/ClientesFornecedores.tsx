@@ -1012,90 +1012,6 @@ export default function ClientesFornecedores() {
                       {/* Banking & Financial Info */}
                       <Card className="p-2 bg-gradient-to-br from-card to-muted/30">
                         <div className="space-y-1">
-                          <h4 className="text-[10px] text-muted-foreground uppercase tracking-wide mb-0.5">
-                            Informações Financeiras
-                          </h4>
-                          
-                          {/* Bank Name */}
-                          <FormField
-                            control={form.control}
-                            name="bankName"
-                            render={({ field }) => (
-                              <FormItem className="space-y-0.5">
-                                <FormLabel className="text-[9px] text-muted-foreground">Banco</FormLabel>
-                                <FormControl>
-                                  <Input {...field} value={field.value || ""} placeholder="Ex: Banco do Brasil" className="h-6 text-[10px] px-2" data-testid="input-bank-name" />
-                                </FormControl>
-                              </FormItem>
-                            )}
-                          />
-
-                          {/* Agency and Account */}
-                          <div className="grid grid-cols-2 gap-1">
-                            <FormField
-                              control={form.control}
-                              name="accountAgency"
-                              render={({ field }) => (
-                                <FormItem className="space-y-0.5">
-                                  <FormLabel className="text-[9px] text-muted-foreground">Agência</FormLabel>
-                                  <FormControl>
-                                    <Input {...field} value={field.value || ""} placeholder="0000" className="h-6 text-[10px] px-2" data-testid="input-account-agency" />
-                                  </FormControl>
-                                </FormItem>
-                              )}
-                            />
-                            <FormField
-                              control={form.control}
-                              name="accountNumber"
-                              render={({ field }) => (
-                                <FormItem className="space-y-0.5">
-                                  <FormLabel className="text-[9px] text-muted-foreground">Conta</FormLabel>
-                                  <FormControl>
-                                    <Input {...field} value={field.value || ""} placeholder="00000-0" className="h-6 text-[10px] px-2" data-testid="input-account-number" />
-                                  </FormControl>
-                                </FormItem>
-                              )}
-                            />
-                          </div>
-
-                          {/* PIX Type and Key */}
-                          <FormField
-                            control={form.control}
-                            name="pixKeyType"
-                            render={({ field }) => (
-                              <FormItem className="space-y-0.5">
-                                <FormLabel className="text-[9px] text-muted-foreground">Tipo PIX</FormLabel>
-                                <Select onValueChange={field.onChange} value={field.value || "cpf"}>
-                                  <FormControl>
-                                    <SelectTrigger className="h-6 text-[10px]" data-testid="select-pix-key-type">
-                                      <SelectValue placeholder="Selecione" />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    <SelectItem value="cpf">CPF</SelectItem>
-                                    <SelectItem value="cnpj">CNPJ</SelectItem>
-                                    <SelectItem value="email">Email</SelectItem>
-                                    <SelectItem value="phone">Telefone</SelectItem>
-                                    <SelectItem value="random">Aleatória</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </FormItem>
-                            )}
-                          />
-
-                          <FormField
-                            control={form.control}
-                            name="pixKey"
-                            render={({ field }) => (
-                              <FormItem className="space-y-0.5">
-                                <FormLabel className="text-[9px] text-muted-foreground">Chave PIX</FormLabel>
-                                <FormControl>
-                                  <Input {...field} value={field.value || ""} placeholder="Digite a chave PIX" className="h-6 text-[10px] px-2" data-testid="input-pix-key" />
-                                </FormControl>
-                              </FormItem>
-                            )}
-                          />
-
                           {/* Default Chart Account */}
                           <FormField
                             control={form.control}
@@ -1122,6 +1038,21 @@ export default function ClientesFornecedores() {
                           />
                         </div>
                       </Card>
+
+                      {/* Notes - moved here from right column */}
+                      <FormField
+                        control={form.control}
+                        name="notes"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs">Observações</FormLabel>
+                            <FormControl>
+                              <Textarea {...field} value={field.value || ""} rows={2} placeholder="Adicione observações..." className="text-xs" data-testid="input-notes" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                     </div>
 
                     {/* Right Column: Detailed Form Fields in 2-column layout */}
