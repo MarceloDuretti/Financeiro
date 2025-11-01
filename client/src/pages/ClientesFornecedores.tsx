@@ -470,6 +470,26 @@ export default function ClientesFornecedores() {
     return document;
   };
   
+  const formatPhone = (phone: string | null | undefined) => {
+    if (!phone) return null;
+    
+    // Remove todos os caracteres não numéricos
+    const numbers = phone.replace(/\D/g, '');
+    
+    // Celular com 9 dígitos: (00) 90000-0000
+    if (numbers.length === 11) {
+      return numbers.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+    }
+    
+    // Telefone fixo com 8 dígitos: (00) 0000-0000
+    if (numbers.length === 10) {
+      return numbers.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
+    }
+    
+    // Retorna o telefone original se não tiver formato padrão
+    return phone;
+  };
+  
   const getTypeLabel = (entity: CustomerSupplier) => {
     if (entity.isCustomer && entity.isSupplier) return "Ambos";
     if (entity.isCustomer) return "Cliente";
@@ -700,9 +720,9 @@ export default function ClientesFornecedores() {
                 <CardContent className="p-2 space-y-1">
                   {/* Code - Type - Status */}
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="text-[10px] text-muted-foreground font-mono">
+                    <Badge className="text-[10px] h-5 px-1.5 bg-gray-600 text-white font-mono">
                       {formatCode(entity.code)}
-                    </span>
+                    </Badge>
                     <span className="text-muted-foreground">•</span>
                     <Badge 
                       className={`text-[10px] h-5 px-1.5 ${getTypeBadgeColor(entity)}`}
@@ -741,15 +761,15 @@ export default function ClientesFornecedores() {
                   )}
 
                   {/* Phone - Email */}
-                  {(entity.phone || entity.email) && (
+                  {((entity.phone || entity.whatsapp) || entity.email) && (
                     <div className="text-[10px] text-muted-foreground flex items-center gap-1">
-                      {entity.phone && (
+                      {(entity.phone || entity.whatsapp) && (
                         <>
                           <Phone className="h-3 w-3 flex-shrink-0" />
-                          <span>{entity.phone}</span>
+                          <span>{formatPhone(entity.phone || entity.whatsapp)}</span>
                         </>
                       )}
-                      {entity.phone && entity.email && (
+                      {(entity.phone || entity.whatsapp) && entity.email && (
                         <span className="mx-1">-</span>
                       )}
                       {entity.email && (
