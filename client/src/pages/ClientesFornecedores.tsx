@@ -1287,10 +1287,12 @@ export default function ClientesFornecedores() {
                       </div>
                     </div>
 
-                    {/* Financial Information - Horizontal Section */}
-                    <div className="pt-3 border-t">
-                      <h4 className="text-xs font-medium text-muted-foreground mb-2">Informações Financeiras</h4>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
+                    {/* Financial Information - Horizontal Section in 2 rows */}
+                    <div className="pt-3 border-t space-y-2">
+                      <h4 className="text-xs font-medium text-muted-foreground">Informações Financeiras</h4>
+                      
+                      {/* Row 1: Bank Info */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                         <FormField
                           control={form.control}
                           name="bankName"
@@ -1330,6 +1332,10 @@ export default function ClientesFornecedores() {
                             </FormItem>
                           )}
                         />
+                      </div>
+
+                      {/* Row 2: PIX Info */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                         <FormField
                           control={form.control}
                           name="pixKeyType"
