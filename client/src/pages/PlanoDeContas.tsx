@@ -468,6 +468,7 @@ export default function PlanoDeContas() {
   const renderNodeCompact = (node: ChartAccountNode, depth: number = 0) => {
     const isExpanded = expandedNodes.has(node.id);
     const hasChildNodes = node.children.length > 0;
+    const childCount = node.children.length;
     const indentSize = 12; // Reduced indent for columns
     
     const getTextSize = () => {
@@ -476,43 +477,97 @@ export default function PlanoDeContas() {
       return "text-xs font-normal";
     };
 
+    // Get color classes based on type and depth
+    const getColorClasses = () => {
+      const baseColors = {
+        receita: {
+          border: 'border-l-green-500',
+          icon: 'text-green-600 dark:text-green-400',
+          badge: 'bg-green-100 dark:bg-green-950 text-green-700 dark:text-green-300 border-green-300 dark:border-green-700',
+          hover: 'hover:shadow-green-200/50 dark:hover:shadow-green-900/30',
+        },
+        despesa: {
+          border: 'border-l-red-500',
+          icon: 'text-red-600 dark:text-red-400',
+          badge: 'bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-300 border-red-300 dark:border-red-700',
+          hover: 'hover:shadow-red-200/50 dark:hover:shadow-red-900/30',
+        },
+        ativo: {
+          border: 'border-l-blue-500',
+          icon: 'text-blue-600 dark:text-blue-400',
+          badge: 'bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-700',
+          hover: 'hover:shadow-blue-200/50 dark:hover:shadow-blue-900/30',
+        },
+        passivo: {
+          border: 'border-l-amber-500',
+          icon: 'text-amber-600 dark:text-amber-400',
+          badge: 'bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-700',
+          hover: 'hover:shadow-amber-200/50 dark:hover:shadow-amber-900/30',
+        },
+        patrimonio_liquido: {
+          border: 'border-l-violet-500',
+          icon: 'text-violet-600 dark:text-violet-400',
+          badge: 'bg-violet-100 dark:bg-violet-950 text-violet-700 dark:text-violet-300 border-violet-300 dark:border-violet-700',
+          hover: 'hover:shadow-violet-200/50 dark:hover:shadow-violet-900/30',
+        },
+      };
+      return baseColors[node.type as keyof typeof baseColors] || baseColors.receita;
+    };
+
+    const colors = getColorClasses();
+
     return (
       <div key={node.id} data-testid={`account-node-${node.id}`}>
         <div
-          className={`group relative flex items-center gap-1.5 py-1 px-1.5 rounded-md hover-elevate transition-all ${
-            !hasChildNodes ? 'bg-muted/20 dark:bg-muted/10' : ''
-          }`}
+          className={`group relative flex items-center gap-1.5 py-1.5 px-2 rounded-md transition-all duration-200
+            ${!hasChildNodes ? 'bg-muted/30 dark:bg-muted/20' : 'bg-muted/10 dark:bg-muted/5'}
+            border-l-2 ${colors.border}
+            hover:scale-[1.02] hover:shadow-md ${colors.hover}
+            hover-elevate active-elevate-2`}
           style={{ paddingLeft: `${depth * indentSize + 4}px` }}
         >
           {/* Expand/collapse button - only if has children */}
           {hasChildNodes ? (
             <button
               onClick={() => toggleExpand(node.id)}
-              className="flex-shrink-0 hover:bg-accent rounded p-0.5 transition-colors"
+              className="flex-shrink-0 hover:bg-accent rounded p-0.5 transition-all duration-200 hover:scale-110"
               data-testid={`button-toggle-${node.id}`}
             >
               {isExpanded ? (
-                <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+                <ChevronDown className={`h-3.5 w-3.5 ${colors.icon} transition-transform duration-200`} />
               ) : (
-                <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
+                <ChevronRight className={`h-3.5 w-3.5 ${colors.icon} transition-transform duration-200`} />
               )}
             </button>
           ) : (
-            <div className="w-4" />
-          )}
-
-          {/* Code badge - only show if has children (not last level) */}
-          {hasChildNodes && (
-            <div className="flex-shrink-0">
-              <Badge 
-                variant="secondary" 
-                className="font-mono text-[9px] px-1 py-0 h-4"
-                data-testid={`text-code-${node.id}`}
-              >
-                {node.code}
-              </Badge>
+            <div className="w-4 flex items-center justify-center">
+              <div className={`h-1.5 w-1.5 rounded-full ${colors.icon.replace('text-', 'bg-')}`} />
             </div>
           )}
+
+          {/* Folder/File icon */}
+          <div className="flex-shrink-0">
+            {hasChildNodes ? (
+              isExpanded ? (
+                <FolderOpen className={`h-3.5 w-3.5 ${colors.icon} transition-all duration-200`} />
+              ) : (
+                <Folder className={`h-3.5 w-3.5 ${colors.icon} transition-all duration-200`} />
+              )
+            ) : (
+              <FileText className={`h-3 w-3 ${colors.icon} opacity-70`} />
+            )}
+          </div>
+
+          {/* Code badge - colorized */}
+          <div className="flex-shrink-0">
+            <Badge 
+              variant="outline"
+              className={`font-mono text-[9px] px-1 py-0 h-4 border ${colors.badge}`}
+              data-testid={`text-code-${node.id}`}
+            >
+              {node.code}
+            </Badge>
+          </div>
 
           {/* Name only - no description in compact mode */}
           <div className="flex-1 min-w-0">
@@ -524,11 +579,21 @@ export default function PlanoDeContas() {
               {node.name}
             </div>
           </div>
+
+          {/* Child count indicator */}
+          {hasChildNodes && childCount > 0 && (
+            <Badge 
+              variant="secondary"
+              className="text-[9px] px-1 py-0 h-4 opacity-60 group-hover:opacity-100 transition-opacity"
+            >
+              {childCount}
+            </Badge>
+          )}
         </div>
 
-        {/* Children */}
+        {/* Children - with slide-in animation */}
         {isExpanded && hasChildNodes && (
-          <div>
+          <div className="animate-in slide-in-from-top-2 duration-200">
             {node.children.map((child) => 
               renderNodeCompact(child, depth + 1)
             )}
@@ -919,10 +984,12 @@ export default function PlanoDeContas() {
         {accounts.length > 0 && viewMode === 'columns' && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
             {/* Receitas Column */}
-            <Card className="p-2 flex flex-col">
+            <Card className="p-2 flex flex-col bg-gradient-to-br from-green-50/50 to-transparent dark:from-green-950/20 dark:to-transparent border-t-2 border-t-green-500">
               <div className="flex items-center gap-2 mb-2 pb-2 border-b flex-shrink-0">
-                <TrendingUp className="h-4 w-4 text-green-600 dark:text-green-400" />
-                <h3 className="font-semibold text-sm">Receitas</h3>
+                <div className="p-1 rounded-md bg-green-100 dark:bg-green-950">
+                  <TrendingUp className="h-4 w-4 text-green-600 dark:text-green-400" />
+                </div>
+                <h3 className="font-semibold text-sm text-green-700 dark:text-green-300">Receitas</h3>
               </div>
               <div className="space-y-0.5 overflow-x-auto">
                 {filteredTree
@@ -932,10 +999,12 @@ export default function PlanoDeContas() {
             </Card>
 
             {/* Despesas Column */}
-            <Card className="p-2 flex flex-col">
+            <Card className="p-2 flex flex-col bg-gradient-to-br from-red-50/50 to-transparent dark:from-red-950/20 dark:to-transparent border-t-2 border-t-red-500">
               <div className="flex items-center gap-2 mb-2 pb-2 border-b flex-shrink-0">
-                <TrendingDown className="h-4 w-4 text-red-600 dark:text-red-400" />
-                <h3 className="font-semibold text-sm">Despesas</h3>
+                <div className="p-1 rounded-md bg-red-100 dark:bg-red-950">
+                  <TrendingDown className="h-4 w-4 text-red-600 dark:text-red-400" />
+                </div>
+                <h3 className="font-semibold text-sm text-red-700 dark:text-red-300">Despesas</h3>
               </div>
               <div className="space-y-0.5 overflow-x-auto">
                 {filteredTree
@@ -945,10 +1014,12 @@ export default function PlanoDeContas() {
             </Card>
 
             {/* Ativo Column */}
-            <Card className="p-2 flex flex-col">
+            <Card className="p-2 flex flex-col bg-gradient-to-br from-blue-50/50 to-transparent dark:from-blue-950/20 dark:to-transparent border-t-2 border-t-blue-500">
               <div className="flex items-center gap-2 mb-2 pb-2 border-b flex-shrink-0">
-                <Wallet className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                <h3 className="font-semibold text-sm">Ativo</h3>
+                <div className="p-1 rounded-md bg-blue-100 dark:bg-blue-950">
+                  <Wallet className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                </div>
+                <h3 className="font-semibold text-sm text-blue-700 dark:text-blue-300">Ativo</h3>
               </div>
               <div className="space-y-0.5 overflow-x-auto">
                 {filteredTree
@@ -958,10 +1029,12 @@ export default function PlanoDeContas() {
             </Card>
 
             {/* Passivo Column */}
-            <Card className="p-2 flex flex-col">
+            <Card className="p-2 flex flex-col bg-gradient-to-br from-amber-50/50 to-transparent dark:from-amber-950/20 dark:to-transparent border-t-2 border-t-amber-500">
               <div className="flex items-center gap-2 mb-2 pb-2 border-b flex-shrink-0">
-                <CreditCard className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                <h3 className="font-semibold text-sm">Passivo</h3>
+                <div className="p-1 rounded-md bg-amber-100 dark:bg-amber-950">
+                  <CreditCard className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                </div>
+                <h3 className="font-semibold text-sm text-amber-700 dark:text-amber-300">Passivo</h3>
               </div>
               <div className="space-y-0.5 overflow-x-auto">
                 {filteredTree
@@ -971,10 +1044,12 @@ export default function PlanoDeContas() {
             </Card>
 
             {/* Patrimônio Líquido Column */}
-            <Card className="p-2 flex flex-col">
+            <Card className="p-2 flex flex-col bg-gradient-to-br from-violet-50/50 to-transparent dark:from-violet-950/20 dark:to-transparent border-t-2 border-t-violet-500">
               <div className="flex items-center gap-2 mb-2 pb-2 border-b flex-shrink-0">
-                <PiggyBank className="h-4 w-4 text-violet-600 dark:text-violet-400" />
-                <h3 className="font-semibold text-sm">Patrimônio Líquido</h3>
+                <div className="p-1 rounded-md bg-violet-100 dark:bg-violet-950">
+                  <PiggyBank className="h-4 w-4 text-violet-600 dark:text-violet-400" />
+                </div>
+                <h3 className="font-semibold text-sm text-violet-700 dark:text-violet-300">Patrimônio Líquido</h3>
               </div>
               <div className="space-y-0.5 overflow-x-auto">
                 {filteredTree
