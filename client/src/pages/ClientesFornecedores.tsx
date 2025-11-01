@@ -726,19 +726,17 @@ export default function ClientesFornecedores() {
                 <CardContent className="p-2 space-y-1">
                   {/* Code - Type - Status */}
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <Badge className="text-[10px] h-5 px-1.5 bg-gray-600 text-white font-mono">
+                    <Badge variant="outline" className="text-[10px] h-5 px-1.5 font-mono">
                       {formatCode(entity.code)}
                     </Badge>
                     <span className="text-muted-foreground">•</span>
-                    <Badge 
-                      className={`text-[10px] h-5 px-1.5 ${getTypeBadgeColor(entity)}`}
-                    >
+                    <Badge variant="outline" className="text-[10px] h-5 px-1.5">
                       {getTypeLabel(entity)}
                     </Badge>
                     {entity.isActive && (
                       <>
                         <span className="text-muted-foreground">•</span>
-                        <Badge className="text-[10px] h-5 px-1.5 bg-green-600">
+                        <Badge className="text-[10px] h-5 px-1.5 bg-green-600 text-white">
                           Ativo
                         </Badge>
                       </>
@@ -746,7 +744,7 @@ export default function ClientesFornecedores() {
                     {percentage !== null && percentage > 0 && (
                       <>
                         <span className="text-muted-foreground">•</span>
-                        <Badge className={`text-[10px] h-5 px-1.5 ${getPercentageBadgeColor(percentage)}`}>
+                        <Badge variant="outline" className="text-[10px] h-5 px-1.5">
                           {percentage.toFixed(1)}%
                         </Badge>
                       </>
@@ -760,7 +758,7 @@ export default function ClientesFornecedores() {
 
                   {/* Document */}
                   {entity.document && (
-                    <div className="text-[10px] text-muted-foreground font-mono flex items-center gap-1">
+                    <div className="text-xs text-muted-foreground font-mono flex items-center gap-1">
                       <FileText className="h-3 w-3 flex-shrink-0" />
                       <span>{formatDocument(entity.document, entity.documentType)}</span>
                     </div>
@@ -822,7 +820,7 @@ export default function ClientesFornecedores() {
                       </div>
 
                       {/* Document */}
-                      <div className="text-[10px] text-muted-foreground font-mono truncate">
+                      <div className="text-xs text-muted-foreground font-mono truncate">
                         {entity.document || '-'}
                       </div>
 
@@ -833,16 +831,16 @@ export default function ClientesFornecedores() {
 
                       {/* Badges */}
                       <div className="flex items-center gap-1 flex-wrap justify-end">
-                        <Badge className={`text-[10px] h-5 px-1.5 ${getTypeBadgeColor(entity)}`}>
+                        <Badge variant="outline" className="text-[10px] h-5 px-1.5">
                           {getTypeLabel(entity)}
                         </Badge>
                         {entity.isActive && (
-                          <Badge className="text-[10px] h-5 px-1.5 bg-green-600">
+                          <Badge className="text-[10px] h-5 px-1.5 bg-green-600 text-white">
                             Ativo
                           </Badge>
                         )}
                         {percentage !== null && percentage > 0 && (
-                          <Badge className={`text-[10px] h-5 px-1.5 ${getPercentageBadgeColor(percentage)}`}>
+                          <Badge variant="outline" className="text-[10px] h-5 px-1.5">
                             {percentage.toFixed(1)}%
                           </Badge>
                         )}
