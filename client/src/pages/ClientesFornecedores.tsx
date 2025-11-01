@@ -892,73 +892,76 @@ export default function ClientesFornecedores() {
                   <div className="grid grid-cols-[300px_1fr] gap-4">
                     {/* Left Column: Compact Info Card */}
                     <div className="space-y-1.5">
-                      <Card className="p-2">
-                        <div className="space-y-1">
+                      <Card className="p-2 bg-gradient-to-br from-card to-muted/30">
+                        <div className="space-y-1.5">
                           <div className="border rounded-md px-3 py-2 bg-muted/20">
                             <span className="text-[10px] text-muted-foreground">Código</span>
                             <p className="text-sm font-medium font-mono">{formatCode(selectedEntity.code)}</p>
                           </div>
                           
-                          <FormField
-                            control={form.control}
-                            name="isCustomer"
-                            render={({ field }) => (
-                              <FormItem>
-                                <div className="flex items-center space-x-2">
-                                  <FormControl>
-                                    <Checkbox
-                                      checked={field.value}
-                                      onCheckedChange={field.onChange}
-                                      data-testid="checkbox-is-customer"
-                                    />
-                                  </FormControl>
-                                  <FormLabel className="text-xs cursor-pointer">Cliente</FormLabel>
-                                </div>
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name="isSupplier"
-                            render={({ field }) => (
-                              <FormItem>
-                                <div className="flex items-center space-x-2">
-                                  <FormControl>
-                                    <Checkbox
-                                      checked={field.value}
-                                      onCheckedChange={field.onChange}
-                                      data-testid="checkbox-is-supplier"
-                                    />
-                                  </FormControl>
-                                  <FormLabel className="text-xs cursor-pointer">Fornecedor</FormLabel>
-                                </div>
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name="isActive"
-                            render={({ field }) => (
-                              <FormItem>
-                                <div className="flex items-center space-x-2">
-                                  <FormControl>
-                                    <Checkbox
-                                      checked={field.value}
-                                      onCheckedChange={field.onChange}
-                                      data-testid="checkbox-is-active"
-                                    />
-                                  </FormControl>
-                                  <FormLabel className="text-xs cursor-pointer">Ativo</FormLabel>
-                                </div>
-                              </FormItem>
-                            )}
-                          />
+                          {/* Checkboxes in horizontal layout */}
+                          <div className="flex items-center gap-3">
+                            <FormField
+                              control={form.control}
+                              name="isCustomer"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <div className="flex items-center space-x-1.5">
+                                    <FormControl>
+                                      <Checkbox
+                                        checked={field.value}
+                                        onCheckedChange={field.onChange}
+                                        data-testid="checkbox-is-customer"
+                                      />
+                                    </FormControl>
+                                    <FormLabel className="text-xs cursor-pointer">Cliente</FormLabel>
+                                  </div>
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name="isSupplier"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <div className="flex items-center space-x-1.5">
+                                    <FormControl>
+                                      <Checkbox
+                                        checked={field.value}
+                                        onCheckedChange={field.onChange}
+                                        data-testid="checkbox-is-supplier"
+                                      />
+                                    </FormControl>
+                                    <FormLabel className="text-xs cursor-pointer">Fornecedor</FormLabel>
+                                  </div>
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name="isActive"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <div className="flex items-center space-x-1.5">
+                                    <FormControl>
+                                      <Checkbox
+                                        checked={field.value}
+                                        onCheckedChange={field.onChange}
+                                        data-testid="checkbox-is-active"
+                                      />
+                                    </FormControl>
+                                    <FormLabel className="text-xs cursor-pointer">Ativo</FormLabel>
+                                  </div>
+                                </FormItem>
+                              )}
+                            />
+                          </div>
                         </div>
                       </Card>
 
                       {/* Transaction Trend Chart */}
                       {entityStats?.monthlyTrend && entityStats.monthlyTrend.length > 0 && (
-                        <Card className="p-2">
+                        <Card className="p-2 bg-gradient-to-br from-card to-muted/30">
                           <div className="space-y-1">
                             <h4 className="text-[10px] text-muted-foreground uppercase tracking-wide">
                               Tendência (6 meses)
@@ -1007,7 +1010,7 @@ export default function ClientesFornecedores() {
                       )}
 
                       {/* Banking & Financial Info */}
-                      <Card className="p-2">
+                      <Card className="p-2 bg-gradient-to-br from-card to-muted/30">
                         <div className="space-y-1">
                           <h4 className="text-[10px] text-muted-foreground uppercase tracking-wide mb-0.5">
                             Informações Financeiras
