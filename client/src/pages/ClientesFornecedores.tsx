@@ -75,6 +75,8 @@ import {
   LayoutGrid,
   List,
   Sparkles,
+  Copy,
+  Printer,
 } from "lucide-react";
 import { SiWhatsapp } from "react-icons/si";
 import { AIEntityInput } from "@/components/AIEntityInput";
@@ -821,80 +823,6 @@ export default function ClientesFornecedores() {
               </SheetHeader>
 
               <div className={`mt-3 ${isEditing ? 'space-y-1.5' : 'space-y-2'}`}>
-                {/* Action Buttons - Moved to Footer when editing */}
-                {!isEditing && (
-                  <>
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleEdit}
-                        data-testid="button-edit"
-                      >
-                        <Edit2 className="h-3.5 w-3.5 mr-1.5" />
-                        Editar
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleToggleActive()}
-                        disabled={isTogglingActive}
-                        data-testid="button-toggle-active"
-                      >
-                        {isTogglingActive ? (
-                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                        ) : (
-                          <>
-                            <Power className="h-3.5 w-3.5 mr-1.5" />
-                            {selectedEntity.isActive ? "Desativar" : "Ativar"}
-                          </>
-                        )}
-                      </Button>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            data-testid="button-delete-trigger"
-                          >
-                            <Trash2 className="h-3.5 w-3.5 mr-1.5" />
-                            Excluir
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Tem certeza que deseja excluir "{selectedEntity.name}"? Esta ação não pode ser desfeita.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel data-testid="button-cancel-delete">Cancelar</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={handleDelete}
-                              disabled={isDeleting}
-                              data-testid="button-confirm-delete"
-                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                            >
-                              {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Excluir"}
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
-
-                    {/* Status and Type Badges */}
-                    <div className="flex gap-2">
-                      <Badge className={getTypeBadgeColor(selectedEntity)} data-testid="badge-type">
-                        {getTypeLabel(selectedEntity)}
-                      </Badge>
-                      <Badge variant={selectedEntity.isActive ? "default" : "secondary"} data-testid="badge-status">
-                        {selectedEntity.isActive ? "Ativo" : "Inativo"}
-                      </Badge>
-                    </div>
-                  </>
-                )}
-
                 {/* Main Content Layout - 2 Columns when Editing */}
                 {isEditing ? (
                   <div className="grid grid-cols-[300px_1fr] gap-4">
@@ -1663,6 +1591,96 @@ export default function ClientesFornecedores() {
                           <p className="text-sm whitespace-pre-wrap" data-testid="text-notes">{selectedEntity.notes}</p>
                         </div>
                       )}
+
+                      {/* Action Buttons */}
+                      <div className="pt-4 mt-4">
+                        <div className="flex flex-wrap gap-2">
+                          <Button
+                            variant="default"
+                            size="sm"
+                            onClick={handleEdit}
+                            data-testid="button-edit"
+                          >
+                            <Edit2 className="h-4 w-4 mr-1.5" />
+                            Editar
+                          </Button>
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => {
+                              toast({
+                                title: "Clonar",
+                                description: "Funcionalidade em desenvolvimento",
+                              });
+                            }}
+                            data-testid="button-clone"
+                          >
+                            <Copy className="h-4 w-4 mr-1.5" />
+                            Clonar
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleToggleActive()}
+                            disabled={isTogglingActive}
+                            data-testid="button-toggle-active"
+                          >
+                            {isTogglingActive ? (
+                              <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+                            ) : (
+                              <>
+                                <Power className="h-4 w-4 mr-1.5" />
+                                {selectedEntity.isActive ? "Desativar" : "Ativar"}
+                              </>
+                            )}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              toast({
+                                title: "Imprimir",
+                                description: "Funcionalidade em desenvolvimento",
+                              });
+                            }}
+                            data-testid="button-print"
+                          >
+                            <Printer className="h-4 w-4 mr-1.5" />
+                            Imprimir
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button 
+                                variant="destructive" 
+                                size="sm" 
+                                data-testid="button-delete-trigger"
+                              >
+                                <Trash2 className="h-4 w-4 mr-1.5" />
+                                Excluir
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Tem certeza que deseja excluir "{selectedEntity.name}"? Esta ação não pode ser desfeita.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel data-testid="button-cancel-delete">Cancelar</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={handleDelete}
+                                  disabled={isDeleting}
+                                  data-testid="button-confirm-delete"
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                >
+                                  {isDeleting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : "Excluir"}
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 )}
