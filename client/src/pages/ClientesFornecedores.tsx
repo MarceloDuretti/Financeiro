@@ -1275,7 +1275,17 @@ export default function ClientesFornecedores() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                     {/* LEFT COLUMN - Relationship Stats */}
                     <Card className="border-0 bg-gradient-to-br from-card to-muted/30 shadow-md">
-                      <CardContent className="p-4 space-y-2">
+                      <CardContent className="p-2 space-y-1.5">
+                        {/* Type & Status Badges */}
+                        <div className="flex gap-2 flex-wrap mb-2">
+                          <Badge className={getTypeBadgeColor(selectedEntity)}>
+                            {getTypeLabel(selectedEntity)}
+                          </Badge>
+                          <Badge variant={selectedEntity.isActive ? "default" : "secondary"}>
+                            {selectedEntity.isActive ? "Ativo" : "Inativo"}
+                          </Badge>
+                        </div>
+
                         {/* Title */}
                         <div className="flex items-center justify-between">
                           <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
@@ -1339,13 +1349,13 @@ export default function ClientesFornecedores() {
                           </div>
                         )}
 
-                        <Separator className="my-2" />
+                        <Separator className="my-1.5" />
 
                         {/* Secondary Metrics */}
                         {entityStats && (
-                          <div className="grid grid-cols-2 gap-2">
+                          <div className="grid grid-cols-2 gap-1.5">
                             <div>
-                              <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-0.5">
+                              <p className="text-xs text-muted-foreground uppercase tracking-wide mb-0.5">
                                 Transações
                               </p>
                               <p className="text-sm font-bold tabular-nums">
@@ -1353,7 +1363,7 @@ export default function ClientesFornecedores() {
                               </p>
                             </div>
                             <div>
-                              <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-0.5">
+                              <p className="text-xs text-muted-foreground uppercase tracking-wide mb-0.5">
                                 Média Mensal
                               </p>
                               <p className="text-sm font-bold tabular-nums">
@@ -1368,15 +1378,15 @@ export default function ClientesFornecedores() {
                           </div>
                         )}
 
-                        <Separator className="my-2" />
+                        <Separator className="my-1.5" />
 
                         {/* Line Chart */}
                         {entityStats && entityStats.monthlyTrend && entityStats.monthlyTrend.length > 0 && (
                           <div>
-                            <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-2">
+                            <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1.5">
                               Evolução Mensal
                             </p>
-                            <ResponsiveContainer width="100%" height={80}>
+                            <ResponsiveContainer width="100%" height={70}>
                               <LineChart
                                 data={entityStats.monthlyTrend}
                                 margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
@@ -1437,41 +1447,31 @@ export default function ClientesFornecedores() {
 
                     {/* RIGHT COLUMN - Entity Details */}
                     <div className="space-y-2">
-                      {/* Type & Status Badges */}
-                      <div className="flex gap-2 flex-wrap">
-                        <Badge className={getTypeBadgeColor(selectedEntity)}>
-                          {getTypeLabel(selectedEntity)}
-                        </Badge>
-                        <Badge variant={selectedEntity.isActive ? "default" : "secondary"}>
-                          {selectedEntity.isActive ? "Ativo" : "Inativo"}
-                        </Badge>
-                      </div>
-
                       {/* Document */}
                       {selectedEntity.document && (
-                        <div className="border rounded-md p-2 bg-muted/20">
-                          <span className="text-[10px] text-muted-foreground block mb-0.5">
+                        <div>
+                          <label className="text-xs text-muted-foreground">
                             {selectedEntity.documentType === "cpf" ? "CPF" : 
                              selectedEntity.documentType === "cnpj" ? "CNPJ" : "Documento"}
-                          </span>
-                          <p className="text-sm font-medium">{selectedEntity.document}</p>
+                          </label>
+                          <div className="text-sm mt-0.5">{selectedEntity.document}</div>
                         </div>
                       )}
 
                       {/* Phone */}
                       {selectedEntity.phone && (
-                        <div className="border rounded-md p-2 bg-muted/20">
-                          <span className="text-[10px] text-muted-foreground block mb-0.5">Telefone</span>
-                          <p className="text-sm font-medium" data-testid="text-phone">{selectedEntity.phone}</p>
+                        <div>
+                          <label className="text-xs text-muted-foreground">Telefone</label>
+                          <div className="text-sm mt-0.5" data-testid="text-phone">{selectedEntity.phone}</div>
                         </div>
                       )}
 
                       {/* WhatsApp */}
                       {selectedEntity.whatsapp && (
-                        <div className="border rounded-md p-2 bg-muted/20">
-                          <span className="text-[10px] text-muted-foreground block mb-0.5">WhatsApp</span>
-                          <div className="flex items-center gap-2">
-                            <p className="text-sm font-medium">{selectedEntity.whatsapp}</p>
+                        <div>
+                          <label className="text-xs text-muted-foreground">WhatsApp</label>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className="text-sm">{selectedEntity.whatsapp}</span>
                             <a
                               href={formatWhatsAppLink(selectedEntity.whatsapp)}
                               target="_blank"
@@ -1486,21 +1486,21 @@ export default function ClientesFornecedores() {
 
                       {/* Email */}
                       {selectedEntity.email && (
-                        <div className="border rounded-md p-2 bg-muted/20">
-                          <span className="text-[10px] text-muted-foreground block mb-0.5">Email</span>
-                          <p className="text-sm font-medium" data-testid="text-email">{selectedEntity.email}</p>
+                        <div>
+                          <label className="text-xs text-muted-foreground">Email</label>
+                          <div className="text-sm mt-0.5" data-testid="text-email">{selectedEntity.email}</div>
                         </div>
                       )}
 
                       {/* Website */}
                       {selectedEntity.website && (
-                        <div className="border rounded-md p-2 bg-muted/20">
-                          <span className="text-[10px] text-muted-foreground block mb-0.5">Website</span>
+                        <div>
+                          <label className="text-xs text-muted-foreground">Website</label>
                           <a
                             href={selectedEntity.website}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-sm font-medium text-primary hover:underline"
+                            className="text-sm text-primary hover:underline block mt-0.5"
                             data-testid="text-website"
                           >
                             {selectedEntity.website}
@@ -1510,85 +1510,85 @@ export default function ClientesFornecedores() {
 
                       {/* Address Fields */}
                       {selectedEntity.zipCode && (
-                        <div className="border rounded-md p-2 bg-muted/20">
-                          <span className="text-[10px] text-muted-foreground block mb-0.5">CEP</span>
-                          <p className="text-sm font-medium">{selectedEntity.zipCode}</p>
+                        <div>
+                          <label className="text-xs text-muted-foreground">CEP</label>
+                          <div className="text-sm mt-0.5">{selectedEntity.zipCode}</div>
                         </div>
                       )}
 
                       {selectedEntity.street && (
-                        <div className="border rounded-md p-2 bg-muted/20">
-                          <span className="text-[10px] text-muted-foreground block mb-0.5">Endereço</span>
-                          <p className="text-sm font-medium" data-testid="text-address">
+                        <div>
+                          <label className="text-xs text-muted-foreground">Endereço</label>
+                          <div className="text-sm mt-0.5" data-testid="text-address">
                             {selectedEntity.street}
                             {selectedEntity.number && `, ${selectedEntity.number}`}
-                          </p>
+                          </div>
                         </div>
                       )}
 
                       {selectedEntity.complement && (
-                        <div className="border rounded-md p-2 bg-muted/20">
-                          <span className="text-[10px] text-muted-foreground block mb-0.5">Complemento</span>
-                          <p className="text-sm font-medium">{selectedEntity.complement}</p>
+                        <div>
+                          <label className="text-xs text-muted-foreground">Complemento</label>
+                          <div className="text-sm mt-0.5">{selectedEntity.complement}</div>
                         </div>
                       )}
 
                       {selectedEntity.neighborhood && (
-                        <div className="border rounded-md p-2 bg-muted/20">
-                          <span className="text-[10px] text-muted-foreground block mb-0.5">Bairro</span>
-                          <p className="text-sm font-medium">{selectedEntity.neighborhood}</p>
+                        <div>
+                          <label className="text-xs text-muted-foreground">Bairro</label>
+                          <div className="text-sm mt-0.5">{selectedEntity.neighborhood}</div>
                         </div>
                       )}
 
                       {(selectedEntity.city || selectedEntity.state) && (
-                        <div className="border rounded-md p-2 bg-muted/20">
-                          <span className="text-[10px] text-muted-foreground block mb-0.5">Cidade/Estado</span>
-                          <p className="text-sm font-medium">
+                        <div>
+                          <label className="text-xs text-muted-foreground">Cidade/Estado</label>
+                          <div className="text-sm mt-0.5">
                             {selectedEntity.city}
                             {selectedEntity.city && selectedEntity.state && " - "}
                             {selectedEntity.state}
-                          </p>
+                          </div>
                         </div>
                       )}
 
                       {/* Banking Info */}
                       {selectedEntity.bankName && (
-                        <div className="border rounded-md p-2 bg-muted/20">
-                          <span className="text-[10px] text-muted-foreground block mb-0.5">Banco</span>
-                          <p className="text-sm font-medium" data-testid="text-bank">{selectedEntity.bankName}</p>
+                        <div>
+                          <label className="text-xs text-muted-foreground">Banco</label>
+                          <div className="text-sm mt-0.5" data-testid="text-bank">{selectedEntity.bankName}</div>
                         </div>
                       )}
 
                       {selectedEntity.accountAgency && (
-                        <div className="border rounded-md p-2 bg-muted/20">
-                          <span className="text-[10px] text-muted-foreground block mb-0.5">Agência</span>
-                          <p className="text-sm font-medium">{selectedEntity.accountAgency}</p>
+                        <div>
+                          <label className="text-xs text-muted-foreground">Agência</label>
+                          <div className="text-sm mt-0.5">{selectedEntity.accountAgency}</div>
                         </div>
                       )}
 
                       {selectedEntity.accountNumber && (
-                        <div className="border rounded-md p-2 bg-muted/20">
-                          <span className="text-[10px] text-muted-foreground block mb-0.5">Conta</span>
-                          <p className="text-sm font-medium">{selectedEntity.accountNumber}</p>
+                        <div>
+                          <label className="text-xs text-muted-foreground">Conta</label>
+                          <div className="text-sm mt-0.5">{selectedEntity.accountNumber}</div>
                         </div>
                       )}
 
                       {/* Default Chart Account */}
                       {selectedEntity.defaultChartAccountId && (
-                        <div className="border rounded-md p-2 bg-muted/20">
-                          <span className="text-[10px] text-muted-foreground block mb-0.5">Plano de Contas Padrão</span>
-                          <p className="text-sm font-medium" data-testid="text-default-chart-account">
+                        <div>
+                          <label className="text-xs text-muted-foreground">Plano de Contas Padrão</label>
+                          <div className="text-sm mt-0.5" data-testid="text-default-chart-account">
                             {chartAccounts.find(ca => ca.id === selectedEntity.defaultChartAccountId)?.fullName || 
                              selectedEntity.defaultChartAccountId}
-                          </p>
+                          </div>
                         </div>
                       )}
 
                       {/* Notes */}
                       {selectedEntity.notes && (
-                        <div className="border rounded-md p-2 bg-muted/20">
-                          <span className="text-[10px] text-muted-foreground block mb-0.5">Observações</span>
-                          <p className="text-sm whitespace-pre-wrap" data-testid="text-notes">{selectedEntity.notes}</p>
+                        <div>
+                          <label className="text-xs text-muted-foreground">Observações</label>
+                          <div className="text-sm whitespace-pre-wrap mt-0.5" data-testid="text-notes">{selectedEntity.notes}</div>
                         </div>
                       )}
 
@@ -1603,20 +1603,6 @@ export default function ClientesFornecedores() {
                           >
                             <Edit2 className="h-4 w-4 mr-1.5" />
                             Editar
-                          </Button>
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            onClick={() => {
-                              toast({
-                                title: "Clonar",
-                                description: "Funcionalidade em desenvolvimento",
-                              });
-                            }}
-                            data-testid="button-clone"
-                          >
-                            <Copy className="h-4 w-4 mr-1.5" />
-                            Clonar
                           </Button>
                           <Button
                             variant="outline"
