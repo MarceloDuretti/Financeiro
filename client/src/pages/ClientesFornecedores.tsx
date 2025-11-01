@@ -1450,28 +1450,34 @@ export default function ClientesFornecedores() {
                       {/* Document */}
                       {selectedEntity.document && (
                         <div>
-                          <label className="text-xs text-muted-foreground">
+                          <p className="text-xs text-muted-foreground mb-1.5">
                             {selectedEntity.documentType === "cpf" ? "CPF" : 
                              selectedEntity.documentType === "cnpj" ? "CNPJ" : "Documento"}
-                          </label>
-                          <div className="text-sm mt-0.5">{selectedEntity.document}</div>
+                          </p>
+                          <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium">
+                            {selectedEntity.document || "-"}
+                          </div>
                         </div>
                       )}
 
                       {/* Phone */}
                       {selectedEntity.phone && (
                         <div>
-                          <label className="text-xs text-muted-foreground">Telefone</label>
-                          <div className="text-sm mt-0.5" data-testid="text-phone">{selectedEntity.phone}</div>
+                          <p className="text-xs text-muted-foreground mb-1.5">Telefone</p>
+                          <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium" data-testid="text-phone">
+                            {selectedEntity.phone || "-"}
+                          </div>
                         </div>
                       )}
 
                       {/* WhatsApp */}
                       {selectedEntity.whatsapp && (
                         <div>
-                          <label className="text-xs text-muted-foreground">WhatsApp</label>
-                          <div className="flex items-center gap-2 mt-0.5">
-                            <span className="text-sm">{selectedEntity.whatsapp}</span>
+                          <p className="text-xs text-muted-foreground mb-1.5">WhatsApp</p>
+                          <div className="flex items-center gap-2">
+                            <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium flex-1">
+                              {selectedEntity.whatsapp || "-"}
+                            </div>
                             <a
                               href={formatWhatsAppLink(selectedEntity.whatsapp)}
                               target="_blank"
@@ -1487,39 +1493,45 @@ export default function ClientesFornecedores() {
                       {/* Email */}
                       {selectedEntity.email && (
                         <div>
-                          <label className="text-xs text-muted-foreground">Email</label>
-                          <div className="text-sm mt-0.5" data-testid="text-email">{selectedEntity.email}</div>
+                          <p className="text-xs text-muted-foreground mb-1.5">Email</p>
+                          <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium" data-testid="text-email">
+                            {selectedEntity.email || "-"}
+                          </div>
                         </div>
                       )}
 
                       {/* Website */}
                       {selectedEntity.website && (
                         <div>
-                          <label className="text-xs text-muted-foreground">Website</label>
-                          <a
-                            href={selectedEntity.website}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-sm text-primary hover:underline block mt-0.5"
-                            data-testid="text-website"
-                          >
-                            {selectedEntity.website}
-                          </a>
+                          <p className="text-xs text-muted-foreground mb-1.5">Website</p>
+                          <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium">
+                            <a
+                              href={selectedEntity.website}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-primary hover:underline"
+                              data-testid="text-website"
+                            >
+                              {selectedEntity.website}
+                            </a>
+                          </div>
                         </div>
                       )}
 
                       {/* Address Fields */}
                       {selectedEntity.zipCode && (
                         <div>
-                          <label className="text-xs text-muted-foreground">CEP</label>
-                          <div className="text-sm mt-0.5">{selectedEntity.zipCode}</div>
+                          <p className="text-xs text-muted-foreground mb-1.5">CEP</p>
+                          <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium">
+                            {selectedEntity.zipCode || "-"}
+                          </div>
                         </div>
                       )}
 
                       {selectedEntity.street && (
                         <div>
-                          <label className="text-xs text-muted-foreground">Endereço</label>
-                          <div className="text-sm mt-0.5" data-testid="text-address">
+                          <p className="text-xs text-muted-foreground mb-1.5">Endereço</p>
+                          <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium" data-testid="text-address">
                             {selectedEntity.street}
                             {selectedEntity.number && `, ${selectedEntity.number}`}
                           </div>
@@ -1528,22 +1540,26 @@ export default function ClientesFornecedores() {
 
                       {selectedEntity.complement && (
                         <div>
-                          <label className="text-xs text-muted-foreground">Complemento</label>
-                          <div className="text-sm mt-0.5">{selectedEntity.complement}</div>
+                          <p className="text-xs text-muted-foreground mb-1.5">Complemento</p>
+                          <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium">
+                            {selectedEntity.complement || "-"}
+                          </div>
                         </div>
                       )}
 
                       {selectedEntity.neighborhood && (
                         <div>
-                          <label className="text-xs text-muted-foreground">Bairro</label>
-                          <div className="text-sm mt-0.5">{selectedEntity.neighborhood}</div>
+                          <p className="text-xs text-muted-foreground mb-1.5">Bairro</p>
+                          <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium">
+                            {selectedEntity.neighborhood || "-"}
+                          </div>
                         </div>
                       )}
 
                       {(selectedEntity.city || selectedEntity.state) && (
                         <div>
-                          <label className="text-xs text-muted-foreground">Cidade/Estado</label>
-                          <div className="text-sm mt-0.5">
+                          <p className="text-xs text-muted-foreground mb-1.5">Cidade/Estado</p>
+                          <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium">
                             {selectedEntity.city}
                             {selectedEntity.city && selectedEntity.state && " - "}
                             {selectedEntity.state}
@@ -1554,30 +1570,36 @@ export default function ClientesFornecedores() {
                       {/* Banking Info */}
                       {selectedEntity.bankName && (
                         <div>
-                          <label className="text-xs text-muted-foreground">Banco</label>
-                          <div className="text-sm mt-0.5" data-testid="text-bank">{selectedEntity.bankName}</div>
+                          <p className="text-xs text-muted-foreground mb-1.5">Banco</p>
+                          <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium" data-testid="text-bank">
+                            {selectedEntity.bankName || "-"}
+                          </div>
                         </div>
                       )}
 
                       {selectedEntity.accountAgency && (
                         <div>
-                          <label className="text-xs text-muted-foreground">Agência</label>
-                          <div className="text-sm mt-0.5">{selectedEntity.accountAgency}</div>
+                          <p className="text-xs text-muted-foreground mb-1.5">Agência</p>
+                          <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium">
+                            {selectedEntity.accountAgency || "-"}
+                          </div>
                         </div>
                       )}
 
                       {selectedEntity.accountNumber && (
                         <div>
-                          <label className="text-xs text-muted-foreground">Conta</label>
-                          <div className="text-sm mt-0.5">{selectedEntity.accountNumber}</div>
+                          <p className="text-xs text-muted-foreground mb-1.5">Conta</p>
+                          <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium">
+                            {selectedEntity.accountNumber || "-"}
+                          </div>
                         </div>
                       )}
 
                       {/* Default Chart Account */}
                       {selectedEntity.defaultChartAccountId && (
                         <div>
-                          <label className="text-xs text-muted-foreground">Plano de Contas Padrão</label>
-                          <div className="text-sm mt-0.5" data-testid="text-default-chart-account">
+                          <p className="text-xs text-muted-foreground mb-1.5">Plano de Contas Padrão</p>
+                          <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium" data-testid="text-default-chart-account">
                             {chartAccounts.find(ca => ca.id === selectedEntity.defaultChartAccountId)?.fullName || 
                              selectedEntity.defaultChartAccountId}
                           </div>
@@ -1587,8 +1609,10 @@ export default function ClientesFornecedores() {
                       {/* Notes */}
                       {selectedEntity.notes && (
                         <div>
-                          <label className="text-xs text-muted-foreground">Observações</label>
-                          <div className="text-sm whitespace-pre-wrap mt-0.5" data-testid="text-notes">{selectedEntity.notes}</div>
+                          <p className="text-xs text-muted-foreground mb-1.5">Observações</p>
+                          <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium whitespace-pre-wrap" data-testid="text-notes">
+                            {selectedEntity.notes || "-"}
+                          </div>
                         </div>
                       )}
 
