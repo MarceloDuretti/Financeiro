@@ -527,7 +527,7 @@ export default function PlanoDeContas() {
           style={{ paddingLeft: `${depth * indentSize + 4}px` }}
         >
           {/* Expand/collapse button - only if has children */}
-          {hasChildNodes ? (
+          {hasChildNodes && (
             <button
               onClick={() => toggleExpand(node.id)}
               className="flex-shrink-0 hover:bg-accent rounded p-0.5 transition-all duration-200 hover:scale-110"
@@ -539,10 +539,6 @@ export default function PlanoDeContas() {
                 <ChevronRight className={`h-3.5 w-3.5 ${colors.icon} transition-transform duration-200`} />
               )}
             </button>
-          ) : (
-            <div className="w-4 flex items-center justify-center">
-              <div className={`h-1.5 w-1.5 rounded-full ${colors.icon.replace('text-', 'bg-')}`} />
-            </div>
           )}
 
           {/* Folder/File icon */}
