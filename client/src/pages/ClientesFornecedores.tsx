@@ -1041,9 +1041,9 @@ export default function ClientesFornecedores() {
                 {isEditing && (
                   <div className="grid grid-cols-[300px_1fr] gap-4">
                     <div></div> {/* Empty left column */}
-                    <div className="space-y-4">
+                    <div className="space-y-3">
                       {/* Contact Fields */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
                         <FormField
                           control={form.control}
                           name="phone"
@@ -1099,20 +1099,35 @@ export default function ClientesFornecedores() {
                       </div>
 
                       {/* Address Fields */}
-                      <FormField
-                        control={form.control}
-                        name="zipCode"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>CEP</FormLabel>
-                            <FormControl>
-                              <Input {...field} value={field.value || ""} placeholder="00000-000" data-testid="input-zipcode" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <FormField
+                          control={form.control}
+                          name="zipCode"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>CEP</FormLabel>
+                              <FormControl>
+                                <Input {...field} value={field.value || ""} placeholder="00000-000" data-testid="input-zipcode" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="country"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>País</FormLabel>
+                              <FormControl>
+                                <Input {...field} value={field.value || ""} placeholder="Brasil" data-testid="input-country" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                         <FormField
                           control={form.control}
                           name="street"
@@ -1140,7 +1155,7 @@ export default function ClientesFornecedores() {
                           )}
                         />
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <FormField
                           control={form.control}
                           name="complement"
@@ -1168,7 +1183,7 @@ export default function ClientesFornecedores() {
                           )}
                         />
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                         <FormField
                           control={form.control}
                           name="city"
@@ -1196,22 +1211,9 @@ export default function ClientesFornecedores() {
                           )}
                         />
                       </div>
-                      <FormField
-                        control={form.control}
-                        name="country"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>País</FormLabel>
-                            <FormControl>
-                              <Input {...field} value={field.value || ""} placeholder="Brasil" data-testid="input-country" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
 
                       {/* Banking Fields */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
                         <FormField
                           control={form.control}
                           name="bankName"
@@ -1276,45 +1278,47 @@ export default function ClientesFornecedores() {
                           )}
                         />
                       </div>
-                      <FormField
-                        control={form.control}
-                        name="pixKey"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Chave PIX</FormLabel>
-                            <FormControl>
-                              <Input {...field} value={field.value || ""} placeholder="Digite a chave PIX" data-testid="input-pix-key" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      {/* Default Chart Account */}
-                      <FormField
-                        control={form.control}
-                        name="defaultChartAccountId"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Plano de Contas Padrão</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value || ""}>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <FormField
+                          control={form.control}
+                          name="pixKey"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Chave PIX</FormLabel>
                               <FormControl>
-                                <SelectTrigger data-testid="select-default-chart-account">
-                                  <SelectValue placeholder="Selecione (opcional)" />
-                                </SelectTrigger>
+                                <Input {...field} value={field.value || ""} placeholder="Digite a chave PIX" data-testid="input-pix-key" />
                               </FormControl>
-                              <SelectContent className="max-h-[300px]">
-                                {chartAccounts.map((account: any) => (
-                                  <SelectItem key={account.id} value={account.id}>
-                                    {account.fullName}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        {/* Default Chart Account */}
+                        <FormField
+                          control={form.control}
+                          name="defaultChartAccountId"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Plano de Contas Padrão</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value || ""}>
+                                <FormControl>
+                                  <SelectTrigger data-testid="select-default-chart-account">
+                                    <SelectValue placeholder="Selecione (opcional)" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent className="max-h-[300px]">
+                                  {chartAccounts.map((account: any) => (
+                                    <SelectItem key={account.id} value={account.id}>
+                                      {account.fullName}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
 
                       {/* Notes */}
                       <FormField
