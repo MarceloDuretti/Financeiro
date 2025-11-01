@@ -1153,6 +1153,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get customer/supplier statistics
+  app.get("/api/customers-suppliers/:id/stats", isAuthenticated, async (req, res) => {
+    try {
+      const tenantId = getTenantId((req as any).user);
+      const { id } = req.params;
+      
+      const stats = await storage.getCustomerSupplierStats(tenantId, id);
+      if (!stats) {
+        return res.status(404).json({ message: "Cliente/Fornecedor não encontrado" });
+      }
+      
+      res.json(stats);
+    } catch (error) {
+      console.error("Error getting customer/supplier stats:", error);
+      res.status(500).json({ error: "Erro ao buscar estatísticas" });
+    }
+  });
+
   // Create new customer/supplier
   app.post("/api/customers-suppliers", isAuthenticated, async (req, res) => {
     try {

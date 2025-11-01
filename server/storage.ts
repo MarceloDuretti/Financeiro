@@ -45,6 +45,7 @@ import {
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, inArray, sql, max, gte, lte, like, or, desc, gt } from "drizzle-orm";
+import { format } from "date-fns";
 
 // Interface for storage operations
 export interface IStorage {
@@ -150,6 +151,14 @@ export interface IStorage {
   ): Promise<CustomerSupplier | undefined>;
   deleteCustomerSupplier(tenantId: string, id: string): Promise<boolean>;
   toggleCustomerSupplierActive(tenantId: string, id: string): Promise<CustomerSupplier | undefined>;
+  getCustomerSupplierStats(tenantId: string, id: string): Promise<{
+    totalRevenue: number;
+    totalExpense: number;
+    transactionCount: number;
+    totalGlobalRevenue: number;
+    totalGlobalExpense: number;
+    monthlyTrend: Array<{ month: string; revenue: number; expense: number }>;
+  } | null>;
   reportCustomersSuppliers(tenantId: string, filters: {
     isCustomer?: boolean;
     isSupplier?: boolean;
@@ -1424,6 +1433,122 @@ export class DatabaseStorage implements IStorage {
       
       return entity;
     });
+  }
+
+  async getCustomerSupplierStats(
+    tenantId: string,
+    id: string
+  ): Promise<{
+    totalRevenue: number;
+    totalExpense: number;
+    transactionCount: number;
+    totalGlobalRevenue: number;
+    totalGlobalExpense: number;
+    monthlyTrend: Array<{ month: string; revenue: number; expense: number }>;
+  } | null> {
+    // First, verify the customer/supplier exists
+    const [entity] = await db
+      .select()
+      .from(customersSuppliers)
+      .where(and(
+        eq(customersSuppliers.tenantId, tenantId),
+        eq(customersSuppliers.id, id),
+        eq(customersSuppliers.deleted, false)
+      ));
+
+    if (!entity) {
+      return null;
+    }
+
+    // Get all transactions for this customer/supplier
+    const entityTransactions = await db
+      .select({
+        type: transactions.type,
+        amount: transactions.amount,
+        dueDate: transactions.dueDate,
+      })
+      .from(transactions)
+      .where(and(
+        eq(transactions.tenantId, tenantId),
+        eq(transactions.personId, id),
+        eq(transactions.deleted, false)
+      ));
+
+    // Calculate totals for this entity
+    let totalRevenue = 0;
+    let totalExpense = 0;
+
+    for (const tx of entityTransactions) {
+      const amount = parseFloat(tx.amount || "0");
+      if (tx.type === "revenue") {
+        totalRevenue += amount;
+      } else {
+        totalExpense += amount;
+      }
+    }
+
+    // Get global totals for percentage calculation
+    const allTransactions = await db
+      .select({
+        type: transactions.type,
+        amount: transactions.amount,
+      })
+      .from(transactions)
+      .where(and(
+        eq(transactions.tenantId, tenantId),
+        eq(transactions.deleted, false)
+      ));
+
+    let totalGlobalRevenue = 0;
+    let totalGlobalExpense = 0;
+
+    for (const tx of allTransactions) {
+      const amount = parseFloat(tx.amount || "0");
+      if (tx.type === "revenue") {
+        totalGlobalRevenue += amount;
+      } else {
+        totalGlobalExpense += amount;
+      }
+    }
+
+    // Calculate monthly trend for last 6 months
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+    const monthlyData: { [key: string]: { revenue: number; expense: number } } = {};
+
+    for (const tx of entityTransactions) {
+      if (tx.dueDate && new Date(tx.dueDate) >= sixMonthsAgo) {
+        const monthKey = format(new Date(tx.dueDate), "yyyy-MM");
+        if (!monthlyData[monthKey]) {
+          monthlyData[monthKey] = { revenue: 0, expense: 0 };
+        }
+        const amount = parseFloat(tx.amount || "0");
+        if (tx.type === "revenue") {
+          monthlyData[monthKey].revenue += amount;
+        } else {
+          monthlyData[monthKey].expense += amount;
+        }
+      }
+    }
+
+    // Convert to array and sort by month
+    const monthlyTrend = Object.entries(monthlyData)
+      .map(([month, data]) => ({
+        month,
+        revenue: data.revenue,
+        expense: data.expense,
+      }))
+      .sort((a, b) => a.month.localeCompare(b.month));
+
+    return {
+      totalRevenue,
+      totalExpense,
+      transactionCount: entityTransactions.length,
+      totalGlobalRevenue,
+      totalGlobalExpense,
+      monthlyTrend,
+    };
   }
 
   async reportCustomersSuppliers(
