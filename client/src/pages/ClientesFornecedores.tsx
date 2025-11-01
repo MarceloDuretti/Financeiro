@@ -1177,35 +1177,7 @@ export default function ClientesFornecedores() {
                           )}
                         />
                       </div>
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    {/* View Mode - Original Layout */}
-                    <div className="space-y-2">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                        <div className="border rounded-md p-2">
-                          <span className="text-xs text-muted-foreground">Nome / Razão Social</span>
-                          <p className="text-sm font-medium mt-0.5" data-testid="text-name">{selectedEntity.name}</p>
-                        </div>
-                        {selectedEntity.document && (
-                          <div className="border rounded-md p-2">
-                            <span className="text-xs text-muted-foreground">
-                              {selectedEntity.documentType?.toUpperCase() || "Documento"}
-                            </span>
-                            <p className="text-sm font-medium font-mono mt-0.5" data-testid="text-document">{selectedEntity.document}</p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </>
-                )}
 
-                {/* Edit Mode - Continue with remaining sections in right column */}
-                {isEditing && (
-                  <div className="grid grid-cols-[300px_1fr] gap-4">
-                    <div></div> {/* Empty left column */}
-                    <div className="space-y-3">
                       {/* Contact Fields */}
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
                         <FormField
@@ -1390,6 +1362,26 @@ export default function ClientesFornecedores() {
                       />
                     </div>
                   </div>
+                ) : (
+                  <>
+                    {/* View Mode - Original Layout */}
+                    <div className="space-y-2">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        <div className="border rounded-md p-2">
+                          <span className="text-xs text-muted-foreground">Nome / Razão Social</span>
+                          <p className="text-sm font-medium mt-0.5" data-testid="text-name">{selectedEntity.name}</p>
+                        </div>
+                        {selectedEntity.document && (
+                          <div className="border rounded-md p-2">
+                            <span className="text-xs text-muted-foreground">
+                              {selectedEntity.documentType?.toUpperCase() || "Documento"}
+                            </span>
+                            <p className="text-sm font-medium font-mono mt-0.5" data-testid="text-document">{selectedEntity.document}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </>
                 )}
 
                 {/* View Mode - 2-Column Layout */}
