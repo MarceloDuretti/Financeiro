@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertChartAccountSchema } from "@shared/schema";
 import type { z } from "zod";
+import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -65,6 +66,7 @@ import {
   Network,
   Columns3,
   Eye,
+  BarChart3,
 } from "lucide-react";
 import { buildAccountTree, hasChildren, type ChartAccountNode } from "@/lib/chartAccountUtils";
 import type { ChartAccount } from "@shared/schema";
@@ -899,6 +901,12 @@ export default function PlanoDeContas() {
                   <Columns3 className="h-4 w-4" />
                 </Button>
               </div>
+              <Link href="/analises-financeiras">
+                <Button variant="default" data-testid="button-analytics">
+                  <BarChart3 className="h-4 w-4 mr-2" />
+                  Análises
+                </Button>
+              </Link>
             </div>
           </div>
         )}
