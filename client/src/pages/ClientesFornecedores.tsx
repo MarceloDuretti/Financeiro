@@ -761,15 +761,15 @@ export default function ClientesFornecedores() {
                   )}
 
                   {/* Phone - Email */}
-                  {((entity.phone || entity.whatsapp) || entity.email) && (
+                  {(entity.phone || entity.email) && (
                     <div className="text-[10px] text-muted-foreground flex items-center gap-1">
-                      {(entity.phone || entity.whatsapp) && (
+                      {entity.phone && (
                         <>
                           <Phone className="h-3 w-3 flex-shrink-0" />
-                          <span>{formatPhone(entity.phone || entity.whatsapp)}</span>
+                          <span>{formatPhone(entity.phone)}</span>
                         </>
                       )}
-                      {(entity.phone || entity.whatsapp) && entity.email && (
+                      {entity.phone && entity.email && (
                         <span className="mx-1">-</span>
                       )}
                       {entity.email && (
@@ -1509,7 +1509,7 @@ export default function ClientesFornecedores() {
                             </div>
                             {(selectedEntity.whatsapp || selectedEntity.phone) && (
                               <a
-                                href={formatWhatsAppLink(selectedEntity.whatsapp || selectedEntity.phone)}
+                                href={formatWhatsAppLink((selectedEntity.whatsapp || selectedEntity.phone)!)}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 data-testid="link-whatsapp-detail"
