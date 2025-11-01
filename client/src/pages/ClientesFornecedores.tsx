@@ -1125,7 +1125,7 @@ export default function ClientesFornecedores() {
                     </div>
 
                     {/* Right Column: Detailed Form Fields */}
-                    <div className="space-y-4">
+                    <div className="space-y-2">
                       {/* Nome */}
                       <FormField
                         control={form.control}
@@ -1142,7 +1142,7 @@ export default function ClientesFornecedores() {
                       />
                       
                       {/* Document Type + Number */}
-                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
                         <FormField
                           control={form.control}
                           name="documentType"
@@ -1182,7 +1182,7 @@ export default function ClientesFornecedores() {
                       </div>
 
                       {/* Contact Fields */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
                         <FormField
                           control={form.control}
                           name="phone"
@@ -1238,7 +1238,7 @@ export default function ClientesFornecedores() {
                       </div>
 
                       {/* Address Fields */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                         <FormField
                           control={form.control}
                           name="zipCode"
@@ -1279,7 +1279,7 @@ export default function ClientesFornecedores() {
                           </FormItem>
                         )}
                       />
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                         <FormField
                           control={form.control}
                           name="number"
@@ -1320,7 +1320,7 @@ export default function ClientesFornecedores() {
                           )}
                         />
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                         <FormField
                           control={form.control}
                           name="city"
@@ -1357,7 +1357,7 @@ export default function ClientesFornecedores() {
                           <FormItem>
                             <FormLabel>Observações</FormLabel>
                             <FormControl>
-                              <Textarea {...field} value={field.value || ""} rows={3} placeholder="Adicione observações sobre este cliente/fornecedor..." data-testid="input-notes" />
+                              <Textarea {...field} value={field.value || ""} rows={2} placeholder="Adicione observações sobre este cliente/fornecedor..." data-testid="input-notes" />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -1812,12 +1812,11 @@ export default function ClientesFornecedores() {
 
               {/* Action Buttons Footer for Edit Mode */}
               {isEditing && (
-                <div className="flex gap-2 pt-4 border-t flex-shrink-0">
+                <div className="flex justify-start gap-2 pt-4 border-t flex-shrink-0">
                   <Button
                     variant="outline"
                     onClick={handleCancelEdit}
                     disabled={isSaving}
-                    className="flex-1"
                     data-testid="button-cancel-edit"
                   >
                     Cancelar
@@ -1825,7 +1824,6 @@ export default function ClientesFornecedores() {
                   <Button
                     onClick={handleSaveEdit}
                     disabled={isSaving}
-                    className="flex-1"
                     data-testid="button-save-edit"
                   >
                     {isSaving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
