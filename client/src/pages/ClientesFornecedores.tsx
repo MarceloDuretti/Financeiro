@@ -799,7 +799,7 @@ export default function ClientesFornecedores() {
       )}
 
       {/* Details Drawer - Implementation continues... */}
-      <Sheet open={isDrawerOpen} onOpenChange={setIsDrawerOpen} modal={false}>
+      <Sheet open={isDrawerOpen} onOpenChange={setIsDrawerOpen} modal={true}>
         <SheetContent className={`w-full overflow-y-auto ${isEditing ? 'sm:max-w-6xl' : 'sm:max-w-4xl'}`}>
           {selectedEntity && (
             <Form {...form}>
