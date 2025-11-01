@@ -1170,20 +1170,92 @@ export default function ClientesFornecedores() {
                           />
                         </div>
 
-                        {/* Notes */}
-                        <FormField
-                          control={form.control}
-                          name="notes"
-                          render={({ field}) => (
-                            <FormItem>
-                              <FormLabel>Observações</FormLabel>
-                              <FormControl>
-                                <Textarea {...field} value={field.value || ""} rows={2} placeholder="Adicione observações..." data-testid="input-notes" />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                        {/* Financial Fields - moved from left column */}
+                        <div className="space-y-2 pt-2 border-t">
+                          <h4 className="text-xs font-medium text-muted-foreground">Informações Financeiras</h4>
+                          
+                          <FormField
+                            control={form.control}
+                            name="bankName"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Banco</FormLabel>
+                                <FormControl>
+                                  <Input {...field} value={field.value || ""} placeholder="Ex: Banco do Brasil" data-testid="input-bank-name" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <div className="grid grid-cols-2 gap-2">
+                            <FormField
+                              control={form.control}
+                              name="accountAgency"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Agência</FormLabel>
+                                  <FormControl>
+                                    <Input {...field} value={field.value || ""} placeholder="0000" data-testid="input-account-agency" />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name="accountNumber"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Conta</FormLabel>
+                                  <FormControl>
+                                    <Input {...field} value={field.value || ""} placeholder="00000-0" data-testid="input-account-number" />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+
+                          <FormField
+                            control={form.control}
+                            name="pixKeyType"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Tipo PIX</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value || "cpf"}>
+                                  <FormControl>
+                                    <SelectTrigger data-testid="select-pix-key-type">
+                                      <SelectValue placeholder="Selecione" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <SelectItem value="cpf">CPF</SelectItem>
+                                    <SelectItem value="cnpj">CNPJ</SelectItem>
+                                    <SelectItem value="email">Email</SelectItem>
+                                    <SelectItem value="phone">Telefone</SelectItem>
+                                    <SelectItem value="random">Aleatória</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="pixKey"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Chave PIX</FormLabel>
+                                <FormControl>
+                                  <Input {...field} value={field.value || ""} placeholder="Digite a chave PIX" data-testid="input-pix-key" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
                       </div>
 
                       {/* Right Sub-column: Address */}
