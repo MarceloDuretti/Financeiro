@@ -781,7 +781,7 @@ export default function ClientesFornecedores() {
 
       {/* Details Drawer - Implementation continues... */}
       <Sheet open={isDrawerOpen} onOpenChange={setIsDrawerOpen} modal={false}>
-        <SheetContent className="w-full sm:max-w-3xl overflow-y-auto">
+        <SheetContent className={`w-full overflow-y-auto ${isEditing ? 'sm:max-w-6xl' : 'sm:max-w-4xl'}`}>
           {selectedEntity && (
             <Form {...form}>
               <SheetHeader>
@@ -803,180 +803,154 @@ export default function ClientesFornecedores() {
                 </div>
               </SheetHeader>
 
-              <div className="mt-3 space-y-3">
-                {/* Action Buttons */}
-                {!isEditing ? (
-                  <div className="flex justify-end gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleEdit}
-                      data-testid="button-edit"
-                    >
-                      <Edit2 className="h-3.5 w-3.5 mr-1.5" />
-                      Editar
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleToggleActive()}
-                      disabled={isTogglingActive}
-                      data-testid="button-toggle-active"
-                    >
-                      {isTogglingActive ? (
-                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                      ) : (
-                        <>
-                          <Power className="h-3.5 w-3.5 mr-1.5" />
-                          {selectedEntity.isActive ? "Desativar" : "Ativar"}
-                        </>
-                      )}
-                    </Button>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          data-testid="button-delete-trigger"
-                        >
-                          <Trash2 className="h-3.5 w-3.5 mr-1.5" />
-                          Excluir
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Tem certeza que deseja excluir "{selectedEntity.name}"? Esta ação não pode ser desfeita.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel data-testid="button-cancel-delete">Cancelar</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={handleDelete}
-                            disabled={isDeleting}
-                            data-testid="button-confirm-delete"
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                          >
-                            {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Excluir"}
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </div>
-                ) : (
-                  <div className="flex justify-end gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleCancelEdit}
-                      disabled={isSaving}
-                      data-testid="button-cancel-edit"
-                    >
-                      Cancelar
-                    </Button>
-                    <Button
-                      size="sm"
-                      onClick={handleSaveEdit}
-                      disabled={isSaving}
-                      data-testid="button-save-edit"
-                    >
-                      {isSaving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
-                      Salvar
-                    </Button>
-                  </div>
-                )}
-
-                {/* Status and Type Badges */}
+              <div className={`mt-3 ${isEditing ? 'space-y-1.5' : 'space-y-2'}`}>
+                {/* Action Buttons - Moved to Footer when editing */}
                 {!isEditing && (
-                  <div className="flex gap-2">
-                    <Badge className={getTypeBadgeColor(selectedEntity)} data-testid="badge-type">
-                      {getTypeLabel(selectedEntity)}
-                    </Badge>
-                    <Badge variant={selectedEntity.isActive ? "default" : "secondary"} data-testid="badge-status">
-                      {selectedEntity.isActive ? "Ativo" : "Inativo"}
-                    </Badge>
-                  </div>
+                  <>
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleEdit}
+                        data-testid="button-edit"
+                      >
+                        <Edit2 className="h-3.5 w-3.5 mr-1.5" />
+                        Editar
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleToggleActive()}
+                        disabled={isTogglingActive}
+                        data-testid="button-toggle-active"
+                      >
+                        {isTogglingActive ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <>
+                            <Power className="h-3.5 w-3.5 mr-1.5" />
+                            {selectedEntity.isActive ? "Desativar" : "Ativar"}
+                          </>
+                        )}
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            data-testid="button-delete-trigger"
+                          >
+                            <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+                            Excluir
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Tem certeza que deseja excluir "{selectedEntity.name}"? Esta ação não pode ser desfeita.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel data-testid="button-cancel-delete">Cancelar</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={handleDelete}
+                              disabled={isDeleting}
+                              data-testid="button-confirm-delete"
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Excluir"}
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+
+                    {/* Status and Type Badges */}
+                    <div className="flex gap-2">
+                      <Badge className={getTypeBadgeColor(selectedEntity)} data-testid="badge-type">
+                        {getTypeLabel(selectedEntity)}
+                      </Badge>
+                      <Badge variant={selectedEntity.isActive ? "default" : "secondary"} data-testid="badge-status">
+                        {selectedEntity.isActive ? "Ativo" : "Inativo"}
+                      </Badge>
+                    </div>
+                  </>
                 )}
 
-                {/* Tipo e Identificação Section */}
-                <div className="space-y-2">
-                  {!isEditing ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                      <div className="border rounded-md p-2">
-                        <span className="text-xs text-muted-foreground">Nome / Razão Social</span>
-                        <p className="text-sm font-medium mt-0.5" data-testid="text-name">{selectedEntity.name}</p>
-                      </div>
-                      {selectedEntity.document && (
-                        <div className="border rounded-md p-2">
-                          <span className="text-xs text-muted-foreground">
-                            {selectedEntity.documentType?.toUpperCase() || "Documento"}
-                          </span>
-                          <p className="text-sm font-medium font-mono mt-0.5" data-testid="text-document">{selectedEntity.document}</p>
+                {/* Main Content Layout - 2 Columns when Editing */}
+                {isEditing ? (
+                  <div className="grid grid-cols-[300px_1fr] gap-4">
+                    {/* Left Column: Compact Info Card */}
+                    <div className="space-y-1">
+                      <Card className="p-2">
+                        <div className="space-y-1">
+                          <div className="border rounded-md px-3 py-2 bg-muted/20">
+                            <span className="text-[10px] text-muted-foreground">Código</span>
+                            <p className="text-sm font-medium font-mono">{formatCode(selectedEntity.code)}</p>
+                          </div>
+                          
+                          <FormField
+                            control={form.control}
+                            name="isCustomer"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center space-x-2 px-2 py-1">
+                                  <FormControl>
+                                    <Checkbox
+                                      checked={field.value}
+                                      onCheckedChange={field.onChange}
+                                      data-testid="checkbox-is-customer"
+                                    />
+                                  </FormControl>
+                                  <FormLabel className="text-xs cursor-pointer">Cliente</FormLabel>
+                                </div>
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="isSupplier"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center space-x-2 px-2 py-1">
+                                  <FormControl>
+                                    <Checkbox
+                                      checked={field.value}
+                                      onCheckedChange={field.onChange}
+                                      data-testid="checkbox-is-supplier"
+                                    />
+                                  </FormControl>
+                                  <FormLabel className="text-xs cursor-pointer">Fornecedor</FormLabel>
+                                </div>
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="isActive"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center space-x-2 px-2 py-1">
+                                  <FormControl>
+                                    <Checkbox
+                                      checked={field.value}
+                                      onCheckedChange={field.onChange}
+                                      data-testid="checkbox-is-active"
+                                    />
+                                  </FormControl>
+                                  <FormLabel className="text-xs cursor-pointer">Ativo</FormLabel>
+                                </div>
+                              </FormItem>
+                            )}
+                          />
                         </div>
-                      )}
+                      </Card>
                     </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {/* Checkboxes in a compact row */}
-                      <div className="flex gap-4">
-                        <FormField
-                          control={form.control}
-                          name="isCustomer"
-                          render={({ field }) => (
-                            <FormItem className="flex-1">
-                              <div className="flex items-center space-x-2">
-                                <FormControl>
-                                  <Checkbox
-                                    checked={field.value}
-                                    onCheckedChange={field.onChange}
-                                    data-testid="checkbox-is-customer"
-                                  />
-                                </FormControl>
-                                <FormLabel className="text-xs">Cliente</FormLabel>
-                              </div>
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="isSupplier"
-                          render={({ field }) => (
-                            <FormItem className="flex-1">
-                              <div className="flex items-center space-x-2">
-                                <FormControl>
-                                  <Checkbox
-                                    checked={field.value}
-                                    onCheckedChange={field.onChange}
-                                    data-testid="checkbox-is-supplier"
-                                  />
-                                </FormControl>
-                                <FormLabel className="text-xs">Fornecedor</FormLabel>
-                              </div>
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="isActive"
-                          render={({ field }) => (
-                            <FormItem className="flex-1">
-                              <div className="flex items-center space-x-2">
-                                <FormControl>
-                                  <Checkbox
-                                    checked={field.value}
-                                    onCheckedChange={field.onChange}
-                                    data-testid="checkbox-is-active"
-                                  />
-                                </FormControl>
-                                <FormLabel className="text-xs">Ativo</FormLabel>
-                              </div>
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                      
-                      {/* Floating label inputs */}
+
+                    {/* Right Column: Detailed Form Fields */}
+                    <div className="space-y-1.5">
+                      {/* Nome */}
                       <FormField
                         control={form.control}
                         name="name"
@@ -991,7 +965,8 @@ export default function ClientesFornecedores() {
                         )}
                       />
                       
-                      <div className="grid grid-cols-2 gap-2">
+                      {/* Document Type + Number */}
+                      <div className="grid grid-cols-4 gap-4">
                         <FormField
                           control={form.control}
                           name="documentType"
@@ -1019,130 +994,389 @@ export default function ClientesFornecedores() {
                           control={form.control}
                           name="document"
                           render={({ field }) => (
-                            <FormItem className="form-floating">
+                            <FormItem className="form-floating col-span-3">
                               <FormControl>
                                 <Input {...field} value={field.value || ""} placeholder=" " data-testid="input-document" />
                               </FormControl>
-                              <FormLabel>Número</FormLabel>
+                              <FormLabel>Número do Documento</FormLabel>
                               <FormMessage />
                             </FormItem>
                           )}
                         />
                       </div>
                     </div>
-                  )}
-                </div>
-
-                {/* Contact Section */}
-                <div className="space-y-2">
-                  {!isEditing ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                      {selectedEntity.phone && (
+                  </div>
+                ) : (
+                  <>
+                    {/* View Mode - Original Layout */}
+                    <div className="space-y-2">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                         <div className="border rounded-md p-2">
-                          <span className="text-xs text-muted-foreground">Telefone</span>
-                          <p className="text-sm font-medium mt-0.5" data-testid="text-phone">{selectedEntity.phone}</p>
+                          <span className="text-xs text-muted-foreground">Nome / Razão Social</span>
+                          <p className="text-sm font-medium mt-0.5" data-testid="text-name">{selectedEntity.name}</p>
                         </div>
-                      )}
-                      {selectedEntity.whatsapp && (
-                        <div className="border rounded-md p-2">
-                          <span className="text-xs text-muted-foreground">WhatsApp</span>
-                          <div className="flex items-center gap-2 mt-0.5">
-                            <p className="text-sm font-medium">{selectedEntity.whatsapp}</p>
-                            <a
-                              href={formatWhatsAppLink(selectedEntity.whatsapp)}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              data-testid="link-whatsapp-detail"
-                            >
-                              <SiWhatsapp className="h-4 w-4 text-green-500 hover:text-green-600" />
-                            </a>
+                        {selectedEntity.document && (
+                          <div className="border rounded-md p-2">
+                            <span className="text-xs text-muted-foreground">
+                              {selectedEntity.documentType?.toUpperCase() || "Documento"}
+                            </span>
+                            <p className="text-sm font-medium font-mono mt-0.5" data-testid="text-document">{selectedEntity.document}</p>
                           </div>
-                        </div>
-                      )}
-                      {selectedEntity.email && (
-                        <div className="border rounded-md p-2">
-                          <span className="text-xs text-muted-foreground">Email</span>
-                          <p className="text-sm font-medium mt-0.5" data-testid="text-email">{selectedEntity.email}</p>
-                        </div>
-                      )}
-                      {selectedEntity.website && (
-                        <div className="border rounded-md p-2">
-                          <span className="text-xs text-muted-foreground">Website</span>
-                          <a
-                            href={selectedEntity.website}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-sm font-medium text-primary hover:underline block mt-0.5"
-                            data-testid="text-website"
-                          >
-                            {selectedEntity.website}
-                          </a>
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </div>
-                  ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="phone"
-                        render={({ field }) => (
-                          <FormItem className="form-floating">
-                            <FormControl>
-                              <Input {...field} value={field.value || ""} placeholder=" " data-testid="input-phone" />
-                            </FormControl>
-                            <FormLabel>Telefone</FormLabel>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="whatsapp"
-                        render={({ field }) => (
-                          <FormItem className="form-floating">
-                            <FormControl>
-                              <Input {...field} value={field.value || ""} placeholder=" " data-testid="input-whatsapp" />
-                            </FormControl>
-                            <FormLabel>WhatsApp</FormLabel>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="email"
-                        render={({ field }) => (
-                          <FormItem className="form-floating">
-                            <FormControl>
-                              <Input {...field} value={field.value || ""} type="email" placeholder=" " data-testid="input-email" />
-                            </FormControl>
-                            <FormLabel>Email</FormLabel>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="website"
-                        render={({ field }) => (
-                          <FormItem className="form-floating">
-                            <FormControl>
-                              <Input {...field} value={field.value || ""} placeholder=" " data-testid="input-website" />
-                            </FormControl>
-                            <FormLabel>Website</FormLabel>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  )}
-                </div>
+                  </>
+                )}
 
-                {/* Address Section */}
-                <div className="space-y-2">
-                  {!isEditing ? (
-                    <>
-                      {(selectedEntity.street || selectedEntity.city) && (
+                {/* Edit Mode - Continue with remaining sections in right column */}
+                {isEditing && (
+                  <div className="grid grid-cols-[300px_1fr] gap-4">
+                    <div></div> {/* Empty left column */}
+                    <div className="space-y-1.5">
+                      {/* Contact Fields */}
+                      <div className="grid grid-cols-4 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="phone"
+                          render={({ field }) => (
+                            <FormItem className="form-floating col-span-2">
+                              <FormControl>
+                                <Input {...field} value={field.value || ""} placeholder=" " data-testid="input-phone" />
+                              </FormControl>
+                              <FormLabel>Telefone</FormLabel>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="whatsapp"
+                          render={({ field }) => (
+                            <FormItem className="form-floating col-span-2">
+                              <FormControl>
+                                <Input {...field} value={field.value || ""} placeholder=" " data-testid="input-whatsapp" />
+                              </FormControl>
+                              <FormLabel>WhatsApp</FormLabel>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="email"
+                          render={({ field }) => (
+                            <FormItem className="form-floating col-span-2">
+                              <FormControl>
+                                <Input {...field} value={field.value || ""} type="email" placeholder=" " data-testid="input-email" />
+                              </FormControl>
+                              <FormLabel>Email</FormLabel>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="website"
+                          render={({ field }) => (
+                            <FormItem className="form-floating col-span-2">
+                              <FormControl>
+                                <Input {...field} value={field.value || ""} placeholder=" " data-testid="input-website" />
+                              </FormControl>
+                              <FormLabel>Website</FormLabel>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      {/* Address Fields */}
+                      <div className="grid grid-cols-4 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="zipCode"
+                          render={({ field }) => (
+                            <FormItem className="form-floating">
+                              <FormControl>
+                                <Input {...field} value={field.value || ""} placeholder=" " data-testid="input-zipcode" />
+                              </FormControl>
+                              <FormLabel>CEP</FormLabel>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="street"
+                          render={({ field }) => (
+                            <FormItem className="form-floating col-span-2">
+                              <FormControl>
+                                <Input {...field} value={field.value || ""} placeholder=" " data-testid="input-street" />
+                              </FormControl>
+                              <FormLabel>Logradouro</FormLabel>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="number"
+                          render={({ field }) => (
+                            <FormItem className="form-floating">
+                              <FormControl>
+                                <Input {...field} value={field.value || ""} placeholder=" " data-testid="input-number" />
+                              </FormControl>
+                              <FormLabel>Nº</FormLabel>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="complement"
+                          render={({ field }) => (
+                            <FormItem className="form-floating col-span-2">
+                              <FormControl>
+                                <Input {...field} value={field.value || ""} placeholder=" " data-testid="input-complement" />
+                              </FormControl>
+                              <FormLabel>Complemento</FormLabel>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="neighborhood"
+                          render={({ field }) => (
+                            <FormItem className="form-floating col-span-2">
+                              <FormControl>
+                                <Input {...field} value={field.value || ""} placeholder=" " data-testid="input-neighborhood" />
+                              </FormControl>
+                              <FormLabel>Bairro</FormLabel>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="city"
+                          render={({ field }) => (
+                            <FormItem className="form-floating col-span-2">
+                              <FormControl>
+                                <Input {...field} value={field.value || ""} placeholder=" " data-testid="input-city" />
+                              </FormControl>
+                              <FormLabel>Cidade</FormLabel>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="state"
+                          render={({ field }) => (
+                            <FormItem className="form-floating">
+                              <FormControl>
+                                <Input {...field} value={field.value || ""} maxLength={2} placeholder=" " data-testid="input-state" />
+                              </FormControl>
+                              <FormLabel>UF</FormLabel>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="country"
+                          render={({ field }) => (
+                            <FormItem className="form-floating">
+                              <FormControl>
+                                <Input {...field} value={field.value || ""} placeholder=" " data-testid="input-country" />
+                              </FormControl>
+                              <FormLabel>País</FormLabel>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      {/* Banking Fields */}
+                      <div className="grid grid-cols-4 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="bankName"
+                          render={({ field }) => (
+                            <FormItem className="form-floating col-span-2">
+                              <FormControl>
+                                <Input {...field} value={field.value || ""} placeholder=" " data-testid="input-bank-name" />
+                              </FormControl>
+                              <FormLabel>Banco</FormLabel>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="accountAgency"
+                          render={({ field }) => (
+                            <FormItem className="form-floating">
+                              <FormControl>
+                                <Input {...field} value={field.value || ""} placeholder=" " data-testid="input-account-agency" />
+                              </FormControl>
+                              <FormLabel>Agência</FormLabel>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="accountNumber"
+                          render={({ field }) => (
+                            <FormItem className="form-floating">
+                              <FormControl>
+                                <Input {...field} value={field.value || ""} placeholder=" " data-testid="input-account-number" />
+                              </FormControl>
+                              <FormLabel>Conta</FormLabel>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="pixKeyType"
+                          render={({ field }) => (
+                            <FormItem className="form-floating">
+                              <Select onValueChange={field.onChange} value={field.value || "cpf"}>
+                                <FormControl>
+                                  <SelectTrigger data-testid="select-pix-key-type" className="pt-5 pb-2">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="cpf">CPF</SelectItem>
+                                  <SelectItem value="cnpj">CNPJ</SelectItem>
+                                  <SelectItem value="email">Email</SelectItem>
+                                  <SelectItem value="phone">Telefone</SelectItem>
+                                  <SelectItem value="random">Aleatória</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormLabel>Tipo PIX</FormLabel>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="pixKey"
+                          render={({ field }) => (
+                            <FormItem className="form-floating col-span-3">
+                              <FormControl>
+                                <Input {...field} value={field.value || ""} placeholder=" " data-testid="input-pix-key" />
+                              </FormControl>
+                              <FormLabel>Chave PIX</FormLabel>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      {/* Default Chart Account */}
+                      <FormField
+                        control={form.control}
+                        name="defaultChartAccountId"
+                        render={({ field }) => (
+                          <FormItem className="form-floating">
+                            <Select onValueChange={field.onChange} value={field.value || ""}>
+                              <FormControl>
+                                <SelectTrigger data-testid="select-default-chart-account" className="pt-5 pb-2">
+                                  <SelectValue placeholder="Nenhum" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent className="max-h-[300px]">
+                                {chartAccounts.map((account: any) => (
+                                  <SelectItem key={account.id} value={account.id}>
+                                    {account.fullName}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormLabel>Plano de Contas Padrão</FormLabel>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      {/* Notes */}
+                      <FormField
+                        control={form.control}
+                        name="notes"
+                        render={({ field }) => (
+                          <FormItem className="form-floating">
+                            <FormControl>
+                              <Textarea {...field} value={field.value || ""} rows={3} placeholder=" " data-testid="input-notes" />
+                            </FormControl>
+                            <FormLabel>Observações</FormLabel>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* View Mode - Contact, Address, Banking, Notes Sections */}
+                {!isEditing && (
+                  <>
+                    {/* Contact Section */}
+                    {(selectedEntity.phone || selectedEntity.whatsapp || selectedEntity.email || selectedEntity.website) && (
+                      <div className="space-y-2">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                          {selectedEntity.phone && (
+                            <div className="border rounded-md p-2">
+                              <span className="text-xs text-muted-foreground">Telefone</span>
+                              <p className="text-sm font-medium mt-0.5" data-testid="text-phone">{selectedEntity.phone}</p>
+                            </div>
+                          )}
+                          {selectedEntity.whatsapp && (
+                            <div className="border rounded-md p-2">
+                              <span className="text-xs text-muted-foreground">WhatsApp</span>
+                              <div className="flex items-center gap-2 mt-0.5">
+                                <p className="text-sm font-medium">{selectedEntity.whatsapp}</p>
+                                <a
+                                  href={formatWhatsAppLink(selectedEntity.whatsapp)}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  data-testid="link-whatsapp-detail"
+                                >
+                                  <SiWhatsapp className="h-4 w-4 text-green-500 hover:text-green-600" />
+                                </a>
+                              </div>
+                            </div>
+                          )}
+                          {selectedEntity.email && (
+                            <div className="border rounded-md p-2">
+                              <span className="text-xs text-muted-foreground">Email</span>
+                              <p className="text-sm font-medium mt-0.5" data-testid="text-email">{selectedEntity.email}</p>
+                            </div>
+                          )}
+                          {selectedEntity.website && (
+                            <div className="border rounded-md p-2">
+                              <span className="text-xs text-muted-foreground">Website</span>
+                              <a
+                                href={selectedEntity.website}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-sm font-medium text-primary hover:underline block mt-0.5"
+                                data-testid="text-website"
+                              >
+                                {selectedEntity.website}
+                              </a>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Address Section */}
+                    {(selectedEntity.street || selectedEntity.city) && (
+                      <div className="space-y-2">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                           {selectedEntity.zipCode && (
                             <div className="border rounded-md p-2">
@@ -1184,129 +1418,12 @@ export default function ClientesFornecedores() {
                             </div>
                           )}
                         </div>
-                      )}
-                    </>
-                  ) : (
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-3 gap-2">
-                        <FormField
-                          control={form.control}
-                          name="zipCode"
-                          render={({ field }) => (
-                            <FormItem className="form-floating">
-                              <FormControl>
-                                <Input {...field} value={field.value || ""} placeholder=" " data-testid="input-zipcode" />
-                              </FormControl>
-                              <FormLabel>CEP</FormLabel>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="street"
-                          render={({ field }) => (
-                            <FormItem className="form-floating">
-                              <FormControl>
-                                <Input {...field} value={field.value || ""} placeholder=" " data-testid="input-street" />
-                              </FormControl>
-                              <FormLabel>Rua</FormLabel>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="number"
-                          render={({ field }) => (
-                            <FormItem className="form-floating">
-                              <FormControl>
-                                <Input {...field} value={field.value || ""} placeholder=" " data-testid="input-number" />
-                              </FormControl>
-                              <FormLabel>Nº</FormLabel>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
                       </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        <FormField
-                          control={form.control}
-                          name="complement"
-                          render={({ field }) => (
-                            <FormItem className="form-floating">
-                              <FormControl>
-                                <Input {...field} value={field.value || ""} placeholder=" " data-testid="input-complement" />
-                              </FormControl>
-                              <FormLabel>Complemento</FormLabel>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="neighborhood"
-                          render={({ field }) => (
-                            <FormItem className="form-floating">
-                              <FormControl>
-                                <Input {...field} value={field.value || ""} placeholder=" " data-testid="input-neighborhood" />
-                              </FormControl>
-                              <FormLabel>Bairro</FormLabel>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                      <div className="grid grid-cols-3 gap-2">
-                        <FormField
-                          control={form.control}
-                          name="city"
-                          render={({ field }) => (
-                            <FormItem className="form-floating">
-                              <FormControl>
-                                <Input {...field} value={field.value || ""} placeholder=" " data-testid="input-city" />
-                              </FormControl>
-                              <FormLabel>Cidade</FormLabel>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="state"
-                          render={({ field }) => (
-                            <FormItem className="form-floating">
-                              <FormControl>
-                                <Input {...field} value={field.value || ""} maxLength={2} placeholder=" " data-testid="input-state" />
-                              </FormControl>
-                              <FormLabel>UF</FormLabel>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="country"
-                          render={({ field }) => (
-                            <FormItem className="form-floating">
-                              <FormControl>
-                                <Input {...field} value={field.value || ""} placeholder=" " data-testid="input-country" />
-                              </FormControl>
-                              <FormLabel>País</FormLabel>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                    </div>
-                  )}
-                </div>
+                    )}
 
-                {/* Banking Info Section */}
-                <div className="space-y-2">
-                  {!isEditing ? (
-                    <>
-                      {(selectedEntity.bankName || selectedEntity.pixKey) && (
+                    {/* Banking Section */}
+                    {(selectedEntity.bankName || selectedEntity.pixKey) && (
+                      <div className="space-y-2">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                           {selectedEntity.bankName && (
                             <div className="border rounded-md p-2">
@@ -1331,165 +1448,59 @@ export default function ClientesFornecedores() {
                               <span className="text-xs text-muted-foreground">
                                 Chave PIX {selectedEntity.pixKeyType && `(${selectedEntity.pixKeyType.toUpperCase()})`}
                               </span>
-                              <p className="text-sm font-medium font-mono mt-0.5" data-testid="text-pix">{selectedEntity.pixKey}</p>
+                              <p className="text-sm font-medium mt-0.5">{selectedEntity.pixKey}</p>
                             </div>
                           )}
                         </div>
-                      )}
-                    </>
-                  ) : (
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-3 gap-2">
-                        <FormField
-                          control={form.control}
-                          name="bankName"
-                          render={({ field }) => (
-                            <FormItem className="form-floating">
-                              <FormControl>
-                                <Input {...field} value={field.value || ""} placeholder=" " data-testid="input-bank-name" />
-                              </FormControl>
-                              <FormLabel>Banco</FormLabel>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="accountAgency"
-                          render={({ field }) => (
-                            <FormItem className="form-floating">
-                              <FormControl>
-                                <Input {...field} value={field.value || ""} placeholder=" " data-testid="input-account-agency" />
-                              </FormControl>
-                              <FormLabel>Agência</FormLabel>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="accountNumber"
-                          render={({ field }) => (
-                            <FormItem className="form-floating">
-                              <FormControl>
-                                <Input {...field} value={field.value || ""} placeholder=" " data-testid="input-account-number" />
-                              </FormControl>
-                              <FormLabel>Conta</FormLabel>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
                       </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        <FormField
-                          control={form.control}
-                          name="pixKeyType"
-                          render={({ field }) => (
-                            <FormItem className="form-floating">
-                              <Select onValueChange={field.onChange} value={field.value || undefined}>
-                                <FormControl>
-                                  <SelectTrigger data-testid="select-pix-key-type" className="pt-5 pb-2">
-                                    <SelectValue placeholder="Tipo" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="cpf">CPF</SelectItem>
-                                  <SelectItem value="cnpj">CNPJ</SelectItem>
-                                  <SelectItem value="email">Email</SelectItem>
-                                  <SelectItem value="phone">Telefone</SelectItem>
-                                  <SelectItem value="random">Aleatória</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <FormLabel>Tipo PIX</FormLabel>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="pixKey"
-                          render={({ field }) => (
-                            <FormItem className="form-floating">
-                              <FormControl>
-                                <Input {...field} value={field.value || ""} placeholder=" " data-testid="input-pix-key" />
-                              </FormControl>
-                              <FormLabel>Chave PIX</FormLabel>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                    </div>
-                  )}
-                </div>
+                    )}
 
-                {/* Notes Section */}
-                <div className="space-y-2">
-                  {!isEditing ? (
-                    <>
-                      {selectedEntity.notes && (
+                    {/* Notes Section */}
+                    {selectedEntity.notes && (
+                      <div className="space-y-2">
                         <div className="border rounded-md p-2">
                           <p className="text-sm whitespace-pre-wrap" data-testid="text-notes">{selectedEntity.notes}</p>
                         </div>
-                      )}
-                    </>
-                  ) : (
-                    <FormField
-                      control={form.control}
-                      name="notes"
-                      render={({ field }) => (
-                        <FormItem className="form-floating">
-                          <FormControl>
-                            <Textarea {...field} value={field.value || ""} rows={3} placeholder=" " data-testid="input-notes" />
-                          </FormControl>
-                          <FormLabel>Observações</FormLabel>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  )}
-                </div>
+                      </div>
+                    )}
 
-                {/* Default Settings Section */}
-                <div className="space-y-2">
-                  {!isEditing ? (
-                    <>
-                      {selectedEntity.defaultChartAccountId && (
+                    {/* Default Chart Account Section */}
+                    {selectedEntity.defaultChartAccountId && (
+                      <div className="space-y-2">
                         <div className="border rounded-md p-2">
                           <span className="text-xs text-muted-foreground">Plano de Contas Padrão</span>
                           <p className="text-sm font-medium mt-0.5" data-testid="text-default-chart-account">
                             {chartAccounts.find(ca => ca.id === selectedEntity.defaultChartAccountId)?.fullName || selectedEntity.defaultChartAccountId}
                           </p>
                         </div>
-                      )}
-                    </>
-                  ) : (
-                    <FormField
-                      control={form.control}
-                      name="defaultChartAccountId"
-                      render={({ field }) => (
-                        <FormItem className="form-floating">
-                          <Select onValueChange={field.onChange} value={field.value || ""}>
-                            <FormControl>
-                              <SelectTrigger data-testid="select-default-chart-account" className="pt-5 pb-2">
-                                <SelectValue placeholder="Nenhum" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent className="max-h-[300px]">
-                              {chartAccounts.map((account: any) => (
-                                <SelectItem key={account.id} value={account.id}>
-                                  {account.fullName}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormLabel>Plano de Contas Padrão</FormLabel>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  )}
-                </div>
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {/* Action Buttons Footer for Edit Mode */}
+                {isEditing && (
+                  <div className="flex justify-end gap-2 pt-4 border-t">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleCancelEdit}
+                      disabled={isSaving}
+                      data-testid="button-cancel-edit"
+                    >
+                      Cancelar
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={handleSaveEdit}
+                      disabled={isSaving}
+                      data-testid="button-save-edit"
+                    >
+                      {isSaving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
+                      Salvar
+                    </Button>
+                  </div>
+                )}
               </div>
             </Form>
           )}
