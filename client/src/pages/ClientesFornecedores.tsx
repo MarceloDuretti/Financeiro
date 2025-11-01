@@ -450,6 +450,26 @@ export default function ClientesFornecedores() {
 
   const formatCode = (code: number) => `CLI${code.toString().padStart(3, "0")}`;
   
+  const formatDocument = (document: string | null | undefined, type?: string | null) => {
+    if (!document) return null;
+    
+    // Remove todos os caracteres não numéricos
+    const numbers = document.replace(/\D/g, '');
+    
+    // CNPJ: 00.000.000/0000-00
+    if (type === 'cnpj' || numbers.length === 14) {
+      return numbers.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
+    }
+    
+    // CPF: 000.000.000-00
+    if (type === 'cpf' || numbers.length === 11) {
+      return numbers.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+    }
+    
+    // Retorna o documento original se não for CNPJ ou CPF
+    return document;
+  };
+  
   const getTypeLabel = (entity: CustomerSupplier) => {
     if (entity.isCustomer && entity.isSupplier) return "Ambos";
     if (entity.isCustomer) return "Cliente";
@@ -714,8 +734,9 @@ export default function ClientesFornecedores() {
 
                   {/* Document */}
                   {entity.document && (
-                    <div className="text-[10px] text-muted-foreground font-mono">
-                      {entity.document}
+                    <div className="text-[10px] text-muted-foreground font-mono flex items-center gap-1">
+                      <FileText className="h-3 w-3 flex-shrink-0" />
+                      <span>{formatDocument(entity.document, entity.documentType)}</span>
                     </div>
                   )}
 
@@ -732,7 +753,10 @@ export default function ClientesFornecedores() {
                         <span className="mx-1">-</span>
                       )}
                       {entity.email && (
-                        <span className="truncate">{entity.email}</span>
+                        <>
+                          <Mail className="h-3 w-3 flex-shrink-0" />
+                          <span className="truncate">{entity.email}</span>
+                        </>
                       )}
                     </div>
                   )}
