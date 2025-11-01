@@ -1274,8 +1274,8 @@ export default function ClientesFornecedores() {
                 {!isEditing && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                     {/* LEFT COLUMN - Relationship Stats */}
-                    <Card className="border-0 bg-gradient-to-br from-card to-muted/30 shadow-md">
-                      <CardContent className="p-2 space-y-1.5">
+                    <Card className="border-0 bg-gradient-to-br from-card to-muted/30 shadow-md flex-1">
+                      <CardContent className="p-2 space-y-1">
                         {/* Type & Status Badges */}
                         <div className="flex gap-2 flex-wrap mb-2">
                           <Badge className={getTypeBadgeColor(selectedEntity)}>
@@ -1349,7 +1349,7 @@ export default function ClientesFornecedores() {
                           </div>
                         )}
 
-                        <Separator className="my-1.5" />
+                        <Separator className="my-1" />
 
                         {/* Secondary Metrics */}
                         {entityStats && (
@@ -1378,15 +1378,15 @@ export default function ClientesFornecedores() {
                           </div>
                         )}
 
-                        <Separator className="my-1.5" />
+                        <Separator className="my-1" />
 
                         {/* Line Chart */}
                         {entityStats && entityStats.monthlyTrend && entityStats.monthlyTrend.length > 0 && (
                           <div>
-                            <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1.5">
+                            <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
                               Evolução Mensal
                             </p>
-                            <ResponsiveContainer width="100%" height={70}>
+                            <ResponsiveContainer width="100%" height={60}>
                               <LineChart
                                 data={entityStats.monthlyTrend}
                                 margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
@@ -1446,12 +1446,12 @@ export default function ClientesFornecedores() {
                     </Card>
 
                     {/* RIGHT COLUMN - Entity Details */}
-                    <div className="space-y-2">
+                    <div className="space-y-1.5">
                       {/* Phone */}
                       {selectedEntity.phone && (
                         <div>
-                          <p className="text-xs text-muted-foreground mb-1.5">Telefone</p>
-                          <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium" data-testid="text-phone">
+                          <p className="text-xs text-muted-foreground mb-1">Telefone</p>
+                          <div className="border rounded-md px-3 py-1.5 bg-muted/20 text-sm font-medium" data-testid="text-phone">
                             {selectedEntity.phone || "-"}
                           </div>
                         </div>
@@ -1460,9 +1460,9 @@ export default function ClientesFornecedores() {
                       {/* WhatsApp */}
                       {selectedEntity.whatsapp && (
                         <div>
-                          <p className="text-xs text-muted-foreground mb-1.5">WhatsApp</p>
+                          <p className="text-xs text-muted-foreground mb-1">WhatsApp</p>
                           <div className="flex items-center gap-2">
-                            <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium flex-1">
+                            <div className="border rounded-md px-3 py-1.5 bg-muted/20 text-sm font-medium flex-1">
                               {selectedEntity.whatsapp || "-"}
                             </div>
                             <a
@@ -1480,8 +1480,8 @@ export default function ClientesFornecedores() {
                       {/* Email */}
                       {selectedEntity.email && (
                         <div>
-                          <p className="text-xs text-muted-foreground mb-1.5">Email</p>
-                          <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium" data-testid="text-email">
+                          <p className="text-xs text-muted-foreground mb-1">Email</p>
+                          <div className="border rounded-md px-3 py-1.5 bg-muted/20 text-sm font-medium" data-testid="text-email">
                             {selectedEntity.email || "-"}
                           </div>
                         </div>
@@ -1490,8 +1490,8 @@ export default function ClientesFornecedores() {
                       {/* Website */}
                       {selectedEntity.website && (
                         <div>
-                          <p className="text-xs text-muted-foreground mb-1.5">Website</p>
-                          <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium">
+                          <p className="text-xs text-muted-foreground mb-1">Website</p>
+                          <div className="border rounded-md px-3 py-1.5 bg-muted/20 text-sm font-medium">
                             <a
                               href={selectedEntity.website}
                               target="_blank"
@@ -1508,8 +1508,8 @@ export default function ClientesFornecedores() {
                       {/* Address Fields */}
                       {selectedEntity.zipCode && (
                         <div>
-                          <p className="text-xs text-muted-foreground mb-1.5">CEP</p>
-                          <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium">
+                          <p className="text-xs text-muted-foreground mb-1">CEP</p>
+                          <div className="border rounded-md px-3 py-1.5 bg-muted/20 text-sm font-medium">
                             {selectedEntity.zipCode || "-"}
                           </div>
                         </div>
@@ -1517,8 +1517,8 @@ export default function ClientesFornecedores() {
 
                       {selectedEntity.street && (
                         <div>
-                          <p className="text-xs text-muted-foreground mb-1.5">Endereço</p>
-                          <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium" data-testid="text-address">
+                          <p className="text-xs text-muted-foreground mb-1">Endereço</p>
+                          <div className="border rounded-md px-3 py-1.5 bg-muted/20 text-sm font-medium" data-testid="text-address">
                             {selectedEntity.street}
                             {selectedEntity.number && `, ${selectedEntity.number}`}
                           </div>
@@ -1527,8 +1527,8 @@ export default function ClientesFornecedores() {
 
                       {selectedEntity.complement && (
                         <div>
-                          <p className="text-xs text-muted-foreground mb-1.5">Complemento</p>
-                          <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium">
+                          <p className="text-xs text-muted-foreground mb-1">Complemento</p>
+                          <div className="border rounded-md px-3 py-1.5 bg-muted/20 text-sm font-medium">
                             {selectedEntity.complement || "-"}
                           </div>
                         </div>
@@ -1536,8 +1536,8 @@ export default function ClientesFornecedores() {
 
                       {selectedEntity.neighborhood && (
                         <div>
-                          <p className="text-xs text-muted-foreground mb-1.5">Bairro</p>
-                          <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium">
+                          <p className="text-xs text-muted-foreground mb-1">Bairro</p>
+                          <div className="border rounded-md px-3 py-1.5 bg-muted/20 text-sm font-medium">
                             {selectedEntity.neighborhood || "-"}
                           </div>
                         </div>
@@ -1545,8 +1545,8 @@ export default function ClientesFornecedores() {
 
                       {(selectedEntity.city || selectedEntity.state) && (
                         <div>
-                          <p className="text-xs text-muted-foreground mb-1.5">Cidade/Estado</p>
-                          <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium">
+                          <p className="text-xs text-muted-foreground mb-1">Cidade/Estado</p>
+                          <div className="border rounded-md px-3 py-1.5 bg-muted/20 text-sm font-medium">
                             {selectedEntity.city}
                             {selectedEntity.city && selectedEntity.state && " - "}
                             {selectedEntity.state}
@@ -1557,8 +1557,8 @@ export default function ClientesFornecedores() {
                       {/* Banking Info */}
                       {selectedEntity.bankName && (
                         <div>
-                          <p className="text-xs text-muted-foreground mb-1.5">Banco</p>
-                          <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium" data-testid="text-bank">
+                          <p className="text-xs text-muted-foreground mb-1">Banco</p>
+                          <div className="border rounded-md px-3 py-1.5 bg-muted/20 text-sm font-medium" data-testid="text-bank">
                             {selectedEntity.bankName || "-"}
                           </div>
                         </div>
@@ -1566,8 +1566,8 @@ export default function ClientesFornecedores() {
 
                       {selectedEntity.accountAgency && (
                         <div>
-                          <p className="text-xs text-muted-foreground mb-1.5">Agência</p>
-                          <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium">
+                          <p className="text-xs text-muted-foreground mb-1">Agência</p>
+                          <div className="border rounded-md px-3 py-1.5 bg-muted/20 text-sm font-medium">
                             {selectedEntity.accountAgency || "-"}
                           </div>
                         </div>
@@ -1575,8 +1575,8 @@ export default function ClientesFornecedores() {
 
                       {selectedEntity.accountNumber && (
                         <div>
-                          <p className="text-xs text-muted-foreground mb-1.5">Conta</p>
-                          <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium">
+                          <p className="text-xs text-muted-foreground mb-1">Conta</p>
+                          <div className="border rounded-md px-3 py-1.5 bg-muted/20 text-sm font-medium">
                             {selectedEntity.accountNumber || "-"}
                           </div>
                         </div>
@@ -1585,8 +1585,8 @@ export default function ClientesFornecedores() {
                       {/* Default Chart Account */}
                       {selectedEntity.defaultChartAccountId && (
                         <div>
-                          <p className="text-xs text-muted-foreground mb-1.5">Plano de Contas Padrão</p>
-                          <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium" data-testid="text-default-chart-account">
+                          <p className="text-xs text-muted-foreground mb-1">Plano de Contas Padrão</p>
+                          <div className="border rounded-md px-3 py-1.5 bg-muted/20 text-sm font-medium" data-testid="text-default-chart-account">
                             {chartAccounts.find(ca => ca.id === selectedEntity.defaultChartAccountId)?.fullName || 
                              selectedEntity.defaultChartAccountId}
                           </div>
@@ -1596,8 +1596,8 @@ export default function ClientesFornecedores() {
                       {/* Notes */}
                       {selectedEntity.notes && (
                         <div>
-                          <p className="text-xs text-muted-foreground mb-1.5">Observações</p>
-                          <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium whitespace-pre-wrap" data-testid="text-notes">
+                          <p className="text-xs text-muted-foreground mb-1">Observações</p>
+                          <div className="border rounded-md px-3 py-1.5 bg-muted/20 text-sm font-medium whitespace-pre-wrap" data-testid="text-notes">
                             {selectedEntity.notes || "-"}
                           </div>
                         </div>
