@@ -961,7 +961,7 @@ export default function ClientesFornecedores() {
 
                       {/* Transaction Trend Chart */}
                       {entityStats?.monthlyTrend && entityStats.monthlyTrend.length > 0 && (
-                        <Card className="p-2 bg-gradient-to-br from-card to-muted/30">
+                        <Card className="p-2 bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/20 dark:to-blue-900/10">
                           <div className="space-y-1">
                             <h4 className="text-[10px] text-muted-foreground uppercase tracking-wide">
                               Tendência (6 meses)
@@ -1010,7 +1010,7 @@ export default function ClientesFornecedores() {
                       )}
 
                       {/* Banking & Financial Info */}
-                      <Card className="p-2 bg-gradient-to-br from-card to-muted/30">
+                      <Card className="p-2 bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/20 dark:to-blue-900/10">
                         <div className="space-y-1">
                           {/* Default Chart Account */}
                           <FormField
@@ -1039,20 +1039,22 @@ export default function ClientesFornecedores() {
                         </div>
                       </Card>
 
-                      {/* Notes - moved here from right column */}
-                      <FormField
-                        control={form.control}
-                        name="notes"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-xs">Observações</FormLabel>
-                            <FormControl>
-                              <Textarea {...field} value={field.value || ""} rows={2} placeholder="Adicione observações..." className="text-xs" data-testid="input-notes" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                      {/* Notes Card - with blue gradient */}
+                      <Card className="p-2 bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/20 dark:to-blue-900/10">
+                        <FormField
+                          control={form.control}
+                          name="notes"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-xs">Observações</FormLabel>
+                              <FormControl>
+                                <Textarea {...field} value={field.value || ""} rows={5} placeholder="Adicione observações..." className="text-xs resize-none" data-testid="input-notes" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </Card>
                     </div>
 
                     {/* Right Column: Detailed Form Fields in 2-column layout */}
