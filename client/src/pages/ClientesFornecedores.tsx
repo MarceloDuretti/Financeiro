@@ -1285,94 +1285,94 @@ export default function ClientesFornecedores() {
                           />
                         </div>
                       </div>
-                    </div>
 
-                    {/* Financial Information - Horizontal Section in 2 rows */}
-                    <div className="pt-3 border-t space-y-2">
-                      <h4 className="text-xs font-medium text-muted-foreground">Informações Financeiras</h4>
-                      
-                      {/* Row 1: Bank Info */}
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                        <FormField
-                          control={form.control}
-                          name="bankName"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="text-xs">Banco</FormLabel>
-                              <FormControl>
-                                <Input {...field} value={field.value || ""} placeholder="Ex: Banco do Brasil" data-testid="input-bank-name" />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="accountAgency"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="text-xs">Agência</FormLabel>
-                              <FormControl>
-                                <Input {...field} value={field.value || ""} placeholder="0000" data-testid="input-account-agency" />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="accountNumber"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="text-xs">Conta</FormLabel>
-                              <FormControl>
-                                <Input {...field} value={field.value || ""} placeholder="00000-0" data-testid="input-account-number" />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-
-                      {/* Row 2: PIX Info */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                        <FormField
-                          control={form.control}
-                          name="pixKeyType"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="text-xs">Tipo PIX</FormLabel>
-                              <Select onValueChange={field.onChange} value={field.value || "cpf"}>
+                      {/* Financial Information - Horizontal Section in 2 rows - spans full width */}
+                      <div className="lg:col-span-2 pt-3 border-t space-y-2">
+                        <h4 className="text-xs font-medium text-muted-foreground">Informações Financeiras</h4>
+                        
+                        {/* Row 1: Bank Info */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                          <FormField
+                            control={form.control}
+                            name="bankName"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs">Banco</FormLabel>
                                 <FormControl>
-                                  <SelectTrigger data-testid="select-pix-key-type">
-                                    <SelectValue placeholder="Selecione" />
-                                  </SelectTrigger>
+                                  <Input {...field} value={field.value || ""} placeholder="Ex: Banco do Brasil" data-testid="input-bank-name" />
                                 </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="cpf">CPF</SelectItem>
-                                  <SelectItem value="cnpj">CNPJ</SelectItem>
-                                  <SelectItem value="email">Email</SelectItem>
-                                  <SelectItem value="phone">Telefone</SelectItem>
-                                  <SelectItem value="random">Aleatória</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="pixKey"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="text-xs">Chave PIX</FormLabel>
-                              <FormControl>
-                                <Input {...field} value={field.value || ""} placeholder="Digite a chave PIX" data-testid="input-pix-key" />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="accountAgency"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs">Agência</FormLabel>
+                                <FormControl>
+                                  <Input {...field} value={field.value || ""} placeholder="0000" data-testid="input-account-agency" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="accountNumber"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs">Conta</FormLabel>
+                                <FormControl>
+                                  <Input {...field} value={field.value || ""} placeholder="00000-0" data-testid="input-account-number" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+
+                        {/* Row 2: PIX Info */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                          <FormField
+                            control={form.control}
+                            name="pixKeyType"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs">Tipo PIX</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value || "cpf"}>
+                                  <FormControl>
+                                    <SelectTrigger data-testid="select-pix-key-type">
+                                      <SelectValue placeholder="Selecione" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <SelectItem value="cpf">CPF</SelectItem>
+                                    <SelectItem value="cnpj">CNPJ</SelectItem>
+                                    <SelectItem value="email">Email</SelectItem>
+                                    <SelectItem value="phone">Telefone</SelectItem>
+                                    <SelectItem value="random">Aleatória</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="pixKey"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs">Chave PIX</FormLabel>
+                                <FormControl>
+                                  <Input {...field} value={field.value || ""} placeholder="Digite a chave PIX" data-testid="input-pix-key" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
