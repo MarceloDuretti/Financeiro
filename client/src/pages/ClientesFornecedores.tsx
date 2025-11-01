@@ -1605,7 +1605,7 @@ export default function ClientesFornecedores() {
 
                       {/* Action Buttons */}
                       <div className="pt-4 mt-4">
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex gap-1.5 overflow-x-auto">
                           <Button
                             variant="default"
                             size="sm"
