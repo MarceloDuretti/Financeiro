@@ -1786,6 +1786,346 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ============================================
+  // ANALYTICS ROUTES
+  // ============================================
+
+  // Get DRE (Demonstração do Resultado do Exercício)
+  app.get("/api/analytics/dre", isAuthenticated, async (req, res) => {
+    try {
+      const tenantId = getTenantId((req as any).user);
+      const { companyId, month, year } = req.query;
+      
+      if (!companyId || typeof companyId !== 'string') {
+        return res.status(400).json({ error: "companyId é obrigatório" });
+      }
+      
+      if (!month || !year) {
+        return res.status(400).json({ error: "month e year são obrigatórios" });
+      }
+      
+      const monthNum = parseInt(month as string);
+      const yearNum = parseInt(year as string);
+      
+      // Get all transactions for the specified month
+      const startDate = new Date(yearNum, monthNum - 1, 1);
+      const endDate = new Date(yearNum, monthNum, 0, 23, 59, 59);
+      
+      const transactions = await storage.listTransactions(tenantId, companyId);
+      const chartAccounts = await storage.listChartOfAccounts(tenantId);
+      
+      // Filter transactions by date (using issueDate for competence)
+      const monthTransactions = transactions.filter((t: any) => {
+        const issueDate = new Date(t.issueDate);
+        return issueDate >= startDate && issueDate <= endDate && t.status !== 'cancelled';
+      });
+      
+      // Group by chart account and calculate totals
+      const accountTotals = new Map<string, { 
+        accountId: string, 
+        accountName: string, 
+        accountCode: string,
+        accountType: string,
+        total: number 
+      }>();
+      
+      monthTransactions.forEach((t: any) => {
+        if (t.chartAccountId) {
+          const account = chartAccounts.find(a => a.id === t.chartAccountId);
+          if (account) {
+            const existing = accountTotals.get(t.chartAccountId) || {
+              accountId: t.chartAccountId,
+              accountName: account.name,
+              accountCode: account.code,
+              accountType: account.type,
+              total: 0
+            };
+            
+            // Add to total (convert string to number)
+            const amount = parseFloat(t.paidAmount || t.amount || '0');
+            existing.total += amount;
+            accountTotals.set(t.chartAccountId, existing);
+          }
+        }
+      });
+      
+      // Convert to array and separate by type
+      const accountsArray = Array.from(accountTotals.values());
+      const revenues = accountsArray.filter((a: any) => a.accountType === 'receita');
+      const expenses = accountsArray.filter(a => a.accountType === 'despesa');
+      
+      const totalRevenues = revenues.reduce((sum, a) => sum + a.total, 0);
+      const totalExpenses = expenses.reduce((sum, a) => sum + a.total, 0);
+      const netResult = totalRevenues - totalExpenses;
+      
+      res.json({
+        revenues,
+        expenses,
+        totalRevenues,
+        totalExpenses,
+        netResult,
+      });
+    } catch (error: any) {
+      console.error("Error calculating DRE:", error);
+      res.status(500).json({ message: error.message || "Erro ao calcular DRE" });
+    }
+  });
+
+  // Get financial indicators
+  app.get("/api/analytics/indicators", isAuthenticated, async (req, res) => {
+    try {
+      const tenantId = getTenantId((req as any).user);
+      const { companyId, month, year } = req.query;
+      
+      if (!companyId || typeof companyId !== 'string') {
+        return res.status(400).json({ error: "companyId é obrigatório" });
+      }
+      
+      if (!month || !year) {
+        return res.status(400).json({ error: "month e year são obrigatórios" });
+      }
+      
+      const monthNum = parseInt(month as string);
+      const yearNum = parseInt(year as string);
+      
+      // Get current month data
+      const currentStart = new Date(yearNum, monthNum - 1, 1);
+      const currentEnd = new Date(yearNum, monthNum, 0, 23, 59, 59);
+      
+      // Get previous month data
+      const prevMonth = monthNum === 1 ? 12 : monthNum - 1;
+      const prevYear = monthNum === 1 ? yearNum - 1 : yearNum;
+      const prevStart = new Date(prevYear, prevMonth - 1, 1);
+      const prevEnd = new Date(prevYear, prevMonth, 0, 23, 59, 59);
+      
+      const transactions = await storage.listTransactions(tenantId, companyId);
+      
+      // Filter current month
+      const currentTransactions = transactions.filter((t: any) => {
+        const issueDate = new Date(t.issueDate);
+        return issueDate >= currentStart && issueDate <= currentEnd && t.status !== 'cancelled';
+      });
+      
+      // Filter previous month
+      const prevTransactions = transactions.filter((t: any) => {
+        const issueDate = new Date(t.issueDate);
+        return issueDate >= prevStart && issueDate <= prevEnd && t.status !== 'cancelled';
+      });
+      
+      // Calculate current month metrics
+      const currentRevenues = currentTransactions
+        .filter((t: any) => t.type === 'revenue')
+        .reduce((sum: number, t: any) => sum + parseFloat(t.paidAmount || t.amount || '0'), 0);
+      
+      const currentExpenses = currentTransactions
+        .filter((t: any) => t.type === 'expense')
+        .reduce((sum: number, t: any) => sum + parseFloat(t.paidAmount || t.amount || '0'), 0);
+      
+      const currentProfit = currentRevenues - currentExpenses;
+      
+      // Calculate previous month metrics
+      const prevRevenues = prevTransactions
+        .filter((t: any) => t.type === 'revenue')
+        .reduce((sum: number, t: any) => sum + parseFloat(t.paidAmount || t.amount || '0'), 0);
+      
+      const prevExpenses = prevTransactions
+        .filter((t: any) => t.type === 'expense')
+        .reduce((sum: number, t: any) => sum + parseFloat(t.paidAmount || t.amount || '0'), 0);
+      
+      const prevProfit = prevRevenues - prevExpenses;
+      
+      // Calculate growth percentages
+      const revenueGrowth = prevRevenues > 0 ? ((currentRevenues - prevRevenues) / prevRevenues) * 100 : 0;
+      const expenseGrowth = prevExpenses > 0 ? ((currentExpenses - prevExpenses) / prevExpenses) * 100 : 0;
+      const profitGrowth = prevProfit > 0 ? ((currentProfit - prevProfit) / prevProfit) * 100 : 0;
+      
+      // Calculate margins
+      const grossMargin = currentRevenues > 0 ? ((currentRevenues - currentExpenses) / currentRevenues) * 100 : 0;
+      const netMargin = currentRevenues > 0 ? (currentProfit / currentRevenues) * 100 : 0;
+      const roi = currentExpenses > 0 ? (currentProfit / currentExpenses) * 100 : 0;
+      
+      res.json({
+        current: {
+          revenues: currentRevenues,
+          expenses: currentExpenses,
+          profit: currentProfit,
+        },
+        previous: {
+          revenues: prevRevenues,
+          expenses: prevExpenses,
+          profit: prevProfit,
+        },
+        growth: {
+          revenues: revenueGrowth,
+          expenses: expenseGrowth,
+          profit: profitGrowth,
+        },
+        indicators: {
+          grossMargin,
+          netMargin,
+          roi,
+        },
+      });
+    } catch (error: any) {
+      console.error("Error calculating indicators:", error);
+      res.status(500).json({ message: error.message || "Erro ao calcular indicadores" });
+    }
+  });
+
+  // Generate AI insights
+  app.post("/api/analytics/ai-insights", isAuthenticated, async (req, res) => {
+    try {
+      const tenantId = getTenantId((req as any).user);
+      const { companyId, month, year } = req.body;
+      
+      if (!companyId) {
+        return res.status(400).json({ error: "companyId é obrigatório" });
+      }
+      
+      if (!month || !year) {
+        return res.status(400).json({ error: "month e year são obrigatórios" });
+      }
+      
+      // Get DRE and indicators data
+      const monthNum = parseInt(month);
+      const yearNum = parseInt(year);
+      
+      // Get current month data
+      const currentStart = new Date(yearNum, monthNum - 1, 1);
+      const currentEnd = new Date(yearNum, monthNum, 0, 23, 59, 59);
+      
+      const transactions = await storage.listTransactions(tenantId, companyId);
+      const chartAccounts = await storage.listChartOfAccounts(tenantId);
+      
+      const monthTransactions = transactions.filter((t: any) => {
+        const issueDate = new Date(t.issueDate);
+        return issueDate >= currentStart && issueDate <= currentEnd && t.status !== 'cancelled';
+      });
+      
+      // Calculate basic metrics
+      const revenues = monthTransactions
+        .filter((t: any) => t.type === 'revenue')
+        .reduce((sum: number, t: any) => sum + parseFloat(t.paidAmount || t.amount || '0'), 0);
+      
+      const expenses = monthTransactions
+        .filter((t: any) => t.type === 'expense')
+        .reduce((sum: number, t: any) => sum + parseFloat(t.paidAmount || t.amount || '0'), 0);
+      
+      const profit = revenues - expenses;
+      const margin = revenues > 0 ? (profit / revenues) * 100 : 0;
+      
+      // Group by chart account
+      const accountTotals = new Map<string, { name: string, total: number, type: string }>();
+      monthTransactions.forEach((t: any) => {
+        if (t.chartAccountId) {
+          const account = chartAccounts.find(a => a.id === t.chartAccountId);
+          if (account) {
+            const existing = accountTotals.get(t.chartAccountId) || {
+              name: account.name,
+              total: 0,
+              type: account.type
+            };
+            existing.total += parseFloat(t.paidAmount || t.amount || '0');
+            accountTotals.set(t.chartAccountId, existing);
+          }
+        }
+      });
+      
+      // Get top 5 revenue and expense accounts
+      const accountsArray = Array.from(accountTotals.values());
+      const topRevenues = accountsArray
+        .filter((a: any) => a.type === 'receita')
+        .sort((a, b) => b.total - a.total)
+        .slice(0, 5);
+      
+      const topExpenses = accountsArray
+        .filter(a => a.type === 'despesa')
+        .sort((a, b) => b.total - a.total)
+        .slice(0, 5);
+      
+      // Generate AI insights
+      const prompt = `Você é um analista financeiro especializado. Analise os seguintes dados financeiros e forneça 3-5 insights práticos e acionáveis em português:
+
+Período: ${monthNum}/${yearNum}
+
+Resumo Financeiro:
+- Receitas: R$ ${revenues.toFixed(2)}
+- Despesas: R$ ${expenses.toFixed(2)}
+- Lucro: R$ ${profit.toFixed(2)}
+- Margem: ${margin.toFixed(1)}%
+
+Top 5 Contas de Receita:
+${topRevenues.map(a => `- ${a.name}: R$ ${a.total.toFixed(2)}`).join('\n')}
+
+Top 5 Contas de Despesa:
+${topExpenses.map(a => `- ${a.name}: R$ ${a.total.toFixed(2)}`).join('\n')}
+
+Forneça insights em formato JSON como um array de objetos com as chaves:
+- type: "warning" (vermelho), "success" (verde), "info" (azul), ou "tip" (amarelo)
+- title: título curto (max 50 caracteres)
+- description: descrição detalhada (max 200 caracteres)
+
+Exemplo de resposta:
+[
+  {
+    "type": "warning",
+    "title": "Despesas operacionais altas",
+    "description": "As despesas operacionais representam 65% da receita, acima da média do setor de 40-50%."
+  }
+]
+
+Retorne apenas o array JSON, sem explicações adicionais.`;
+
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: "gpt-4o-mini",
+          messages: [
+            {
+              role: "system",
+              content: "Você é um assistente financeiro especializado em análise de demonstrativos financeiros. Sempre responda em português do Brasil com insights práticos e acionáveis."
+            },
+            {
+              role: "user",
+              content: prompt
+            }
+          ],
+          temperature: 0.7,
+          max_tokens: 1000,
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`OpenAI API error: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      const content = data.choices[0]?.message?.content || "[]";
+      
+      // Parse AI response
+      let insights = [];
+      try {
+        insights = JSON.parse(content);
+      } catch (e) {
+        // If parsing fails, create a fallback insight
+        insights = [{
+          type: "info",
+          title: "Análise disponível",
+          description: "Os dados foram processados. Continue monitorando seus indicadores financeiros."
+        }];
+      }
+      
+      res.json({ insights });
+    } catch (error: any) {
+      console.error("Error generating AI insights:", error);
+      res.status(500).json({ message: error.message || "Erro ao gerar insights" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;
