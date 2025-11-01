@@ -495,6 +495,9 @@ export const customersSuppliers = pgTable("customers_suppliers", {
   imageUrl: text("image_url"), // Circular avatar
   notes: text("notes"), // General observations
   
+  // Default settings
+  defaultChartAccountId: varchar("default_chart_account_id").references(() => chartOfAccounts.id), // Default chart account for transactions
+  
   // Status and control
   isActive: boolean("is_active").notNull().default(true),
   updatedAt: timestamp("updated_at").notNull().defaultNow().$onUpdate(() => new Date()),
