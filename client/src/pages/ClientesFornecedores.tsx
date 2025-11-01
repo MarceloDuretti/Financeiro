@@ -1476,7 +1476,6 @@ export default function ClientesFornecedores() {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent className="max-h-[300px]">
-                              <SelectItem value="">Nenhum</SelectItem>
                               {chartAccounts.map((account: any) => (
                                 <SelectItem key={account.id} value={account.id}>
                                   {account.fullName}
@@ -1940,7 +1939,6 @@ export default function ClientesFornecedores() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent className="max-h-[300px]">
-                            <SelectItem value="">Nenhum</SelectItem>
                             {chartAccounts.map((account: any) => (
                               <SelectItem key={account.id} value={account.id}>
                                 {account.fullName}
