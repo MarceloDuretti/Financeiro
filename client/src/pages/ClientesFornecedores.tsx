@@ -895,7 +895,7 @@ export default function ClientesFornecedores() {
                             name="isCustomer"
                             render={({ field }) => (
                               <FormItem>
-                                <div className="flex items-center space-x-2 px-2 py-1">
+                                <div className="flex items-center space-x-2">
                                   <FormControl>
                                     <Checkbox
                                       checked={field.value}
@@ -913,7 +913,7 @@ export default function ClientesFornecedores() {
                             name="isSupplier"
                             render={({ field }) => (
                               <FormItem>
-                                <div className="flex items-center space-x-2 px-2 py-1">
+                                <div className="flex items-center space-x-2">
                                   <FormControl>
                                     <Checkbox
                                       checked={field.value}
@@ -931,7 +931,7 @@ export default function ClientesFornecedores() {
                             name="isActive"
                             render={({ field }) => (
                               <FormItem>
-                                <div className="flex items-center space-x-2 px-2 py-1">
+                                <div className="flex items-center space-x-2">
                                   <FormControl>
                                     <Checkbox
                                       checked={field.value}
