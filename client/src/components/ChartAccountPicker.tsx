@@ -148,12 +148,12 @@ export function ChartAccountPicker({
   return (
     <>
       {/* Input field with trigger button */}
-      <div className="flex gap-2">
+      <div className="flex gap-1">
         <Input
           value={displayValue}
           placeholder={placeholder}
           readOnly
-          className="flex-1 cursor-pointer"
+          className="flex-1 cursor-pointer h-6 text-[10px] px-2"
           onClick={() => !disabled && setOpen(true)}
           disabled={disabled}
           data-testid="input-chart-account-picker"
@@ -161,12 +161,12 @@ export function ChartAccountPicker({
         <Button
           type="button"
           variant="outline"
-          size="icon"
+          className="h-6 w-6 p-0"
           onClick={() => setOpen(true)}
           disabled={disabled}
           data-testid="button-open-chart-account-picker"
         >
-          <FolderTree className="h-4 w-4" />
+          <FolderTree className="h-3 w-3" />
         </Button>
       </div>
 

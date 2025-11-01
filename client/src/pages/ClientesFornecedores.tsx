@@ -83,6 +83,7 @@ import { AIEntityInput } from "@/components/AIEntityInput";
 import { AIPreviewDialog } from "@/components/AIPreviewDialog";
 import { AIReportDialog } from "@/components/AIReportDialog";
 import { LineChart, Line, ResponsiveContainer, XAxis, Tooltip } from "recharts";
+import { ChartAccountPicker } from "@/components/ChartAccountPicker";
 import { format } from "date-fns";
 import { pt } from "date-fns/locale";
 
@@ -1019,20 +1020,14 @@ export default function ClientesFornecedores() {
                             render={({ field }) => (
                               <FormItem className="space-y-0.5">
                                 <FormLabel className="text-[9px] text-muted-foreground">Plano de Contas Padrão</FormLabel>
-                                <Select onValueChange={field.onChange} value={field.value || ""}>
-                                  <FormControl>
-                                    <SelectTrigger className="h-6 text-[10px]" data-testid="select-default-chart-account">
-                                      <SelectValue placeholder="Selecione (opcional)" />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent className="max-h-[300px]">
-                                    {chartAccounts.map((account: any) => (
-                                      <SelectItem key={account.id} value={account.id}>
-                                        {account.fullName}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
+                                <FormControl>
+                                  <ChartAccountPicker
+                                    accounts={chartAccounts}
+                                    value={field.value || null}
+                                    onChange={field.onChange}
+                                    placeholder="Selecione (opcional)"
+                                  />
+                                </FormControl>
                               </FormItem>
                             )}
                           />
