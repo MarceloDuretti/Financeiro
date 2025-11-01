@@ -863,10 +863,10 @@ export default function ClientesFornecedores() {
 
       {/* Details Drawer - Implementation continues... */}
       <Sheet open={isDrawerOpen} onOpenChange={setIsDrawerOpen} modal={true}>
-        <SheetContent className={`w-full overflow-y-auto ${isEditing ? 'sm:max-w-6xl' : 'sm:max-w-4xl'}`}>
+        <SheetContent className={`w-full flex flex-col ${isEditing ? 'sm:max-w-6xl' : 'sm:max-w-4xl'} max-h-[100vh]`}>
           {selectedEntity && (
-            <Form {...form}>
-              <SheetHeader>
+            <Form {...form} className="flex h-full flex-col">
+              <SheetHeader className="flex-shrink-0">
                 <div className="flex items-center gap-4">
                   <Avatar className="h-16 w-16">
                     <AvatarImage src={selectedEntity.imageUrl || undefined} alt={selectedEntity.name} />
@@ -885,7 +885,7 @@ export default function ClientesFornecedores() {
                 </div>
               </SheetHeader>
 
-              <div className={`mt-2 ${isEditing ? 'space-y-1.5' : 'space-y-1.5'}`}>
+              <div className={`flex-1 overflow-y-auto mt-2 ${isEditing ? 'space-y-1.5 [@media(min-height:700px)]:space-y-2' : 'space-y-1 [@media(min-height:700px)]:space-y-1.5'}`}>
                 {/* Main Content Layout - 2 Columns when Editing */}
                 {isEditing ? (
                   <div className="grid grid-cols-[300px_1fr] gap-4">
@@ -1338,7 +1338,7 @@ export default function ClientesFornecedores() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                     {/* LEFT COLUMN - Relationship Stats */}
                     <Card className="border-0 bg-gradient-to-br from-card to-muted/30 shadow-md flex-1">
-                      <CardContent className="p-1.5 space-y-0.5">
+                      <CardContent className="p-1.5 [@media(min-height:700px)]:p-2 space-y-0.5 [@media(min-height:700px)]:space-y-1">
                         {/* Type & Status Badges */}
                         <div className="flex gap-2 flex-wrap mb-2">
                           <Badge className={getTypeBadgeColor(selectedEntity)}>
@@ -1363,7 +1363,7 @@ export default function ClientesFornecedores() {
                         <div>
                           {entityStats ? (
                             <div
-                              className={`text-xl font-bold tabular-nums ${
+                              className={`text-xl [@media(min-height:700px)]:text-2xl font-bold tabular-nums ${
                                 selectedEntity.isCustomer ? "text-green-600" : "text-destructive"
                               }`}
                             >
@@ -1374,7 +1374,7 @@ export default function ClientesFornecedores() {
                               ).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                             </div>
                           ) : (
-                            <div className="text-xl font-bold text-muted-foreground">
+                            <div className="text-xl [@media(min-height:700px)]:text-2xl font-bold text-muted-foreground">
                               Carregando...
                             </div>
                           )}
@@ -1383,7 +1383,7 @@ export default function ClientesFornecedores() {
                         {/* Percentage Bar */}
                         {entityStats && (
                           <div className="space-y-0.5">
-                            <div className="flex items-center justify-between text-[11px]">
+                            <div className="flex items-center justify-between text-[11px] [@media(min-height:700px)]:text-xs">
                               <span className="text-muted-foreground">
                                 Representa{" "}
                                 {(
@@ -1394,7 +1394,7 @@ export default function ClientesFornecedores() {
                                 % do total
                               </span>
                             </div>
-                            <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                            <div className="h-1.5 [@media(min-height:700px)]:h-2 bg-muted rounded-full overflow-hidden">
                               <div
                                 className={`h-full ${
                                   selectedEntity.isCustomer ? "bg-green-600" : "bg-destructive"
@@ -1416,20 +1416,20 @@ export default function ClientesFornecedores() {
 
                         {/* Secondary Metrics */}
                         {entityStats && (
-                          <div className="grid grid-cols-2 gap-1.5">
+                          <div className="grid grid-cols-2 gap-1.5 [@media(min-height:700px)]:gap-2">
                             <div>
-                              <p className="text-[11px] text-muted-foreground uppercase tracking-wide mb-0.5">
+                              <p className="text-[11px] [@media(min-height:700px)]:text-xs text-muted-foreground uppercase tracking-wide mb-0.5">
                                 Transações
                               </p>
-                              <p className="text-xs font-bold tabular-nums">
+                              <p className="text-xs [@media(min-height:700px)]:text-sm font-bold tabular-nums">
                                 {entityStats.transactionCount}
                               </p>
                             </div>
                             <div>
-                              <p className="text-[11px] text-muted-foreground uppercase tracking-wide mb-0.5">
+                              <p className="text-[11px] [@media(min-height:700px)]:text-xs text-muted-foreground uppercase tracking-wide mb-0.5">
                                 Média Mensal
                               </p>
-                              <p className="text-xs font-bold tabular-nums">
+                              <p className="text-xs [@media(min-height:700px)]:text-sm font-bold tabular-nums">
                                 R${" "}
                                 {(
                                   (selectedEntity.isCustomer
@@ -1446,10 +1446,11 @@ export default function ClientesFornecedores() {
                         {/* Line Chart */}
                         {entityStats && entityStats.monthlyTrend && entityStats.monthlyTrend.length > 0 && (
                           <div>
-                            <p className="text-[11px] text-muted-foreground uppercase tracking-wide mb-0.5">
+                            <p className="text-[11px] [@media(min-height:700px)]:text-xs text-muted-foreground uppercase tracking-wide mb-0.5">
                               Evolução Mensal
                             </p>
-                            <ResponsiveContainer width="100%" height={50}>
+                            <div className="h-[50px] [@media(min-height:700px)]:h-[80px]">
+                              <ResponsiveContainer width="100%" height="100%">
                               <LineChart
                                 data={entityStats.monthlyTrend}
                                 margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
@@ -1503,19 +1504,20 @@ export default function ClientesFornecedores() {
                                 )}
                               </LineChart>
                             </ResponsiveContainer>
+                            </div>
                           </div>
                         )}
                       </CardContent>
                     </Card>
 
                     {/* RIGHT COLUMN - Entity Details */}
-                    <div className="space-y-1">
+                    <div className="space-y-1 [@media(min-height:700px)]:space-y-1.5">
                       {/* Phone (mostra phone ou whatsapp, prioriza phone) */}
                       {(selectedEntity.phone || selectedEntity.whatsapp) && (
                         <div>
-                          <p className="text-[11px] text-muted-foreground mb-0.5">Telefone</p>
+                          <p className="text-[11px] [@media(min-height:700px)]:text-xs text-muted-foreground mb-0.5">Telefone</p>
                           <div className="flex items-center gap-2">
-                            <div className="border rounded-md px-3 py-1 bg-muted/20 text-[13px] font-medium flex-1" data-testid="text-phone">
+                            <div className="border rounded-md px-3 py-1 [@media(min-height:700px)]:py-2 bg-muted/20 text-[13px] [@media(min-height:700px)]:text-sm font-medium flex-1" data-testid="text-phone">
                               {formatPhone(selectedEntity.phone || selectedEntity.whatsapp)}
                             </div>
                             {(selectedEntity.whatsapp || selectedEntity.phone) && (
@@ -1535,8 +1537,8 @@ export default function ClientesFornecedores() {
                       {/* Email */}
                       {selectedEntity.email && (
                         <div>
-                          <p className="text-[11px] text-muted-foreground mb-0.5">Email</p>
-                          <div className="border rounded-md px-3 py-1 bg-muted/20 text-[13px] font-medium" data-testid="text-email">
+                          <p className="text-[11px] [@media(min-height:700px)]:text-xs text-muted-foreground mb-0.5">Email</p>
+                          <div className="border rounded-md px-3 py-1 [@media(min-height:700px)]:py-2 bg-muted/20 text-[13px] [@media(min-height:700px)]:text-sm font-medium" data-testid="text-email">
                             {selectedEntity.email || "-"}
                           </div>
                         </div>
@@ -1545,8 +1547,8 @@ export default function ClientesFornecedores() {
                       {/* Website */}
                       {selectedEntity.website && (
                         <div>
-                          <p className="text-[11px] text-muted-foreground mb-0.5">Website</p>
-                          <div className="border rounded-md px-3 py-1 bg-muted/20 text-[13px] font-medium">
+                          <p className="text-[11px] [@media(min-height:700px)]:text-xs text-muted-foreground mb-0.5">Website</p>
+                          <div className="border rounded-md px-3 py-1 [@media(min-height:700px)]:py-2 bg-muted/20 text-[13px] [@media(min-height:700px)]:text-sm font-medium">
                             <a
                               href={selectedEntity.website}
                               target="_blank"
@@ -1563,8 +1565,8 @@ export default function ClientesFornecedores() {
                       {/* Address Fields */}
                       {selectedEntity.zipCode && (
                         <div>
-                          <p className="text-[11px] text-muted-foreground mb-0.5">CEP</p>
-                          <div className="border rounded-md px-3 py-1 bg-muted/20 text-[13px] font-medium">
+                          <p className="text-[11px] [@media(min-height:700px)]:text-xs text-muted-foreground mb-0.5">CEP</p>
+                          <div className="border rounded-md px-3 py-1 [@media(min-height:700px)]:py-2 bg-muted/20 text-[13px] [@media(min-height:700px)]:text-sm font-medium">
                             {selectedEntity.zipCode || "-"}
                           </div>
                         </div>
@@ -1572,8 +1574,8 @@ export default function ClientesFornecedores() {
 
                       {selectedEntity.street && (
                         <div>
-                          <p className="text-[11px] text-muted-foreground mb-0.5">Endereço</p>
-                          <div className="border rounded-md px-3 py-1 bg-muted/20 text-[13px] font-medium" data-testid="text-address">
+                          <p className="text-[11px] [@media(min-height:700px)]:text-xs text-muted-foreground mb-0.5">Endereço</p>
+                          <div className="border rounded-md px-3 py-1 [@media(min-height:700px)]:py-2 bg-muted/20 text-[13px] [@media(min-height:700px)]:text-sm font-medium" data-testid="text-address">
                             {selectedEntity.street}
                             {selectedEntity.number && `, ${selectedEntity.number}`}
                           </div>
@@ -1582,8 +1584,8 @@ export default function ClientesFornecedores() {
 
                       {selectedEntity.complement && (
                         <div>
-                          <p className="text-[11px] text-muted-foreground mb-0.5">Complemento</p>
-                          <div className="border rounded-md px-3 py-1 bg-muted/20 text-[13px] font-medium">
+                          <p className="text-[11px] [@media(min-height:700px)]:text-xs text-muted-foreground mb-0.5">Complemento</p>
+                          <div className="border rounded-md px-3 py-1 [@media(min-height:700px)]:py-2 bg-muted/20 text-[13px] [@media(min-height:700px)]:text-sm font-medium">
                             {selectedEntity.complement || "-"}
                           </div>
                         </div>
@@ -1591,8 +1593,8 @@ export default function ClientesFornecedores() {
 
                       {selectedEntity.neighborhood && (
                         <div>
-                          <p className="text-[11px] text-muted-foreground mb-0.5">Bairro</p>
-                          <div className="border rounded-md px-3 py-1 bg-muted/20 text-[13px] font-medium">
+                          <p className="text-[11px] [@media(min-height:700px)]:text-xs text-muted-foreground mb-0.5">Bairro</p>
+                          <div className="border rounded-md px-3 py-1 [@media(min-height:700px)]:py-2 bg-muted/20 text-[13px] [@media(min-height:700px)]:text-sm font-medium">
                             {selectedEntity.neighborhood || "-"}
                           </div>
                         </div>
@@ -1600,8 +1602,8 @@ export default function ClientesFornecedores() {
 
                       {(selectedEntity.city || selectedEntity.state) && (
                         <div>
-                          <p className="text-[11px] text-muted-foreground mb-0.5">Cidade/Estado</p>
-                          <div className="border rounded-md px-3 py-1 bg-muted/20 text-[13px] font-medium">
+                          <p className="text-[11px] [@media(min-height:700px)]:text-xs text-muted-foreground mb-0.5">Cidade/Estado</p>
+                          <div className="border rounded-md px-3 py-1 [@media(min-height:700px)]:py-2 bg-muted/20 text-[13px] [@media(min-height:700px)]:text-sm font-medium">
                             {selectedEntity.city}
                             {selectedEntity.city && selectedEntity.state && " - "}
                             {selectedEntity.state}
@@ -1614,24 +1616,24 @@ export default function ClientesFornecedores() {
                         <div className="grid grid-cols-3 gap-2">
                           {selectedEntity.bankName && (
                             <div>
-                              <p className="text-[11px] text-muted-foreground mb-0.5">Banco</p>
-                              <div className="border rounded-md px-2 py-1 bg-muted/20 text-[13px] font-medium truncate" data-testid="text-bank">
+                              <p className="text-[11px] [@media(min-height:700px)]:text-xs text-muted-foreground mb-0.5">Banco</p>
+                              <div className="border rounded-md px-2 py-1 [@media(min-height:700px)]:py-2 bg-muted/20 text-[13px] [@media(min-height:700px)]:text-sm font-medium truncate" data-testid="text-bank">
                                 {selectedEntity.bankName}
                               </div>
                             </div>
                           )}
                           {selectedEntity.accountAgency && (
                             <div>
-                              <p className="text-[11px] text-muted-foreground mb-0.5">Agência</p>
-                              <div className="border rounded-md px-2 py-1 bg-muted/20 text-[13px] font-medium truncate">
+                              <p className="text-[11px] [@media(min-height:700px)]:text-xs text-muted-foreground mb-0.5">Agência</p>
+                              <div className="border rounded-md px-2 py-1 [@media(min-height:700px)]:py-2 bg-muted/20 text-[13px] [@media(min-height:700px)]:text-sm font-medium truncate">
                                 {selectedEntity.accountAgency}
                               </div>
                             </div>
                           )}
                           {selectedEntity.accountNumber && (
                             <div>
-                              <p className="text-[11px] text-muted-foreground mb-0.5">Conta</p>
-                              <div className="border rounded-md px-2 py-1 bg-muted/20 text-[13px] font-medium truncate">
+                              <p className="text-[11px] [@media(min-height:700px)]:text-xs text-muted-foreground mb-0.5">Conta</p>
+                              <div className="border rounded-md px-2 py-1 [@media(min-height:700px)]:py-2 bg-muted/20 text-[13px] [@media(min-height:700px)]:text-sm font-medium truncate">
                                 {selectedEntity.accountNumber}
                               </div>
                             </div>
@@ -1642,8 +1644,8 @@ export default function ClientesFornecedores() {
                       {/* Default Chart Account */}
                       {selectedEntity.defaultChartAccountId && (
                         <div>
-                          <p className="text-[11px] text-muted-foreground mb-0.5">Plano de Contas Padrão</p>
-                          <div className="border rounded-md px-3 py-1 bg-muted/20 text-[13px] font-medium" data-testid="text-default-chart-account">
+                          <p className="text-[11px] [@media(min-height:700px)]:text-xs text-muted-foreground mb-0.5">Plano de Contas Padrão</p>
+                          <div className="border rounded-md px-3 py-1 [@media(min-height:700px)]:py-2 bg-muted/20 text-[13px] [@media(min-height:700px)]:text-sm font-medium" data-testid="text-default-chart-account">
                             {chartAccounts.find(ca => ca.id === selectedEntity.defaultChartAccountId)?.fullName || 
                              selectedEntity.defaultChartAccountId}
                           </div>
@@ -1653,8 +1655,8 @@ export default function ClientesFornecedores() {
                       {/* Notes */}
                       {selectedEntity.notes && (
                         <div>
-                          <p className="text-[11px] text-muted-foreground mb-0.5">Observações</p>
-                          <div className="border rounded-md px-3 py-1 bg-muted/20 text-[13px] font-medium whitespace-pre-wrap" data-testid="text-notes">
+                          <p className="text-[11px] [@media(min-height:700px)]:text-xs text-muted-foreground mb-0.5">Observações</p>
+                          <div className="border rounded-md px-3 py-1 [@media(min-height:700px)]:py-2 bg-muted/20 text-[13px] [@media(min-height:700px)]:text-sm font-medium whitespace-pre-wrap" data-testid="text-notes">
                             {selectedEntity.notes || "-"}
                           </div>
                         </div>
