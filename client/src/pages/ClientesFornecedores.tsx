@@ -1499,32 +1499,24 @@ export default function ClientesFornecedores() {
 
                     {/* RIGHT COLUMN - Entity Details */}
                     <div className="space-y-1">
-                      {/* Phone */}
-                      {selectedEntity.phone && (
+                      {/* Phone (mostra phone ou whatsapp, prioriza phone) */}
+                      {(selectedEntity.phone || selectedEntity.whatsapp) && (
                         <div>
                           <p className="text-[11px] text-muted-foreground mb-0.5">Telefone</p>
-                          <div className="border rounded-md px-3 py-1 bg-muted/20 text-[13px] font-medium" data-testid="text-phone">
-                            {selectedEntity.phone || "-"}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* WhatsApp */}
-                      {selectedEntity.whatsapp && (
-                        <div>
-                          <p className="text-[11px] text-muted-foreground mb-0.5">WhatsApp</p>
                           <div className="flex items-center gap-2">
-                            <div className="border rounded-md px-3 py-1 bg-muted/20 text-[13px] font-medium flex-1">
-                              {selectedEntity.whatsapp || "-"}
+                            <div className="border rounded-md px-3 py-1 bg-muted/20 text-[13px] font-medium flex-1" data-testid="text-phone">
+                              {formatPhone(selectedEntity.phone || selectedEntity.whatsapp)}
                             </div>
-                            <a
-                              href={formatWhatsAppLink(selectedEntity.whatsapp)}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              data-testid="link-whatsapp-detail"
-                            >
-                              <SiWhatsapp className="h-4 w-4 text-green-500 hover:text-green-600" />
-                            </a>
+                            {(selectedEntity.whatsapp || selectedEntity.phone) && (
+                              <a
+                                href={formatWhatsAppLink(selectedEntity.whatsapp || selectedEntity.phone)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                data-testid="link-whatsapp-detail"
+                              >
+                                <SiWhatsapp className="h-4 w-4 text-green-500 hover:text-green-600" />
+                              </a>
+                            )}
                           </div>
                         </div>
                       )}
