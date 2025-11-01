@@ -1336,10 +1336,10 @@ export default function ClientesFornecedores() {
 
                 {/* View Mode - 2-Column Layout */}
                 {!isEditing && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5 lg:gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                     {/* LEFT COLUMN - Relationship Stats */}
                     <Card className="border-0 bg-gradient-to-br from-card to-muted/30 shadow-md flex-1">
-                      <CardContent className="p-3 [@media(min-height:700px)]:p-4 space-y-2 [@media(min-height:700px)]:space-y-2.5">
+                      <CardContent className="p-2.5 [@media(min-height:700px)]:p-3 space-y-1.5 [@media(min-height:700px)]:space-y-2">
                         {/* Type & Status Badges */}
                         <div className="flex gap-2 flex-wrap mb-2">
                           <Badge className={getTypeBadgeColor(selectedEntity)}>
@@ -1413,11 +1413,11 @@ export default function ClientesFornecedores() {
                           </div>
                         )}
 
-                        <Separator className="my-2" />
+                        <Separator className="my-1.5" />
 
                         {/* Secondary Metrics */}
                         {entityStats && (
-                          <div className="grid grid-cols-2 gap-3">
+                          <div className="grid grid-cols-2 gap-2.5">
                             <div>
                               <p className="text-[11px] [@media(min-height:700px)]:text-xs text-muted-foreground uppercase tracking-wide mb-1">
                                 Transações
@@ -1442,7 +1442,7 @@ export default function ClientesFornecedores() {
                           </div>
                         )}
 
-                        <Separator className="my-2" />
+                        <Separator className="my-1.5" />
 
                         {/* Default Chart Account */}
                         <div>
@@ -1456,7 +1456,7 @@ export default function ClientesFornecedores() {
                           </p>
                         </div>
 
-                        <Separator className="my-2" />
+                        <Separator className="my-1.5" />
 
                         {/* Line Chart */}
                         {entityStats && entityStats.monthlyTrend && entityStats.monthlyTrend.length > 0 && (
@@ -1526,7 +1526,7 @@ export default function ClientesFornecedores() {
                     </Card>
 
                     {/* RIGHT COLUMN - Entity Details */}
-                    <div className="space-y-2 [@media(min-height:700px)]:space-y-3">
+                    <div className="space-y-1.5 [@media(min-height:700px)]:space-y-2">
                       {/* Phone (mostra phone ou whatsapp, prioriza phone) */}
                       {(selectedEntity.phone || selectedEntity.whatsapp) && (
                         <div>
