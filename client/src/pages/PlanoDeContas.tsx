@@ -572,7 +572,7 @@ export default function PlanoDeContas() {
           {/* Name only - no description in compact mode */}
           <div className="flex-1 min-w-0">
             <div
-              className={`${getTextSize()} leading-tight truncate`}
+              className={`${getTextSize()} leading-snug line-clamp-2`}
               data-testid={`text-name-${node.id}`}
               title={node.description || node.name}
             >
