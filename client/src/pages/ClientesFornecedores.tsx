@@ -893,7 +893,7 @@ export default function ClientesFornecedores() {
                   <div className="grid grid-cols-[300px_1fr] gap-4">
                     {/* Left Column: Compact Info Card */}
                     <div className="space-y-1.5">
-                      <Card className="p-2 bg-gradient-to-br from-blue-50/50 to-blue-100/30 dark:from-blue-950/20 dark:to-blue-900/10">
+                      <Card className="p-2 bg-gradient-to-br from-card to-muted/30">
                         <div className="space-y-1.5">
                           <div className="border rounded-md px-3 py-2 bg-muted/20">
                             <span className="text-[10px] text-muted-foreground">Código</span>
@@ -962,7 +962,7 @@ export default function ClientesFornecedores() {
 
                       {/* Transaction Trend Chart */}
                       {entityStats?.monthlyTrend && entityStats.monthlyTrend.length > 0 && (
-                        <Card className="p-2 bg-gradient-to-br from-blue-50/50 to-blue-100/30 dark:from-blue-950/20 dark:to-blue-900/10">
+                        <Card className="p-2 bg-gradient-to-br from-card to-muted/30">
                           <div className="space-y-1">
                             <h4 className="text-[10px] text-muted-foreground uppercase tracking-wide">
                               Tendência (6 meses)
@@ -1011,7 +1011,7 @@ export default function ClientesFornecedores() {
                       )}
 
                       {/* Banking & Financial Info */}
-                      <Card className="p-2 bg-gradient-to-br from-blue-50/50 to-blue-100/30 dark:from-blue-950/20 dark:to-blue-900/10">
+                      <Card className="p-2 bg-gradient-to-br from-card to-muted/30">
                         <div className="space-y-1">
                           {/* Default Chart Account */}
                           <FormField
@@ -1034,8 +1034,8 @@ export default function ClientesFornecedores() {
                         </div>
                       </Card>
 
-                      {/* Notes Card - with blue gradient */}
-                      <Card className="p-2 bg-gradient-to-br from-blue-50/50 to-blue-100/30 dark:from-blue-950/20 dark:to-blue-900/10">
+                      {/* Notes Card */}
+                      <Card className="p-2 bg-gradient-to-br from-card to-muted/30">
                         <FormField
                           control={form.control}
                           name="notes"
@@ -1043,7 +1043,7 @@ export default function ClientesFornecedores() {
                             <FormItem>
                               <FormLabel className="text-xs">Observações</FormLabel>
                               <FormControl>
-                                <Textarea {...field} value={field.value || ""} rows={7} placeholder="Adicione observações..." className="text-xs resize-none" data-testid="input-notes" />
+                                <Textarea {...field} value={field.value || ""} rows={5} placeholder="Adicione observações..." className="text-xs resize-none" data-testid="input-notes" />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -1055,9 +1055,10 @@ export default function ClientesFornecedores() {
                     {/* Right Column: Detailed Form Fields in 2-column layout */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                       {/* Left Sub-column: Basic Info & Contact */}
-                      <div className="space-y-2">
-                        {/* Nome */}
-                        <FormField
+                      <Card className="p-2 bg-gradient-to-br from-card to-muted/30">
+                        <div className="space-y-1.5">
+                          {/* Nome */}
+                          <FormField
                           control={form.control}
                           name="name"
                           render={({ field }) => (
@@ -1166,11 +1167,13 @@ export default function ClientesFornecedores() {
                             )}
                           />
                         </div>
-                      </div>
+                        </div>
+                      </Card>
 
                       {/* Right Sub-column: Address */}
-                      <div className="space-y-2">
-                        {/* Address Fields */}
+                      <Card className="p-2 bg-gradient-to-br from-card to-muted/30">
+                        <div className="space-y-1.5">
+                          {/* Address Fields */}
                         <div className="grid grid-cols-2 gap-2">
                           <FormField
                             control={form.control}
@@ -1281,14 +1284,16 @@ export default function ClientesFornecedores() {
                             )}
                           />
                         </div>
-                      </div>
+                        </div>
+                      </Card>
 
                       {/* Financial Information - Horizontal Section in 2 rows - spans full width */}
-                      <div className="lg:col-span-2 pt-3 border-t space-y-2">
-                        <h4 className="text-xs font-medium text-muted-foreground">Informações Financeiras</h4>
+                      <Card className="lg:col-span-2 p-2 bg-gradient-to-br from-card to-muted/30">
+                        <div className="space-y-1.5">
+                          <h4 className="text-xs font-medium text-muted-foreground">Informações Financeiras</h4>
                         
-                        {/* Row 1: Bank Info */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                          {/* Row 1: Bank Info */}
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                           <FormField
                             control={form.control}
                             name="bankName"
@@ -1328,10 +1333,10 @@ export default function ClientesFornecedores() {
                               </FormItem>
                             )}
                           />
-                        </div>
+                          </div>
 
-                        {/* Row 2: PIX Info */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                          {/* Row 2: PIX Info */}
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                           <FormField
                             control={form.control}
                             name="pixKeyType"
@@ -1369,8 +1374,9 @@ export default function ClientesFornecedores() {
                               </FormItem>
                             )}
                           />
+                          </div>
                         </div>
-                      </div>
+                      </Card>
                     </div>
                   </div>
                 ) : (
