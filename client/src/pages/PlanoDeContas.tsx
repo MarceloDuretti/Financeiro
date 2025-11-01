@@ -901,7 +901,7 @@ export default function PlanoDeContas() {
                   <Columns3 className="h-4 w-4" />
                 </Button>
               </div>
-              <Link href="/analises-financeiras">
+              <Link href="/dashboard/analises-financeiras">
                 <Button variant="default" data-testid="button-analytics">
                   <BarChart3 className="h-4 w-4 mr-2" />
                   Análises

@@ -34,6 +34,7 @@ import Recibos from "@/pages/Recibos";
 import Usuarios from "@/pages/Usuarios";
 import Ajuda from "@/pages/Ajuda";
 import Notificacoes from "@/pages/Notificacoes";
+import AnalisesFinanceiras from "@/pages/AnalisesFinanceiras";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -114,6 +115,12 @@ function Router() {
           <Route path="/dashboard/plano-de-contas">
             <DashboardLayout>
               <PlanoDeContas />
+            </DashboardLayout>
+          </Route>
+
+          <Route path="/dashboard/analises-financeiras">
+            <DashboardLayout>
+              <AnalisesFinanceiras />
             </DashboardLayout>
           </Route>
 
