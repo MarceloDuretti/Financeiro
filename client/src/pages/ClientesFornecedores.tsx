@@ -678,28 +678,33 @@ export default function ClientesFornecedores() {
                 data-testid={`card-entity-${entity.id}`}
               >
                 <CardContent className="p-2 space-y-1">
-                  {/* Status Badge and Type */}
-                  <div className="flex items-center gap-1 flex-wrap">
+                  {/* Code - Type - Status */}
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="text-[10px] text-muted-foreground font-mono">
+                      {formatCode(entity.code)}
+                    </span>
+                    <span className="text-muted-foreground">•</span>
                     <Badge 
                       className={`text-[10px] h-5 px-1.5 ${getTypeBadgeColor(entity)}`}
                     >
                       {getTypeLabel(entity)}
                     </Badge>
                     {entity.isActive && (
-                      <Badge className="text-[10px] h-5 px-1.5 bg-green-600">
-                        Ativo
-                      </Badge>
+                      <>
+                        <span className="text-muted-foreground">•</span>
+                        <Badge className="text-[10px] h-5 px-1.5 bg-green-600">
+                          Ativo
+                        </Badge>
+                      </>
                     )}
                     {percentage !== null && percentage > 0 && (
-                      <Badge className={`text-[10px] h-5 px-1.5 ${getPercentageBadgeColor(percentage)}`}>
-                        {percentage.toFixed(1)}%
-                      </Badge>
+                      <>
+                        <span className="text-muted-foreground">•</span>
+                        <Badge className={`text-[10px] h-5 px-1.5 ${getPercentageBadgeColor(percentage)}`}>
+                          {percentage.toFixed(1)}%
+                        </Badge>
+                      </>
                     )}
-                  </div>
-
-                  {/* Code */}
-                  <div className="text-[10px] text-muted-foreground font-mono">
-                    {formatCode(entity.code)}
                   </div>
 
                   {/* Name */}
@@ -714,18 +719,21 @@ export default function ClientesFornecedores() {
                     </div>
                   )}
 
-                  {/* Phone */}
-                  {entity.phone && (
+                  {/* Phone - Email */}
+                  {(entity.phone || entity.email) && (
                     <div className="text-[10px] text-muted-foreground flex items-center gap-1">
-                      <Phone className="h-3 w-3" />
-                      {entity.phone}
-                    </div>
-                  )}
-
-                  {/* Email */}
-                  {entity.email && (
-                    <div className="text-[10px] text-muted-foreground truncate">
-                      {entity.email}
+                      {entity.phone && (
+                        <>
+                          <Phone className="h-3 w-3 flex-shrink-0" />
+                          <span>{entity.phone}</span>
+                        </>
+                      )}
+                      {entity.phone && entity.email && (
+                        <span className="mx-1">-</span>
+                      )}
+                      {entity.email && (
+                        <span className="truncate">{entity.email}</span>
+                      )}
                     </div>
                   )}
                 </CardContent>
