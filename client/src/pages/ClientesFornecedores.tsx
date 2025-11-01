@@ -822,7 +822,7 @@ export default function ClientesFornecedores() {
                 </div>
               </SheetHeader>
 
-              <div className={`mt-3 ${isEditing ? 'space-y-1.5' : 'space-y-2'}`}>
+              <div className={`mt-2 ${isEditing ? 'space-y-1.5' : 'space-y-1.5'}`}>
                 {/* Main Content Layout - 2 Columns when Editing */}
                 {isEditing ? (
                   <div className="grid grid-cols-[300px_1fr] gap-4">
@@ -1275,7 +1275,7 @@ export default function ClientesFornecedores() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                     {/* LEFT COLUMN - Relationship Stats */}
                     <Card className="border-0 bg-gradient-to-br from-card to-muted/30 shadow-md flex-1">
-                      <CardContent className="p-2 space-y-1">
+                      <CardContent className="p-1.5 space-y-0.5">
                         {/* Type & Status Badges */}
                         <div className="flex gap-2 flex-wrap mb-2">
                           <Badge className={getTypeBadgeColor(selectedEntity)}>
@@ -1288,10 +1288,10 @@ export default function ClientesFornecedores() {
 
                         {/* Title */}
                         <div className="flex items-center justify-between">
-                          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                          <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
                             Relacionamento Comercial
                           </h3>
-                          <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                          <Badge variant="outline" className="text-[9px] px-1 py-0">
                             Últimos 6 Meses
                           </Badge>
                         </div>
@@ -1300,7 +1300,7 @@ export default function ClientesFornecedores() {
                         <div>
                           {entityStats ? (
                             <div
-                              className={`text-2xl font-bold tabular-nums ${
+                              className={`text-xl font-bold tabular-nums ${
                                 selectedEntity.isCustomer ? "text-green-600" : "text-destructive"
                               }`}
                             >
@@ -1311,7 +1311,7 @@ export default function ClientesFornecedores() {
                               ).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                             </div>
                           ) : (
-                            <div className="text-2xl font-bold text-muted-foreground">
+                            <div className="text-xl font-bold text-muted-foreground">
                               Carregando...
                             </div>
                           )}
@@ -1319,8 +1319,8 @@ export default function ClientesFornecedores() {
 
                         {/* Percentage Bar */}
                         {entityStats && (
-                          <div className="space-y-1">
-                            <div className="flex items-center justify-between text-xs">
+                          <div className="space-y-0.5">
+                            <div className="flex items-center justify-between text-[11px]">
                               <span className="text-muted-foreground">
                                 Representa{" "}
                                 {(
@@ -1349,24 +1349,24 @@ export default function ClientesFornecedores() {
                           </div>
                         )}
 
-                        <Separator className="my-1" />
+                        <Separator className="my-0.5" />
 
                         {/* Secondary Metrics */}
                         {entityStats && (
                           <div className="grid grid-cols-2 gap-1.5">
                             <div>
-                              <p className="text-xs text-muted-foreground uppercase tracking-wide mb-0.5">
+                              <p className="text-[11px] text-muted-foreground uppercase tracking-wide mb-0.5">
                                 Transações
                               </p>
-                              <p className="text-sm font-bold tabular-nums">
+                              <p className="text-xs font-bold tabular-nums">
                                 {entityStats.transactionCount}
                               </p>
                             </div>
                             <div>
-                              <p className="text-xs text-muted-foreground uppercase tracking-wide mb-0.5">
+                              <p className="text-[11px] text-muted-foreground uppercase tracking-wide mb-0.5">
                                 Média Mensal
                               </p>
-                              <p className="text-sm font-bold tabular-nums">
+                              <p className="text-xs font-bold tabular-nums">
                                 R${" "}
                                 {(
                                   (selectedEntity.isCustomer
@@ -1378,15 +1378,15 @@ export default function ClientesFornecedores() {
                           </div>
                         )}
 
-                        <Separator className="my-1" />
+                        <Separator className="my-0.5" />
 
                         {/* Line Chart */}
                         {entityStats && entityStats.monthlyTrend && entityStats.monthlyTrend.length > 0 && (
                           <div>
-                            <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
+                            <p className="text-[11px] text-muted-foreground uppercase tracking-wide mb-0.5">
                               Evolução Mensal
                             </p>
-                            <ResponsiveContainer width="100%" height={60}>
+                            <ResponsiveContainer width="100%" height={50}>
                               <LineChart
                                 data={entityStats.monthlyTrend}
                                 margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
@@ -1446,12 +1446,12 @@ export default function ClientesFornecedores() {
                     </Card>
 
                     {/* RIGHT COLUMN - Entity Details */}
-                    <div className="space-y-1.5">
+                    <div className="space-y-1">
                       {/* Phone */}
                       {selectedEntity.phone && (
                         <div>
-                          <p className="text-xs text-muted-foreground mb-1">Telefone</p>
-                          <div className="border rounded-md px-3 py-1.5 bg-muted/20 text-sm font-medium" data-testid="text-phone">
+                          <p className="text-[11px] text-muted-foreground mb-0.5">Telefone</p>
+                          <div className="border rounded-md px-3 py-1 bg-muted/20 text-[13px] font-medium" data-testid="text-phone">
                             {selectedEntity.phone || "-"}
                           </div>
                         </div>
@@ -1460,9 +1460,9 @@ export default function ClientesFornecedores() {
                       {/* WhatsApp */}
                       {selectedEntity.whatsapp && (
                         <div>
-                          <p className="text-xs text-muted-foreground mb-1">WhatsApp</p>
+                          <p className="text-[11px] text-muted-foreground mb-0.5">WhatsApp</p>
                           <div className="flex items-center gap-2">
-                            <div className="border rounded-md px-3 py-1.5 bg-muted/20 text-sm font-medium flex-1">
+                            <div className="border rounded-md px-3 py-1 bg-muted/20 text-[13px] font-medium flex-1">
                               {selectedEntity.whatsapp || "-"}
                             </div>
                             <a
@@ -1480,8 +1480,8 @@ export default function ClientesFornecedores() {
                       {/* Email */}
                       {selectedEntity.email && (
                         <div>
-                          <p className="text-xs text-muted-foreground mb-1">Email</p>
-                          <div className="border rounded-md px-3 py-1.5 bg-muted/20 text-sm font-medium" data-testid="text-email">
+                          <p className="text-[11px] text-muted-foreground mb-0.5">Email</p>
+                          <div className="border rounded-md px-3 py-1 bg-muted/20 text-[13px] font-medium" data-testid="text-email">
                             {selectedEntity.email || "-"}
                           </div>
                         </div>
@@ -1490,8 +1490,8 @@ export default function ClientesFornecedores() {
                       {/* Website */}
                       {selectedEntity.website && (
                         <div>
-                          <p className="text-xs text-muted-foreground mb-1">Website</p>
-                          <div className="border rounded-md px-3 py-1.5 bg-muted/20 text-sm font-medium">
+                          <p className="text-[11px] text-muted-foreground mb-0.5">Website</p>
+                          <div className="border rounded-md px-3 py-1 bg-muted/20 text-[13px] font-medium">
                             <a
                               href={selectedEntity.website}
                               target="_blank"
@@ -1508,8 +1508,8 @@ export default function ClientesFornecedores() {
                       {/* Address Fields */}
                       {selectedEntity.zipCode && (
                         <div>
-                          <p className="text-xs text-muted-foreground mb-1">CEP</p>
-                          <div className="border rounded-md px-3 py-1.5 bg-muted/20 text-sm font-medium">
+                          <p className="text-[11px] text-muted-foreground mb-0.5">CEP</p>
+                          <div className="border rounded-md px-3 py-1 bg-muted/20 text-[13px] font-medium">
                             {selectedEntity.zipCode || "-"}
                           </div>
                         </div>
@@ -1517,8 +1517,8 @@ export default function ClientesFornecedores() {
 
                       {selectedEntity.street && (
                         <div>
-                          <p className="text-xs text-muted-foreground mb-1">Endereço</p>
-                          <div className="border rounded-md px-3 py-1.5 bg-muted/20 text-sm font-medium" data-testid="text-address">
+                          <p className="text-[11px] text-muted-foreground mb-0.5">Endereço</p>
+                          <div className="border rounded-md px-3 py-1 bg-muted/20 text-[13px] font-medium" data-testid="text-address">
                             {selectedEntity.street}
                             {selectedEntity.number && `, ${selectedEntity.number}`}
                           </div>
@@ -1527,8 +1527,8 @@ export default function ClientesFornecedores() {
 
                       {selectedEntity.complement && (
                         <div>
-                          <p className="text-xs text-muted-foreground mb-1">Complemento</p>
-                          <div className="border rounded-md px-3 py-1.5 bg-muted/20 text-sm font-medium">
+                          <p className="text-[11px] text-muted-foreground mb-0.5">Complemento</p>
+                          <div className="border rounded-md px-3 py-1 bg-muted/20 text-[13px] font-medium">
                             {selectedEntity.complement || "-"}
                           </div>
                         </div>
@@ -1536,8 +1536,8 @@ export default function ClientesFornecedores() {
 
                       {selectedEntity.neighborhood && (
                         <div>
-                          <p className="text-xs text-muted-foreground mb-1">Bairro</p>
-                          <div className="border rounded-md px-3 py-1.5 bg-muted/20 text-sm font-medium">
+                          <p className="text-[11px] text-muted-foreground mb-0.5">Bairro</p>
+                          <div className="border rounded-md px-3 py-1 bg-muted/20 text-[13px] font-medium">
                             {selectedEntity.neighborhood || "-"}
                           </div>
                         </div>
@@ -1545,8 +1545,8 @@ export default function ClientesFornecedores() {
 
                       {(selectedEntity.city || selectedEntity.state) && (
                         <div>
-                          <p className="text-xs text-muted-foreground mb-1">Cidade/Estado</p>
-                          <div className="border rounded-md px-3 py-1.5 bg-muted/20 text-sm font-medium">
+                          <p className="text-[11px] text-muted-foreground mb-0.5">Cidade/Estado</p>
+                          <div className="border rounded-md px-3 py-1 bg-muted/20 text-[13px] font-medium">
                             {selectedEntity.city}
                             {selectedEntity.city && selectedEntity.state && " - "}
                             {selectedEntity.state}
@@ -1554,39 +1554,41 @@ export default function ClientesFornecedores() {
                         </div>
                       )}
 
-                      {/* Banking Info */}
-                      {selectedEntity.bankName && (
-                        <div>
-                          <p className="text-xs text-muted-foreground mb-1">Banco</p>
-                          <div className="border rounded-md px-3 py-1.5 bg-muted/20 text-sm font-medium" data-testid="text-bank">
-                            {selectedEntity.bankName || "-"}
-                          </div>
-                        </div>
-                      )}
-
-                      {selectedEntity.accountAgency && (
-                        <div>
-                          <p className="text-xs text-muted-foreground mb-1">Agência</p>
-                          <div className="border rounded-md px-3 py-1.5 bg-muted/20 text-sm font-medium">
-                            {selectedEntity.accountAgency || "-"}
-                          </div>
-                        </div>
-                      )}
-
-                      {selectedEntity.accountNumber && (
-                        <div>
-                          <p className="text-xs text-muted-foreground mb-1">Conta</p>
-                          <div className="border rounded-md px-3 py-1.5 bg-muted/20 text-sm font-medium">
-                            {selectedEntity.accountNumber || "-"}
-                          </div>
+                      {/* Banking Info - 3 Column Grid */}
+                      {(selectedEntity.bankName || selectedEntity.accountAgency || selectedEntity.accountNumber) && (
+                        <div className="grid grid-cols-3 gap-2">
+                          {selectedEntity.bankName && (
+                            <div>
+                              <p className="text-[11px] text-muted-foreground mb-0.5">Banco</p>
+                              <div className="border rounded-md px-2 py-1 bg-muted/20 text-[13px] font-medium truncate" data-testid="text-bank">
+                                {selectedEntity.bankName}
+                              </div>
+                            </div>
+                          )}
+                          {selectedEntity.accountAgency && (
+                            <div>
+                              <p className="text-[11px] text-muted-foreground mb-0.5">Agência</p>
+                              <div className="border rounded-md px-2 py-1 bg-muted/20 text-[13px] font-medium truncate">
+                                {selectedEntity.accountAgency}
+                              </div>
+                            </div>
+                          )}
+                          {selectedEntity.accountNumber && (
+                            <div>
+                              <p className="text-[11px] text-muted-foreground mb-0.5">Conta</p>
+                              <div className="border rounded-md px-2 py-1 bg-muted/20 text-[13px] font-medium truncate">
+                                {selectedEntity.accountNumber}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )}
 
                       {/* Default Chart Account */}
                       {selectedEntity.defaultChartAccountId && (
                         <div>
-                          <p className="text-xs text-muted-foreground mb-1">Plano de Contas Padrão</p>
-                          <div className="border rounded-md px-3 py-1.5 bg-muted/20 text-sm font-medium" data-testid="text-default-chart-account">
+                          <p className="text-[11px] text-muted-foreground mb-0.5">Plano de Contas Padrão</p>
+                          <div className="border rounded-md px-3 py-1 bg-muted/20 text-[13px] font-medium" data-testid="text-default-chart-account">
                             {chartAccounts.find(ca => ca.id === selectedEntity.defaultChartAccountId)?.fullName || 
                              selectedEntity.defaultChartAccountId}
                           </div>
@@ -1596,15 +1598,15 @@ export default function ClientesFornecedores() {
                       {/* Notes */}
                       {selectedEntity.notes && (
                         <div>
-                          <p className="text-xs text-muted-foreground mb-1">Observações</p>
-                          <div className="border rounded-md px-3 py-1.5 bg-muted/20 text-sm font-medium whitespace-pre-wrap" data-testid="text-notes">
+                          <p className="text-[11px] text-muted-foreground mb-0.5">Observações</p>
+                          <div className="border rounded-md px-3 py-1 bg-muted/20 text-[13px] font-medium whitespace-pre-wrap" data-testid="text-notes">
                             {selectedEntity.notes || "-"}
                           </div>
                         </div>
                       )}
 
                       {/* Action Buttons */}
-                      <div className="pt-4 mt-4">
+                      <div className="pt-3 mt-2">
                         <div className="flex justify-between gap-2">
                           <Button
                             variant="default"
