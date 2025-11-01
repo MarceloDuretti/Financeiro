@@ -1336,10 +1336,10 @@ export default function ClientesFornecedores() {
 
                 {/* View Mode - 2-Column Layout */}
                 {!isEditing && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5 lg:gap-6">
                     {/* LEFT COLUMN - Relationship Stats */}
                     <Card className="border-0 bg-gradient-to-br from-card to-muted/30 shadow-md flex-1">
-                      <CardContent className="p-1.5 [@media(min-height:700px)]:p-2 space-y-0.5 [@media(min-height:700px)]:space-y-1">
+                      <CardContent className="p-3 [@media(min-height:700px)]:p-4 space-y-2 [@media(min-height:700px)]:space-y-2.5">
                         {/* Type & Status Badges */}
                         <div className="flex gap-2 flex-wrap mb-2">
                           <Badge className={getTypeBadgeColor(selectedEntity)}>
@@ -1413,13 +1413,13 @@ export default function ClientesFornecedores() {
                           </div>
                         )}
 
-                        <Separator className="my-0.5" />
+                        <Separator className="my-2" />
 
                         {/* Secondary Metrics */}
                         {entityStats && (
-                          <div className="grid grid-cols-2 gap-1.5 [@media(min-height:700px)]:gap-2">
+                          <div className="grid grid-cols-2 gap-3">
                             <div>
-                              <p className="text-[11px] [@media(min-height:700px)]:text-xs text-muted-foreground uppercase tracking-wide mb-0.5">
+                              <p className="text-[11px] [@media(min-height:700px)]:text-xs text-muted-foreground uppercase tracking-wide mb-1">
                                 Transações
                               </p>
                               <p className="text-xs [@media(min-height:700px)]:text-sm font-bold tabular-nums">
@@ -1427,7 +1427,7 @@ export default function ClientesFornecedores() {
                               </p>
                             </div>
                             <div>
-                              <p className="text-[11px] [@media(min-height:700px)]:text-xs text-muted-foreground uppercase tracking-wide mb-0.5">
+                              <p className="text-[11px] [@media(min-height:700px)]:text-xs text-muted-foreground uppercase tracking-wide mb-1">
                                 Média Mensal
                               </p>
                               <p className="text-xs [@media(min-height:700px)]:text-sm font-bold tabular-nums">
@@ -1442,11 +1442,11 @@ export default function ClientesFornecedores() {
                           </div>
                         )}
 
-                        <Separator className="my-0.5" />
+                        <Separator className="my-2" />
 
                         {/* Default Chart Account */}
                         <div>
-                          <p className="text-[11px] [@media(min-height:700px)]:text-xs text-muted-foreground uppercase tracking-wide mb-0.5">
+                          <p className="text-[11px] [@media(min-height:700px)]:text-xs text-muted-foreground uppercase tracking-wide mb-1">
                             Plano de Contas Padrão
                           </p>
                           <p className="text-xs [@media(min-height:700px)]:text-sm font-medium">
@@ -1456,12 +1456,12 @@ export default function ClientesFornecedores() {
                           </p>
                         </div>
 
-                        <Separator className="my-0.5" />
+                        <Separator className="my-2" />
 
                         {/* Line Chart */}
                         {entityStats && entityStats.monthlyTrend && entityStats.monthlyTrend.length > 0 && (
                           <div>
-                            <p className="text-[11px] [@media(min-height:700px)]:text-xs text-muted-foreground uppercase tracking-wide mb-0.5">
+                            <p className="text-[11px] [@media(min-height:700px)]:text-xs text-muted-foreground uppercase tracking-wide mb-1">
                               Evolução Mensal
                             </p>
                             <div className="h-[50px] [@media(min-height:700px)]:h-[80px]">
@@ -1526,13 +1526,13 @@ export default function ClientesFornecedores() {
                     </Card>
 
                     {/* RIGHT COLUMN - Entity Details */}
-                    <div className="space-y-1 [@media(min-height:700px)]:space-y-1.5">
+                    <div className="space-y-2 [@media(min-height:700px)]:space-y-3">
                       {/* Phone (mostra phone ou whatsapp, prioriza phone) */}
                       {(selectedEntity.phone || selectedEntity.whatsapp) && (
                         <div>
-                          <p className="text-[11px] [@media(min-height:700px)]:text-xs text-muted-foreground mb-0.5">Telefone</p>
+                          <p className="text-[11px] [@media(min-height:700px)]:text-xs text-muted-foreground mb-1">Telefone</p>
                           <div className="flex items-center gap-2">
-                            <div className="border rounded-md px-3 py-1 [@media(min-height:700px)]:py-2 bg-muted/20 text-[13px] [@media(min-height:700px)]:text-sm font-medium flex-1" data-testid="text-phone">
+                            <div className="border rounded-md px-3 py-2 bg-muted/20 text-[13px] [@media(min-height:700px)]:text-sm font-medium flex-1" data-testid="text-phone">
                               {formatPhone(selectedEntity.phone || selectedEntity.whatsapp)}
                             </div>
                             {(selectedEntity.whatsapp || selectedEntity.phone) && (
@@ -1552,8 +1552,8 @@ export default function ClientesFornecedores() {
                       {/* Email */}
                       {selectedEntity.email && (
                         <div>
-                          <p className="text-[11px] [@media(min-height:700px)]:text-xs text-muted-foreground mb-0.5">Email</p>
-                          <div className="border rounded-md px-3 py-1 [@media(min-height:700px)]:py-2 bg-muted/20 text-[13px] [@media(min-height:700px)]:text-sm font-medium" data-testid="text-email">
+                          <p className="text-[11px] [@media(min-height:700px)]:text-xs text-muted-foreground mb-1">Email</p>
+                          <div className="border rounded-md px-3 py-2 bg-muted/20 text-[13px] [@media(min-height:700px)]:text-sm font-medium" data-testid="text-email">
                             {selectedEntity.email || "-"}
                           </div>
                         </div>
@@ -1562,8 +1562,8 @@ export default function ClientesFornecedores() {
                       {/* Website */}
                       {selectedEntity.website && (
                         <div>
-                          <p className="text-[11px] [@media(min-height:700px)]:text-xs text-muted-foreground mb-0.5">Website</p>
-                          <div className="border rounded-md px-3 py-1 [@media(min-height:700px)]:py-2 bg-muted/20 text-[13px] [@media(min-height:700px)]:text-sm font-medium">
+                          <p className="text-[11px] [@media(min-height:700px)]:text-xs text-muted-foreground mb-1">Website</p>
+                          <div className="border rounded-md px-3 py-2 bg-muted/20 text-[13px] [@media(min-height:700px)]:text-sm font-medium">
                             <a
                               href={selectedEntity.website}
                               target="_blank"
@@ -1580,8 +1580,8 @@ export default function ClientesFornecedores() {
                       {/* Address Fields */}
                       {selectedEntity.zipCode && (
                         <div>
-                          <p className="text-[11px] [@media(min-height:700px)]:text-xs text-muted-foreground mb-0.5">CEP</p>
-                          <div className="border rounded-md px-3 py-1 [@media(min-height:700px)]:py-2 bg-muted/20 text-[13px] [@media(min-height:700px)]:text-sm font-medium">
+                          <p className="text-[11px] [@media(min-height:700px)]:text-xs text-muted-foreground mb-1">CEP</p>
+                          <div className="border rounded-md px-3 py-2 bg-muted/20 text-[13px] [@media(min-height:700px)]:text-sm font-medium">
                             {selectedEntity.zipCode || "-"}
                           </div>
                         </div>
@@ -1589,8 +1589,8 @@ export default function ClientesFornecedores() {
 
                       {selectedEntity.street && (
                         <div>
-                          <p className="text-[11px] [@media(min-height:700px)]:text-xs text-muted-foreground mb-0.5">Endereço</p>
-                          <div className="border rounded-md px-3 py-1 [@media(min-height:700px)]:py-2 bg-muted/20 text-[13px] [@media(min-height:700px)]:text-sm font-medium" data-testid="text-address">
+                          <p className="text-[11px] [@media(min-height:700px)]:text-xs text-muted-foreground mb-1">Endereço</p>
+                          <div className="border rounded-md px-3 py-2 bg-muted/20 text-[13px] [@media(min-height:700px)]:text-sm font-medium" data-testid="text-address">
                             {selectedEntity.street}
                             {selectedEntity.number && `, ${selectedEntity.number}`}
                           </div>
@@ -1599,8 +1599,8 @@ export default function ClientesFornecedores() {
 
                       {selectedEntity.complement && (
                         <div>
-                          <p className="text-[11px] [@media(min-height:700px)]:text-xs text-muted-foreground mb-0.5">Complemento</p>
-                          <div className="border rounded-md px-3 py-1 [@media(min-height:700px)]:py-2 bg-muted/20 text-[13px] [@media(min-height:700px)]:text-sm font-medium">
+                          <p className="text-[11px] [@media(min-height:700px)]:text-xs text-muted-foreground mb-1">Complemento</p>
+                          <div className="border rounded-md px-3 py-2 bg-muted/20 text-[13px] [@media(min-height:700px)]:text-sm font-medium">
                             {selectedEntity.complement || "-"}
                           </div>
                         </div>
@@ -1608,8 +1608,8 @@ export default function ClientesFornecedores() {
 
                       {selectedEntity.neighborhood && (
                         <div>
-                          <p className="text-[11px] [@media(min-height:700px)]:text-xs text-muted-foreground mb-0.5">Bairro</p>
-                          <div className="border rounded-md px-3 py-1 [@media(min-height:700px)]:py-2 bg-muted/20 text-[13px] [@media(min-height:700px)]:text-sm font-medium">
+                          <p className="text-[11px] [@media(min-height:700px)]:text-xs text-muted-foreground mb-1">Bairro</p>
+                          <div className="border rounded-md px-3 py-2 bg-muted/20 text-[13px] [@media(min-height:700px)]:text-sm font-medium">
                             {selectedEntity.neighborhood || "-"}
                           </div>
                         </div>
@@ -1617,8 +1617,8 @@ export default function ClientesFornecedores() {
 
                       {(selectedEntity.city || selectedEntity.state) && (
                         <div>
-                          <p className="text-[11px] [@media(min-height:700px)]:text-xs text-muted-foreground mb-0.5">Cidade/Estado</p>
-                          <div className="border rounded-md px-3 py-1 [@media(min-height:700px)]:py-2 bg-muted/20 text-[13px] [@media(min-height:700px)]:text-sm font-medium">
+                          <p className="text-[11px] [@media(min-height:700px)]:text-xs text-muted-foreground mb-1">Cidade/Estado</p>
+                          <div className="border rounded-md px-3 py-2 bg-muted/20 text-[13px] [@media(min-height:700px)]:text-sm font-medium">
                             {selectedEntity.city}
                             {selectedEntity.city && selectedEntity.state && " - "}
                             {selectedEntity.state}
@@ -1631,24 +1631,24 @@ export default function ClientesFornecedores() {
                         <div className="grid grid-cols-3 gap-2">
                           {selectedEntity.bankName && (
                             <div>
-                              <p className="text-[11px] [@media(min-height:700px)]:text-xs text-muted-foreground mb-0.5">Banco</p>
-                              <div className="border rounded-md px-2 py-1 [@media(min-height:700px)]:py-2 bg-muted/20 text-[13px] [@media(min-height:700px)]:text-sm font-medium truncate" data-testid="text-bank">
+                              <p className="text-[11px] [@media(min-height:700px)]:text-xs text-muted-foreground mb-1">Banco</p>
+                              <div className="border rounded-md px-2 py-2 bg-muted/20 text-[13px] [@media(min-height:700px)]:text-sm font-medium truncate" data-testid="text-bank">
                                 {selectedEntity.bankName}
                               </div>
                             </div>
                           )}
                           {selectedEntity.accountAgency && (
                             <div>
-                              <p className="text-[11px] [@media(min-height:700px)]:text-xs text-muted-foreground mb-0.5">Agência</p>
-                              <div className="border rounded-md px-2 py-1 [@media(min-height:700px)]:py-2 bg-muted/20 text-[13px] [@media(min-height:700px)]:text-sm font-medium truncate">
+                              <p className="text-[11px] [@media(min-height:700px)]:text-xs text-muted-foreground mb-1">Agência</p>
+                              <div className="border rounded-md px-2 py-2 bg-muted/20 text-[13px] [@media(min-height:700px)]:text-sm font-medium truncate">
                                 {selectedEntity.accountAgency}
                               </div>
                             </div>
                           )}
                           {selectedEntity.accountNumber && (
                             <div>
-                              <p className="text-[11px] [@media(min-height:700px)]:text-xs text-muted-foreground mb-0.5">Conta</p>
-                              <div className="border rounded-md px-2 py-1 [@media(min-height:700px)]:py-2 bg-muted/20 text-[13px] [@media(min-height:700px)]:text-sm font-medium truncate">
+                              <p className="text-[11px] [@media(min-height:700px)]:text-xs text-muted-foreground mb-1">Conta</p>
+                              <div className="border rounded-md px-2 py-2 bg-muted/20 text-[13px] [@media(min-height:700px)]:text-sm font-medium truncate">
                                 {selectedEntity.accountNumber}
                               </div>
                             </div>
@@ -1659,8 +1659,8 @@ export default function ClientesFornecedores() {
                       {/* Default Chart Account */}
                       {selectedEntity.defaultChartAccountId && (
                         <div>
-                          <p className="text-[11px] [@media(min-height:700px)]:text-xs text-muted-foreground mb-0.5">Plano de Contas Padrão</p>
-                          <div className="border rounded-md px-3 py-1 [@media(min-height:700px)]:py-2 bg-muted/20 text-[13px] [@media(min-height:700px)]:text-sm font-medium" data-testid="text-default-chart-account">
+                          <p className="text-[11px] [@media(min-height:700px)]:text-xs text-muted-foreground mb-1">Plano de Contas Padrão</p>
+                          <div className="border rounded-md px-3 py-2 bg-muted/20 text-[13px] [@media(min-height:700px)]:text-sm font-medium" data-testid="text-default-chart-account">
                             {chartAccounts.find(ca => ca.id === selectedEntity.defaultChartAccountId)?.fullName || 
                              selectedEntity.defaultChartAccountId}
                           </div>
@@ -1670,8 +1670,8 @@ export default function ClientesFornecedores() {
                       {/* Notes */}
                       {selectedEntity.notes && (
                         <div>
-                          <p className="text-[11px] [@media(min-height:700px)]:text-xs text-muted-foreground mb-0.5">Observações</p>
-                          <div className="border rounded-md px-3 py-1 [@media(min-height:700px)]:py-2 bg-muted/20 text-[13px] [@media(min-height:700px)]:text-sm font-medium whitespace-pre-wrap" data-testid="text-notes">
+                          <p className="text-[11px] [@media(min-height:700px)]:text-xs text-muted-foreground mb-1">Observações</p>
+                          <div className="border rounded-md px-3 py-2 bg-muted/20 text-[13px] [@media(min-height:700px)]:text-sm font-medium whitespace-pre-wrap" data-testid="text-notes">
                             {selectedEntity.notes || "-"}
                           </div>
                         </div>
