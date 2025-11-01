@@ -470,11 +470,17 @@ export default function ClientesFornecedores() {
     return document;
   };
   
-  const formatPhone = (phone: string | null | undefined) => {
+  const formatPhone = (phone: string | null | undefined, firstOnly: boolean = false) => {
     if (!phone) return null;
     
+    // Se firstOnly=true, pega apenas o primeiro telefone antes da barra
+    let phoneToFormat = phone;
+    if (firstOnly && phone.includes('/')) {
+      phoneToFormat = phone.split('/')[0].trim();
+    }
+    
     // Remove todos os caracteres não numéricos
-    const numbers = phone.replace(/\D/g, '');
+    const numbers = phoneToFormat.replace(/\D/g, '');
     
     // Celular com 9 dígitos: (00) 90000-0000
     if (numbers.length === 11) {
@@ -487,7 +493,7 @@ export default function ClientesFornecedores() {
     }
     
     // Retorna o telefone original se não tiver formato padrão
-    return phone;
+    return phoneToFormat;
   };
   
   const getTypeLabel = (entity: CustomerSupplier) => {
@@ -766,7 +772,7 @@ export default function ClientesFornecedores() {
                       {entity.phone && (
                         <>
                           <Phone className="h-3 w-3 flex-shrink-0" />
-                          <span>{formatPhone(entity.phone)}</span>
+                          <span>{formatPhone(entity.phone, true)}</span>
                         </>
                       )}
                       {entity.phone && entity.email && (
@@ -822,7 +828,7 @@ export default function ClientesFornecedores() {
 
                       {/* Contact */}
                       <div className="text-[10px] text-muted-foreground truncate">
-                        {entity.phone || entity.email || '-'}
+                        {entity.phone ? formatPhone(entity.phone, true) : (entity.email || '-')}
                       </div>
 
                       {/* Badges */}
