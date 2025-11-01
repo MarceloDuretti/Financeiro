@@ -510,6 +510,13 @@ export default function ClientesFornecedores() {
     return "";
   };
 
+  const getTypeBadgeBorderColor = (entity: CustomerSupplier) => {
+    if (entity.isCustomer && entity.isSupplier) return "border-purple-500 text-purple-700 dark:text-purple-400";
+    if (entity.isCustomer) return "border-blue-500 text-blue-700 dark:text-blue-400";
+    if (entity.isSupplier) return "border-orange-500 text-orange-700 dark:text-orange-400";
+    return "";
+  };
+
   const getPercentageBadgeColor = (percentage: number | null) => {
     if (!percentage) return "bg-muted text-muted-foreground";
     if (percentage >= 20) return "bg-green-500 text-white";
@@ -726,11 +733,11 @@ export default function ClientesFornecedores() {
                 <CardContent className="p-2 space-y-1">
                   {/* Code - Type - Status */}
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <Badge variant="outline" className="text-[10px] h-5 px-1.5 font-mono">
+                    <Badge variant="outline" className="text-[10px] h-5 px-1.5 font-mono border-slate-400 text-slate-700 dark:text-slate-300">
                       {formatCode(entity.code)}
                     </Badge>
                     <span className="text-muted-foreground">•</span>
-                    <Badge variant="outline" className="text-[10px] h-5 px-1.5">
+                    <Badge variant="outline" className={`text-[10px] h-5 px-1.5 ${getTypeBadgeBorderColor(entity)}`}>
                       {getTypeLabel(entity)}
                     </Badge>
                     {entity.isActive && (
@@ -831,7 +838,7 @@ export default function ClientesFornecedores() {
 
                       {/* Badges */}
                       <div className="flex items-center gap-1 flex-wrap justify-end">
-                        <Badge variant="outline" className="text-[10px] h-5 px-1.5">
+                        <Badge variant="outline" className={`text-[10px] h-5 px-1.5 ${getTypeBadgeBorderColor(entity)}`}>
                           {getTypeLabel(entity)}
                         </Badge>
                         {entity.isActive && (
