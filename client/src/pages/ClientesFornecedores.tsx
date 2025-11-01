@@ -892,7 +892,7 @@ export default function ClientesFornecedores() {
                   <div className="grid grid-cols-[300px_1fr] gap-4">
                     {/* Left Column: Compact Info Card */}
                     <div className="space-y-1.5">
-                      <Card className="p-2 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-950/40 dark:to-blue-900/30">
+                      <Card className="p-2 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-900/40 dark:to-gray-800/30">
                         <div className="space-y-1.5">
                           <div className="border rounded-md px-3 py-2 bg-muted/20">
                             <span className="text-[10px] text-muted-foreground">Código</span>
@@ -961,7 +961,7 @@ export default function ClientesFornecedores() {
 
                       {/* Transaction Trend Chart */}
                       {entityStats?.monthlyTrend && entityStats.monthlyTrend.length > 0 && (
-                        <Card className="p-2 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-950/40 dark:to-blue-900/30">
+                        <Card className="p-2 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-900/40 dark:to-gray-800/30">
                           <div className="space-y-1">
                             <h4 className="text-[10px] text-muted-foreground uppercase tracking-wide">
                               Tendência (6 meses)
@@ -1010,7 +1010,7 @@ export default function ClientesFornecedores() {
                       )}
 
                       {/* Banking & Financial Info */}
-                      <Card className="p-2 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-950/40 dark:to-blue-900/30">
+                      <Card className="p-2 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-900/40 dark:to-gray-800/30">
                         <div className="space-y-1">
                           {/* Default Chart Account */}
                           <FormField
@@ -1039,8 +1039,8 @@ export default function ClientesFornecedores() {
                         </div>
                       </Card>
 
-                      {/* Notes Card - with blue gradient */}
-                      <Card className="p-2 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-950/40 dark:to-blue-900/30">
+                      {/* Notes Card - with gray gradient */}
+                      <Card className="p-2 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-900/40 dark:to-gray-800/30">
                         <FormField
                           control={form.control}
                           name="notes"
