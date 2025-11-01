@@ -1008,8 +1008,8 @@ export default function ClientesFornecedores() {
 
                       {/* Banking & Financial Info */}
                       <Card className="p-2">
-                        <div className="space-y-1.5">
-                          <h4 className="text-[10px] text-muted-foreground uppercase tracking-wide">
+                        <div className="space-y-1">
+                          <h4 className="text-[10px] text-muted-foreground uppercase tracking-wide mb-0.5">
                             Informações Financeiras
                           </h4>
                           
@@ -1018,28 +1018,26 @@ export default function ClientesFornecedores() {
                             control={form.control}
                             name="bankName"
                             render={({ field }) => (
-                              <FormItem>
-                                <FormLabel className="text-[9px]">Banco</FormLabel>
+                              <FormItem className="space-y-0.5">
+                                <FormLabel className="text-[9px] text-muted-foreground">Banco</FormLabel>
                                 <FormControl>
-                                  <Input {...field} value={field.value || ""} placeholder="Ex: Banco do Brasil" className="h-7 text-[11px]" data-testid="input-bank-name" />
+                                  <Input {...field} value={field.value || ""} placeholder="Ex: Banco do Brasil" className="h-6 text-[10px] px-2" data-testid="input-bank-name" />
                                 </FormControl>
-                                <FormMessage className="text-[9px]" />
                               </FormItem>
                             )}
                           />
 
                           {/* Agency and Account */}
-                          <div className="grid grid-cols-2 gap-1.5">
+                          <div className="grid grid-cols-2 gap-1">
                             <FormField
                               control={form.control}
                               name="accountAgency"
                               render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel className="text-[9px]">Agência</FormLabel>
+                                <FormItem className="space-y-0.5">
+                                  <FormLabel className="text-[9px] text-muted-foreground">Agência</FormLabel>
                                   <FormControl>
-                                    <Input {...field} value={field.value || ""} placeholder="0000" className="h-7 text-[11px]" data-testid="input-account-agency" />
+                                    <Input {...field} value={field.value || ""} placeholder="0000" className="h-6 text-[10px] px-2" data-testid="input-account-agency" />
                                   </FormControl>
-                                  <FormMessage className="text-[9px]" />
                                 </FormItem>
                               )}
                             />
@@ -1047,27 +1045,26 @@ export default function ClientesFornecedores() {
                               control={form.control}
                               name="accountNumber"
                               render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel className="text-[9px]">Conta</FormLabel>
+                                <FormItem className="space-y-0.5">
+                                  <FormLabel className="text-[9px] text-muted-foreground">Conta</FormLabel>
                                   <FormControl>
-                                    <Input {...field} value={field.value || ""} placeholder="00000-0" className="h-7 text-[11px]" data-testid="input-account-number" />
+                                    <Input {...field} value={field.value || ""} placeholder="00000-0" className="h-6 text-[10px] px-2" data-testid="input-account-number" />
                                   </FormControl>
-                                  <FormMessage className="text-[9px]" />
                                 </FormItem>
                               )}
                             />
                           </div>
 
-                          {/* PIX Type */}
+                          {/* PIX Type and Key */}
                           <FormField
                             control={form.control}
                             name="pixKeyType"
                             render={({ field }) => (
-                              <FormItem>
-                                <FormLabel className="text-[9px]">Tipo PIX</FormLabel>
+                              <FormItem className="space-y-0.5">
+                                <FormLabel className="text-[9px] text-muted-foreground">Tipo PIX</FormLabel>
                                 <Select onValueChange={field.onChange} value={field.value || "cpf"}>
                                   <FormControl>
-                                    <SelectTrigger className="h-7 text-[11px]" data-testid="select-pix-key-type">
+                                    <SelectTrigger className="h-6 text-[10px]" data-testid="select-pix-key-type">
                                       <SelectValue placeholder="Selecione" />
                                     </SelectTrigger>
                                   </FormControl>
@@ -1079,22 +1076,19 @@ export default function ClientesFornecedores() {
                                     <SelectItem value="random">Aleatória</SelectItem>
                                   </SelectContent>
                                 </Select>
-                                <FormMessage className="text-[9px]" />
                               </FormItem>
                             )}
                           />
 
-                          {/* PIX Key */}
                           <FormField
                             control={form.control}
                             name="pixKey"
                             render={({ field }) => (
-                              <FormItem>
-                                <FormLabel className="text-[9px]">Chave PIX</FormLabel>
+                              <FormItem className="space-y-0.5">
+                                <FormLabel className="text-[9px] text-muted-foreground">Chave PIX</FormLabel>
                                 <FormControl>
-                                  <Input {...field} value={field.value || ""} placeholder="Digite a chave PIX" className="h-7 text-[11px]" data-testid="input-pix-key" />
+                                  <Input {...field} value={field.value || ""} placeholder="Digite a chave PIX" className="h-6 text-[10px] px-2" data-testid="input-pix-key" />
                                 </FormControl>
-                                <FormMessage className="text-[9px]" />
                               </FormItem>
                             )}
                           />
@@ -1104,11 +1098,11 @@ export default function ClientesFornecedores() {
                             control={form.control}
                             name="defaultChartAccountId"
                             render={({ field }) => (
-                              <FormItem>
-                                <FormLabel className="text-[9px]">Plano de Contas Padrão</FormLabel>
+                              <FormItem className="space-y-0.5">
+                                <FormLabel className="text-[9px] text-muted-foreground">Plano de Contas Padrão</FormLabel>
                                 <Select onValueChange={field.onChange} value={field.value || ""}>
                                   <FormControl>
-                                    <SelectTrigger className="h-7 text-[11px]" data-testid="select-default-chart-account">
+                                    <SelectTrigger className="h-6 text-[10px]" data-testid="select-default-chart-account">
                                       <SelectValue placeholder="Selecione (opcional)" />
                                     </SelectTrigger>
                                   </FormControl>
@@ -1120,7 +1114,6 @@ export default function ClientesFornecedores() {
                                     ))}
                                   </SelectContent>
                                 </Select>
-                                <FormMessage className="text-[9px]" />
                               </FormItem>
                             )}
                           />
