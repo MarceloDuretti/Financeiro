@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm, UseFormReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, UseMutationResult } from "@tanstack/react-query";
@@ -987,6 +987,8 @@ export function TransactionDialog({
   const selectedCompanyId = localStorage.getItem(SELECTED_COMPANY_KEY);
   const [isMobile, setIsMobile] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
+  const chartAccountAutoFilledRef = useRef(false);
+  const isAutoFillingRef = useRef(false);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 1024);
@@ -1081,6 +1083,58 @@ export function TransactionDialog({
     queryKey: ["/api/payment-methods", { companyId: selectedCompanyId }],
     enabled: !!selectedCompanyId && open,
   });
+
+  // Auto-fill chart account when person with default chart account is selected
+  const watchPersonId = form.watch("personId");
+  const watchChartAccountId = form.watch("chartAccountId");
+  
+  // Reset auto-filled flag when form opens
+  useEffect(() => {
+    if (open) {
+      chartAccountAutoFilledRef.current = false;
+      isAutoFillingRef.current = false;
+    }
+  }, [open]);
+  
+  // Detect manual chart account changes
+  useEffect(() => {
+    // If chart account changed and we're not currently auto-filling, it was manual
+    if (!isAutoFillingRef.current && watchChartAccountId !== undefined) {
+      chartAccountAutoFilledRef.current = false;
+    }
+  }, [watchChartAccountId]);
+  
+  // Auto-fill or clear chart account based on selected person's default
+  useEffect(() => {
+    if (!watchPersonId || !customersSuppliers.length) return;
+    
+    const selectedPerson = customersSuppliers.find((p: any) => p.id === watchPersonId);
+    const currentChartAccountId = form.getValues("chartAccountId");
+    
+    if (selectedPerson?.defaultChartAccountId) {
+      // Person has a default - auto-fill only if it was previously auto-filled or empty
+      if (chartAccountAutoFilledRef.current || !currentChartAccountId) {
+        isAutoFillingRef.current = true;
+        form.setValue("chartAccountId", selectedPerson.defaultChartAccountId);
+        chartAccountAutoFilledRef.current = true;
+        setTimeout(() => {
+          isAutoFillingRef.current = false;
+        }, 0);
+      }
+      // If user manually selected a different chart account, don't override it
+    } else {
+      // Person has no default - clear only if it was auto-filled
+      if (chartAccountAutoFilledRef.current) {
+        isAutoFillingRef.current = true;
+        form.setValue("chartAccountId", undefined);
+        chartAccountAutoFilledRef.current = false;
+        setTimeout(() => {
+          isAutoFillingRef.current = false;
+        }, 0);
+      }
+      // If user manually selected a chart account, leave it as is
+    }
+  }, [watchPersonId, customersSuppliers, form]);
 
   const createMutation = useMutation({
     mutationFn: async (data: FormValues) => {

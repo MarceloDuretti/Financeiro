@@ -141,6 +141,12 @@ export default function ClientesFornecedores() {
     resource: "customers-suppliers",
   });
 
+  // Fetch chart of accounts for the default account selector
+  const { data: chartAccounts = [] } = useRealtimeQuery<any[]>({
+    queryKey: ["/api/chart-of-accounts"],
+    resource: "chart-of-accounts",
+  });
+
   // Filter entities based on search query
   const filteredEntities = entities.filter((entity) => {
     if (!searchQuery) return true;
@@ -187,6 +193,7 @@ export default function ClientesFornecedores() {
       pixKeyType: undefined,
       imageUrl: "",
       notes: "",
+      defaultChartAccountId: undefined,
       isActive: true,
     },
   });
@@ -224,6 +231,7 @@ export default function ClientesFornecedores() {
       pixKeyType: undefined,
       imageUrl: "",
       notes: "",
+      defaultChartAccountId: undefined,
       isActive: true,
     });
     setWizardStep(1);
@@ -261,6 +269,7 @@ export default function ClientesFornecedores() {
       pixKeyType: selectedEntity.pixKeyType || undefined,
       imageUrl: selectedEntity.imageUrl || "",
       notes: selectedEntity.notes || "",
+      defaultChartAccountId: selectedEntity.defaultChartAccountId || undefined,
       isActive: selectedEntity.isActive,
     });
     
@@ -1440,6 +1449,48 @@ export default function ClientesFornecedores() {
                     />
                   )}
                 </div>
+
+                {/* Default Settings Section */}
+                <div className="space-y-2">
+                  {!isEditing ? (
+                    <>
+                      {selectedEntity.defaultChartAccountId && (
+                        <div className="border rounded-md p-2">
+                          <span className="text-xs text-muted-foreground">Plano de Contas Padrão</span>
+                          <p className="text-sm font-medium mt-0.5" data-testid="text-default-chart-account">
+                            {chartAccounts.find(ca => ca.id === selectedEntity.defaultChartAccountId)?.fullName || selectedEntity.defaultChartAccountId}
+                          </p>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <FormField
+                      control={form.control}
+                      name="defaultChartAccountId"
+                      render={({ field }) => (
+                        <FormItem className="form-floating">
+                          <Select onValueChange={field.onChange} value={field.value || ""}>
+                            <FormControl>
+                              <SelectTrigger data-testid="select-default-chart-account" className="pt-5 pb-2">
+                                <SelectValue placeholder="Nenhum" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent className="max-h-[300px]">
+                              <SelectItem value="">Nenhum</SelectItem>
+                              {chartAccounts.map((account: any) => (
+                                <SelectItem key={account.id} value={account.id}>
+                                  {account.fullName}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormLabel>Plano de Contas Padrão</FormLabel>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+                </div>
               </div>
             </Form>
           )}
@@ -1871,6 +1922,32 @@ export default function ClientesFornecedores() {
                         <FormControl>
                           <Textarea {...field} value={field.value || ""} rows={4} data-testid="input-notes" />
                         </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="defaultChartAccountId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Plano de Contas Padrão</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value || ""}>
+                          <FormControl>
+                            <SelectTrigger data-testid="select-default-chart-account-wizard">
+                              <SelectValue placeholder="Selecione (opcional)" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent className="max-h-[300px]">
+                            <SelectItem value="">Nenhum</SelectItem>
+                            {chartAccounts.map((account: any) => (
+                              <SelectItem key={account.id} value={account.id}>
+                                {account.fullName}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}
