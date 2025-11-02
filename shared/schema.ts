@@ -497,6 +497,7 @@ export const customersSuppliers = pgTable("customers_suppliers", {
   
   // Default settings
   defaultChartAccountId: varchar("default_chart_account_id").references(() => chartOfAccounts.id), // Default chart account for transactions
+  defaultCostCenterId: varchar("default_cost_center_id").references(() => costCenters.id), // Default cost center for transactions
   
   // Status and control
   isActive: boolean("is_active").notNull().default(true),
