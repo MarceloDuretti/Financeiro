@@ -92,6 +92,7 @@ type EntityWithStats = CustomerSupplier & {
   revenuePercentage: number | null;
   expensePercentage: number | null;
   defaultChartAccountFullName?: string;
+  defaultCostCenterName?: string;
 };
 
 interface ProcessedEntity {
@@ -156,6 +157,12 @@ export default function ClientesFornecedores() {
   const { data: chartAccounts = [] } = useRealtimeQuery<any[]>({
     queryKey: ["/api/chart-of-accounts"],
     resource: "chart-of-accounts",
+  });
+
+  // Fetch cost centers for the default cost center selector
+  const { data: costCenters = [] } = useRealtimeQuery<any[]>({
+    queryKey: ["/api/cost-centers"],
+    resource: "cost-centers",
   });
 
   // Fetch statistics for selected customer/supplier
@@ -1140,6 +1147,31 @@ export default function ClientesFornecedores() {
                               </FormItem>
                             )}
                           />
+
+                          {/* Default Cost Center */}
+                          <FormField
+                            control={form.control}
+                            name="defaultCostCenterId"
+                            render={({ field }) => (
+                              <FormItem className="space-y-0.5">
+                                <FormLabel className="text-[9px] text-muted-foreground">Centro de Custo Padrão</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value || ""}>
+                                  <FormControl>
+                                    <SelectTrigger data-testid="select-default-cost-center" className="h-8 text-xs">
+                                      <SelectValue placeholder="Selecione (opcional)" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent className="max-h-[300px]">
+                                    {costCenters.map((center: any) => (
+                                      <SelectItem key={center.id} value={center.id}>
+                                        {center.code} - {center.name}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </FormItem>
+                            )}
+                          />
                         </div>
                       </Card>
 
@@ -1622,6 +1654,18 @@ export default function ClientesFornecedores() {
                           </p>
                           <p className="text-xs [@media(min-height:700px)]:text-sm font-medium">
                             {selectedEntity.defaultChartAccountFullName || "Não configurado"}
+                          </p>
+                        </div>
+
+                        <Separator className="my-1.5" />
+
+                        {/* Default Cost Center */}
+                        <div>
+                          <p className="text-[11px] [@media(min-height:700px)]:text-xs text-muted-foreground uppercase tracking-wide mb-1">
+                            Centro de Custo Padrão
+                          </p>
+                          <p className="text-xs [@media(min-height:700px)]:text-sm font-medium">
+                            {selectedEntity.defaultCostCenterName || "Não configurado"}
                           </p>
                         </div>
 
@@ -2388,6 +2432,31 @@ export default function ClientesFornecedores() {
                             {chartAccounts.map((account: any) => (
                               <SelectItem key={account.id} value={account.id}>
                                 {account.fullName}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="defaultCostCenterId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Centro de Custo Padrão</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value || ""}>
+                          <FormControl>
+                            <SelectTrigger data-testid="select-default-cost-center-wizard">
+                              <SelectValue placeholder="Selecione (opcional)" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent className="max-h-[300px]">
+                            {costCenters.map((center: any) => (
+                              <SelectItem key={center.id} value={center.id}>
+                                {center.code} - {center.name}
                               </SelectItem>
                             ))}
                           </SelectContent>
