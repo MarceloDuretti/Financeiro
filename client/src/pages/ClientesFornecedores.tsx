@@ -259,6 +259,7 @@ export default function ClientesFornecedores() {
       imageUrl: "",
       notes: "",
       defaultChartAccountId: undefined,
+      defaultCostCenterId: undefined,
       isActive: true,
     },
   });
@@ -297,6 +298,7 @@ export default function ClientesFornecedores() {
       imageUrl: "",
       notes: "",
       defaultChartAccountId: undefined,
+      defaultCostCenterId: undefined,
       isActive: true,
     });
     setWizardStep(1);
@@ -335,6 +337,7 @@ export default function ClientesFornecedores() {
       imageUrl: selectedEntity.imageUrl || "",
       notes: selectedEntity.notes || "",
       defaultChartAccountId: selectedEntity.defaultChartAccountId || undefined,
+      defaultCostCenterId: selectedEntity.defaultCostCenterId || undefined,
       isActive: selectedEntity.isActive,
     });
     
