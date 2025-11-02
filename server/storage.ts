@@ -1235,7 +1235,7 @@ export class DatabaseStorage implements IStorage {
 
   // Customers/Suppliers operations - all require tenantId for multi-tenant isolation
 
-  async listCustomersSuppliers(tenantId: string): Promise<(CustomerSupplier & { defaultChartAccountFullName?: string })[]> {
+  async listCustomersSuppliers(tenantId: string): Promise<(CustomerSupplier & { defaultChartAccountFullName?: string; defaultCostCenterName?: string })[]> {
     const results = await db
       .select({
         id: customersSuppliers.id,
@@ -1267,10 +1267,12 @@ export class DatabaseStorage implements IStorage {
         imageUrl: customersSuppliers.imageUrl,
         notes: customersSuppliers.notes,
         defaultChartAccountId: customersSuppliers.defaultChartAccountId,
+        defaultCostCenterId: customersSuppliers.defaultCostCenterId,
         updatedAt: customersSuppliers.updatedAt,
         version: customersSuppliers.version,
         deleted: customersSuppliers.deleted,
         defaultChartAccountFullName: chartOfAccounts.fullPathName,
+        defaultCostCenterName: costCenters.name,
       })
       .from(customersSuppliers)
       .leftJoin(
@@ -1281,6 +1283,14 @@ export class DatabaseStorage implements IStorage {
           eq(chartOfAccounts.deleted, false)
         )
       )
+      .leftJoin(
+        costCenters,
+        and(
+          eq(customersSuppliers.defaultCostCenterId, costCenters.id),
+          eq(costCenters.tenantId, tenantId),
+          eq(costCenters.deleted, false)
+        )
+      )
       .where(
         and(
           eq(customersSuppliers.tenantId, tenantId),
@@ -1289,7 +1299,7 @@ export class DatabaseStorage implements IStorage {
       )
       .orderBy(customersSuppliers.code);
     
-    return results as (CustomerSupplier & { defaultChartAccountFullName?: string })[];
+    return results as (CustomerSupplier & { defaultChartAccountFullName?: string; defaultCostCenterName?: string })[];
   }
 
   async getCustomerSupplier(tenantId: string, id: string): Promise<CustomerSupplier | undefined> {
