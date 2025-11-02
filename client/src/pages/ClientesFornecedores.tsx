@@ -888,8 +888,8 @@ export default function ClientesFornecedores() {
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
-                    <SheetTitle className="text-2xl line-clamp-2">
-                      {isEditing ? "Editando" : selectedEntity.name}
+                    <SheetTitle className="text-2xl">
+                      Ficha de Detalhes
                     </SheetTitle>
                     <SheetDescription className="truncate">
                       {formatCode(selectedEntity.code)} • {getTypeLabel(selectedEntity)}
