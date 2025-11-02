@@ -1064,7 +1064,7 @@ export default function ClientesFornecedores() {
                             <FormItem>
                               <FormLabel>Nome / Razão Social *</FormLabel>
                               <FormControl>
-                                <Input {...field} placeholder="Ex: João da Silva" data-testid="input-name" />
+                                <Input {...field} placeholder="Ex: João da Silva" className="bg-muted/20" data-testid="input-name" />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -1081,7 +1081,7 @@ export default function ClientesFornecedores() {
                                 <FormLabel>Tipo</FormLabel>
                                 <Select onValueChange={field.onChange} value={field.value || "none"}>
                                   <FormControl>
-                                    <SelectTrigger data-testid="select-document-type">
+                                    <SelectTrigger className="bg-muted/20" data-testid="select-document-type">
                                       <SelectValue />
                                     </SelectTrigger>
                                   </FormControl>
@@ -1103,7 +1103,7 @@ export default function ClientesFornecedores() {
                               <FormItem className="col-span-3">
                                 <FormLabel>Número do Documento</FormLabel>
                                 <FormControl>
-                                  <Input {...field} value={field.value || ""} placeholder="000.000.000-00" data-testid="input-document" />
+                                  <Input {...field} value={field.value || ""} placeholder="000.000.000-00" className="bg-muted/20" data-testid="input-document" />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -1120,7 +1120,7 @@ export default function ClientesFornecedores() {
                               <FormItem>
                                 <FormLabel>Telefone</FormLabel>
                                 <FormControl>
-                                  <Input {...field} value={field.value || ""} placeholder="(11) 99999-9999" data-testid="input-phone" />
+                                  <Input {...field} value={field.value || ""} placeholder="(11) 99999-9999" className="bg-muted/20" data-testid="input-phone" />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -1133,7 +1133,7 @@ export default function ClientesFornecedores() {
                               <FormItem>
                                 <FormLabel>WhatsApp</FormLabel>
                                 <FormControl>
-                                  <Input {...field} value={field.value || ""} placeholder="(11) 99999-9999" data-testid="input-whatsapp" />
+                                  <Input {...field} value={field.value || ""} placeholder="(11) 99999-9999" className="bg-muted/20" data-testid="input-whatsapp" />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -1146,7 +1146,7 @@ export default function ClientesFornecedores() {
                               <FormItem>
                                 <FormLabel>Email</FormLabel>
                                 <FormControl>
-                                  <Input {...field} value={field.value || ""} type="email" placeholder="exemplo@email.com" data-testid="input-email" />
+                                  <Input {...field} value={field.value || ""} type="email" placeholder="exemplo@email.com" className="bg-muted/20" data-testid="input-email" />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -1159,7 +1159,7 @@ export default function ClientesFornecedores() {
                               <FormItem>
                                 <FormLabel>Website</FormLabel>
                                 <FormControl>
-                                  <Input {...field} value={field.value || ""} placeholder="https://exemplo.com.br" data-testid="input-website" />
+                                  <Input {...field} value={field.value || ""} placeholder="https://exemplo.com.br" className="bg-muted/20" data-testid="input-website" />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -1179,7 +1179,7 @@ export default function ClientesFornecedores() {
                               <FormItem>
                                 <FormLabel>CEP</FormLabel>
                                 <FormControl>
-                                  <Input {...field} value={field.value || ""} placeholder="00000-000" data-testid="input-zipcode" />
+                                  <Input {...field} value={field.value || ""} placeholder="00000-000" className="bg-muted/20" data-testid="input-zipcode" />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -1192,7 +1192,7 @@ export default function ClientesFornecedores() {
                               <FormItem>
                                 <FormLabel>País</FormLabel>
                                 <FormControl>
-                                  <Input {...field} value={field.value || ""} placeholder="Brasil" data-testid="input-country" />
+                                  <Input {...field} value={field.value || ""} placeholder="Brasil" className="bg-muted/20" data-testid="input-country" />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -1207,7 +1207,7 @@ export default function ClientesFornecedores() {
                             <FormItem>
                               <FormLabel>Logradouro</FormLabel>
                               <FormControl>
-                                <Input {...field} value={field.value || ""} placeholder="Rua, Avenida, etc" data-testid="input-street" />
+                                <Input {...field} value={field.value || ""} placeholder="Rua, Avenida, etc" className="bg-muted/20" data-testid="input-street" />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -1222,7 +1222,7 @@ export default function ClientesFornecedores() {
                               <FormItem>
                                 <FormLabel>Número</FormLabel>
                                 <FormControl>
-                                  <Input {...field} value={field.value || ""} placeholder="123" data-testid="input-number" />
+                                  <Input {...field} value={field.value || ""} placeholder="123" className="bg-muted/20" data-testid="input-number" />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -1235,7 +1235,7 @@ export default function ClientesFornecedores() {
                               <FormItem>
                                 <FormLabel>Complemento</FormLabel>
                                 <FormControl>
-                                  <Input {...field} value={field.value || ""} placeholder="Apto, Bloco, etc" data-testid="input-complement" />
+                                  <Input {...field} value={field.value || ""} placeholder="Apto, Bloco, etc" className="bg-muted/20" data-testid="input-complement" />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -1248,7 +1248,7 @@ export default function ClientesFornecedores() {
                               <FormItem>
                                 <FormLabel>Bairro</FormLabel>
                                 <FormControl>
-                                  <Input {...field} value={field.value || ""} placeholder="Centro" data-testid="input-neighborhood" />
+                                  <Input {...field} value={field.value || ""} placeholder="Centro" className="bg-muted/20" data-testid="input-neighborhood" />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -1263,7 +1263,7 @@ export default function ClientesFornecedores() {
                               <FormItem className="col-span-2">
                                 <FormLabel>Cidade</FormLabel>
                                 <FormControl>
-                                  <Input {...field} value={field.value || ""} placeholder="São Paulo" data-testid="input-city" />
+                                  <Input {...field} value={field.value || ""} placeholder="São Paulo" className="bg-muted/20" data-testid="input-city" />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -1276,7 +1276,7 @@ export default function ClientesFornecedores() {
                               <FormItem>
                                 <FormLabel>UF</FormLabel>
                                 <FormControl>
-                                  <Input {...field} value={field.value || ""} maxLength={2} placeholder="SP" data-testid="input-state" />
+                                  <Input {...field} value={field.value || ""} maxLength={2} placeholder="SP" className="bg-muted/20" data-testid="input-state" />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -1298,7 +1298,7 @@ export default function ClientesFornecedores() {
                               <FormItem>
                                 <FormLabel className="text-xs">Banco</FormLabel>
                                 <FormControl>
-                                  <Input {...field} value={field.value || ""} placeholder="Ex: Banco do Brasil" data-testid="input-bank-name" />
+                                  <Input {...field} value={field.value || ""} placeholder="Ex: Banco do Brasil" className="bg-muted/20" data-testid="input-bank-name" />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -1311,7 +1311,7 @@ export default function ClientesFornecedores() {
                               <FormItem>
                                 <FormLabel className="text-xs">Agência</FormLabel>
                                 <FormControl>
-                                  <Input {...field} value={field.value || ""} placeholder="0000" data-testid="input-account-agency" />
+                                  <Input {...field} value={field.value || ""} placeholder="0000" className="bg-muted/20" data-testid="input-account-agency" />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -1324,7 +1324,7 @@ export default function ClientesFornecedores() {
                               <FormItem>
                                 <FormLabel className="text-xs">Conta</FormLabel>
                                 <FormControl>
-                                  <Input {...field} value={field.value || ""} placeholder="00000-0" data-testid="input-account-number" />
+                                  <Input {...field} value={field.value || ""} placeholder="00000-0" className="bg-muted/20" data-testid="input-account-number" />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -1342,7 +1342,7 @@ export default function ClientesFornecedores() {
                                 <FormLabel className="text-xs">Tipo PIX</FormLabel>
                                 <Select onValueChange={field.onChange} value={field.value || "cpf"}>
                                   <FormControl>
-                                    <SelectTrigger data-testid="select-pix-key-type">
+                                    <SelectTrigger className="bg-muted/20" data-testid="select-pix-key-type">
                                       <SelectValue placeholder="Selecione" />
                                     </SelectTrigger>
                                   </FormControl>
@@ -1365,7 +1365,7 @@ export default function ClientesFornecedores() {
                               <FormItem>
                                 <FormLabel className="text-xs">Chave PIX</FormLabel>
                                 <FormControl>
-                                  <Input {...field} value={field.value || ""} placeholder="Digite a chave PIX" data-testid="input-pix-key" />
+                                  <Input {...field} value={field.value || ""} placeholder="Digite a chave PIX" className="bg-muted/20" data-testid="input-pix-key" />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
