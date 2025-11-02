@@ -1055,7 +1055,7 @@ export default function ClientesFornecedores() {
                     {/* Right Column: Detailed Form Fields in 2-column layout */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                       {/* Left Sub-column: Basic Info & Contact */}
-                      <Card className="p-2 bg-gradient-to-br from-card to-muted/30">
+                      <div className="space-y-1.5">
                         {/* Nome */}
                         <FormField
                           control={form.control}
@@ -1166,10 +1166,10 @@ export default function ClientesFornecedores() {
                             )}
                           />
                         </div>
-                      </Card>
+                      </div>
 
                       {/* Right Sub-column: Address */}
-                      <Card className="p-2 bg-gradient-to-br from-card to-muted/30">
+                      <div className="space-y-1.5">
                         {/* Address Fields */}
                         <div className="grid grid-cols-2 gap-2">
                           <FormField
@@ -1283,10 +1283,10 @@ export default function ClientesFornecedores() {
                             )}
                           />
                         </div>
-                      </Card>
+                      </div>
 
                       {/* Financial Information - Horizontal Section in 2 rows - spans full width */}
-                      <Card className="lg:col-span-2 p-2 bg-gradient-to-br from-card to-muted/30">
+                      <div className="lg:col-span-2 space-y-1.5">
                         <h4 className="text-xs font-medium text-muted-foreground">Informações Financeiras</h4>
                         
                         {/* Row 1: Bank Info */}
@@ -1372,7 +1372,7 @@ export default function ClientesFornecedores() {
                             )}
                           />
                         </div>
-                      </Card>
+                      </div>
                     </div>
                   </div>
                 ) : (
