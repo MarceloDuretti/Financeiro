@@ -139,6 +139,7 @@ export default function ClientesFornecedores() {
     return saved === 'list' ? 'list' : 'cards';
   });
   const [searchQuery, setSearchQuery] = useState('');
+  const [typeFilter, setTypeFilter] = useState<'all' | 'customer' | 'supplier'>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [showOnlyWithoutAccount, setShowOnlyWithoutAccount] = useState(false);
   
@@ -184,6 +185,10 @@ export default function ClientesFornecedores() {
       );
       if (!matchesSearch) return false;
     }
+    
+    // Type filter
+    if (typeFilter === 'customer' && !entity.isCustomer) return false;
+    if (typeFilter === 'supplier' && !entity.isSupplier) return false;
     
     // Status filter
     if (statusFilter === 'active' && !entity.isActive) return false;
@@ -738,6 +743,17 @@ export default function ClientesFornecedores() {
             data-testid="input-search"
           />
         </div>
+        
+        <Select value={typeFilter} onValueChange={(value: any) => setTypeFilter(value)}>
+          <SelectTrigger className="w-[140px]" data-testid="select-type-filter">
+            <SelectValue placeholder="Tipo" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos</SelectItem>
+            <SelectItem value="customer">Clientes</SelectItem>
+            <SelectItem value="supplier">Fornecedores</SelectItem>
+          </SelectContent>
+        </Select>
         
         <Select value={statusFilter} onValueChange={(value: any) => setStatusFilter(value)}>
           <SelectTrigger className="w-[130px]" data-testid="select-status-filter">
