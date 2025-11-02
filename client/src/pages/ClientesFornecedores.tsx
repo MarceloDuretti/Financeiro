@@ -1158,7 +1158,17 @@ export default function ClientesFornecedores() {
                               onSave={async (costCenterIds) => {
                                 if (!selectedEntity) return;
                                 await apiRequest("PUT", `/api/customers-suppliers/${selectedEntity.id}/cost-centers`, { costCenterIds });
-                                queryClient.invalidateQueries({ queryKey: ["/api/customers-suppliers"] });
+                                await queryClient.invalidateQueries({ queryKey: ["/api/customers-suppliers"] });
+                                
+                                // Refetch data and update selectedEntity
+                                await queryClient.refetchQueries({ queryKey: ["/api/customers-suppliers"] });
+                                const updatedList = queryClient.getQueryData<EntityWithStats[]>(["/api/customers-suppliers"]);
+                                if (updatedList) {
+                                  const updatedEntity = updatedList.find(e => e.id === selectedEntity.id);
+                                  if (updatedEntity) {
+                                    setSelectedEntity(updatedEntity);
+                                  }
+                                }
                               }}
                             />
                           </div>
