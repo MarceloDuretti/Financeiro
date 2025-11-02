@@ -215,7 +215,7 @@ export function TransactionDetailSheet({
 
     try {
       setIsDeleting(true);
-      await apiRequest("DELETE", `/api/transactions/${transaction.id}`);
+      await apiRequest("DELETE", `/api/transactions/${transaction.id}?companyId=${transaction.companyId}`);
 
       toast({
         title: "Sucesso",
