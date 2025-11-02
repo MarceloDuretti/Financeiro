@@ -671,11 +671,11 @@ export default function ClientesFornecedores() {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col gap-6 p-4 md:p-6 lg:p-8">
+      <div className="flex flex-col gap-3 p-3 md:p-4">
         <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <h1 className="text-2xl md:text-3xl font-bold">Clientes e Fornecedores</h1>
-            <p className="text-sm text-muted-foreground">
+          <div>
+            <h1 className="text-xl md:text-2xl font-bold">Clientes e Fornecedores</h1>
+            <p className="text-xs text-muted-foreground">
               Gerenciamento completo de clientes e fornecedores
             </p>
           </div>
@@ -694,12 +694,12 @@ export default function ClientesFornecedores() {
   }
 
   return (
-    <div className="flex flex-col gap-6 p-4 md:p-6 lg:p-8">
+    <div className="flex flex-col gap-3 p-3 md:p-4">
       {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-4">
-        <div className="space-y-1">
-          <h1 className="text-2xl md:text-3xl font-bold">Clientes e Fornecedores</h1>
-          <div className="flex items-center gap-2 flex-wrap text-sm text-muted-foreground">
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <div>
+          <h1 className="text-xl md:text-2xl font-bold">Clientes e Fornecedores</h1>
+          <div className="flex items-center gap-2 flex-wrap text-xs text-muted-foreground">
             <span>
               {metrics.total} {metrics.total === 1 ? "registro" : "registros"}
               {searchQuery && ` (filtrado de ${entities.length})`}
@@ -707,7 +707,7 @@ export default function ClientesFornecedores() {
             {metrics.inactive > 0 && (
               <>
                 <span>•</span>
-                <Badge variant="outline" className="text-[11px] h-5 px-2 border-orange-500 text-orange-700 dark:text-orange-400">
+                <Badge variant="outline" className="text-[10px] h-4 px-1.5 border-orange-500 text-orange-700 dark:text-orange-400">
                   {metrics.inactive} desativado{metrics.inactive > 1 ? 's' : ''}
                 </Badge>
               </>
@@ -715,7 +715,7 @@ export default function ClientesFornecedores() {
             {metrics.withoutDefaultAccount > 0 && (
               <>
                 <span>•</span>
-                <Badge variant="outline" className="text-[11px] h-5 px-2 border-yellow-500 text-yellow-700 dark:text-yellow-400">
+                <Badge variant="outline" className="text-[10px] h-4 px-1.5 border-yellow-500 text-yellow-700 dark:text-yellow-400">
                   {metrics.withoutDefaultAccount} sem plano de contas
                 </Badge>
               </>
@@ -725,14 +725,15 @@ export default function ClientesFornecedores() {
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
+            size="sm"
             onClick={() => setIsReportDialogOpen(true)}
             data-testid="button-ai-report"
           >
-            <Sparkles className="h-4 w-4 mr-2" />
+            <Sparkles className="h-3.5 w-3.5 mr-1.5" />
             Relatório com IA
           </Button>
-          <Button onClick={handleCreateNew} data-testid="button-create-new">
-            <Plus className="h-4 w-4 mr-2" />
+          <Button size="sm" onClick={handleCreateNew} data-testid="button-create-new">
+            <Plus className="h-3.5 w-3.5 mr-1.5" />
             Novo Cadastro
           </Button>
         </div>
@@ -741,18 +742,18 @@ export default function ClientesFornecedores() {
       {/* Toolbar: Search + Filters + View Toggle */}
       <div className="flex items-center gap-2 flex-wrap">
         <div className="relative flex-1 min-w-[200px]">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
           <Input
             placeholder="Buscar..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
+            className="pl-8 h-8 text-xs"
             data-testid="input-search"
           />
         </div>
         
         <Select value={typeFilter} onValueChange={(value: any) => setTypeFilter(value)}>
-          <SelectTrigger className="w-[140px]" data-testid="select-type-filter">
+          <SelectTrigger className="w-[120px] h-8 text-xs" data-testid="select-type-filter">
             <SelectValue placeholder="Tipo" />
           </SelectTrigger>
           <SelectContent>
@@ -763,7 +764,7 @@ export default function ClientesFornecedores() {
         </Select>
         
         <Select value={statusFilter} onValueChange={(value: any) => setStatusFilter(value)}>
-          <SelectTrigger className="w-[130px]" data-testid="select-status-filter">
+          <SelectTrigger className="w-[110px] h-8 text-xs" data-testid="select-status-filter">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
@@ -776,13 +777,14 @@ export default function ClientesFornecedores() {
         {metrics.withoutDefaultAccount > 0 && (
           <Button
             variant="outline"
+            size="sm"
             onClick={() => setShowOnlyWithoutAccount(!showOnlyWithoutAccount)}
-            className={`gap-2 toggle-elevate ${showOnlyWithoutAccount ? 'toggle-elevated bg-amber-500 text-white border-amber-600 hover:bg-amber-600' : 'text-amber-600 border-amber-500 bg-amber-50/70 dark:bg-amber-400/10'}`}
+            className={`gap-1.5 toggle-elevate ${showOnlyWithoutAccount ? 'toggle-elevated bg-amber-500 text-white border-amber-600 hover:bg-amber-600' : 'text-amber-600 border-amber-500 bg-amber-50/70 dark:bg-amber-400/10'}`}
             data-testid="button-account-pending"
           >
-            <AlertTriangle className="h-4 w-4" />
-            <span className="text-sm font-medium">Pendências</span>
-            <Badge className={`text-[10px] h-5 px-1.5 ${showOnlyWithoutAccount ? 'bg-white text-amber-600' : 'bg-amber-600 text-white'}`}>
+            <AlertTriangle className="h-3.5 w-3.5" />
+            <span className="text-xs font-medium">Pendências</span>
+            <Badge className={`text-[9px] h-4 px-1 ${showOnlyWithoutAccount ? 'bg-white text-amber-600' : 'bg-amber-600 text-white'}`}>
               {metrics.withoutDefaultAccount}
             </Badge>
           </Button>
