@@ -1718,17 +1718,6 @@ export default function ClientesFornecedores() {
                         </div>
                       )}
 
-                      {/* Default Chart Account */}
-                      {selectedEntity.defaultChartAccountId && (
-                        <div>
-                          <p className="text-[11px] [@media(min-height:700px)]:text-xs text-muted-foreground mb-1">Plano de Contas Padrão</p>
-                          <div className="border rounded-md px-3 py-2 bg-muted/20 text-[13px] [@media(min-height:700px)]:text-sm font-medium" data-testid="text-default-chart-account">
-                            {chartAccounts.find(ca => ca.id === selectedEntity.defaultChartAccountId)?.fullName || 
-                             selectedEntity.defaultChartAccountId}
-                          </div>
-                        </div>
-                      )}
-
                       {/* Notes */}
                       {selectedEntity.notes && (
                         <div>
