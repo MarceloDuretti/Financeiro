@@ -53,6 +53,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertCustomerSupplierSchema, type CustomerSupplier, type InsertCustomerSupplier } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { MultiCostCenterPicker } from "@/components/MultiCostCenterPicker";
 import { 
   User, 
   Plus, 
@@ -92,7 +93,7 @@ type EntityWithStats = CustomerSupplier & {
   revenuePercentage: number | null;
   expensePercentage: number | null;
   defaultChartAccountFullName?: string;
-  defaultCostCenterName?: string;
+  costCenters?: Array<{ id: string; code: number; name: string }>;
 };
 
 interface ProcessedEntity {
@@ -259,7 +260,6 @@ export default function ClientesFornecedores() {
       imageUrl: "",
       notes: "",
       defaultChartAccountId: undefined,
-      defaultCostCenterId: undefined,
       isActive: true,
     },
   });
@@ -298,7 +298,6 @@ export default function ClientesFornecedores() {
       imageUrl: "",
       notes: "",
       defaultChartAccountId: undefined,
-      defaultCostCenterId: undefined,
       isActive: true,
     });
     setWizardStep(1);
@@ -337,7 +336,6 @@ export default function ClientesFornecedores() {
       imageUrl: selectedEntity.imageUrl || "",
       notes: selectedEntity.notes || "",
       defaultChartAccountId: selectedEntity.defaultChartAccountId || undefined,
-      defaultCostCenterId: selectedEntity.defaultCostCenterId || undefined,
       isActive: selectedEntity.isActive,
     });
     
@@ -1151,30 +1149,24 @@ export default function ClientesFornecedores() {
                             )}
                           />
 
-                          {/* Default Cost Center */}
-                          <FormField
-                            control={form.control}
-                            name="defaultCostCenterId"
-                            render={({ field }) => (
-                              <FormItem className="space-y-0.5">
-                                <FormLabel className="text-[9px] text-muted-foreground">Centro de Custo Padrão</FormLabel>
-                                <Select onValueChange={field.onChange} value={field.value || ""}>
-                                  <FormControl>
-                                    <SelectTrigger data-testid="select-default-cost-center" className="h-8 text-xs">
-                                      <SelectValue placeholder="Selecione (opcional)" />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent className="max-h-[300px]">
-                                    {costCenters.map((center: any) => (
-                                      <SelectItem key={center.id} value={center.id}>
-                                        {center.code} - {center.name}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                              </FormItem>
-                            )}
-                          />
+                          {/* Multi Cost Centers */}
+                          <div className="space-y-0.5">
+                            <FormLabel className="text-[9px] text-muted-foreground">Centros de Custo</FormLabel>
+                            <MultiCostCenterPicker
+                              selectedCostCenters={selectedEntity?.costCenters || []}
+                              allCostCenters={costCenters.map((cc: any) => ({ id: cc.id, code: cc.code, name: cc.name }))}
+                              onAdd={async (costCenterId) => {
+                                if (!selectedEntity) return;
+                                await apiRequest("POST", `/api/customers-suppliers/${selectedEntity.id}/cost-centers`, { costCenterId });
+                                queryClient.invalidateQueries({ queryKey: ["/api/customers-suppliers"] });
+                              }}
+                              onRemove={async (costCenterId) => {
+                                if (!selectedEntity) return;
+                                await apiRequest("DELETE", `/api/customers-suppliers/${selectedEntity.id}/cost-centers/${costCenterId}`);
+                                queryClient.invalidateQueries({ queryKey: ["/api/customers-suppliers"] });
+                              }}
+                            />
+                          </div>
                         </div>
                       </Card>
 
@@ -1662,14 +1654,29 @@ export default function ClientesFornecedores() {
 
                         <Separator className="my-1.5" />
 
-                        {/* Default Cost Center */}
+                        {/* Cost Centers */}
                         <div>
                           <p className="text-[11px] [@media(min-height:700px)]:text-xs text-muted-foreground uppercase tracking-wide mb-1">
-                            Centro de Custo Padrão
+                            Centros de Custo
                           </p>
-                          <p className="text-xs [@media(min-height:700px)]:text-sm font-medium">
-                            {selectedEntity.defaultCostCenterName || "Não configurado"}
-                          </p>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {selectedEntity.costCenters && selectedEntity.costCenters.length > 0 ? (
+                              selectedEntity.costCenters.map((cc) => (
+                                <Badge
+                                  key={cc.id}
+                                  variant="secondary"
+                                  className="text-xs h-5 px-1.5"
+                                >
+                                  <span className="font-mono text-[10px] text-muted-foreground mr-1">
+                                    {String(cc.code).padStart(3, "0")}
+                                  </span>
+                                  {cc.name}
+                                </Badge>
+                              ))
+                            ) : (
+                              <p className="text-xs text-muted-foreground italic">Nenhum centro configurado</p>
+                            )}
+                          </div>
                         </div>
 
                         <Separator className="my-1.5" />
@@ -2435,31 +2442,6 @@ export default function ClientesFornecedores() {
                             {chartAccounts.map((account: any) => (
                               <SelectItem key={account.id} value={account.id}>
                                 {account.fullName}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="defaultCostCenterId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Centro de Custo Padrão</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value || ""}>
-                          <FormControl>
-                            <SelectTrigger data-testid="select-default-cost-center-wizard">
-                              <SelectValue placeholder="Selecione (opcional)" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent className="max-h-[300px]">
-                            {costCenters.map((center: any) => (
-                              <SelectItem key={center.id} value={center.id}>
-                                {center.code} - {center.name}
                               </SelectItem>
                             ))}
                           </SelectContent>
