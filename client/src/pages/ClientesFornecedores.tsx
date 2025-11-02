@@ -90,6 +90,7 @@ import { pt } from "date-fns/locale";
 type EntityWithStats = CustomerSupplier & {
   revenuePercentage: number | null;
   expensePercentage: number | null;
+  defaultChartAccountFullName?: string;
 };
 
 interface ProcessedEntity {
@@ -1522,9 +1523,7 @@ export default function ClientesFornecedores() {
                             Plano de Contas Padrão
                           </p>
                           <p className="text-xs [@media(min-height:700px)]:text-sm font-medium">
-                            {selectedEntity.defaultChartAccountId 
-                              ? (chartAccounts.find(ca => ca.id === selectedEntity.defaultChartAccountId)?.fullName || "Não encontrado")
-                              : "Não configurado"}
+                            {selectedEntity.defaultChartAccountFullName || "Não configurado"}
                           </p>
                         </div>
 

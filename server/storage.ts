@@ -1235,10 +1235,52 @@ export class DatabaseStorage implements IStorage {
 
   // Customers/Suppliers operations - all require tenantId for multi-tenant isolation
 
-  async listCustomersSuppliers(tenantId: string): Promise<CustomerSupplier[]> {
-    return await db
-      .select()
+  async listCustomersSuppliers(tenantId: string): Promise<(CustomerSupplier & { defaultChartAccountFullName?: string })[]> {
+    const results = await db
+      .select({
+        id: customersSuppliers.id,
+        tenantId: customersSuppliers.tenantId,
+        code: customersSuppliers.code,
+        name: customersSuppliers.name,
+        email: customersSuppliers.email,
+        phone: customersSuppliers.phone,
+        website: customersSuppliers.website,
+        documentType: customersSuppliers.documentType,
+        document: customersSuppliers.document,
+        isCustomer: customersSuppliers.isCustomer,
+        isSupplier: customersSuppliers.isSupplier,
+        isActive: customersSuppliers.isActive,
+        zipCode: customersSuppliers.zipCode,
+        street: customersSuppliers.street,
+        number: customersSuppliers.number,
+        complement: customersSuppliers.complement,
+        neighborhood: customersSuppliers.neighborhood,
+        city: customersSuppliers.city,
+        state: customersSuppliers.state,
+        country: customersSuppliers.country,
+        bankName: customersSuppliers.bankName,
+        accountAgency: customersSuppliers.accountAgency,
+        accountNumber: customersSuppliers.accountNumber,
+        pixKeyType: customersSuppliers.pixKeyType,
+        pixKey: customersSuppliers.pixKey,
+        whatsapp: customersSuppliers.whatsapp,
+        imageUrl: customersSuppliers.imageUrl,
+        notes: customersSuppliers.notes,
+        defaultChartAccountId: customersSuppliers.defaultChartAccountId,
+        updatedAt: customersSuppliers.updatedAt,
+        version: customersSuppliers.version,
+        deleted: customersSuppliers.deleted,
+        defaultChartAccountFullName: chartOfAccounts.fullPathName,
+      })
       .from(customersSuppliers)
+      .leftJoin(
+        chartOfAccounts,
+        and(
+          eq(customersSuppliers.defaultChartAccountId, chartOfAccounts.id),
+          eq(chartOfAccounts.tenantId, tenantId),
+          eq(chartOfAccounts.deleted, false)
+        )
+      )
       .where(
         and(
           eq(customersSuppliers.tenantId, tenantId),
@@ -1246,6 +1288,8 @@ export class DatabaseStorage implements IStorage {
         )
       )
       .orderBy(customersSuppliers.code);
+    
+    return results as (CustomerSupplier & { defaultChartAccountFullName?: string })[];
   }
 
   async getCustomerSupplier(tenantId: string, id: string): Promise<CustomerSupplier | undefined> {
