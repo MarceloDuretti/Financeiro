@@ -138,6 +138,8 @@ export default function ClientesFornecedores() {
     return saved === 'list' ? 'list' : 'cards';
   });
   const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const [accountFilter, setAccountFilter] = useState<'all' | 'with' | 'without'>('all');
   
   // Use ref for synchronous submission lock to prevent race conditions
   const isSubmittingRef = useRef(false);
@@ -168,16 +170,29 @@ export default function ClientesFornecedores() {
     enabled: !!selectedEntity,
   });
 
-  // Filter entities based on search query
+  // Filter entities based on search query and filters
   const filteredEntities = entities.filter((entity) => {
-    if (!searchQuery) return true;
-    const q = searchQuery.toLowerCase();
-    return (
-      entity.name?.toLowerCase().includes(q) ||
-      entity.document?.toLowerCase().includes(q) ||
-      entity.email?.toLowerCase().includes(q) ||
-      entity.phone?.toLowerCase().includes(q)
-    );
+    // Search query filter
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      const matchesSearch = (
+        entity.name?.toLowerCase().includes(q) ||
+        entity.document?.toLowerCase().includes(q) ||
+        entity.email?.toLowerCase().includes(q) ||
+        entity.phone?.toLowerCase().includes(q)
+      );
+      if (!matchesSearch) return false;
+    }
+    
+    // Status filter
+    if (statusFilter === 'active' && !entity.isActive) return false;
+    if (statusFilter === 'inactive' && entity.isActive) return false;
+    
+    // Account filter
+    if (accountFilter === 'with' && !entity.defaultChartAccountId) return false;
+    if (accountFilter === 'without' && entity.defaultChartAccountId) return false;
+    
+    return true;
   });
 
   // Calculate metrics for actionable insights
@@ -712,7 +727,7 @@ export default function ClientesFornecedores() {
         </div>
       </div>
 
-      {/* Toolbar: Search + View Toggle */}
+      {/* Toolbar: Search + Filters + View Toggle */}
       <div className="flex items-center gap-2 flex-wrap">
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -724,6 +739,31 @@ export default function ClientesFornecedores() {
             data-testid="input-search"
           />
         </div>
+        
+        <Select value={statusFilter} onValueChange={(value: any) => setStatusFilter(value)}>
+          <SelectTrigger className="w-[130px]" data-testid="select-status-filter">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos</SelectItem>
+            <SelectItem value="active">Ativos</SelectItem>
+            <SelectItem value="inactive">Inativos</SelectItem>
+          </SelectContent>
+        </Select>
+        
+        {metrics.withoutDefaultAccount > 0 && (
+          <Select value={accountFilter} onValueChange={(value: any) => setAccountFilter(value)}>
+            <SelectTrigger className="w-[160px]" data-testid="select-account-filter">
+              <SelectValue placeholder="Plano de Contas" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos</SelectItem>
+              <SelectItem value="with">Com Plano</SelectItem>
+              <SelectItem value="without">Sem Plano</SelectItem>
+            </SelectContent>
+          </Select>
+        )}
+        
         <div className="flex items-center gap-1">
           <Button
             variant={viewMode === 'cards' ? 'default' : 'outline'}
