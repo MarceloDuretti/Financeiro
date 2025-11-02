@@ -174,6 +174,7 @@ export interface IStorage {
   }): Promise<CustomerSupplier[]>;
   addCostCenterToCustomerSupplier(tenantId: string, customerSupplierId: string, costCenterId: string): Promise<void>;
   removeCostCenterFromCustomerSupplier(tenantId: string, customerSupplierId: string, costCenterId: string): Promise<void>;
+  updateCustomerSupplierCostCenters(tenantId: string, customerSupplierId: string, costCenterIds: string[]): Promise<void>;
   listCostCentersByCustomerSupplier(tenantId: string, customerSupplierId: string): Promise<Array<{ id: string; code: number; name: string }>>;
 
   // Cash Registers operations - all require tenantId and companyId for multi-tenant isolation
@@ -1741,6 +1742,29 @@ export class DatabaseStorage implements IStorage {
         eq(customerSupplierCostCenters.costCenterId, costCenterId)
       )
     );
+  }
+
+  async updateCustomerSupplierCostCenters(tenantId: string, customerSupplierId: string, costCenterIds: string[]): Promise<void> {
+    await db.transaction(async (tx) => {
+      // Remove all existing cost centers
+      await tx.delete(customerSupplierCostCenters).where(
+        and(
+          eq(customerSupplierCostCenters.tenantId, tenantId),
+          eq(customerSupplierCostCenters.customerSupplierId, customerSupplierId)
+        )
+      );
+
+      // Add new cost centers
+      if (costCenterIds.length > 0) {
+        await tx.insert(customerSupplierCostCenters).values(
+          costCenterIds.map(costCenterId => ({
+            tenantId,
+            customerSupplierId,
+            costCenterId,
+          }))
+        );
+      }
+    });
   }
 
   async listCostCentersByCustomerSupplier(tenantId: string, customerSupplierId: string): Promise<Array<{ id: string; code: number; name: string }>> {

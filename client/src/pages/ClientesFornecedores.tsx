@@ -1155,14 +1155,9 @@ export default function ClientesFornecedores() {
                             <MultiCostCenterPicker
                               selectedCostCenters={selectedEntity?.costCenters || []}
                               allCostCenters={costCenters.map((cc: any) => ({ id: cc.id, code: cc.code, name: cc.name }))}
-                              onAdd={async (costCenterId) => {
+                              onSave={async (costCenterIds) => {
                                 if (!selectedEntity) return;
-                                await apiRequest("POST", `/api/customers-suppliers/${selectedEntity.id}/cost-centers`, { costCenterId });
-                                queryClient.invalidateQueries({ queryKey: ["/api/customers-suppliers"] });
-                              }}
-                              onRemove={async (costCenterId) => {
-                                if (!selectedEntity) return;
-                                await apiRequest("DELETE", `/api/customers-suppliers/${selectedEntity.id}/cost-centers/${costCenterId}`);
+                                await apiRequest("PUT", `/api/customers-suppliers/${selectedEntity.id}/cost-centers`, { costCenterIds });
                                 queryClient.invalidateQueries({ queryKey: ["/api/customers-suppliers"] });
                               }}
                             />

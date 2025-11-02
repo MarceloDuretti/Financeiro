@@ -1311,6 +1311,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update all cost centers for customer/supplier (replaces existing)
+  app.put("/api/customers-suppliers/:id/cost-centers", isAuthenticated, async (req, res) => {
+    try {
+      const tenantId = getTenantId((req as any).user);
+      const { id } = req.params;
+      const { costCenterIds } = req.body;
+      
+      if (!Array.isArray(costCenterIds)) {
+        return res.status(400).json({ message: "costCenterIds deve ser um array" });
+      }
+      
+      await storage.updateCustomerSupplierCostCenters(tenantId, id, costCenterIds);
+      
+      // Broadcast to all clients in this tenant
+      broadcastDataChange(tenantId, "customers-suppliers", "updated", { id });
+      
+      res.json({ message: "Centros de custo atualizados com sucesso" });
+    } catch (error: any) {
+      console.error("Error updating cost centers for customer/supplier:", error);
+      res.status(400).json({ message: error.message || "Erro ao atualizar centros de custo" });
+    }
+  });
+
   // AI Report for customers/suppliers
   app.post("/api/ai-report/customers-suppliers", isAuthenticated, async (req, res) => {
     try {

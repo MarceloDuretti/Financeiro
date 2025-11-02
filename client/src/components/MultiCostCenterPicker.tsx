@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { X, Plus } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -15,6 +15,8 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useToast } from "@/hooks/use-toast";
 
 interface CostCenter {
   id: string;
@@ -25,110 +27,154 @@ interface CostCenter {
 interface MultiCostCenterPickerProps {
   selectedCostCenters: CostCenter[];
   allCostCenters: CostCenter[];
-  onAdd: (costCenterId: string) => Promise<void> | void;
-  onRemove: (costCenterId: string) => Promise<void> | void;
+  onSave: (costCenterIds: string[]) => Promise<void>;
   disabled?: boolean;
 }
 
 export function MultiCostCenterPicker({
   selectedCostCenters,
   allCostCenters,
-  onAdd,
-  onRemove,
+  onSave,
   disabled = false,
 }: MultiCostCenterPickerProps) {
   const [open, setOpen] = useState(false);
-  const [isAdding, setIsAdding] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [tempSelected, setTempSelected] = useState<Set<string>>(new Set());
+  const { toast } = useToast();
 
-  // Filter out already selected cost centers
-  const availableCostCenters = allCostCenters.filter(
-    (cc) => !selectedCostCenters.some((selected) => selected.id === cc.id)
-  );
+  // Initialize temp selection with current selection when opening
+  useEffect(() => {
+    if (open) {
+      setTempSelected(new Set(selectedCostCenters.map((cc) => cc.id)));
+    }
+  }, [open, selectedCostCenters]);
 
-  const handleAdd = async (costCenterId: string) => {
+  const toggleCostCenter = (costCenterId: string) => {
+    const newSet = new Set(tempSelected);
+    if (newSet.has(costCenterId)) {
+      newSet.delete(costCenterId);
+    } else {
+      newSet.add(costCenterId);
+    }
+    setTempSelected(newSet);
+  };
+
+  const handleSave = async () => {
     try {
-      setIsAdding(true);
-      await onAdd(costCenterId);
+      setIsSaving(true);
+      await onSave(Array.from(tempSelected));
       setOpen(false);
+      toast({
+        title: "Centros de custo atualizados",
+        description: `${tempSelected.size} centro(s) associado(s)`,
+      });
+    } catch (error) {
+      toast({
+        title: "Erro ao salvar",
+        description: "Não foi possível atualizar os centros de custo",
+        variant: "destructive",
+      });
     } finally {
-      setIsAdding(false);
+      setIsSaving(false);
     }
   };
 
-  const handleRemove = async (costCenterId: string) => {
-    await onRemove(costCenterId);
+  const handleCancel = () => {
+    setTempSelected(new Set(selectedCostCenters.map((cc) => cc.id)));
+    setOpen(false);
   };
 
   return (
     <div className="space-y-2">
       <div className="flex flex-wrap gap-1.5">
-        {selectedCostCenters.map((cc) => (
-          <Badge
-            key={cc.id}
-            variant="secondary"
-            className="text-xs h-6 px-2 gap-1"
-            data-testid={`badge-cost-center-${cc.id}`}
-          >
-            <span className="font-mono text-[10px] text-muted-foreground">
-              {String(cc.code).padStart(3, "0")}
-            </span>
-            <span>{cc.name}</span>
-            {!disabled && (
-              <button
-                onClick={() => handleRemove(cc.id)}
-                className="ml-1 hover:bg-accent rounded-sm"
-                data-testid={`button-remove-cost-center-${cc.id}`}
-              >
-                <X className="h-3 w-3" />
-              </button>
-            )}
-          </Badge>
-        ))}
-        
-        {!disabled && availableCostCenters.length > 0 && (
-          <Popover open={open} onOpenChange={setOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-6 px-2 text-xs gap-1"
-                data-testid="button-add-cost-center"
-              >
-                <Plus className="h-3 w-3" />
-                Adicionar
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-[280px] p-0" align="start">
-              <Command>
-                <CommandInput placeholder="Buscar centro de custo..." />
-                <CommandList>
-                  <CommandEmpty>Nenhum centro encontrado</CommandEmpty>
-                  <CommandGroup>
-                    {availableCostCenters.map((cc) => (
-                      <CommandItem
-                        key={cc.id}
-                        onSelect={() => handleAdd(cc.id)}
-                        disabled={isAdding}
-                        data-testid={`option-cost-center-${cc.id}`}
-                      >
-                        <span className="font-mono text-xs text-muted-foreground mr-2">
-                          {String(cc.code).padStart(3, "0")}
-                        </span>
-                        <span className="text-sm">{cc.name}</span>
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover>
+        {selectedCostCenters.length > 0 ? (
+          selectedCostCenters.map((cc) => (
+            <Badge
+              key={cc.id}
+              variant="secondary"
+              className="text-xs h-6 px-2 gap-1"
+              data-testid={`badge-cost-center-${cc.id}`}
+            >
+              <span className="font-mono text-[10px] text-muted-foreground">
+                {String(cc.code).padStart(3, "0")}
+              </span>
+              <span>{cc.name}</span>
+            </Badge>
+          ))
+        ) : (
+          <p className="text-xs text-muted-foreground italic">
+            Nenhum centro de custo associado
+          </p>
         )}
       </div>
 
-      {selectedCostCenters.length === 0 && (
-        <p className="text-xs text-muted-foreground italic">
-          Nenhum centro de custo associado
-        </p>
+      {!disabled && (
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 text-xs"
+              data-testid="button-edit-cost-centers"
+            >
+              {selectedCostCenters.length > 0 ? "Editar Centros" : "Adicionar Centros"}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[320px] p-0" align="start">
+            <Command>
+              <CommandInput placeholder="Buscar centro de custo..." />
+              <CommandList className="max-h-[300px]">
+                <CommandEmpty>Nenhum centro encontrado</CommandEmpty>
+                <CommandGroup heading="Centros de Custo">
+                  {allCostCenters.map((cc) => {
+                    const isSelected = tempSelected.has(cc.id);
+                    return (
+                      <CommandItem
+                        key={cc.id}
+                        onSelect={() => toggleCostCenter(cc.id)}
+                        data-testid={`option-cost-center-${cc.id}`}
+                        className="cursor-pointer"
+                      >
+                        <div className="flex items-center gap-2 flex-1">
+                          <Checkbox
+                            checked={isSelected}
+                            onCheckedChange={() => toggleCostCenter(cc.id)}
+                            data-testid={`checkbox-cost-center-${cc.id}`}
+                          />
+                          <span className="font-mono text-xs text-muted-foreground">
+                            {String(cc.code).padStart(3, "0")}
+                          </span>
+                          <span className="text-sm flex-1">{cc.name}</span>
+                          {isSelected && <Check className="h-4 w-4 text-primary" />}
+                        </div>
+                      </CommandItem>
+                    );
+                  })}
+                </CommandGroup>
+              </CommandList>
+              <div className="border-t p-2 flex gap-2">
+                <Button
+                  size="sm"
+                  onClick={handleSave}
+                  disabled={isSaving}
+                  className="flex-1"
+                  data-testid="button-save-cost-centers"
+                >
+                  {isSaving ? "Salvando..." : "Salvar"}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleCancel}
+                  disabled={isSaving}
+                  data-testid="button-cancel-cost-centers"
+                >
+                  Cancelar
+                </Button>
+              </div>
+            </Command>
+          </PopoverContent>
+        </Popover>
       )}
     </div>
   );
