@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 import { useRealtimeQuery } from "@/hooks/useRealtimeQuery";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -179,6 +179,17 @@ export default function ClientesFornecedores() {
       entity.phone?.toLowerCase().includes(q)
     );
   });
+
+  // Calculate metrics for actionable insights
+  const metrics = useMemo(() => {
+    const inactive = filteredEntities.filter(e => !e.isActive).length;
+    const withoutDefaultAccount = filteredEntities.filter(e => !e.defaultChartAccountId).length;
+    return {
+      total: filteredEntities.length,
+      inactive,
+      withoutDefaultAccount,
+    };
+  }, [filteredEntities]);
 
   // Handle view mode change
   const handleViewModeChange = (mode: 'cards' | 'list') => {
@@ -662,10 +673,28 @@ export default function ClientesFornecedores() {
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div className="space-y-1">
           <h1 className="text-2xl md:text-3xl font-bold">Clientes e Fornecedores</h1>
-          <p className="text-sm text-muted-foreground">
-            {filteredEntities.length} {filteredEntities.length === 1 ? "registro" : "registros"}
-            {searchQuery && ` (filtrado de ${entities.length})`}
-          </p>
+          <div className="flex items-center gap-2 flex-wrap text-sm text-muted-foreground">
+            <span>
+              {metrics.total} {metrics.total === 1 ? "registro" : "registros"}
+              {searchQuery && ` (filtrado de ${entities.length})`}
+            </span>
+            {metrics.inactive > 0 && (
+              <>
+                <span>•</span>
+                <Badge variant="outline" className="text-[11px] h-5 px-2 border-orange-500 text-orange-700 dark:text-orange-400">
+                  {metrics.inactive} desativado{metrics.inactive > 1 ? 's' : ''}
+                </Badge>
+              </>
+            )}
+            {metrics.withoutDefaultAccount > 0 && (
+              <>
+                <span>•</span>
+                <Badge variant="outline" className="text-[11px] h-5 px-2 border-yellow-500 text-yellow-700 dark:text-yellow-400">
+                  {metrics.withoutDefaultAccount} sem plano de contas
+                </Badge>
+              </>
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <Button
