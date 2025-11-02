@@ -813,7 +813,7 @@ export default function ClientesFornecedores() {
                 data-testid={`card-entity-${entity.id}`}
               >
                 <CardContent className="p-2 space-y-1">
-                  {/* Code - Type - Status */}
+                  {/* Code - Type - Status - Alert */}
                   <div className="flex items-center gap-1.5 flex-wrap">
                     <Badge variant="outline" className={`text-[10px] h-5 px-1.5 font-mono ${!entity.isActive ? 'grayscale border-gray-400 text-gray-500 dark:text-gray-400' : 'border-slate-400 text-slate-700 dark:text-slate-300'}`}>
                       {formatCode(entity.code)}
@@ -826,6 +826,12 @@ export default function ClientesFornecedores() {
                     <Badge className={`text-[10px] h-5 px-1.5 ${entity.isActive ? 'bg-green-600' : 'bg-red-600'} text-white`}>
                       {entity.isActive ? 'Ativo' : 'Inativo'}
                     </Badge>
+                    {!entity.defaultChartAccountId && (
+                      <>
+                        <span className="text-muted-foreground">•</span>
+                        <AlertTriangle className="h-4 w-4 text-amber-600" />
+                      </>
+                    )}
                     {percentage !== null && percentage > 0 && (
                       <>
                         <span className="text-muted-foreground">•</span>
@@ -922,6 +928,9 @@ export default function ClientesFornecedores() {
                         <Badge className={`text-[10px] h-5 px-1.5 ${entity.isActive ? 'bg-green-600' : 'bg-red-600'} text-white`}>
                           {entity.isActive ? 'Ativo' : 'Inativo'}
                         </Badge>
+                        {!entity.defaultChartAccountId && (
+                          <AlertTriangle className="h-4 w-4 text-amber-600 flex-shrink-0" />
+                        )}
                         {percentage !== null && percentage > 0 && (
                           <Badge variant="outline" className="text-[10px] h-5 px-1.5">
                             {percentage.toFixed(1)}%
