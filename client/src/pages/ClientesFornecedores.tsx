@@ -1053,9 +1053,9 @@ export default function ClientesFornecedores() {
                     </div>
 
                     {/* Right Column: Detailed Form Fields in 2-column layout */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 overflow-visible">
                       {/* Left Sub-column: Basic Info & Contact */}
-                      <div className="space-y-1.5">
+                      <div className="space-y-1.5 overflow-visible">
                       {/* Nome */}
                       <FormField
                         control={form.control}
@@ -1072,7 +1072,7 @@ export default function ClientesFornecedores() {
                       />
                       
                       {/* Document Type + Number */}
-                      <div className="grid grid-cols-4 gap-2 mt-1.5">
+                      <div className="grid grid-cols-4 gap-2 mt-1.5 overflow-visible">
                           <FormField
                             control={form.control}
                             name="documentType"
@@ -1112,7 +1112,7 @@ export default function ClientesFornecedores() {
                         </div>
 
                         {/* Contact Fields */}
-                        <div className="grid grid-cols-2 gap-2 mt-1.5">
+                        <div className="grid grid-cols-2 gap-2 mt-1.5 overflow-visible">
                           <FormField
                             control={form.control}
                             name="phone"
@@ -1169,8 +1169,8 @@ export default function ClientesFornecedores() {
                       </div>
 
                       {/* Right Sub-column: Address */}
-                      <div className="space-y-1.5">
-                        <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-1.5 overflow-visible">
+                        <div className="grid grid-cols-2 gap-2 overflow-visible">
                           <FormField
                             control={form.control}
                             name="zipCode"
@@ -1213,7 +1213,7 @@ export default function ClientesFornecedores() {
                           )}
                           />
                         </div>
-                        <div className="grid grid-cols-3 gap-2 mt-1.5">
+                        <div className="grid grid-cols-3 gap-2 mt-1.5 overflow-visible">
                           <FormField
                             control={form.control}
                             name="number"
@@ -1254,7 +1254,7 @@ export default function ClientesFornecedores() {
                             )}
                           />
                         </div>
-                        <div className="grid grid-cols-3 gap-2 mt-1.5">
+                        <div className="grid grid-cols-3 gap-2 mt-1.5 overflow-visible">
                           <FormField
                             control={form.control}
                             name="city"
@@ -1285,11 +1285,11 @@ export default function ClientesFornecedores() {
                       </div>
 
                       {/* Financial Information - Horizontal Section in 2 rows - spans full width */}
-                      <div className="lg:col-span-2 space-y-1.5">
+                      <div className="lg:col-span-2 space-y-1.5 overflow-visible">
                         <h4 className="text-xs font-medium text-muted-foreground">Informações Financeiras</h4>
                         
                         {/* Row 1: Bank Info */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-1.5">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-1.5 overflow-visible">
                           <FormField
                             control={form.control}
                             name="bankName"
@@ -1332,7 +1332,7 @@ export default function ClientesFornecedores() {
                         </div>
 
                         {/* Row 2: PIX Info */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-1.5">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-1.5 overflow-visible">
                           <FormField
                             control={form.control}
                             name="pixKeyType"
