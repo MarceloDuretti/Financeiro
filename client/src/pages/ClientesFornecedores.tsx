@@ -767,18 +767,18 @@ export default function ClientesFornecedores() {
             return (
               <Card
                 key={entity.id}
-                className={`hover-elevate cursor-pointer bg-white/75 dark:bg-gray-900/75 ${!entity.isActive ? 'opacity-75' : ''}`}
+                className={`hover-elevate cursor-pointer ${!entity.isActive ? 'bg-gray-100 dark:bg-gray-800/50' : 'bg-white/75 dark:bg-gray-900/75'}`}
                 onClick={() => handleCardClick(entity)}
                 data-testid={`card-entity-${entity.id}`}
               >
                 <CardContent className="p-2 space-y-1">
                   {/* Code - Type - Status */}
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <Badge variant="outline" className="text-[10px] h-5 px-1.5 font-mono border-slate-400 text-slate-700 dark:text-slate-300">
+                    <Badge variant="outline" className={`text-[10px] h-5 px-1.5 font-mono ${!entity.isActive ? 'grayscale border-gray-400 text-gray-500 dark:text-gray-400' : 'border-slate-400 text-slate-700 dark:text-slate-300'}`}>
                       {formatCode(entity.code)}
                     </Badge>
                     <span className="text-muted-foreground">•</span>
-                    <Badge variant="outline" className={`text-[10px] h-5 px-1.5 ${getTypeBadgeBorderColor(entity)}`}>
+                    <Badge variant="outline" className={`text-[10px] h-5 px-1.5 ${!entity.isActive ? 'grayscale border-gray-400 text-gray-500 dark:text-gray-400' : getTypeBadgeBorderColor(entity)}`}>
                       {getTypeLabel(entity)}
                     </Badge>
                     <span className="text-muted-foreground">•</span>
@@ -841,7 +841,7 @@ export default function ClientesFornecedores() {
             return (
               <Card
                 key={entity.id}
-                className={`hover-elevate cursor-pointer bg-white/75 dark:bg-gray-900/75 ${!entity.isActive ? 'opacity-75' : ''}`}
+                className={`hover-elevate cursor-pointer ${!entity.isActive ? 'bg-gray-100 dark:bg-gray-800/50' : 'bg-white/75 dark:bg-gray-900/75'}`}
                 onClick={() => handleCardClick(entity)}
                 data-testid={`card-entity-${entity.id}`}
               >
@@ -875,7 +875,7 @@ export default function ClientesFornecedores() {
 
                       {/* Badges */}
                       <div className="flex items-center gap-1 flex-wrap justify-end">
-                        <Badge variant="outline" className={`text-[10px] h-5 px-1.5 ${getTypeBadgeBorderColor(entity)}`}>
+                        <Badge variant="outline" className={`text-[10px] h-5 px-1.5 ${!entity.isActive ? 'grayscale border-gray-400 text-gray-500 dark:text-gray-400' : getTypeBadgeBorderColor(entity)}`}>
                           {getTypeLabel(entity)}
                         </Badge>
                         <Badge className={`text-[10px] h-5 px-1.5 ${entity.isActive ? 'bg-green-600' : 'bg-red-600'} text-white`}>
