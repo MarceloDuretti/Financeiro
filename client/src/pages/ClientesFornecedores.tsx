@@ -767,7 +767,7 @@ export default function ClientesFornecedores() {
             return (
               <Card
                 key={entity.id}
-                className="hover-elevate cursor-pointer bg-white/75 dark:bg-gray-900/75"
+                className={`hover-elevate cursor-pointer bg-white/75 dark:bg-gray-900/75 ${!entity.isActive ? 'opacity-75' : ''}`}
                 onClick={() => handleCardClick(entity)}
                 data-testid={`card-entity-${entity.id}`}
               >
@@ -781,14 +781,10 @@ export default function ClientesFornecedores() {
                     <Badge variant="outline" className={`text-[10px] h-5 px-1.5 ${getTypeBadgeBorderColor(entity)}`}>
                       {getTypeLabel(entity)}
                     </Badge>
-                    {entity.isActive && (
-                      <>
-                        <span className="text-muted-foreground">•</span>
-                        <Badge className="text-[10px] h-5 px-1.5 bg-green-600 text-white">
-                          Ativo
-                        </Badge>
-                      </>
-                    )}
+                    <span className="text-muted-foreground">•</span>
+                    <Badge className={`text-[10px] h-5 px-1.5 ${entity.isActive ? 'bg-green-600' : 'bg-red-600'} text-white`}>
+                      {entity.isActive ? 'Ativo' : 'Inativo'}
+                    </Badge>
                     {percentage !== null && percentage > 0 && (
                       <>
                         <span className="text-muted-foreground">•</span>
@@ -845,7 +841,7 @@ export default function ClientesFornecedores() {
             return (
               <Card
                 key={entity.id}
-                className="hover-elevate cursor-pointer bg-white/75 dark:bg-gray-900/75"
+                className={`hover-elevate cursor-pointer bg-white/75 dark:bg-gray-900/75 ${!entity.isActive ? 'opacity-75' : ''}`}
                 onClick={() => handleCardClick(entity)}
                 data-testid={`card-entity-${entity.id}`}
               >
@@ -882,11 +878,9 @@ export default function ClientesFornecedores() {
                         <Badge variant="outline" className={`text-[10px] h-5 px-1.5 ${getTypeBadgeBorderColor(entity)}`}>
                           {getTypeLabel(entity)}
                         </Badge>
-                        {entity.isActive && (
-                          <Badge className="text-[10px] h-5 px-1.5 bg-green-600 text-white">
-                            Ativo
-                          </Badge>
-                        )}
+                        <Badge className={`text-[10px] h-5 px-1.5 ${entity.isActive ? 'bg-green-600' : 'bg-red-600'} text-white`}>
+                          {entity.isActive ? 'Ativo' : 'Inativo'}
+                        </Badge>
                         {percentage !== null && percentage > 0 && (
                           <Badge variant="outline" className="text-[10px] h-5 px-1.5">
                             {percentage.toFixed(1)}%
