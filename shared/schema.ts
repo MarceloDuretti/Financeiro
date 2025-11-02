@@ -497,7 +497,6 @@ export const customersSuppliers = pgTable("customers_suppliers", {
   
   // Default settings
   defaultChartAccountId: varchar("default_chart_account_id").references(() => chartOfAccounts.id), // Default chart account for transactions
-  defaultCostCenterId: varchar("default_cost_center_id").references(() => costCenters.id), // Default cost center for transactions
   
   // Status and control
   isActive: boolean("is_active").notNull().default(true),
@@ -552,6 +551,32 @@ export const insertCustomerSupplierSchema = createInsertSchema(customersSupplier
 
 export type InsertCustomerSupplier = z.infer<typeof insertCustomerSupplierSchema>;
 export type CustomerSupplier = typeof customersSuppliers.$inferSelect;
+
+// Customer/Supplier Cost Centers N:N relationship
+// Allows associating multiple cost centers to each customer/supplier
+export const customerSupplierCostCenters = pgTable("customer_supplier_cost_centers", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  tenantId: varchar("tenant_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  customerSupplierId: varchar("customer_supplier_id").notNull().references(() => customersSuppliers.id, { onDelete: 'cascade' }),
+  costCenterId: varchar("cost_center_id").notNull().references(() => costCenters.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (table) => [
+  // Primary tenant index
+  index("cs_cost_centers_tenant_idx").on(table.tenantId),
+  // Unique constraint to prevent duplicates
+  uniqueIndex("cs_cost_centers_unique").on(table.customerSupplierId, table.costCenterId),
+  // Index for reverse lookups (find all customers/suppliers for a cost center)
+  index("cs_cost_centers_cost_center_idx").on(table.costCenterId),
+]);
+
+export const insertCustomerSupplierCostCenterSchema = createInsertSchema(customerSupplierCostCenters).omit({
+  id: true,
+  tenantId: true,
+  createdAt: true,
+});
+
+export type InsertCustomerSupplierCostCenter = z.infer<typeof insertCustomerSupplierCostCenterSchema>;
+export type CustomerSupplierCostCenter = typeof customerSupplierCostCenters.$inferSelect;
 
 // Cash Registers table - Manages cash register points (caixas)
 export const cashRegisters = pgTable("cash_registers", {
