@@ -314,13 +314,23 @@ export default function ClientesFornecedores() {
         version: selectedEntity.version,
       });
 
+      // Forçar refetch completo e aguardar dados atualizados
+      const updatedList = await queryClient.fetchQuery({
+        queryKey: ["/api/customers-suppliers"],
+      }) as EntityWithStats[];
+      
+      // Atualizar selectedEntity com dados enriquecidos da lista
+      const updatedEntity = updatedList.find(e => e.id === selectedEntity.id);
+      if (updatedEntity) {
+        setSelectedEntity(updatedEntity);
+      }
+
       toast({
         title: "Sucesso",
         description: "Cliente/Fornecedor atualizado com sucesso",
       });
 
       setIsEditing(false);
-      queryClient.invalidateQueries({ queryKey: ["/api/customers-suppliers"] });
     } catch (error: any) {
       toast({
         title: "Erro",
