@@ -1034,45 +1034,27 @@ export default function ClientesFornecedores() {
                         </div>
                       </Card>
 
-                      {/* Notes Card */}
-                      <Card className="p-2 bg-gradient-to-br from-card to-muted/30">
-                        <FormField
-                          control={form.control}
-                          name="notes"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="text-xs">Observações</FormLabel>
-                              <FormControl>
-                                <Textarea {...field} value={field.value || ""} rows={5} placeholder="Adicione observações..." className="text-xs resize-none" data-testid="input-notes" />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </Card>
                     </div>
 
-                    {/* Right Column: Detailed Form Fields in 2-column layout */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-                      {/* Left Sub-column: Basic Info & Contact */}
-                      <div className="space-y-1.5">
-                        {/* Nome */}
-                        <FormField
-                          control={form.control}
-                          name="name"
-                          render={({ field }) => (
-                            <FormItem className="space-y-1">
-                              <FormLabel className="text-xs text-muted-foreground">Nome / Razão Social *</FormLabel>
-                              <FormControl>
-                                <Input {...field} placeholder="Ex: João da Silva" className="bg-muted/20 rounded-sm border-muted/40" data-testid="input-name" />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        
-                        {/* Document Type + Number */}
-                        <div className="grid grid-cols-4 gap-2 mt-1.5">
+                    {/* Right Column: Detailed Form Fields */}
+                    <div className="space-y-1.5">
+                      {/* Nome */}
+                      <FormField
+                        control={form.control}
+                        name="name"
+                        render={({ field }) => (
+                          <FormItem className="space-y-1">
+                            <FormLabel className="text-xs text-muted-foreground">Nome / Razão Social *</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="Ex: João da Silva" className="bg-muted/20 rounded-sm border-muted/40" data-testid="input-name" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      {/* Document Type + Number */}
+                      <div className="grid grid-cols-4 gap-2 mt-1.5">
                           <FormField
                             control={form.control}
                             name="documentType"
@@ -1166,11 +1148,9 @@ export default function ClientesFornecedores() {
                             )}
                           />
                         </div>
-                      </div>
-
-                      {/* Right Sub-column: Address */}
-                      <div className="space-y-1.5">
-                        {/* Address Fields */}
+                      
+                      {/* Address Fields */}
+                      <div className="space-y-1.5 mt-1.5">
                         <div className="grid grid-cols-2 gap-2">
                           <FormField
                             control={form.control}
@@ -1285,8 +1265,8 @@ export default function ClientesFornecedores() {
                         </div>
                       </div>
 
-                      {/* Financial Information - Horizontal Section in 2 rows - spans full width */}
-                      <div className="lg:col-span-2 space-y-1.5">
+                      {/* Financial Information */}
+                      <div className="space-y-1.5 mt-1.5">
                         <h4 className="text-xs font-medium text-muted-foreground">Informações Financeiras</h4>
                         
                         {/* Row 1: Bank Info */}
@@ -1372,6 +1352,23 @@ export default function ClientesFornecedores() {
                             )}
                           />
                         </div>
+                      </div>
+
+                      {/* Notes Card */}
+                      <div className="mt-1.5">
+                        <FormField
+                          control={form.control}
+                          name="notes"
+                          render={({ field }) => (
+                            <FormItem className="space-y-1">
+                              <FormLabel className="text-xs text-muted-foreground">Observações</FormLabel>
+                              <FormControl>
+                                <Textarea {...field} value={field.value || ""} rows={5} placeholder="Adicione observações..." className="text-xs resize-none bg-muted/20 rounded-sm border-muted/40" data-testid="input-notes" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
                       </div>
                     </div>
                   </div>
