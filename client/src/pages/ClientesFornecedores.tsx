@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef, useMemo, useEffect } from "react";
 import { useRealtimeQuery } from "@/hooks/useRealtimeQuery";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -209,6 +209,13 @@ export default function ClientesFornecedores() {
       withoutDefaultAccount,
     };
   }, [entities, filteredEntities]);
+
+  // Auto-disable pending filter when no more pending items
+  useEffect(() => {
+    if (showOnlyWithoutAccount && metrics.withoutDefaultAccount === 0) {
+      setShowOnlyWithoutAccount(false);
+    }
+  }, [showOnlyWithoutAccount, metrics.withoutDefaultAccount]);
 
   // Handle view mode change
   const handleViewModeChange = (mode: 'cards' | 'list') => {
