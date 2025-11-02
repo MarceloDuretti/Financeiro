@@ -77,6 +77,7 @@ import {
   Sparkles,
   Copy,
   Printer,
+  AlertTriangle,
 } from "lucide-react";
 import { SiWhatsapp } from "react-icons/si";
 import { AIEntityInput } from "@/components/AIEntityInput";
@@ -139,7 +140,7 @@ export default function ClientesFornecedores() {
   });
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
-  const [accountFilter, setAccountFilter] = useState<'all' | 'with' | 'without'>('all');
+  const [showOnlyWithoutAccount, setShowOnlyWithoutAccount] = useState(false);
   
   // Use ref for synchronous submission lock to prevent race conditions
   const isSubmittingRef = useRef(false);
@@ -188,23 +189,21 @@ export default function ClientesFornecedores() {
     if (statusFilter === 'active' && !entity.isActive) return false;
     if (statusFilter === 'inactive' && entity.isActive) return false;
     
-    // Account filter
-    if (accountFilter === 'with' && !entity.defaultChartAccountId) return false;
-    if (accountFilter === 'without' && entity.defaultChartAccountId) return false;
+    // Account filter (pendências)
+    if (showOnlyWithoutAccount && entity.defaultChartAccountId) return false;
     
     return true;
   });
 
-  // Calculate metrics for actionable insights
+  // Calculate metrics for actionable insights (based on all entities, not filtered)
   const metrics = useMemo(() => {
-    const inactive = filteredEntities.filter(e => !e.isActive).length;
-    const withoutDefaultAccount = filteredEntities.filter(e => !e.defaultChartAccountId).length;
+    const withoutDefaultAccount = entities.filter(e => !e.defaultChartAccountId).length;
     return {
       total: filteredEntities.length,
-      inactive,
+      inactive: filteredEntities.filter(e => !e.isActive).length,
       withoutDefaultAccount,
     };
-  }, [filteredEntities]);
+  }, [entities, filteredEntities]);
 
   // Handle view mode change
   const handleViewModeChange = (mode: 'cards' | 'list') => {
@@ -752,16 +751,18 @@ export default function ClientesFornecedores() {
         </Select>
         
         {metrics.withoutDefaultAccount > 0 && (
-          <Select value={accountFilter} onValueChange={(value: any) => setAccountFilter(value)}>
-            <SelectTrigger className="w-[160px]" data-testid="select-account-filter">
-              <SelectValue placeholder="Plano de Contas" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="with">Com Plano</SelectItem>
-              <SelectItem value="without">Sem Plano</SelectItem>
-            </SelectContent>
-          </Select>
+          <Button
+            variant="outline"
+            onClick={() => setShowOnlyWithoutAccount(!showOnlyWithoutAccount)}
+            className={`gap-2 toggle-elevate ${showOnlyWithoutAccount ? 'toggle-elevated bg-amber-500 text-white border-amber-600 hover:bg-amber-600' : 'text-amber-600 border-amber-500 bg-amber-50/70 dark:bg-amber-400/10'}`}
+            data-testid="button-account-pending"
+          >
+            <AlertTriangle className="h-4 w-4" />
+            <span className="text-sm font-medium">Pendências</span>
+            <Badge className={`text-[10px] h-5 px-1.5 ${showOnlyWithoutAccount ? 'bg-white text-amber-600' : 'bg-amber-600 text-white'}`}>
+              {metrics.withoutDefaultAccount}
+            </Badge>
+          </Button>
         )}
         
         <div className="flex items-center gap-1">
