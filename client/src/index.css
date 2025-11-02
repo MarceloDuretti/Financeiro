@@ -443,4 +443,20 @@
       --sidebar-icon-size: 2.5rem;
     }
   }
+
+  /* Alert pulse animation - smooth subtle pulsing for alert icons */
+  @keyframes alert-pulse {
+    0%, 100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.7;
+      transform: scale(0.95);
+    }
+  }
+
+  .alert-pulse {
+    animation: alert-pulse 2s ease-in-out infinite;
+  }
 }

@@ -829,7 +829,7 @@ export default function ClientesFornecedores() {
                     {!entity.defaultChartAccountId && (
                       <>
                         <span className="text-muted-foreground">•</span>
-                        <AlertTriangle className="h-4 w-4 text-amber-600" />
+                        <AlertTriangle className="h-4 w-4 text-amber-600 alert-pulse" />
                       </>
                     )}
                     {percentage !== null && percentage > 0 && (
@@ -929,7 +929,7 @@ export default function ClientesFornecedores() {
                           {entity.isActive ? 'Ativo' : 'Inativo'}
                         </Badge>
                         {!entity.defaultChartAccountId && (
-                          <AlertTriangle className="h-4 w-4 text-amber-600 flex-shrink-0" />
+                          <AlertTriangle className="h-4 w-4 text-amber-600 flex-shrink-0 alert-pulse" />
                         )}
                         {percentage !== null && percentage > 0 && (
                           <Badge variant="outline" className="text-[10px] h-5 px-1.5">
