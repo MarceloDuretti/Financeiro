@@ -10,6 +10,7 @@ import {
   pixKeys,
   paymentMethods,
   customersSuppliers,
+  customerSupplierCostCenters,
   cashRegisters,
   bankBillingConfigs,
   transactions,
@@ -171,6 +172,9 @@ export interface IStorage {
     orderBy?: string;
     orderDirection?: 'asc' | 'desc';
   }): Promise<CustomerSupplier[]>;
+  addCostCenterToCustomerSupplier(tenantId: string, customerSupplierId: string, costCenterId: string): Promise<void>;
+  removeCostCenterFromCustomerSupplier(tenantId: string, customerSupplierId: string, costCenterId: string): Promise<void>;
+  listCostCentersByCustomerSupplier(tenantId: string, customerSupplierId: string): Promise<Array<{ id: string; code: number; name: string }>>;
 
   // Cash Registers operations - all require tenantId and companyId for multi-tenant isolation
   listCashRegisters(tenantId: string, companyId: string): Promise<CashRegister[]>;
@@ -1235,7 +1239,10 @@ export class DatabaseStorage implements IStorage {
 
   // Customers/Suppliers operations - all require tenantId for multi-tenant isolation
 
-  async listCustomersSuppliers(tenantId: string): Promise<(CustomerSupplier & { defaultChartAccountFullName?: string; defaultCostCenterName?: string })[]> {
+  async listCustomersSuppliers(tenantId: string): Promise<(CustomerSupplier & { 
+    defaultChartAccountFullName?: string; 
+    costCenters?: Array<{ id: string; code: number; name: string }>;
+  })[]> {
     const results = await db
       .select({
         id: customersSuppliers.id,
@@ -1267,12 +1274,10 @@ export class DatabaseStorage implements IStorage {
         imageUrl: customersSuppliers.imageUrl,
         notes: customersSuppliers.notes,
         defaultChartAccountId: customersSuppliers.defaultChartAccountId,
-        defaultCostCenterId: customersSuppliers.defaultCostCenterId,
         updatedAt: customersSuppliers.updatedAt,
         version: customersSuppliers.version,
         deleted: customersSuppliers.deleted,
         defaultChartAccountFullName: chartOfAccounts.fullPathName,
-        defaultCostCenterName: costCenters.name,
       })
       .from(customersSuppliers)
       .leftJoin(
@@ -1283,14 +1288,6 @@ export class DatabaseStorage implements IStorage {
           eq(chartOfAccounts.deleted, false)
         )
       )
-      .leftJoin(
-        costCenters,
-        and(
-          eq(customersSuppliers.defaultCostCenterId, costCenters.id),
-          eq(costCenters.tenantId, tenantId),
-          eq(costCenters.deleted, false)
-        )
-      )
       .where(
         and(
           eq(customersSuppliers.tenantId, tenantId),
@@ -1299,7 +1296,47 @@ export class DatabaseStorage implements IStorage {
       )
       .orderBy(customersSuppliers.code);
     
-    return results as (CustomerSupplier & { defaultChartAccountFullName?: string; defaultCostCenterName?: string })[];
+    // Fetch associated cost centers for all entities in a single query
+    const entityIds = results.map(r => r.id);
+    const costCenterAssociations = entityIds.length > 0 ? await db
+      .select({
+        customerSupplierId: customerSupplierCostCenters.customerSupplierId,
+        costCenterId: costCenters.id,
+        costCenterCode: costCenters.code,
+        costCenterName: costCenters.name,
+      })
+      .from(customerSupplierCostCenters)
+      .innerJoin(costCenters, eq(customerSupplierCostCenters.costCenterId, costCenters.id))
+      .where(
+        and(
+          inArray(customerSupplierCostCenters.customerSupplierId, entityIds),
+          eq(customerSupplierCostCenters.tenantId, tenantId),
+          eq(costCenters.deleted, false)
+        )
+      )
+      .orderBy(costCenters.code) : [];
+    
+    // Group cost centers by customer/supplier ID
+    const costCentersByEntity = costCenterAssociations.reduce((acc, row) => {
+      if (!acc[row.customerSupplierId]) {
+        acc[row.customerSupplierId] = [];
+      }
+      acc[row.customerSupplierId].push({
+        id: row.costCenterId,
+        code: row.costCenterCode,
+        name: row.costCenterName,
+      });
+      return acc;
+    }, {} as Record<string, Array<{ id: string; code: number; name: string }>>);
+    
+    // Attach cost centers to each entity
+    return results.map(entity => ({
+      ...entity,
+      costCenters: costCentersByEntity[entity.id] || [],
+    })) as (CustomerSupplier & { 
+      defaultChartAccountFullName?: string; 
+      costCenters?: Array<{ id: string; code: number; name: string }>;
+    })[];
   }
 
   async getCustomerSupplier(tenantId: string, id: string): Promise<CustomerSupplier | undefined> {
@@ -1686,6 +1723,45 @@ export class DatabaseStorage implements IStorage {
     }
 
     return await query;
+  }
+
+  async addCostCenterToCustomerSupplier(tenantId: string, customerSupplierId: string, costCenterId: string): Promise<void> {
+    await db.insert(customerSupplierCostCenters).values({
+      tenantId,
+      customerSupplierId,
+      costCenterId,
+    }).onConflictDoNothing();
+  }
+
+  async removeCostCenterFromCustomerSupplier(tenantId: string, customerSupplierId: string, costCenterId: string): Promise<void> {
+    await db.delete(customerSupplierCostCenters).where(
+      and(
+        eq(customerSupplierCostCenters.tenantId, tenantId),
+        eq(customerSupplierCostCenters.customerSupplierId, customerSupplierId),
+        eq(customerSupplierCostCenters.costCenterId, costCenterId)
+      )
+    );
+  }
+
+  async listCostCentersByCustomerSupplier(tenantId: string, customerSupplierId: string): Promise<Array<{ id: string; code: number; name: string }>> {
+    const results = await db
+      .select({
+        id: costCenters.id,
+        code: costCenters.code,
+        name: costCenters.name,
+      })
+      .from(customerSupplierCostCenters)
+      .innerJoin(costCenters, eq(customerSupplierCostCenters.costCenterId, costCenters.id))
+      .where(
+        and(
+          eq(customerSupplierCostCenters.tenantId, tenantId),
+          eq(customerSupplierCostCenters.customerSupplierId, customerSupplierId),
+          eq(costCenters.deleted, false)
+        )
+      )
+      .orderBy(costCenters.code);
+    
+    return results;
   }
 
   // Cash Registers operations - all require tenantId and companyId for multi-tenant isolation

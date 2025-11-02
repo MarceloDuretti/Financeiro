@@ -1256,6 +1256,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get cost centers associated with a customer/supplier
+  app.get("/api/customers-suppliers/:id/cost-centers", isAuthenticated, async (req, res) => {
+    try {
+      const tenantId = getTenantId((req as any).user);
+      const { id } = req.params;
+      
+      const costCenters = await storage.listCostCentersByCustomerSupplier(tenantId, id);
+      res.json(costCenters);
+    } catch (error: any) {
+      console.error("Error listing cost centers for customer/supplier:", error);
+      res.status(400).json({ message: error.message || "Erro ao listar centros de custo" });
+    }
+  });
+
+  // Add cost center to customer/supplier
+  app.post("/api/customers-suppliers/:id/cost-centers", isAuthenticated, async (req, res) => {
+    try {
+      const tenantId = getTenantId((req as any).user);
+      const { id } = req.params;
+      const { costCenterId } = req.body;
+      
+      if (!costCenterId) {
+        return res.status(400).json({ message: "costCenterId é obrigatório" });
+      }
+      
+      await storage.addCostCenterToCustomerSupplier(tenantId, id, costCenterId);
+      
+      // Broadcast to all clients in this tenant
+      broadcastDataChange(tenantId, "customers-suppliers", "updated", { id });
+      
+      res.json({ message: "Centro de custo adicionado com sucesso" });
+    } catch (error: any) {
+      console.error("Error adding cost center to customer/supplier:", error);
+      res.status(400).json({ message: error.message || "Erro ao adicionar centro de custo" });
+    }
+  });
+
+  // Remove cost center from customer/supplier
+  app.delete("/api/customers-suppliers/:id/cost-centers/:costCenterId", isAuthenticated, async (req, res) => {
+    try {
+      const tenantId = getTenantId((req as any).user);
+      const { id, costCenterId } = req.params;
+      
+      await storage.removeCostCenterFromCustomerSupplier(tenantId, id, costCenterId);
+      
+      // Broadcast to all clients in this tenant
+      broadcastDataChange(tenantId, "customers-suppliers", "updated", { id });
+      
+      res.json({ message: "Centro de custo removido com sucesso" });
+    } catch (error: any) {
+      console.error("Error removing cost center from customer/supplier:", error);
+      res.status(400).json({ message: error.message || "Erro ao remover centro de custo" });
+    }
+  });
+
   // AI Report for customers/suppliers
   app.post("/api/ai-report/customers-suppliers", isAuthenticated, async (req, res) => {
     try {
