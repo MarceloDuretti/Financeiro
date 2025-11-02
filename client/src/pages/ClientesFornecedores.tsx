@@ -887,11 +887,11 @@ export default function ClientesFornecedores() {
                       {getInitials(selectedEntity.name)}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="flex-1">
-                    <SheetTitle className="text-2xl">
+                  <div className="flex-1 min-w-0">
+                    <SheetTitle className="text-2xl line-clamp-2">
                       {isEditing ? "Editando" : selectedEntity.name}
                     </SheetTitle>
-                    <SheetDescription>
+                    <SheetDescription className="truncate">
                       {formatCode(selectedEntity.code)} • {getTypeLabel(selectedEntity)}
                     </SheetDescription>
                   </div>
