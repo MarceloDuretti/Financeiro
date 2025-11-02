@@ -796,7 +796,7 @@ export default function ClientesFornecedores() {
                   </div>
 
                   {/* Name */}
-                  <div className="text-xs font-medium truncate uppercase" data-testid={`text-name-${entity.id}`}>
+                  <div className={`text-xs font-medium truncate uppercase ${!entity.isActive ? 'text-muted-foreground' : ''}`} data-testid={`text-name-${entity.id}`}>
                     {entity.name}
                   </div>
 
@@ -859,7 +859,7 @@ export default function ClientesFornecedores() {
                     <div className="flex-1 min-w-0 grid grid-cols-1 md:grid-cols-4 gap-2 items-center">
                       {/* Name and Code */}
                       <div className="min-w-0">
-                        <div className="text-xs font-medium truncate uppercase">{entity.name}</div>
+                        <div className={`text-xs font-medium truncate uppercase ${!entity.isActive ? 'text-muted-foreground' : ''}`}>{entity.name}</div>
                         <div className="text-[10px] text-muted-foreground font-mono">{formatCode(entity.code)}</div>
                       </div>
 
