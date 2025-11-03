@@ -51,6 +51,7 @@ import { TransactionDialog } from "@/components/TransactionDialog";
 import { TransactionDetailSheet } from "@/components/TransactionDetailSheet";
 import { AITransactionInput } from "@/components/AITransactionInput";
 import { AITransactionForm } from "@/components/AITransactionForm";
+import { AITransactionPreview } from "@/components/AITransactionPreview";
 
 const SELECTED_COMPANY_KEY = "fincontrol_selected_company_id";
 
@@ -92,7 +93,74 @@ export default function Lancamentos() {
   const [aiAssistOpen, setAiAssistOpen] = useState(false);
   const [aiCommandResult, setAiCommandResult] = useState<any>(null);
   const [showAiForm, setShowAiForm] = useState(false);
+  const [showAiPreview, setShowAiPreview] = useState(false);
+  const [generatedTransactions, setGeneratedTransactions] = useState<any[]>([]);
   const parentRef = useRef<HTMLDivElement>(null);
+
+  // Generate cloned transactions based on period
+  const generateClonedTransactions = (baseTransaction: any, clonePeriod: any) => {
+    const transactions: any[] = [];
+    
+    // Parse base date
+    const baseDate = new Date(baseTransaction.dueDate);
+    if (isNaN(baseDate.getTime())) {
+      console.error("[Clone] Invalid base date:", baseTransaction.dueDate);
+      return [baseTransaction];
+    }
+
+    const baseDayOfMonth = getDate(baseDate);
+    const baseYear = getYear(baseDate);
+    const baseMonth = getMonth(baseDate);
+    
+    // Calculate how many transactions to generate
+    let monthsToAdd: number;
+    switch (clonePeriod.type) {
+      case "month":
+        monthsToAdd = clonePeriod.count || 1;
+        break;
+      case "semester":
+        monthsToAdd = 6;
+        break;
+      case "year":
+        monthsToAdd = 12;
+        break;
+      case "custom":
+        monthsToAdd = clonePeriod.count || 1;
+        break;
+      default:
+        monthsToAdd = 1;
+    }
+
+    console.log(`[Clone] Generating ${monthsToAdd} transactions starting from ${baseTransaction.dueDate}`);
+
+    // Generate transactions for each month
+    for (let i = 0; i < monthsToAdd; i++) {
+      // Create target date starting from day 1 to avoid month overflow
+      const targetDate = new Date(baseYear, baseMonth + i, 1);
+      
+      // Get last day of target month
+      const lastDayOfTargetMonth = new Date(
+        targetDate.getFullYear(),
+        targetDate.getMonth() + 1,
+        0
+      ).getDate();
+      
+      // Set day to minimum between desired day and last day of month
+      const adjustedDay = Math.min(baseDayOfMonth, lastDayOfTargetMonth);
+      targetDate.setDate(adjustedDay);
+
+      // Format as YYYY-MM-DD
+      const formattedDate = format(targetDate, "yyyy-MM-dd");
+
+      transactions.push({
+        ...baseTransaction,
+        dueDate: formattedDate,
+      });
+    }
+
+    console.log(`[Clone] Generated ${transactions.length} transactions`);
+    return transactions;
+  };
 
   // AI command analysis mutation
   const analyzeCommandMutation = useMutation({
@@ -1414,7 +1482,9 @@ export default function Lancamentos() {
         if (!open) {
           // Reset state when closing
           setShowAiForm(false);
+          setShowAiPreview(false);
           setAiCommandResult(null);
+          setGeneratedTransactions([]);
         }
       }}>
         <SheetContent className="sm:max-w-2xl">
@@ -1425,26 +1495,58 @@ export default function Lancamentos() {
             </SheetTitle>
           </SheetHeader>
           <div className="mt-6 space-y-4">
-            {!showAiForm ? (
+            {!showAiForm && !showAiPreview ? (
               <AITransactionInput
                 onProcess={(input) => analyzeCommandMutation.mutate(input)}
                 isProcessing={analyzeCommandMutation.isPending}
                 placeholder="Descreva o lançamento que deseja criar..."
               />
-            ) : aiCommandResult ? (
+            ) : showAiForm && aiCommandResult ? (
               <AITransactionForm
                 command={aiCommandResult}
                 onSubmit={(data) => {
                   console.log("[AI Form] Submitted data:", data);
-                  // TODO: Implementar próximo passo (preview ou criação)
-                  toast({
-                    title: "Dados recebidos",
-                    description: "Próximo passo: implementar preview final",
-                  });
+                  
+                  // Generate transactions (single or cloned)
+                  let transactions: any[];
+                  if (aiCommandResult.clonePeriod) {
+                    transactions = generateClonedTransactions(data, aiCommandResult.clonePeriod);
+                  } else {
+                    transactions = [data];
+                  }
+                  
+                  console.log("[AI Form] Generated transactions:", transactions);
+                  setGeneratedTransactions(transactions);
+                  setShowAiForm(false);
+                  setShowAiPreview(true);
                 }}
                 onCancel={() => {
                   setShowAiForm(false);
                   setAiCommandResult(null);
+                }}
+              />
+            ) : showAiPreview ? (
+              <AITransactionPreview
+                transactions={generatedTransactions}
+                clonePeriod={aiCommandResult?.clonePeriod}
+                onConfirm={() => {
+                  console.log("[AI Preview] Confirmed - creating transactions:", generatedTransactions);
+                  // TODO: Implementar criação em lote (tarefa 6)
+                  toast({
+                    title: "Transações criadas",
+                    description: `${generatedTransactions.length} lançamento(s) criado(s) com sucesso!`,
+                  });
+                  setAiAssistOpen(false);
+                }}
+                onEdit={() => {
+                  setShowAiPreview(false);
+                  setShowAiForm(true);
+                }}
+                onCancel={() => {
+                  setShowAiPreview(false);
+                  setShowAiForm(false);
+                  setAiCommandResult(null);
+                  setGeneratedTransactions([]);
                 }}
               />
             ) : null}

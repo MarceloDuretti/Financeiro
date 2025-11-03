@@ -855,6 +855,96 @@ export interface TransactionCommand {
 }
 
 /**
+ * Transaction data after form completion
+ */
+export interface CompletedTransactionData {
+  type: "revenue" | "expense";
+  amount: string;
+  title: string;
+  description?: string;
+  personName?: string;
+  dueDate: string;
+  personId?: string;
+  chartAccountId?: string;
+  costCenterId?: string;
+  paymentMethodId?: string;
+}
+
+/**
+ * Generates multiple transactions based on clone period
+ * Maintains the same day of month, adjusting when necessary (e.g., 31 → 30 in April)
+ */
+export function generateClonedTransactions(
+  baseTransaction: CompletedTransactionData,
+  clonePeriod: NonNullable<TransactionCommand["clonePeriod"]>
+): CompletedTransactionData[] {
+  const transactions: CompletedTransactionData[] = [];
+  
+  // Parse base date
+  const baseDate = new Date(baseTransaction.dueDate);
+  if (isNaN(baseDate.getTime())) {
+    console.error("[Clone] Invalid base date:", baseTransaction.dueDate);
+    return [baseTransaction];
+  }
+
+  const baseDayOfMonth = baseDate.getDate();
+  const baseYear = baseDate.getFullYear();
+  const baseMonth = baseDate.getMonth();
+  
+  // Calculate how many transactions to generate
+  let monthsToAdd: number;
+  switch (clonePeriod.type) {
+    case "month":
+      monthsToAdd = clonePeriod.count || 1;
+      break;
+    case "semester":
+      monthsToAdd = 6;
+      break;
+    case "year":
+      monthsToAdd = 12;
+      break;
+    case "custom":
+      monthsToAdd = clonePeriod.count || 1;
+      break;
+    default:
+      monthsToAdd = 1;
+  }
+
+  console.log(`[Clone] Generating ${monthsToAdd} transactions starting from ${baseTransaction.dueDate}`);
+
+  // Generate transactions for each month
+  for (let i = 0; i < monthsToAdd; i++) {
+    // Create target date starting from day 1 to avoid month overflow
+    const targetDate = new Date(baseYear, baseMonth + i, 1);
+    
+    // Get last day of target month
+    const lastDayOfTargetMonth = new Date(
+      targetDate.getFullYear(),
+      targetDate.getMonth() + 1,
+      0
+    ).getDate();
+    
+    // Set day to minimum between desired day and last day of month
+    const adjustedDay = Math.min(baseDayOfMonth, lastDayOfTargetMonth);
+    targetDate.setDate(adjustedDay);
+
+    // Format as YYYY-MM-DD
+    const year = targetDate.getFullYear();
+    const month = String(targetDate.getMonth() + 1).padStart(2, "0");
+    const day = String(targetDate.getDate()).padStart(2, "0");
+    const formattedDate = `${year}-${month}-${day}`;
+
+    transactions.push({
+      ...baseTransaction,
+      dueDate: formattedDate,
+    });
+  }
+
+  console.log(`[Clone] Generated ${transactions.length} transactions`);
+  return transactions;
+}
+
+/**
  * Analyzes user command for transaction operations
  * Uses GPT-4o-mini for cost-effective processing
  */
