@@ -522,7 +522,7 @@ Types permitidos:
 - passivo (para código 4.x)
 - patrimonio_liquido (para código 5.x)`;
 
-  const userPrompt = `Gere um plano de contas completo para: ${businessDescription}
+  const userPrompt = `Gere um plano de contas DETALHADO e ANALÍTICO para: ${businessDescription}
 
 RETORNE APENAS UM ARRAY JSON com as subcontas (NÃO inclua as raízes 1,2,3,4,5).
 Cada conta deve ter:
@@ -532,25 +532,65 @@ Cada conta deve ter:
 - description: descrição breve
 - parentCode: código da conta pai (ex: "1.1" é pai de "1.1.1")
 
-Exemplo de resposta:
+IMPORTANTE - SEJA MUITO ANALÍTICO E DETALHADO:
+1. Gere NO MÍNIMO 50-70 contas (quanto mais detalhadas, melhor)
+2. Use TODOS os níveis hierárquicos disponíveis (até nível 5)
+3. Seja ESPECÍFICO: ao invés de apenas "Despesas", crie contas como:
+   - "Despesas de Consumo" → "Água", "Luz", "Telefone", "Internet"
+   - "Despesas com Pessoal" → "Salários", "FGTS", "INSS", "Vale Transporte", "Vale Alimentação"
+   - "Despesas Administrativas" → "Material de Escritório", "Material de Limpeza", "Manutenção"
+4. Para RECEITAS, detalhe por tipo de produto/serviço específico do negócio
+5. Para ATIVOS, inclua: caixa, bancos, contas a receber, estoques, imobilizado detalhado
+6. Para PASSIVOS, inclua: fornecedores, impostos a pagar, salários a pagar, empréstimos
+7. Crie contas PRONTAS PARA USO REAL, não genéricas
+
+Exemplo de estrutura DETALHADA:
 [
   {
-    "code": "1.1",
-    "name": "Receitas Operacionais",
-    "type": "receita",
-    "description": "Receitas da atividade principal",
-    "parentCode": "1"
+    "code": "2.1",
+    "name": "Despesas Operacionais",
+    "type": "despesa",
+    "description": "Despesas da operação do negócio",
+    "parentCode": "2"
   },
   {
-    "code": "1.1.1",
-    "name": "Vendas de Serviços",
-    "type": "receita",
-    "description": "Receita de serviços prestados",
-    "parentCode": "1.1"
+    "code": "2.1.1",
+    "name": "Despesas de Consumo",
+    "type": "despesa",
+    "description": "Despesas com consumo de utilidades",
+    "parentCode": "2.1"
+  },
+  {
+    "code": "2.1.1.01",
+    "name": "Água",
+    "type": "despesa",
+    "description": "Consumo de água",
+    "parentCode": "2.1.1"
+  },
+  {
+    "code": "2.1.1.02",
+    "name": "Luz",
+    "type": "despesa",
+    "description": "Energia elétrica",
+    "parentCode": "2.1.1"
+  },
+  {
+    "code": "2.1.1.03",
+    "name": "Telefone",
+    "type": "despesa",
+    "description": "Telefonia fixa e móvel",
+    "parentCode": "2.1.1"
+  },
+  {
+    "code": "2.1.1.04",
+    "name": "Internet",
+    "type": "despesa",
+    "description": "Serviço de internet",
+    "parentCode": "2.1.1"
   }
 ]
 
-Gere pelo menos 30-50 contas relevantes para o negócio.`;
+CAPRIXE NO DETALHAMENTO! Gere NO MÍNIMO 50 contas analíticas e específicas para ${businessDescription}.`;
 
   try {
     const response = await callOpenAI(

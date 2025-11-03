@@ -185,9 +185,9 @@ export function AIChartAssistant({ open, onOpenChange, onGenerated }: AIChartAss
             <h4 className="text-sm font-medium">Como funciona:</h4>
             <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
               <li>Descreva seu negócio em poucas palavras</li>
-              <li>A IA vai gerar um plano completo com 30-50 contas</li>
+              <li>A IA vai gerar um plano detalhado com 50-70 contas analíticas</li>
+              <li>Contas específicas como Água, Luz, Telefone em Despesas de Consumo</li>
               <li>Você poderá visualizar e aprovar antes de confirmar</li>
-              <li>As contas serão organizadas hierarquicamente</li>
             </ul>
           </div>
         </div>
