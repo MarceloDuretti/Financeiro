@@ -141,6 +141,14 @@ export function TransactionDetailSheet({
   const handleEdit = () => {
     if (!transaction) return;
 
+    console.log("🟢 DEBUG 2 - Botão Editar clicado:", {
+      transactionId: transaction.id,
+      transactionTitle: transaction.title,
+      companyId: transaction.companyId,
+      personId: transaction.personId,
+      fullTransaction: transaction
+    });
+
     form.reset({
       companyId: transaction.companyId,
       type: transaction.type as "expense" | "revenue",

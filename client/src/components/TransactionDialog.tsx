@@ -1222,6 +1222,18 @@ export function TransactionDialog({
       // This is the most reliable and always available
       const companyIdToUse = selectedCompanyId || data.companyId;
       
+      const finalUrl = `/api/transactions/${transaction.id}?companyId=${companyIdToUse}`;
+      
+      console.log("🔴 DEBUG 3 - Botão Salvar clicado:", {
+        transactionId: transaction.id,
+        selectedCompanyId,
+        dataCompanyId: data.companyId,
+        transactionCompanyId: transaction.companyId,
+        companyIdToUse,
+        finalUrl,
+        willSendTo: finalUrl
+      });
+      
       if (!companyIdToUse) {
         throw new Error("Erro: Nenhuma empresa selecionada");
       }
@@ -1239,7 +1251,7 @@ export function TransactionDialog({
         return acc;
       }, {} as any);
       
-      return apiRequest("PATCH", `/api/transactions/${transaction.id}?companyId=${companyIdToUse}`, sanitizedData);
+      return apiRequest("PATCH", finalUrl, sanitizedData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });

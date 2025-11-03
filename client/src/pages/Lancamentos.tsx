@@ -460,6 +460,13 @@ export default function Lancamentos() {
   });
 
   const handleCardClick = (transaction: Transaction) => {
+    console.log("🔵 DEBUG 1 - Card clicado:", {
+      transactionId: transaction.id,
+      transactionTitle: transaction.title,
+      companyId: transaction.companyId,
+      personId: transaction.personId,
+      fullTransaction: transaction
+    });
     setDetailTransaction(transaction);
     setDetailSheetOpen(true);
   };
