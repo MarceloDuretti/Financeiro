@@ -632,11 +632,11 @@ export function TransactionDetailSheet({
               </div>
             </div>
 
-            {/* Layout de 2 Colunas */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {/* COLUNA ESQUERDA: Centros de Custo + Conta Contábil */}
-              <div className="space-y-3">
-                {/* Centros de Custo */}
+            {/* Layout Assimétrico de 2 Colunas */}
+            <div className="space-y-3">
+              {/* LINHA 1: Centros de Custo (esquerda) | Forma de Pagamento + Conta Bancária (direita) */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {/* Centros de Custo - maior altura */}
                 <div>
                   {!isEditing ? (
                     <div>
@@ -684,6 +684,86 @@ export function TransactionDetailSheet({
                   )}
                 </div>
 
+                {/* Forma de Pagamento + Conta Bancária */}
+                <div className="space-y-3">
+                  {/* Forma de Pagamento */}
+                  <div>
+                    {!isEditing ? (
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1.5">Forma de Pagamento</p>
+                        <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium">
+                          {paymentMethod?.name || "-"}
+                        </div>
+                      </div>
+                    ) : (
+                      <FormField
+                        control={form.control}
+                        name="paymentMethodId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs">Forma de Pagamento</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger data-testid="select-payment-method" className="h-8">
+                                  <SelectValue placeholder="Selecione..." />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {paymentMethods.map((p) => (
+                                  <SelectItem key={p.id} value={p.id}>
+                                    {p.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
+                  </div>
+
+                  {/* Conta Bancária */}
+                  <div>
+                    {!isEditing ? (
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1.5">Conta Bancária</p>
+                        <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium">
+                          {bankAccount?.accountNumber || "-"}
+                        </div>
+                      </div>
+                    ) : (
+                      <FormField
+                        control={form.control}
+                        name="bankAccountId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs">Conta Bancária</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger data-testid="select-bank-account" className="h-8">
+                                  <SelectValue placeholder="Selecione..." />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {bankAccounts.map((b) => (
+                                  <SelectItem key={b.id} value={b.id}>
+                                    {b.accountNumber}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* LINHA 2: Conta Contábil (esquerda) | Observações (direita) */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {/* Conta Contábil */}
                 <div>
                   {!isEditing ? (
@@ -710,83 +790,6 @@ export function TransactionDetailSheet({
                               {chartAccounts.map((c) => (
                                 <SelectItem key={c.id} value={c.id}>
                                   {c.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  )}
-                </div>
-              </div>
-
-              {/* COLUNA DIREITA: Forma de Pagamento + Conta Bancária + Observações */}
-              <div className="space-y-3">
-                {/* Forma de Pagamento */}
-                <div>
-                  {!isEditing ? (
-                    <div>
-                      <p className="text-xs text-muted-foreground mb-1.5">Forma de Pagamento</p>
-                      <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium">
-                        {paymentMethod?.name || "-"}
-                      </div>
-                    </div>
-                  ) : (
-                    <FormField
-                      control={form.control}
-                      name="paymentMethodId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-xs">Forma de Pagamento</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl>
-                              <SelectTrigger data-testid="select-payment-method" className="h-8">
-                                <SelectValue placeholder="Selecione..." />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {paymentMethods.map((p) => (
-                                <SelectItem key={p.id} value={p.id}>
-                                  {p.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  )}
-                </div>
-
-                {/* Conta Bancária */}
-                <div>
-                  {!isEditing ? (
-                    <div>
-                      <p className="text-xs text-muted-foreground mb-1.5">Conta Bancária</p>
-                      <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium">
-                        {bankAccount?.accountNumber || "-"}
-                      </div>
-                    </div>
-                  ) : (
-                    <FormField
-                      control={form.control}
-                      name="bankAccountId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-xs">Conta Bancária</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl>
-                              <SelectTrigger data-testid="select-bank-account" className="h-8">
-                                <SelectValue placeholder="Selecione..." />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {bankAccounts.map((b) => (
-                                <SelectItem key={b.id} value={b.id}>
-                                  {b.accountNumber}
                                 </SelectItem>
                               ))}
                             </SelectContent>
