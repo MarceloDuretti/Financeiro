@@ -501,6 +501,19 @@ export async function generateChartOfAccounts(businessDescription: string): Prom
 
   const systemPrompt = `Você é um especialista em contabilidade brasileira. Sua tarefa é gerar um plano de contas completo e hierárquico para uma empresa.
 
+ANÁLISE EM DUAS CAMADAS - MUITO IMPORTANTE:
+1. PRIMEIRA CAMADA - Detectar Pedidos Específicos:
+   - Analise cuidadosamente o que o usuário disse
+   - Identifique QUALQUER item específico mencionado (ex: "água", "luz", "AWS", "licenças de software")
+   - Esses itens DEVEM ser incluídos OBRIGATORIAMENTE no plano
+   
+2. SEGUNDA CAMADA - Contexto Geral:
+   - Identifique o ramo/tipo da empresa
+   - Gere contas adicionais relevantes para esse ramo
+   - Complete com contas padrão necessárias
+
+REGRA DE OURO: Se o usuário mencionar algo específico (mesmo que seja só um exemplo), você DEVE criar uma conta para aquilo.
+
 IMPORTANTE:
 - As 5 contas raiz JÁ EXISTEM no sistema: 1-Receitas, 2-Despesas, 3-Ativo, 4-Passivo, 5-Patrimônio Líquido
 - Você deve gerar APENAS as subcontas dentro dessas raízes
@@ -522,12 +535,29 @@ Types permitidos:
 - passivo (para código 4.x)
 - patrimonio_liquido (para código 5.x)`;
 
-  const userPrompt = `Gere um plano de contas DETALHADO e ANALÍTICO para: ${businessDescription}
+  const userPrompt = `Analise esta descrição e gere um plano de contas COMPLETO: "${businessDescription}"
+
+PASSO 1 - ANÁLISE INTELIGENTE (faça mentalmente, não retorne):
+- O usuário mencionou itens ESPECÍFICOS? (ex: "água", "luz", "AWS", "combustível")
+- Qual é o RAMO/TIPO da empresa? (ex: tecnologia, restaurante, transporte)
+- Que contas específicas do ramo são necessárias?
+
+PASSO 2 - GARANTIR ITENS ESPECÍFICOS MENCIONADOS:
+- Se o usuário falou "água" → DEVE ter conta "Água"
+- Se falou "AWS" ou "nuvem" → DEVE ter conta "AWS" ou "Serviços de Nuvem"
+- Se falou "combustível" → DEVE ter conta "Combustível"
+- Se falou "licenças de software" → DEVE ter conta "Licenças de Software"
+
+EXEMPLOS DE INTERPRETAÇÃO:
+- "empresa de tecnologia que usa AWS e GitHub" → gerar contas AWS, GitHub, mais outras de tech
+- "restaurante que precisa controlar gás e vale refeição" → gerar Gás, Vale Refeição, mais outras de restaurante
+- "transportadora com frotas" → gerar Combustível, IPVA, Manutenção de Veículos, Seguro de Veículos, mais outras
+- "só preciso de água, luz, telefone" → gerar Água, Luz, Telefone, mais outras contas essenciais
 
 RETORNE APENAS UM ARRAY JSON com as subcontas (NÃO inclua as raízes 1,2,3,4,5).
 Cada conta deve ter:
 - code: código hierárquico (ex: "1.1", "1.1.1", "1.1.1.01")
-- name: nome da conta
+- name: nome da conta (USE O NOME EXATO mencionado pelo usuário quando aplicável)
 - type: tipo (receita|despesa|ativo|passivo|patrimonio_liquido)
 - description: descrição breve
 - parentCode: código da conta pai (ex: "1.1" é pai de "1.1.1")
@@ -535,16 +565,19 @@ Cada conta deve ter:
 IMPORTANTE - SEJA MUITO ANALÍTICO E DETALHADO:
 1. Gere NO MÍNIMO 50-70 contas (quanto mais detalhadas, melhor)
 2. Use TODOS os níveis hierárquicos disponíveis (até nível 5)
-3. Seja ESPECÍFICO: ao invés de apenas "Despesas", crie contas como:
-   - "Despesas de Consumo" → "Água", "Luz", "Telefone", "Internet"
-   - "Despesas com Pessoal" → "Salários", "FGTS", "INSS", "Vale Transporte", "Vale Alimentação"
+3. INCLUA OBRIGATORIAMENTE os itens específicos mencionados pelo usuário
+4. Seja ESPECÍFICO: crie contas detalhadas como:
+   - "Despesas de Consumo" → "Água", "Luz", "Telefone", "Internet", "Gás"
+   - "Despesas com Pessoal" → "Salários", "FGTS", "INSS", "Vale Transporte", "Vale Alimentação", "Vale Refeição"
    - "Despesas Administrativas" → "Material de Escritório", "Material de Limpeza", "Manutenção"
-4. Para RECEITAS, detalhe por tipo de produto/serviço específico do negócio
-5. Para ATIVOS, inclua: caixa, bancos, contas a receber, estoques, imobilizado detalhado
-6. Para PASSIVOS, inclua: fornecedores, impostos a pagar, salários a pagar, empréstimos
-7. Crie contas PRONTAS PARA USO REAL, não genéricas
+   - "Despesas com TI" (se tech) → "AWS", "Google Cloud", "GitHub", "Licenças de Software"
+   - "Despesas com Veículos" (se transporte) → "Combustível", "IPVA", "Seguro", "Manutenção"
+5. Para RECEITAS, detalhe por tipo de produto/serviço específico do negócio
+6. Para ATIVOS, inclua: caixa, bancos, contas a receber, estoques, imobilizado detalhado
+7. Para PASSIVOS, inclua: fornecedores, impostos a pagar, salários a pagar, empréstimos
+8. Crie contas PRONTAS PARA USO REAL, não genéricas
 
-Exemplo de estrutura DETALHADA:
+Estrutura hierárquica exemplo:
 [
   {
     "code": "2.1",
@@ -590,7 +623,7 @@ Exemplo de estrutura DETALHADA:
   }
 ]
 
-CAPRIXE NO DETALHAMENTO! Gere NO MÍNIMO 50 contas analíticas e específicas para ${businessDescription}.`;
+CAPRIXE NO DETALHAMENTO! Gere NO MÍNIMO 50 contas analíticas e específicas.`;
 
   try {
     const response = await callOpenAI(

@@ -1423,6 +1423,7 @@ export default function PlanoDeContas() {
           open={aiPreviewOpen}
           onOpenChange={setAiPreviewOpen}
           accounts={generatedAccounts}
+          onAccountsChange={setGeneratedAccounts}
           onRetry={handleRetry}
         />
       </div>
