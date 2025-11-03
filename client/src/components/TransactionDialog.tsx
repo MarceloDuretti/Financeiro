@@ -169,9 +169,9 @@ const StepSummary = ({
           <h3 className="text-xs font-semibold">Resumo</h3>
         </div>
         <Separator className="mb-2" />
-        <div className="text-xs space-y-2">
+        <div className="text-xs grid grid-cols-2 gap-x-4 gap-y-1.5">
           {step >= 2 && (
-            <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
+            <>
               <p>
                 <span className="text-muted-foreground">Tipo:</span>{" "}
                 <Badge variant={values.type === "expense" ? "destructive" : "default"} className="ml-1 text-xs h-5">
@@ -179,52 +179,48 @@ const StepSummary = ({
                 </Badge>
               </p>
               <p><span className="text-muted-foreground">Valor:</span> R$ {parseFloat(values.amount || "0").toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
-              <p className="col-span-2"><span className="text-muted-foreground">Título:</span> {values.title || "-"}</p>
+              <p className="truncate"><span className="text-muted-foreground">Título:</span> {values.title || "-"}</p>
               <p><span className="text-muted-foreground">Vencimento:</span> {format(values.dueDate, "dd/MM/yyyy")}</p>
-            </div>
+            </>
           )}
 
           {step >= 3 && (
             <>
-              <Separator className="my-1.5" />
-              <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
-                <p><span className="text-muted-foreground">Pessoa:</span> {customersSuppliers.find(p => p.id === values.personId)?.name || "-"}</p>
-                {values.costCenterDistributions && values.costCenterDistributions.length > 0 ? (
-                  <div className="col-span-2">
-                    <span className="text-muted-foreground">Centros de Custo:</span>
-                    <div className="mt-1 space-y-0.5">
-                      {values.costCenterDistributions.map((dist) => {
-                        const cc = costCenters.find(c => c.id === dist.costCenterId);
-                        return (
-                          <div key={dist.costCenterId} className="text-[10px]">
-                            • {cc?.name || "?"} - {dist.percentage}%
-                          </div>
-                        );
-                      })}
-                    </div>
+              <p className="truncate"><span className="text-muted-foreground">Pessoa:</span> {customersSuppliers.find(p => p.id === values.personId)?.name || "-"}</p>
+              <p className="truncate"><span className="text-muted-foreground">Plano:</span> {chartAccounts.find(c => c.id === values.chartAccountId)?.name || "-"}</p>
+              {values.costCenterDistributions && values.costCenterDistributions.length > 0 ? (
+                <div className="col-span-2">
+                  <span className="text-muted-foreground">Centros de Custo:</span>
+                  <div className="mt-0.5 grid grid-cols-2 gap-x-2 gap-y-0.5">
+                    {values.costCenterDistributions.map((dist) => {
+                      const cc = costCenters.find(c => c.id === dist.costCenterId);
+                      return (
+                        <div key={dist.costCenterId} className="flex items-center gap-1">
+                          <span className="truncate text-[10px]">• {cc?.name || "?"}</span>
+                          <Badge variant="outline" className="text-[9px] h-4 px-1 shrink-0">
+                            {dist.percentage}%
+                          </Badge>
+                        </div>
+                      );
+                    })}
                   </div>
-                ) : (
-                  <p><span className="text-muted-foreground">C. Custo:</span> {costCenters.find(c => c.id === values.costCenterId)?.name || "-"}</p>
-                )}
-              </div>
+                </div>
+              ) : values.costCenterId ? (
+                <p className="truncate"><span className="text-muted-foreground">C. Custo:</span> {costCenters.find(c => c.id === values.costCenterId)?.name || "-"}</p>
+              ) : null}
             </>
           )}
 
           {step >= 4 && (
             <>
-              <Separator className="my-1.5" />
-              <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
-                <p><span className="text-muted-foreground">Status:</span> {values.status === "pending" ? "Pendente" : values.status === "paid" ? "Pago" : "Cancelado"}</p>
-                <p><span className="text-muted-foreground">Pagamento:</span> {paymentMethods.find(p => p.id === values.paymentMethodId)?.name || "-"}</p>
-              </div>
+              <p><span className="text-muted-foreground">Status:</span> {values.status === "pending" ? "Pendente" : values.status === "paid" ? "Pago" : "Cancelado"}</p>
+              <p className="truncate"><span className="text-muted-foreground">Pagamento:</span> {paymentMethods.find(p => p.id === values.paymentMethodId)?.name || "-"}</p>
+              <p className="truncate"><span className="text-muted-foreground">Conta:</span> {bankAccounts.find(b => b.id === values.bankAccountId)?.accountNumber || "-"}</p>
             </>
           )}
 
           {step >= 5 && values.description && (
-            <>
-              <Separator className="my-1.5" />
-              <p className="col-span-2 truncate"><span className="text-muted-foreground">Obs:</span> {values.description}</p>
-            </>
+            <p className="col-span-2 truncate"><span className="text-muted-foreground">Obs:</span> {values.description}</p>
           )}
         </div>
       </CardContent>
