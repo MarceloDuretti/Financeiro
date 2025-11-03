@@ -1214,12 +1214,23 @@ export function TransactionDialog({
 
   const updateMutation = useMutation({
     mutationFn: async (data: FormValues) => {
+      console.log("=== UPDATE MUTATION DEBUG ===");
+      console.log("transaction:", transaction);
+      console.log("transaction.id:", transaction?.id);
+      console.log("transaction.companyId:", transaction?.companyId);
+      console.log("data:", data);
+      console.log("data.companyId:", data.companyId);
+      console.log("selectedCompanyId from localStorage:", selectedCompanyId);
+      
       if (!transaction?.id) {
         throw new Error("ID da transação não encontrado");
       }
       
       // Use companyId from form data (always populated) as fallback
       const companyId = transaction.companyId || data.companyId || selectedCompanyId;
+      
+      console.log("FINAL companyId to use:", companyId);
+      console.log("URL that will be called:", `/api/transactions/${transaction.id}?companyId=${companyId}`);
       
       if (!companyId) {
         throw new Error("ID da empresa não encontrado");
@@ -1237,6 +1248,8 @@ export function TransactionDialog({
         }
         return acc;
       }, {} as any);
+      
+      console.log("Sanitized data:", sanitizedData);
       
       return apiRequest("PATCH", `/api/transactions/${transaction.id}?companyId=${companyId}`, sanitizedData);
     },
