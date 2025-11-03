@@ -112,15 +112,6 @@ export function ChartPreviewTree({ open, onOpenChange, accounts, onAccountsChang
     new Set(accounts.map(acc => acc.code))
   );
   const [isConfirming, setIsConfirming] = useState(false);
-  
-  // Add account dialog
-  const [showAddDialog, setShowAddDialog] = useState(false);
-  const [newAccount, setNewAccount] = useState({
-    name: '',
-    type: '',
-    description: '',
-    parentCode: '',
-  });
 
   // Build tree
   const tree = buildTree(accounts);
@@ -181,137 +172,6 @@ export function ChartPreviewTree({ open, onOpenChange, accounts, onAccountsChang
     toast({
       title: "Conta removida",
       description: "A conta foi removida do preview",
-    });
-  };
-
-  // Generate next code for a parent
-  const generateNextCode = (parentCode: string): string => {
-    // Get all children of this parent
-    const siblings = accounts.filter(acc => acc.parentCode === parentCode);
-    
-    if (siblings.length === 0) {
-      // First child - determine format based on parent level
-      const parentLevel = parentCode.split('.').length;
-      
-      if (parentLevel === 1) {
-        // Level 2: X.1
-        return `${parentCode}.1`;
-      } else if (parentLevel === 2) {
-        // Level 3: X.X.1
-        return `${parentCode}.1`;
-      } else if (parentLevel === 3) {
-        // Level 4: X.X.X.01
-        return `${parentCode}.01`;
-      } else {
-        // Level 5: X.X.X.XX.001
-        return `${parentCode}.001`;
-      }
-    }
-    
-    // Find the highest number among siblings
-    const siblingNumbers = siblings.map(sibling => {
-      const parts = sibling.code.split('.');
-      const lastPart = parts[parts.length - 1];
-      return parseInt(lastPart, 10);
-    }).filter(n => !isNaN(n));
-    
-    const maxNumber = Math.max(...siblingNumbers, 0);
-    const nextNumber = maxNumber + 1;
-    
-    // Format based on level
-    const parentLevel = parentCode.split('.').length;
-    let formattedNumber: string;
-    
-    if (parentLevel === 1 || parentLevel === 2) {
-      formattedNumber = nextNumber.toString();
-    } else if (parentLevel === 3) {
-      formattedNumber = nextNumber.toString().padStart(2, '0');
-    } else {
-      formattedNumber = nextNumber.toString().padStart(3, '0');
-    }
-    
-    return `${parentCode}.${formattedNumber}`;
-  };
-
-  // Add new account
-  const handleAddAccount = () => {
-    if (!newAccount.name || !newAccount.type || !newAccount.parentCode) {
-      toast({
-        title: "Campos obrigatórios",
-        description: "Preencha nome, tipo e conta pai",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    // Normalize parent code (trim and remove empty segments)
-    const normalizedParentCode = newAccount.parentCode.trim().replace(/\.+/g, '.').replace(/^\.|\.$/g, '');
-    
-    // Validate parent code format
-    if (!/^[0-9]+(\.[0-9]+)*$/.test(normalizedParentCode)) {
-      toast({
-        title: "Código inválido",
-        description: "O código da conta pai deve conter apenas números separados por pontos (ex: 2.1 ou 2.1.1)",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    // Verify parent exists
-    const parentExists = accounts.some(acc => acc.code === normalizedParentCode) || 
-                        ['1', '2', '3', '4', '5'].includes(normalizedParentCode);
-    
-    if (!parentExists) {
-      toast({
-        title: "Conta pai inválida",
-        description: "A conta pai especificada não existe",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    // Check depth limit (max 5 levels)
-    const parentLevel = normalizedParentCode.split('.').length;
-    if (parentLevel >= 5) {
-      toast({
-        title: "Limite de níveis atingido",
-        description: "O plano de contas permite no máximo 5 níveis hierárquicos. Esta conta já está no nível máximo.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    // Generate code
-    const code = generateNextCode(normalizedParentCode);
-    
-    // Create account
-    const account: GeneratedAccount = {
-      code,
-      name: newAccount.name,
-      type: newAccount.type,
-      description: newAccount.description,
-      parentCode: normalizedParentCode,
-    };
-    
-    // Add to accounts
-    const updatedAccounts = [...accounts, account];
-    onAccountsChange(updatedAccounts);
-    
-    // Reset form
-    setNewAccount({
-      name: '',
-      type: '',
-      description: '',
-      parentCode: '',
-    });
-    setShowAddDialog(false);
-    
-    // Expand parent to show new account
-    setExpandedNodes(prev => new Set([...Array.from(prev), normalizedParentCode]));
-    
-    toast({
-      title: "Conta adicionada",
-      description: `Conta ${code} - ${newAccount.name} adicionada com sucesso`,
     });
   };
 
@@ -464,15 +324,6 @@ export function ChartPreviewTree({ open, onOpenChange, accounts, onAccountsChang
 
         {/* Controls */}
         <div className="flex items-center gap-2 flex-wrap">
-          <Button 
-            size="sm" 
-            variant="default" 
-            onClick={() => setShowAddDialog(true)}
-            data-testid="button-add-account"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Adicionar Conta
-          </Button>
           <Button size="sm" variant="outline" onClick={expandAll}>
             Expandir Tudo
           </Button>
@@ -528,98 +379,6 @@ export function ChartPreviewTree({ open, onOpenChange, accounts, onAccountsChang
           </Button>
         </DialogFooter>
       </DialogContent>
-
-      {/* Add Account Dialog */}
-      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Adicionar Nova Conta</DialogTitle>
-            <DialogDescription>
-              Adicione uma nova conta ao plano. O código será gerado automaticamente.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="account-name">
-                Nome da Conta <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                id="account-name"
-                value={newAccount.name}
-                onChange={(e) => setNewAccount(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="Ex: Material de Escritório"
-                data-testid="input-account-name"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="account-type">
-                Tipo <span className="text-destructive">*</span>
-              </Label>
-              <Select
-                value={newAccount.type}
-                onValueChange={(value) => setNewAccount(prev => ({ ...prev, type: value }))}
-              >
-                <SelectTrigger id="account-type" data-testid="select-account-type">
-                  <SelectValue placeholder="Selecione o tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="receita">Receita</SelectItem>
-                  <SelectItem value="despesa">Despesa</SelectItem>
-                  <SelectItem value="ativo">Ativo</SelectItem>
-                  <SelectItem value="passivo">Passivo</SelectItem>
-                  <SelectItem value="patrimonio_liquido">Patrimônio Líquido</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="parent-code">
-                Conta Pai <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                id="parent-code"
-                value={newAccount.parentCode}
-                onChange={(e) => setNewAccount(prev => ({ ...prev, parentCode: e.target.value }))}
-                placeholder="Ex: 2.1 ou 2.1.1"
-                data-testid="input-parent-code"
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                Digite o código da conta pai (ex: 1, 2, 2.1, 2.1.1)
-              </p>
-            </div>
-
-            <div>
-              <Label htmlFor="account-description">Descrição</Label>
-              <Textarea
-                id="account-description"
-                value={newAccount.description}
-                onChange={(e) => setNewAccount(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Descrição da conta (opcional)"
-                rows={3}
-                data-testid="input-account-description"
-              />
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setShowAddDialog(false);
-                setNewAccount({ name: '', type: '', description: '', parentCode: '' });
-              }}
-            >
-              Cancelar
-            </Button>
-            <Button onClick={handleAddAccount} data-testid="button-confirm-add">
-              <Plus className="h-4 w-4 mr-2" />
-              Adicionar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </Dialog>
   );
 }
