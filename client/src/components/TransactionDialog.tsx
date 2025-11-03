@@ -882,7 +882,7 @@ interface FormContentProps {
   handleNext: () => void;
   handlePrevious: () => void;
   onSubmit: (data: FormValues) => void;
-  createMutation: UseMutationResult<any, any, FormValues, unknown>;
+  isSubmitting: boolean;
   watchStatus: string | undefined;
   customersSuppliers: any[];
   costCenters: any[];
@@ -896,8 +896,8 @@ const FormContent = ({
   currentStep, 
   handleNext, 
   handlePrevious, 
-  onSubmit, 
-  createMutation,
+  onSubmit,
+  isSubmitting,
   watchStatus,
   customersSuppliers,
   costCenters,
@@ -1005,10 +1005,10 @@ const FormContent = ({
               type="button"
               onClick={handleSaveClick}
               className="flex-1"
-              disabled={createMutation.isPending}
+              disabled={isSubmitting || form.formState.isSubmitting}
               data-testid="button-save"
             >
-              {createMutation.isPending ? "Salvando..." : "Salvar Lançamento"}
+              {(isSubmitting || form.formState.isSubmitting) ? "Salvando..." : "Salvar Lançamento"}
             </Button>
           )}
         </div>
@@ -1204,9 +1204,41 @@ export function TransactionDialog({
     },
   });
 
+  const updateMutation = useMutation({
+    mutationFn: async (data: FormValues) => {
+      if (!transaction?.id || !selectedCompanyId) {
+        throw new Error("ID da transação ou empresa não encontrado");
+      }
+      return apiRequest("PATCH", `/api/transactions/${transaction.id}?companyId=${selectedCompanyId}`, {
+        ...data,
+        issueDate: data.issueDate.toISOString(),
+        dueDate: data.dueDate.toISOString(),
+        paidDate: data.paidDate ? data.paidDate.toISOString() : null,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
+      toast({
+        title: "Sucesso!",
+        description: "Lançamento atualizado com sucesso.",
+      });
+      onOpenChange(false);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao atualizar lançamento.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const onSubmit = (data: FormValues) => {
-    // Neste ponto, só chega aqui se estiver na etapa 5
-    createMutation.mutate(data);
+    if (transaction) {
+      updateMutation.mutate(data);
+    } else {
+      createMutation.mutate(data);
+    }
   };
 
   const handleNext = () => {
@@ -1237,7 +1269,7 @@ export function TransactionDialog({
               handleNext={handleNext}
               handlePrevious={handlePrevious}
               onSubmit={onSubmit}
-              createMutation={createMutation}
+              isSubmitting={createMutation.isPending || updateMutation.isPending}
               watchStatus={watchStatus}
               customersSuppliers={customersSuppliers}
               costCenters={costCenters}
@@ -1265,7 +1297,7 @@ export function TransactionDialog({
           handleNext={handleNext}
           handlePrevious={handlePrevious}
           onSubmit={onSubmit}
-          createMutation={createMutation}
+          isSubmitting={createMutation.isPending || updateMutation.isPending}
           watchStatus={watchStatus}
           customersSuppliers={customersSuppliers}
           costCenters={costCenters}
