@@ -21,7 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { ChevronRight, ChevronDown, Check, Loader2, FileText, Mic, Plus, X, Lock } from "lucide-react";
+import { ChevronRight, ChevronDown, Check, Loader2, FileText, Mic, Plus, X, Lock, Wallet, CreditCard, PiggyBank, TrendingUp, TrendingDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
 
@@ -103,6 +103,18 @@ function getTypeLabel(type: string): string {
     'patrimonio_liquido': 'Patrimônio',
   };
   return labels[type] || type;
+}
+
+// Get type icon
+function getTypeIcon(type: string) {
+  const icons: Record<string, any> = {
+    'receita': TrendingUp,
+    'despesa': TrendingDown,
+    'ativo': Wallet,
+    'passivo': CreditCard,
+    'patrimonio_liquido': PiggyBank,
+  };
+  return icons[type] || FileText;
 }
 
 export function ChartPreviewTree({ open, onOpenChange, accounts, onAccountsChange, onRetry }: ChartPreviewTreeProps) {
@@ -311,12 +323,26 @@ export function ChartPreviewTree({ open, onOpenChange, accounts, onAccountsChang
         <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
           {Object.entries(accountsByType).map(([rootCode, accs]) => {
             const sampleType = accs[0]?.type || '';
+            const Icon = getTypeIcon(sampleType);
+            const badgeColor = getTypeBadgeColor(sampleType);
+            
             return (
-              <Card key={rootCode} className="p-2">
-                <div className="text-xs text-muted-foreground">
-                  {getTypeLabel(sampleType)}
+              <Card 
+                key={rootCode} 
+                className="p-3 hover-elevate transition-all duration-300 animate-in fade-in slide-in-from-bottom-2"
+                style={{ animationDelay: `${parseInt(rootCode) * 50}ms` }}
+              >
+                <div className="flex items-center gap-2">
+                  <div className={`p-1.5 rounded-md ${badgeColor} transition-transform duration-300 hover:scale-110`}>
+                    <Icon className="h-4 w-4 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-xs text-muted-foreground">
+                      {getTypeLabel(sampleType)}
+                    </div>
+                    <div className="text-lg font-bold">{accs.length}</div>
+                  </div>
                 </div>
-                <div className="text-lg font-bold">{accs.length}</div>
               </Card>
             );
           })}
