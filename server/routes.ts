@@ -1824,17 +1824,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("PATCH /api/transactions/:id - Request body:", JSON.stringify(req.body, null, 2));
       console.log("Transaction data (after extracting costCenterDistributions):", JSON.stringify(transactionData, null, 2));
       
-      // Convert empty strings to null for optional foreign key fields
-      // This prevents foreign key constraint violations
-      const fieldsToNullify = [
+      // Remove fields with empty strings before Zod validation
+      // This prevents both Zod validation errors and foreign key constraint violations
+      const fieldsToClean = [
         'personId', 'costCenterId', 'chartAccountId', 
         'bankAccountId', 'paymentMethodId', 'cashRegisterId',
         'paidAmount', 'seriesId'
       ];
       
-      for (const field of fieldsToNullify) {
+      for (const field of fieldsToClean) {
         if (transactionData[field] === '') {
-          transactionData[field] = null;
+          delete transactionData[field];
         }
       }
       
