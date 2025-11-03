@@ -87,32 +87,6 @@ export function TransactionCostCenterPicker({
     onChange(newDistributions);
   };
 
-  // Auto-distribute equally
-  const handleAutoDistribute = () => {
-    console.log('[Auto Distribute] Botão clicado');
-    console.log('[Auto Distribute] Distributions antes:', distributions);
-    
-    if (distributions.length === 0) {
-      console.log('[Auto Distribute] Nenhuma distribuição selecionada');
-      return;
-    }
-    
-    const autoPercentage = Math.floor(100 / distributions.length);
-    const remainder = 100 - (autoPercentage * distributions.length);
-    
-    console.log('[Auto Distribute] autoPercentage:', autoPercentage, 'remainder:', remainder);
-    
-    const withPercentages = distributions.map((d, idx) => ({
-      ...d,
-      percentage: idx === 0 ? autoPercentage + remainder : autoPercentage,
-    }));
-    
-    console.log('[Auto Distribute] Distributions depois:', withPercentages);
-    
-    setDistributions(withPercentages);
-    onChange(withPercentages);
-  };
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -174,22 +148,6 @@ export function TransactionCostCenterPicker({
             </div>
           </CardContent>
         </Card>
-      )}
-
-      {/* Action Buttons */}
-      {hasSelections && (
-        <div className="flex gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={handleAutoDistribute}
-            className="flex-1"
-            data-testid="button-auto-distribute"
-          >
-            Distribuir Igualmente
-          </Button>
-        </div>
       )}
 
       {/* Cost Centers List */}
