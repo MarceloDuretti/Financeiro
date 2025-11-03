@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -184,6 +184,46 @@ export default function Lancamentos() {
     onError: (error: Error) => {
       toast({
         title: "Erro ao analisar comando",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Batch transaction creation mutation
+  const createBatchMutation = useMutation({
+    mutationFn: async (transactions: any[]) => {
+      if (!selectedCompanyId) throw new Error("Nenhuma empresa selecionada");
+      
+      // Add companyId to each transaction
+      const transactionsWithCompany = transactions.map(t => ({
+        ...t,
+        companyId: selectedCompanyId,
+      }));
+      
+      return apiRequest<any>("/api/transactions/batch", {
+        method: "POST",
+        body: JSON.stringify({ transactions: transactionsWithCompany }),
+      });
+    },
+    onSuccess: (data) => {
+      console.log("[Batch Transaction] Created:", data);
+      toast({
+        title: "Lançamentos criados",
+        description: `${data.count} lançamento(s) criado(s) com sucesso!`,
+      });
+      // Close sheet and reset state
+      setAiAssistOpen(false);
+      setShowAiPreview(false);
+      setShowAiForm(false);
+      setAiCommandResult(null);
+      setGeneratedTransactions([]);
+      // Invalidate queries to refresh the list
+      queryClient.invalidateQueries({ queryKey: ['/api/transactions'] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro ao criar lançamentos",
         description: error.message,
         variant: "destructive",
       });
@@ -1529,14 +1569,10 @@ export default function Lancamentos() {
               <AITransactionPreview
                 transactions={generatedTransactions}
                 clonePeriod={aiCommandResult?.clonePeriod}
+                isSubmitting={createBatchMutation.isPending}
                 onConfirm={() => {
                   console.log("[AI Preview] Confirmed - creating transactions:", generatedTransactions);
-                  // TODO: Implementar criação em lote (tarefa 6)
-                  toast({
-                    title: "Transações criadas",
-                    description: `${generatedTransactions.length} lançamento(s) criado(s) com sucesso!`,
-                  });
-                  setAiAssistOpen(false);
+                  createBatchMutation.mutate(generatedTransactions);
                 }}
                 onEdit={() => {
                   setShowAiPreview(false);

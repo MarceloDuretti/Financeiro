@@ -23,6 +23,7 @@ import { setupAuth, isAuthenticated, hashPassword } from "./localAuth";
 import { initializeEmailService, sendInviteEmail } from "./emailService";
 import { getTenantId } from "./tenantUtils";
 import { broadcastDataChange } from "./websocket";
+import { db } from "./db";
 import passport from "passport";
 import { nanoid } from "nanoid";
 
@@ -1766,6 +1767,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error getting transaction:", error);
       res.status(500).json({ error: "Erro ao buscar lançamento" });
+    }
+  });
+
+  // Create multiple transactions in batch (for AI assistant)
+  // LIMITATION: Current storage layer doesn't support passing transaction context,
+  // so this validates all upfront and creates sequentially. If mid-batch failure occurs,
+  // previously created transactions remain (not fully atomic).
+  // TODO: Refactor storage to accept transaction parameter for true atomicity.
+  app.post("/api/transactions/batch", isAuthenticated, async (req, res) => {
+    try {
+      const tenantId = getTenantId((req as any).user);
+      const userId = (req as any).user.id;
+      const { transactions } = req.body;
+      
+      if (!Array.isArray(transactions) || transactions.length === 0) {
+        return res.status(400).json({ message: "transactions deve ser um array não vazio" });
+      }
+      
+      console.log(`[Batch Transaction] Creating ${transactions.length} transactions`);
+      
+      // Validate ALL transactions upfront - fail fast before any creation
+      // This minimizes (but doesn't eliminate) risk of partial batch creation
+      const validatedTransactions = transactions.map(transactionData => {
+        const { costCenterDistributions, ...data } = transactionData;
+        const validatedData = insertTransactionSchema.parse(data);
+        return { validatedData, costCenterDistributions };
+      });
+      
+      console.log(`[Batch Transaction] Validation successful, proceeding with creation`);
+      
+      const createdTransactions: any[] = [];
+      
+      // Create each transaction sequentially
+      // KNOWN ISSUE: If creation fails mid-batch, previously created ones remain
+      for (const { validatedData, costCenterDistributions } of validatedTransactions) {
+        const transaction = await storage.createTransaction(
+          tenantId,
+          validatedData.companyId,
+          validatedData,
+          userId
+        );
+        
+        // Save cost center distributions if provided
+        if (costCenterDistributions && Array.isArray(costCenterDistributions) && costCenterDistributions.length > 0) {
+          await storage.saveTransactionCostCenters(tenantId, transaction.id, costCenterDistributions);
+        }
+        
+        // Fetch cost centers to include in response
+        const costCenters = await storage.getTransactionCostCenters(tenantId, transaction.id);
+        const responseData = { ...transaction, costCenterDistributions: costCenters };
+        
+        createdTransactions.push(responseData);
+      }
+      
+      // Only broadcast after ALL transactions are successfully created
+      for (const transaction of createdTransactions) {
+        broadcastDataChange(tenantId, "transactions", "created", transaction);
+      }
+      
+      console.log(`[Batch Transaction] Successfully created ${createdTransactions.length} transactions`);
+      
+      res.json({
+        count: createdTransactions.length,
+        transactions: createdTransactions,
+      });
+    } catch (error: any) {
+      console.error("Error creating batch transactions:", error);
+      res.status(400).json({ message: error.message || "Erro ao criar lançamentos em lote" });
     }
   });
 
