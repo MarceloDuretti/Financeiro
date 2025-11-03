@@ -831,6 +831,39 @@ export const insertTransactionSchema = createInsertSchema(transactions).omit({
 export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
 export type Transaction = typeof transactions.$inferSelect;
 
+// Transaction Cost Centers N:N relationship
+// Allows distributing transaction value across multiple cost centers with percentage allocation
+export const transactionCostCenters = pgTable("transaction_cost_centers", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  tenantId: varchar("tenant_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  transactionId: varchar("transaction_id").notNull().references(() => transactions.id, { onDelete: 'cascade' }),
+  costCenterId: varchar("cost_center_id").notNull().references(() => costCenters.id, { onDelete: 'cascade' }),
+  percentage: integer("percentage").notNull(), // Percentage of transaction allocated to this cost center (0-100)
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (table) => [
+  // Primary tenant index
+  index("txn_cost_centers_tenant_idx").on(table.tenantId),
+  // Unique constraint to prevent duplicates
+  uniqueIndex("txn_cost_centers_unique").on(table.transactionId, table.costCenterId),
+  // Index for reverse lookups (find all transactions for a cost center)
+  index("txn_cost_centers_cost_center_idx").on(table.costCenterId),
+  // Index for transaction lookups
+  index("txn_cost_centers_transaction_idx").on(table.transactionId),
+]);
+
+export const insertTransactionCostCenterSchema = createInsertSchema(transactionCostCenters).omit({
+  id: true,
+  tenantId: true,
+  createdAt: true,
+}).extend({
+  transactionId: z.string().min(1, "ID da transação é obrigatório"),
+  costCenterId: z.string().min(1, "ID do centro de custo é obrigatório"),
+  percentage: z.number().min(1, "Percentual deve ser no mínimo 1%").max(100, "Percentual não pode exceder 100%"),
+});
+
+export type InsertTransactionCostCenter = z.infer<typeof insertTransactionCostCenterSchema>;
+export type TransactionCostCenter = typeof transactionCostCenters.$inferSelect;
+
 // Discovered Companies - Cache for CNPJ discoveries via Google Custom Search API
 // Stores companies found through web search to avoid repeated API calls
 export const discoveredCompanies = pgTable("discovered_companies", {
