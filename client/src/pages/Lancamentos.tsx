@@ -50,6 +50,7 @@ import type { Transaction } from "@shared/schema";
 import { TransactionDialog } from "@/components/TransactionDialog";
 import { TransactionDetailSheet } from "@/components/TransactionDetailSheet";
 import { AITransactionInput } from "@/components/AITransactionInput";
+import { AITransactionForm } from "@/components/AITransactionForm";
 
 const SELECTED_COMPANY_KEY = "fincontrol_selected_company_id";
 
@@ -89,6 +90,8 @@ export default function Lancamentos() {
     return startOfWeek(now, { locale: ptBR });
   });
   const [aiAssistOpen, setAiAssistOpen] = useState(false);
+  const [aiCommandResult, setAiCommandResult] = useState<any>(null);
+  const [showAiForm, setShowAiForm] = useState(false);
   const parentRef = useRef<HTMLDivElement>(null);
 
   // AI command analysis mutation
@@ -103,6 +106,8 @@ export default function Lancamentos() {
     },
     onSuccess: (data) => {
       console.log("[AI Command] Analysis result:", data);
+      setAiCommandResult(data);
+      setShowAiForm(true);
       toast({
         title: "Comando analisado",
         description: `Operação: ${data.operation}, Confiança: ${(data.confidence * 100).toFixed(0)}%`,
@@ -1404,7 +1409,14 @@ export default function Lancamentos() {
       />
 
       {/* AI Assistance Sheet */}
-      <Sheet open={aiAssistOpen} onOpenChange={setAiAssistOpen}>
+      <Sheet open={aiAssistOpen} onOpenChange={(open) => {
+        setAiAssistOpen(open);
+        if (!open) {
+          // Reset state when closing
+          setShowAiForm(false);
+          setAiCommandResult(null);
+        }
+      }}>
         <SheetContent className="sm:max-w-2xl">
           <SheetHeader>
             <SheetTitle className="flex items-center gap-2">
@@ -1413,11 +1425,29 @@ export default function Lancamentos() {
             </SheetTitle>
           </SheetHeader>
           <div className="mt-6 space-y-4">
-            <AITransactionInput
-              onProcess={(input) => analyzeCommandMutation.mutate(input)}
-              isProcessing={analyzeCommandMutation.isPending}
-              placeholder="Descreva o lançamento que deseja criar..."
-            />
+            {!showAiForm ? (
+              <AITransactionInput
+                onProcess={(input) => analyzeCommandMutation.mutate(input)}
+                isProcessing={analyzeCommandMutation.isPending}
+                placeholder="Descreva o lançamento que deseja criar..."
+              />
+            ) : aiCommandResult ? (
+              <AITransactionForm
+                command={aiCommandResult}
+                onSubmit={(data) => {
+                  console.log("[AI Form] Submitted data:", data);
+                  // TODO: Implementar próximo passo (preview ou criação)
+                  toast({
+                    title: "Dados recebidos",
+                    description: "Próximo passo: implementar preview final",
+                  });
+                }}
+                onCancel={() => {
+                  setShowAiForm(false);
+                  setAiCommandResult(null);
+                }}
+              />
+            ) : null}
           </div>
         </SheetContent>
       </Sheet>
