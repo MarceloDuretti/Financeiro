@@ -1218,12 +1218,12 @@ export function TransactionDialog({
         throw new Error("ID da transação não encontrado");
       }
       
-      // Use data.companyId (from form) which is ALWAYS populated
-      // This is the most reliable source since form requires it
-      const companyId = data.companyId;
+      // CRITICAL FIX: Always use selectedCompanyId from localStorage
+      // This is the most reliable and always available
+      const companyIdToUse = selectedCompanyId || data.companyId;
       
-      if (!companyId) {
-        throw new Error("ID da empresa não encontrado - entre em contato com o suporte");
+      if (!companyIdToUse) {
+        throw new Error("Erro: Nenhuma empresa selecionada");
       }
       
       // Sanitize data - remove undefined values and convert dates
@@ -1239,7 +1239,7 @@ export function TransactionDialog({
         return acc;
       }, {} as any);
       
-      return apiRequest("PATCH", `/api/transactions/${transaction.id}?companyId=${companyId}`, sanitizedData);
+      return apiRequest("PATCH", `/api/transactions/${transaction.id}?companyId=${companyIdToUse}`, sanitizedData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
