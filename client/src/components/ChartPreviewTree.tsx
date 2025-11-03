@@ -21,7 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { ChevronRight, ChevronDown, Check, Loader2, FileText, Mic, Plus, X } from "lucide-react";
+import { ChevronRight, ChevronDown, Check, Loader2, FileText, Mic, Plus, X, Lock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
 
@@ -151,6 +151,17 @@ export function ChartPreviewTree({ open, onOpenChange, accounts, onAccountsChang
 
   // Delete account
   const handleDeleteAccount = (code: string) => {
+    // Block deletion of root accounts (1-5)
+    const rootCodes = ['1', '2', '3', '4', '5'];
+    if (rootCodes.includes(code)) {
+      toast({
+        title: "Conta protegida",
+        description: "As contas raízes (Ativo, Passivo, Patrimônio Líquido, Receitas, Despesas) não podem ser excluídas.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     // Check if account has children
     const hasChildren = accounts.some(acc => acc.parentCode === code);
     
@@ -344,6 +355,7 @@ export function ChartPreviewTree({ open, onOpenChange, accounts, onAccountsChang
   const renderNode = (node: AccountNode, depth: number = 0) => {
     const isExpanded = expandedNodes.has(node.code);
     const hasChildren = node.children.length > 0;
+    const isRootAccount = ['1', '2', '3', '4', '5'].includes(node.code);
 
     return (
       <div key={node.code}>
@@ -377,6 +389,12 @@ export function ChartPreviewTree({ open, onOpenChange, accounts, onAccountsChang
                   {getTypeLabel(node.type)}
                 </Badge>
               )}
+              {isRootAccount && (
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <Lock className="h-3 w-3" />
+                  <span className="text-[10px]">Protegida</span>
+                </div>
+              )}
             </div>
             <div className="text-sm font-medium mt-0.5">{node.name}</div>
             {node.description && (
@@ -384,19 +402,21 @@ export function ChartPreviewTree({ open, onOpenChange, accounts, onAccountsChang
             )}
           </div>
           
-          {/* Delete button - shown on hover */}
-          <Button
-            size="icon"
-            variant="ghost"
-            className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleDeleteAccount(node.code);
-            }}
-            data-testid={`button-delete-account-${node.code}`}
-          >
-            <X className="h-3 w-3 text-destructive" />
-          </Button>
+          {/* Delete button - shown on hover, hidden for root accounts */}
+          {!isRootAccount && (
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDeleteAccount(node.code);
+              }}
+              data-testid={`button-delete-account-${node.code}`}
+            >
+              <X className="h-3 w-3 text-destructive" />
+            </Button>
+          )}
         </div>
 
         {/* Children */}
