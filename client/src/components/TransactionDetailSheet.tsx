@@ -59,6 +59,8 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import type { CustomerSupplier, CostCenter, ChartAccount, PaymentMethod, BankAccount } from "@shared/schema";
+import { TransactionCostCenterPicker } from "@/components/TransactionCostCenterPicker";
+import type { CostCenterDistribution } from "@/components/TransactionCostCenterPicker";
 
 interface TransactionDetailSheetProps {
   open: boolean;
@@ -102,8 +104,8 @@ export function TransactionDetailSheet({
     queryKey: ["/api/bank-accounts"],
   });
 
-  // Form setup
-  const form = useForm<InsertTransaction>({
+  // Form setup with extended type to include costCenterDistributions
+  const form = useForm<InsertTransaction & { costCenterDistributions?: CostCenterDistribution[] }>({
     resolver: zodResolver(insertTransactionSchema),
     defaultValues: {
       companyId: "",
@@ -113,6 +115,7 @@ export function TransactionDetailSheet({
       personId: "",
       costCenterId: "",
       chartAccountId: "",
+      costCenterDistributions: [],
       issueDate: new Date(),
       dueDate: new Date(),
       paidDate: null,
@@ -146,6 +149,7 @@ export function TransactionDetailSheet({
       transactionTitle: transaction.title,
       companyId: transaction.companyId,
       personId: transaction.personId,
+      costCenterDistributions: (transaction as any).costCenterDistributions,
       fullTransaction: transaction
     });
 
@@ -157,6 +161,7 @@ export function TransactionDetailSheet({
       personId: transaction.personId || "",
       costCenterId: transaction.costCenterId || "",
       chartAccountId: transaction.chartAccountId || "",
+      costCenterDistributions: (transaction as any).costCenterDistributions || [],
       issueDate: transaction.issueDate ? new Date(transaction.issueDate) : new Date(),
       dueDate: transaction.dueDate ? new Date(transaction.dueDate) : new Date(),
       paidDate: transaction.paidDate ? new Date(transaction.paidDate) : null,
@@ -611,62 +616,57 @@ export function TransactionDetailSheet({
               </div>
             </div>
 
-            {/* Grid de 4 colunas quando editando: Centro de Custo, Conta Contábil, Forma de Pagamento, Conta Bancária */}
-            <div className={`grid grid-cols-1 ${isEditing ? 'md:grid-cols-4' : 'md:grid-cols-2'} ${isEditing ? 'gap-1.5' : 'gap-2'}`}>
-              {/* Centro de Custo */}
-              <div>
-                {!isEditing ? (
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-1.5">
-                      {hasMultipleCostCenters ? "Centros de Custo" : "Centro de Custo"}
-                    </p>
-                    {costCenterDistributions.length > 0 ? (
-                      <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm space-y-1">
-                        {costCenterDistributions.map((dist: any) => {
-                          const cc = costCenters.find((c) => c.id === dist.costCenterId);
-                          return (
-                            <div key={dist.costCenterId} className="flex items-center justify-between">
-                              <span className="font-medium">{cc?.name || "-"}</span>
-                              <Badge variant="outline" className="text-[10px] h-5 px-1.5">
-                                {dist.percentage}%
-                              </Badge>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    ) : (
-                      <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium">
-                        {costCenter?.name || "-"}
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <FormField
-                    control={form.control}
-                    name="costCenterId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-xs">Centro de Custo</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger data-testid="select-cost-center" className="h-8">
-                              <SelectValue placeholder="Selecione..." />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {costCenters.map((c) => (
-                              <SelectItem key={c.id} value={c.id}>
-                                {c.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
-              </div>
+            {/* Centros de Custo - Full Width quando editando */}
+            <div className={!isEditing ? `grid grid-cols-1 md:grid-cols-2 gap-2 mb-2` : 'mb-3'}>
+              {!isEditing && (
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1.5">
+                    {hasMultipleCostCenters ? "Centros de Custo" : "Centro de Custo"}
+                  </p>
+                  {costCenterDistributions.length > 0 ? (
+                    <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm space-y-1">
+                      {costCenterDistributions.map((dist: any) => {
+                        const cc = costCenters.find((c) => c.id === dist.costCenterId);
+                        return (
+                          <div key={dist.costCenterId} className="flex items-center justify-between">
+                            <span className="font-medium">{cc?.name || "-"}</span>
+                            <Badge variant="outline" className="text-[10px] h-5 px-1.5">
+                              {dist.percentage}%
+                            </Badge>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium">
+                      {costCenter?.name || "-"}
+                    </div>
+                  )}
+                </div>
+              )}
+              {isEditing && (
+                <FormField
+                  control={form.control}
+                  name="costCenterDistributions"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-xs">Centros de Custo (Distribuição)</FormLabel>
+                      <FormControl>
+                        <TransactionCostCenterPicker
+                          value={field.value || []}
+                          onChange={field.onChange}
+                          companyId={transaction?.companyId}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+            </div>
+
+            {/* Grid de 3 colunas quando editando: Conta Contábil, Forma de Pagamento, Conta Bancária */}
+            <div className={`grid grid-cols-1 ${isEditing ? 'md:grid-cols-3' : 'md:grid-cols-2'} ${isEditing ? 'gap-1.5' : 'gap-2'}`}>
               {/* Conta Contábil */}
               <div>
                 {!isEditing ? (
