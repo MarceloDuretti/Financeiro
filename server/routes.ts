@@ -861,7 +861,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Insert accounts in order
       const createdAccounts = [];
+      const rootCodes = ['1', '2', '3', '4', '5'];
+      
       for (const account of sortedAccounts) {
+        // Skip root accounts (1-5) - they already exist in the database
+        if (rootCodes.includes(account.code)) {
+          console.log(`[AI Chart Confirm] Skipping root account: ${account.code} - ${account.name} (already exists)`);
+          continue;
+        }
+        
         // Find parent ID
         let parentId: string | null = null;
         if (account.parentCode) {
