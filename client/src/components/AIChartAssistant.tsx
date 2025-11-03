@@ -40,16 +40,25 @@ export function AIChartAssistant({ open, onOpenChange, onGenerated }: AIChartAss
     const SpeechRecognition = (window as any).webkitSpeechRecognition;
     const recognitionInstance = new SpeechRecognition();
     recognitionInstance.lang = 'pt-BR';
-    recognitionInstance.continuous = false;
-    recognitionInstance.interimResults = false;
+    recognitionInstance.continuous = true; // Continua gravando até parar manualmente
+    recognitionInstance.interimResults = true; // Mostra resultados intermediários
 
     recognitionInstance.onstart = () => {
       setIsRecording(true);
     };
 
     recognitionInstance.onresult = (event: any) => {
-      const transcript = event.results[0][0].transcript;
-      setBusinessDescription((prev) => (prev ? `${prev} ${transcript}` : transcript));
+      // Concatena todos os resultados finais
+      let finalTranscript = '';
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        if (event.results[i].isFinal) {
+          finalTranscript += event.results[i][0].transcript + ' ';
+        }
+      }
+      
+      if (finalTranscript) {
+        setBusinessDescription((prev) => (prev ? `${prev} ${finalTranscript}` : finalTranscript).trim());
+      }
     };
 
     recognitionInstance.onerror = (event: any) => {

@@ -92,28 +92,36 @@ export function AIEntityInput({ onProcess, isProcessing = false, placeholder = "
 
     // Initialize speech recognition
     const recognition = new SpeechRecognition();
-    recognition.continuous = false;
-    recognition.interimResults = false;
+    recognition.continuous = true; // Continua gravando até parar manualmente
+    recognition.interimResults = true; // Mostra resultados intermediários
     recognition.lang = "pt-BR";
 
     recognition.onresult = (event: any) => {
-      const transcript = event.results[0][0].transcript;
-      
-      // Apply the same formatting logic as manual input
-      if (/^[\d.]/.test(transcript)) {
-        // Starts with digit or dot - treat as pure CNPJ and format
-        setInput(formatCNPJ(transcript));
-      } else {
-        // Free text - ensure total digits don't exceed 14
-        setInput(normalizeDigits(transcript));
+      // Concatena todos os resultados finais
+      let finalTranscript = '';
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        if (event.results[i].isFinal) {
+          finalTranscript += event.results[i][0].transcript + ' ';
+        }
       }
       
-      setIsListening(false);
-      
-      toast({
-        title: "Texto reconhecido",
-        description: transcript,
-      });
+      if (finalTranscript) {
+        const transcript = finalTranscript.trim();
+        
+        // Apply the same formatting logic as manual input
+        if (/^[\d.]/.test(transcript)) {
+          // Starts with digit or dot - treat as pure CNPJ and format
+          setInput(formatCNPJ(transcript));
+        } else {
+          // Free text - ensure total digits don't exceed 14
+          setInput(normalizeDigits(transcript));
+        }
+        
+        toast({
+          title: "Texto reconhecido",
+          description: transcript,
+        });
+      }
     };
 
     recognition.onerror = (event: any) => {
