@@ -1180,12 +1180,20 @@ export function TransactionDialog({
 
   const createMutation = useMutation({
     mutationFn: async (data: FormValues) => {
-      return apiRequest("POST", "/api/transactions", {
+      // Sanitize data - remove undefined values and convert dates
+      const sanitizedData = Object.entries({
         ...data,
         issueDate: data.issueDate.toISOString(),
         dueDate: data.dueDate.toISOString(),
         paidDate: data.paidDate ? data.paidDate.toISOString() : null,
-      });
+      }).reduce((acc, [key, value]) => {
+        if (value !== undefined) {
+          acc[key] = value;
+        }
+        return acc;
+      }, {} as any);
+      
+      return apiRequest("POST", "/api/transactions", sanitizedData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
@@ -1209,12 +1217,21 @@ export function TransactionDialog({
       if (!transaction?.id || !selectedCompanyId) {
         throw new Error("ID da transação ou empresa não encontrado");
       }
-      return apiRequest("PATCH", `/api/transactions/${transaction.id}?companyId=${selectedCompanyId}`, {
+      
+      // Sanitize data - remove undefined values and convert dates
+      const sanitizedData = Object.entries({
         ...data,
         issueDate: data.issueDate.toISOString(),
         dueDate: data.dueDate.toISOString(),
         paidDate: data.paidDate ? data.paidDate.toISOString() : null,
-      });
+      }).reduce((acc, [key, value]) => {
+        if (value !== undefined) {
+          acc[key] = value;
+        }
+        return acc;
+      }, {} as any);
+      
+      return apiRequest("PATCH", `/api/transactions/${transaction.id}?companyId=${selectedCompanyId}`, sanitizedData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });

@@ -1814,6 +1814,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Extract cost center distributions from body (not part of insertTransactionSchema)
       const { costCenterDistributions, ...transactionData } = req.body;
       
+      console.log("PATCH /api/transactions/:id - Request body:", JSON.stringify(req.body, null, 2));
+      console.log("Transaction data (after extracting costCenterDistributions):", JSON.stringify(transactionData, null, 2));
+      
       // Validate and strip extra fields using Zod (security)
       const validatedData = insertTransactionSchema.partial().parse(transactionData);
       
@@ -1849,6 +1852,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(responseData);
     } catch (error: any) {
       console.error("Error updating transaction:", error);
+      if (error.name === 'ZodError') {
+        console.error("Zod validation errors:", JSON.stringify(error.errors, null, 2));
+      }
       res.status(400).json({ message: error.message || "Erro ao atualizar lançamento" });
     }
   });
