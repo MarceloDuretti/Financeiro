@@ -45,6 +45,8 @@ import { CalendarIcon, TrendingDown, TrendingUp, CheckCircle2, ChevronRight } fr
 import { cn } from "@/lib/utils";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { insertTransactionSchema, type Transaction } from "@shared/schema";
+import { TransactionCostCenterPicker, type CostCenterDistribution } from "@/components/TransactionCostCenterPicker";
+import { ChartAccountPicker } from "@/components/ChartAccountPicker";
 
 const SELECTED_COMPANY_KEY = "fincontrol_selected_company_id";
 
@@ -52,7 +54,23 @@ const formSchema = insertTransactionSchema.extend({
   issueDate: z.date(),
   dueDate: z.date(),
   paidDate: z.date().optional().nullable(),
-});
+  costCenterDistributions: z.array(z.object({
+    costCenterId: z.string(),
+    percentage: z.number(),
+  })).optional(),
+}).refine(
+  (data) => {
+    if (!data.costCenterDistributions || data.costCenterDistributions.length === 0) {
+      return true;
+    }
+    const total = data.costCenterDistributions.reduce((sum, d) => sum + d.percentage, 0);
+    return total === 100;
+  },
+  {
+    message: "A soma das porcentagens dos centros de custo deve ser exatamente 100%",
+    path: ["costCenterDistributions"],
+  }
+);
 
 type FormValues = z.infer<typeof formSchema>;
 
@@ -171,7 +189,23 @@ const StepSummary = ({
               <Separator className="my-1.5" />
               <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
                 <p><span className="text-muted-foreground">Pessoa:</span> {customersSuppliers.find(p => p.id === values.personId)?.name || "-"}</p>
-                <p><span className="text-muted-foreground">C. Custo:</span> {costCenters.find(c => c.id === values.costCenterId)?.name || "-"}</p>
+                {values.costCenterDistributions && values.costCenterDistributions.length > 0 ? (
+                  <div className="col-span-2">
+                    <span className="text-muted-foreground">Centros de Custo:</span>
+                    <div className="mt-1 space-y-0.5">
+                      {values.costCenterDistributions.map((dist) => {
+                        const cc = costCenters.find(c => c.id === dist.costCenterId);
+                        return (
+                          <div key={dist.costCenterId} className="text-[10px]">
+                            • {cc?.name || "?"} - {dist.percentage}%
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : (
+                  <p><span className="text-muted-foreground">C. Custo:</span> {costCenters.find(c => c.id === values.costCenterId)?.name || "-"}</p>
+                )}
               </div>
             </>
           )}
@@ -362,96 +396,87 @@ const Step2Content = ({
   chartAccounts,
   paymentMethods,
   bankAccounts
-}: Step2ContentProps) => (
-  <div className="space-y-4">
-    <StepSummary 
-      step={2} 
-      form={form} 
-      customersSuppliers={customersSuppliers}
-      costCenters={costCenters}
-      chartAccounts={chartAccounts}
-      paymentMethods={paymentMethods}
-      bankAccounts={bankAccounts}
-    />
+}: Step2ContentProps) => {
+  const companyId = form.watch("companyId");
+  const costCenterDistributions = form.watch("costCenterDistributions") || [];
+  const chartAccountId = form.watch("chartAccountId");
 
-    <FormField
-      control={form.control}
-      name="personId"
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel>Cliente/Fornecedor</FormLabel>
-          <Select onValueChange={field.onChange} value={field.value}>
-            <FormControl>
-              <SelectTrigger data-testid="select-person">
-                <SelectValue placeholder="Selecione (opcional)" />
-              </SelectTrigger>
-            </FormControl>
-            <SelectContent>
-              {customersSuppliers.map((person) => (
-                <SelectItem key={person.id} value={person.id}>
-                  {person.name} ({person.code})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <FormMessage />
-        </FormItem>
-      )}
-    />
+  return (
+    <div className="space-y-4">
+      <StepSummary 
+        step={2} 
+        form={form} 
+        customersSuppliers={customersSuppliers}
+        costCenters={costCenters}
+        chartAccounts={chartAccounts}
+        paymentMethods={paymentMethods}
+        bankAccounts={bankAccounts}
+      />
 
-    <FormField
-      control={form.control}
-      name="costCenterId"
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel>Centro de Custo</FormLabel>
-          <Select onValueChange={field.onChange} value={field.value}>
-            <FormControl>
-              <SelectTrigger data-testid="select-cost-center">
-                <SelectValue placeholder="Selecione (opcional)" />
-              </SelectTrigger>
-            </FormControl>
-            <SelectContent>
-              {costCenters.map((cc) => (
-                <SelectItem key={cc.id} value={cc.id}>
-                  {cc.name} ({cc.code})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <FormMessage />
-        </FormItem>
-      )}
-    />
-
-    <FormField
-      control={form.control}
-      name="chartAccountId"
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel>Plano de Contas</FormLabel>
-          <Select onValueChange={field.onChange} value={field.value}>
-            <FormControl>
-              <SelectTrigger data-testid="select-chart-account">
-                <SelectValue placeholder="Selecione (opcional)" />
-              </SelectTrigger>
-            </FormControl>
-            <SelectContent>
-              {chartAccounts
-                .filter(account => !chartAccounts.some(child => child.parentId === account.id))
-                .map((account) => (
-                  <SelectItem key={account.id} value={account.id}>
-                    {account.code} - {account.name}
+      <FormField
+        control={form.control}
+        name="personId"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Cliente/Fornecedor</FormLabel>
+            <Select onValueChange={field.onChange} value={field.value}>
+              <FormControl>
+                <SelectTrigger data-testid="select-person">
+                  <SelectValue placeholder="Selecione (opcional)" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                {customersSuppliers.map((person) => (
+                  <SelectItem key={person.id} value={person.id}>
+                    {person.name} ({person.code})
                   </SelectItem>
                 ))}
-            </SelectContent>
-          </Select>
-          <FormMessage />
-        </FormItem>
-      )}
-    />
-  </div>
-);
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="costCenterDistributions"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Centros de Custo (Distribuição)</FormLabel>
+            <FormControl>
+              <TransactionCostCenterPicker
+                value={costCenterDistributions}
+                onChange={(value) => form.setValue("costCenterDistributions", value)}
+                companyId={companyId}
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="chartAccountId"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Plano de Contas</FormLabel>
+            <FormControl>
+              <ChartAccountPicker
+                accounts={chartAccounts}
+                value={chartAccountId || null}
+                onChange={(value) => form.setValue("chartAccountId", value)}
+                placeholder="Selecione uma conta (opcional)"
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+    </div>
+  );
+};
 
 interface Step3ContentProps {
   form: UseFormReturn<FormValues>;
@@ -758,11 +783,30 @@ const Step5Content = ({
               <span className="text-muted-foreground">Pessoa:</span> {customersSuppliers.find(p => p.id === values.personId)?.name || "Não informado"}
             </div>
             
-            <div>
-              <span className="text-muted-foreground">Centro:</span> {costCenters.find(c => c.id === values.costCenterId)?.name || "Não informado"}
-            </div>
+            {values.costCenterDistributions && values.costCenterDistributions.length > 0 ? (
+              <div className="col-span-2">
+                <span className="text-muted-foreground">Centros de Custo:</span>
+                <div className="mt-1 space-y-0.5">
+                  {values.costCenterDistributions.map((dist) => {
+                    const cc = costCenters.find(c => c.id === dist.costCenterId);
+                    return (
+                      <div key={dist.costCenterId} className="text-xs flex items-center gap-2">
+                        <Badge variant="outline" className="text-[10px] h-5 px-1.5">
+                          {dist.percentage}%
+                        </Badge>
+                        <span>{cc?.name || "?"}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : (
+              <div>
+                <span className="text-muted-foreground">Centro:</span> {costCenters.find(c => c.id === values.costCenterId)?.name || "Não informado"}
+              </div>
+            )}
             
-            <div>
+            <div className={values.costCenterDistributions && values.costCenterDistributions.length > 0 ? "col-span-2" : ""}>
               <span className="text-muted-foreground">Conta:</span> {chartAccounts.find(c => c.id === values.chartAccountId)?.name || "Não informado"}
             </div>
           </div>
@@ -1007,6 +1051,7 @@ export function TransactionDialog({
       personId: transaction?.personId || undefined,
       costCenterId: transaction?.costCenterId || undefined,
       chartAccountId: transaction?.chartAccountId || undefined,
+      costCenterDistributions: (transaction as any)?.costCenterDistributions || [],
       issueDate: transaction?.issueDate ? new Date(transaction.issueDate) : new Date(),
       dueDate: transaction?.dueDate ? new Date(transaction.dueDate) : new Date(),
       paidDate: transaction?.paidDate ? new Date(transaction.paidDate) : null,
@@ -1039,6 +1084,7 @@ export function TransactionDialog({
         personId: transaction?.personId || undefined,
         costCenterId: transaction?.costCenterId || undefined,
         chartAccountId: transaction?.chartAccountId || undefined,
+        costCenterDistributions: (transaction as any)?.costCenterDistributions || [],
         issueDate: transaction?.issueDate ? new Date(transaction.issueDate) : new Date(),
         dueDate: transaction?.dueDate ? new Date(transaction.dueDate) : new Date(),
         paidDate: transaction?.paidDate ? new Date(transaction.paidDate) : null,

@@ -14,6 +14,7 @@ import {
   cashRegisters,
   bankBillingConfigs,
   transactions,
+  transactionCostCenters,
   type User,
   type InsertUser,
   type Company,
@@ -40,6 +41,8 @@ import {
   type InsertBankBillingConfig,
   type Transaction,
   type InsertTransaction,
+  type TransactionCostCenter,
+  type InsertTransactionCostCenter,
   discoveredCompanies,
   type DiscoveredCompany,
   type InsertDiscoveredCompany,
@@ -245,6 +248,15 @@ export interface IStorage {
   ): Promise<Transaction | undefined>;
   // Auto-create default cash register if none exists
   ensureDefaultCashRegister(tenantId: string, companyId: string): Promise<CashRegister>;
+
+  // Transaction Cost Centers operations - N:N relationship with percentage distribution
+  saveTransactionCostCenters(
+    tenantId: string,
+    transactionId: string,
+    distributions: { costCenterId: string; percentage: number }[]
+  ): Promise<void>;
+  getTransactionCostCenters(tenantId: string, transactionId: string): Promise<TransactionCostCenter[]>;
+  deleteTransactionCostCenters(tenantId: string, transactionId: string): Promise<void>;
 
   // Discovered Companies operations - CNPJ discovery cache (no tenant isolation)
   getDiscoveredCompanyByName(nameNormalized: string): Promise<DiscoveredCompany | undefined>;
@@ -2346,6 +2358,60 @@ export class DatabaseStorage implements IStorage {
 
       return updated;
     });
+  }
+
+  // Transaction Cost Centers methods - N:N relationship with percentage distribution
+  async saveTransactionCostCenters(
+    tenantId: string,
+    transactionId: string,
+    distributions: { costCenterId: string; percentage: number }[]
+  ): Promise<void> {
+    await db.transaction(async (tx) => {
+      // First, delete existing cost centers for this transaction
+      await tx
+        .delete(transactionCostCenters)
+        .where(
+          and(
+            eq(transactionCostCenters.tenantId, tenantId),
+            eq(transactionCostCenters.transactionId, transactionId)
+          )
+        );
+
+      // Then insert new distributions if any
+      if (distributions.length > 0) {
+        await tx.insert(transactionCostCenters).values(
+          distributions.map(d => ({
+            tenantId,
+            transactionId,
+            costCenterId: d.costCenterId,
+            percentage: d.percentage,
+          }))
+        );
+      }
+    });
+  }
+
+  async getTransactionCostCenters(tenantId: string, transactionId: string): Promise<TransactionCostCenter[]> {
+    return await db
+      .select()
+      .from(transactionCostCenters)
+      .where(
+        and(
+          eq(transactionCostCenters.tenantId, tenantId),
+          eq(transactionCostCenters.transactionId, transactionId)
+        )
+      );
+  }
+
+  async deleteTransactionCostCenters(tenantId: string, transactionId: string): Promise<void> {
+    await db
+      .delete(transactionCostCenters)
+      .where(
+        and(
+          eq(transactionCostCenters.tenantId, tenantId),
+          eq(transactionCostCenters.transactionId, transactionId)
+        )
+      );
   }
 
   // Discovered Companies methods - CNPJ discovery cache

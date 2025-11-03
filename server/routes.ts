@@ -1719,7 +1719,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (query && typeof query === 'string') filters.query = query;
       
       const transactions = await storage.listTransactions(tenantId, companyId, filters);
-      res.json(transactions);
+      
+      // Include cost center distributions for each transaction
+      const transactionsWithCostCenters = await Promise.all(
+        transactions.map(async (transaction) => {
+          const costCenters = await storage.getTransactionCostCenters(tenantId, transaction.id);
+          return { ...transaction, costCenterDistributions: costCenters };
+        })
+      );
+      
+      res.json(transactionsWithCostCenters);
     } catch (error) {
       console.error("Error listing transactions:", error);
       res.status(500).json({ error: "Erro ao listar lançamentos" });
@@ -1742,7 +1751,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Lançamento não encontrado" });
       }
       
-      res.json(transaction);
+      // Include cost center distributions
+      const costCenters = await storage.getTransactionCostCenters(tenantId, id);
+      
+      res.json({ ...transaction, costCenterDistributions: costCenters });
     } catch (error) {
       console.error("Error getting transaction:", error);
       res.status(500).json({ error: "Erro ao buscar lançamento" });
@@ -1755,8 +1767,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const tenantId = getTenantId((req as any).user);
       const userId = (req as any).user.id;
       
+      // Extract cost center distributions from body (not part of insertTransactionSchema)
+      const { costCenterDistributions, ...transactionData } = req.body;
+      
       // Validate and strip extra fields using Zod (security)
-      const validatedData = insertTransactionSchema.parse(req.body);
+      const validatedData = insertTransactionSchema.parse(transactionData);
       
       const transaction = await storage.createTransaction(
         tenantId,
@@ -1765,10 +1780,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId
       );
       
-      // Broadcast to all clients in this tenant
-      broadcastDataChange(tenantId, "transactions", "created", transaction);
+      // Save cost center distributions if provided
+      if (costCenterDistributions && Array.isArray(costCenterDistributions) && costCenterDistributions.length > 0) {
+        await storage.saveTransactionCostCenters(tenantId, transaction.id, costCenterDistributions);
+      }
       
-      res.json(transaction);
+      // Fetch cost centers to include in response
+      const costCenters = await storage.getTransactionCostCenters(tenantId, transaction.id);
+      const responseData = { ...transaction, costCenterDistributions: costCenters };
+      
+      // Broadcast to all clients in this tenant
+      broadcastDataChange(tenantId, "transactions", "created", responseData);
+      
+      res.json(responseData);
     } catch (error: any) {
       console.error("Error creating transaction:", error);
       res.status(400).json({ message: error.message || "Erro ao criar lançamento" });
@@ -1787,8 +1811,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "companyId é obrigatório" });
       }
       
+      // Extract cost center distributions from body (not part of insertTransactionSchema)
+      const { costCenterDistributions, ...transactionData } = req.body;
+      
       // Validate and strip extra fields using Zod (security)
-      const validatedData = insertTransactionSchema.partial().parse(req.body);
+      const validatedData = insertTransactionSchema.partial().parse(transactionData);
       
       const transaction = await storage.updateTransaction(
         tenantId,
@@ -1802,10 +1829,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Lançamento não encontrado" });
       }
       
-      // Broadcast to all clients in this tenant
-      broadcastDataChange(tenantId, "transactions", "updated", transaction);
+      // Update cost center distributions if provided
+      if (costCenterDistributions !== undefined) {
+        if (Array.isArray(costCenterDistributions) && costCenterDistributions.length > 0) {
+          await storage.saveTransactionCostCenters(tenantId, id, costCenterDistributions);
+        } else {
+          // Empty array means remove all cost centers
+          await storage.deleteTransactionCostCenters(tenantId, id);
+        }
+      }
       
-      res.json(transaction);
+      // Fetch cost centers to include in response
+      const costCenters = await storage.getTransactionCostCenters(tenantId, id);
+      const responseData = { ...transaction, costCenterDistributions: costCenters };
+      
+      // Broadcast to all clients in this tenant
+      broadcastDataChange(tenantId, "transactions", "updated", responseData);
+      
+      res.json(responseData);
     } catch (error: any) {
       console.error("Error updating transaction:", error);
       res.status(400).json({ message: error.message || "Erro ao atualizar lançamento" });
