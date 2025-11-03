@@ -108,81 +108,40 @@ export function TransactionCostCenterPicker({
 
   return (
     <div className="space-y-3">
-      {/* Selected Cost Centers - Quick Edit */}
-      {hasSelections && (
-        <Card className={isValid ? "border-green-600" : "border-destructive"}>
-          <CardContent className="p-3 space-y-3">
-            {/* Header with Total */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                {isValid ? (
-                  <CheckCircle2 className="h-4 w-4 text-green-600" />
-                ) : (
-                  <AlertCircle className="h-4 w-4 text-destructive" />
-                )}
-                <span className="text-sm font-semibold">
-                  Centros Selecionados - Total: {totalPercentage}%
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                {remaining !== 0 && (
-                  <Badge variant={remaining > 0 ? "outline" : "destructive"} className="text-xs">
-                    {remaining > 0 ? `Faltam ${remaining}%` : `Excesso de ${Math.abs(remaining)}%`}
-                  </Badge>
-                )}
-                {isValid && (
-                  <Badge variant="default" className="bg-green-600 text-xs">
-                    Completo ✓
-                  </Badge>
-                )}
-              </div>
+      {/* Header with Total and Progress */}
+      <Card className={isValid ? "border-green-600" : hasSelections ? "border-destructive" : ""}>
+        <CardContent className="p-3 space-y-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              {hasSelections && (
+                <>
+                  {isValid ? (
+                    <CheckCircle2 className="h-4 w-4 text-green-600" />
+                  ) : (
+                    <AlertCircle className="h-4 w-4 text-destructive" />
+                  )}
+                </>
+              )}
+              <span className="text-sm font-semibold">
+                Total: {totalPercentage}%
+              </span>
             </div>
-
-            {/* Selected Items - Editable - Horizontal Layout */}
-            <div className="flex flex-wrap gap-2">
-              {distributions.map((dist) => {
-                const cc = costCenters.find(c => c.id === dist.costCenterId);
-                if (!cc) return null;
-                
-                return (
-                  <div 
-                    key={dist.costCenterId} 
-                    className="flex items-center gap-2 p-2 bg-accent/30 rounded-md border"
-                  >
-                    <Badge variant="outline" className="text-[10px] h-5 px-1.5 shrink-0">
-                      {String(cc.code).padStart(4, '0')}
-                    </Badge>
-                    <span className="text-sm font-medium truncate max-w-[150px]">
-                      {cc.name}
-                    </span>
-                    <div className="flex items-center gap-1 shrink-0">
-                      <Input
-                        type="number"
-                        min="0"
-                        max="100"
-                        value={dist.percentage}
-                        onChange={(e) => handlePercentageChange(dist.costCenterId, e.target.value)}
-                        className="w-16 h-7 text-center text-sm font-medium"
-                        data-testid={`input-quick-percentage-${dist.costCenterId}`}
-                      />
-                      <span className="text-sm font-medium text-muted-foreground">%</span>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleToggle(dist.costCenterId)}
-                        className="h-7 w-7 text-destructive hover:text-destructive"
-                        data-testid={`button-remove-${dist.costCenterId}`}
-                      >
-                        ×
-                      </Button>
-                    </div>
-                  </div>
-                );
-              })}
+            <div className="flex items-center gap-2">
+              {hasSelections && remaining !== 0 && (
+                <Badge variant={remaining > 0 ? "outline" : "destructive"} className="text-xs">
+                  {remaining > 0 ? `Faltam ${remaining}%` : `Excesso de ${Math.abs(remaining)}%`}
+                </Badge>
+              )}
+              {isValid && (
+                <Badge variant="default" className="bg-green-600 text-xs">
+                  Completo ✓
+                </Badge>
+              )}
             </div>
+          </div>
 
-            {/* Progress bar */}
+          {/* Progress bar */}
+          {hasSelections && (
             <div className="h-2 bg-muted rounded-full overflow-hidden">
               <div
                 className={`h-full transition-all ${
@@ -191,12 +150,12 @@ export function TransactionCostCenterPicker({
                 style={{ width: `${Math.min(totalPercentage, 100)}%` }}
               />
             </div>
-          </CardContent>
-        </Card>
-      )}
+          )}
+        </CardContent>
+      </Card>
 
-      {/* Cost Centers List */}
-      <div className="space-y-2 max-h-[400px] overflow-y-auto">
+      {/* Unified Grid - 2 Columns */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-[400px] overflow-y-auto">
         {costCenters.map((costCenter) => {
           const distribution = distributions.find(d => d.costCenterId === costCenter.id);
           const isSelected = !!distribution;
@@ -205,13 +164,13 @@ export function TransactionCostCenterPicker({
             <Card
               key={costCenter.id}
               className={cn(
-                "transition-all",
+                "transition-all hover-elevate",
                 isSelected && "bg-accent/50 border-primary"
               )}
               data-testid={`card-cost-center-${costCenter.id}`}
             >
-              <CardContent className="p-3">
-                <div className="flex items-center gap-3">
+              <CardContent className="p-2.5">
+                <div className="flex items-center gap-2">
                   {/* Checkbox */}
                   <Checkbox
                     checked={isSelected}
@@ -221,8 +180,8 @@ export function TransactionCostCenterPicker({
                   
                   {/* Cost Center Info */}
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="text-[10px] h-5 px-1.5">
+                    <div className="flex items-center gap-1.5">
+                      <Badge variant="outline" className="text-[10px] h-5 px-1.5 shrink-0">
                         {String(costCenter.code).padStart(4, '0')}
                       </Badge>
                       <p className="text-sm font-medium truncate">
@@ -231,22 +190,21 @@ export function TransactionCostCenterPicker({
                     </div>
                   </div>
                   
-                  {/* Percentage Input (only when selected) */}
-                  {isSelected && (
-                    <div className="flex items-center gap-1">
-                      <Input
-                        type="number"
-                        min="0"
-                        max="100"
-                        value={distribution.percentage}
-                        onChange={(e) => handlePercentageChange(costCenter.id, e.target.value)}
-                        className="w-24 h-8 text-center text-sm font-medium"
-                        placeholder="0"
-                        data-testid={`input-percentage-${costCenter.id}`}
-                      />
-                      <span className="text-sm font-medium text-muted-foreground">%</span>
-                    </div>
-                  )}
+                  {/* Percentage Input - Always visible */}
+                  <div className="flex items-center gap-1 shrink-0">
+                    <Input
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={isSelected ? distribution.percentage : ""}
+                      onChange={(e) => handlePercentageChange(costCenter.id, e.target.value)}
+                      className="w-16 h-8 text-center text-sm font-medium"
+                      placeholder="0"
+                      disabled={!isSelected}
+                      data-testid={`input-percentage-${costCenter.id}`}
+                    />
+                    <span className="text-xs font-medium text-muted-foreground w-4">%</span>
+                  </div>
                 </div>
               </CardContent>
             </Card>
