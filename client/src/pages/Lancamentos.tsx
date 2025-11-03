@@ -65,7 +65,9 @@ const MONTHS = [
 ];
 
 export default function Lancamentos() {
-  const selectedCompanyId = localStorage.getItem(SELECTED_COMPANY_KEY);
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(() => {
+    return localStorage.getItem(SELECTED_COMPANY_KEY);
+  });
   const now = new Date();
   const [selectedMonth, setSelectedMonth] = useState<number>(getMonth(now));
   const [selectedYear, setSelectedYear] = useState<number>(getYear(now));
@@ -84,6 +86,29 @@ export default function Lancamentos() {
     return startOfWeek(now, { locale: ptBR });
   });
   const parentRef = useRef<HTMLDivElement>(null);
+
+  // Listen to company selection changes
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const companyId = localStorage.getItem(SELECTED_COMPANY_KEY);
+      setSelectedCompanyId(companyId);
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Also check on mount and periodically in case selection changed in same tab
+    const interval = setInterval(() => {
+      const companyId = localStorage.getItem(SELECTED_COMPANY_KEY);
+      if (companyId !== selectedCompanyId) {
+        setSelectedCompanyId(companyId);
+      }
+    }, 500);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(interval);
+    };
+  }, [selectedCompanyId]);
 
   // Save view mode preference
   useEffect(() => {
