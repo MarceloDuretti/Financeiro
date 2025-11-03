@@ -471,6 +471,16 @@ export default function Lancamentos() {
     setDetailSheetOpen(true);
   };
 
+  // Update detailTransaction when transactions data changes
+  useEffect(() => {
+    if (detailTransaction && transactions.length > 0) {
+      const updatedTransaction = transactions.find(t => t.id === detailTransaction.id);
+      if (updatedTransaction) {
+        setDetailTransaction(updatedTransaction);
+      }
+    }
+  }, [transactions, detailTransaction?.id]);
+
   if (!selectedCompanyId) {
     return (
       <div className="flex items-center justify-center h-full">

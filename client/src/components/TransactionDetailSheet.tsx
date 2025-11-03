@@ -202,7 +202,7 @@ export function TransactionDetailSheet({
         finalUrl: `/api/transactions/${transaction.id}?companyId=${transaction.companyId}`
       });
 
-      await apiRequest("PATCH", `/api/transactions/${transaction.id}?companyId=${transaction.companyId}`, {
+      const updatedTransaction = await apiRequest("PATCH", `/api/transactions/${transaction.id}?companyId=${transaction.companyId}`, {
         ...formData,
         version: transaction.version,
       });
@@ -213,7 +213,12 @@ export function TransactionDetailSheet({
       });
 
       setIsEditing(false);
-      queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
+      
+      // Invalidate queries to refresh the list
+      await queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
+      
+      // Force a small delay to ensure queries have updated
+      await new Promise(resolve => setTimeout(resolve, 100));
     } catch (error: any) {
       toast({
         title: "Erro",
