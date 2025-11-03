@@ -105,9 +105,9 @@ export function TransactionCostCenterPicker({
   }
 
   return (
-    <div>
-      {/* Unified Grid - 2 Columns */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-[400px] overflow-y-auto">
+    <div className="space-y-2">
+      {/* Unified Grid - 3 Columns */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-1.5 max-h-[350px] overflow-y-auto">
         {costCenters.map((costCenter) => {
           const distribution = distributions.find(d => d.costCenterId === costCenter.id);
           const isSelected = !!distribution;
@@ -121,47 +121,70 @@ export function TransactionCostCenterPicker({
               )}
               data-testid={`card-cost-center-${costCenter.id}`}
             >
-              <CardContent className="p-2.5">
-                <div className="flex items-center gap-2">
+              <CardContent className="p-2">
+                <div className="flex items-center gap-1.5">
                   {/* Checkbox */}
                   <Checkbox
                     checked={isSelected}
                     onCheckedChange={() => handleToggle(costCenter.id)}
                     data-testid={`checkbox-cost-center-${costCenter.id}`}
+                    className="shrink-0"
                   />
                   
-                  {/* Cost Center Info */}
+                  {/* Cost Center Info - Compact */}
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <Badge variant="outline" className="text-[10px] h-5 px-1.5 shrink-0">
+                    <div className="flex items-center gap-1">
+                      <Badge variant="outline" className="text-[9px] h-4 px-1 shrink-0">
                         {String(costCenter.code).padStart(4, '0')}
                       </Badge>
-                      <p className="text-sm font-medium truncate">
+                      <p className="text-xs font-medium truncate">
                         {costCenter.name}
                       </p>
                     </div>
                   </div>
                   
-                  {/* Percentage Input - Always visible */}
-                  <div className="flex items-center gap-1 shrink-0">
+                  {/* Percentage Input - Compact */}
+                  <div className="flex items-center gap-0.5 shrink-0">
                     <Input
                       type="number"
                       min="0"
                       max="100"
                       value={isSelected ? distribution.percentage : ""}
                       onChange={(e) => handlePercentageChange(costCenter.id, e.target.value)}
-                      className="w-16 h-8 text-center text-sm font-medium"
+                      className="w-12 h-7 text-center text-xs font-medium px-1"
                       placeholder="0"
                       disabled={!isSelected}
                       data-testid={`input-percentage-${costCenter.id}`}
                     />
-                    <span className="text-xs font-medium text-muted-foreground w-4">%</span>
+                    <span className="text-[10px] font-medium text-muted-foreground">%</span>
                   </div>
                 </div>
               </CardContent>
             </Card>
           );
         })}
+      </div>
+
+      {/* Subtle Progress Bar */}
+      <div className="space-y-1">
+        <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+          <div
+            className={`h-full transition-all ${
+              isValid ? "bg-green-600" : remaining > 0 ? "bg-primary" : "bg-destructive"
+            }`}
+            style={{ width: `${Math.min(totalPercentage, 100)}%` }}
+          />
+        </div>
+        <div className="flex items-center justify-between px-1">
+          <span className="text-[10px] text-muted-foreground">
+            Total: {totalPercentage}%
+          </span>
+          {hasSelections && (
+            <span className={`text-[10px] font-medium ${isValid ? "text-green-600" : "text-destructive"}`}>
+              {isValid ? "✓ Completo" : remaining > 0 ? `Faltam ${remaining}%` : `Excesso de ${Math.abs(remaining)}%`}
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );

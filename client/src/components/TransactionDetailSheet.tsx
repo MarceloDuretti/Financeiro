@@ -200,10 +200,26 @@ export function TransactionDetailSheet({
       setIsSaving(true);
       const formData = form.getValues();
 
+      // Validate cost center distributions total = 100%
+      const distributions = formData.costCenterDistributions || [];
+      if (distributions.length > 0) {
+        const total = distributions.reduce((sum, d) => sum + d.percentage, 0);
+        if (total !== 100) {
+          toast({
+            title: "Erro de Validação",
+            description: `A distribuição dos centros de custo deve somar 100%. Total atual: ${total}%`,
+            variant: "destructive",
+          });
+          setIsSaving(false);
+          return;
+        }
+      }
+
       console.log("🔴 DEBUG 3 - Salvando via DetailSheet:", {
         transactionId: transaction.id,
         companyId: transaction.companyId,
         formDataCompanyId: formData.companyId,
+        costCenterDistributions: distributions,
         finalUrl: `/api/transactions/${transaction.id}?companyId=${transaction.companyId}`
       });
 
