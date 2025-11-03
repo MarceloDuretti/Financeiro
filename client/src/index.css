@@ -287,6 +287,16 @@
 
   .no-default-active-elevate {}
 
+  /* Hide scrollbar but keep functionality */
+  .scrollbar-hide {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none; /* Chrome, Safari and Opera */
+  }
+
 
   /**
    * Toggleable backgrounds go behind the content. Hoverable/active goes on top.

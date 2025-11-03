@@ -636,15 +636,15 @@ export function TransactionDetailSheet({
             <div className="space-y-3">
               {/* LINHA 1: Centros de Custo (esquerda) | Forma de Pagamento + Conta Bancária (direita) */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {/* Centros de Custo - expande verticalmente */}
-                <div className="flex flex-col">
+                {/* Centros de Custo */}
+                <div>
                   {!isEditing ? (
-                    <div className="flex flex-col h-full">
+                    <div>
                       <p className="text-xs text-muted-foreground mb-1.5">
                         {hasMultipleCostCenters ? "Centros de Custo" : "Centro de Custo"}
                       </p>
                       {costCenterDistributions.length > 0 ? (
-                        <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm space-y-1 flex-1">
+                        <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm space-y-1">
                           {costCenterDistributions.map((dist: any) => {
                             const cc = costCenters.find((c) => c.id === dist.costCenterId);
                             return (
@@ -658,7 +658,7 @@ export function TransactionDetailSheet({
                           })}
                         </div>
                       ) : (
-                        <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium flex-1">
+                        <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium">
                           {costCenter?.name || "-"}
                         </div>
                       )}
@@ -668,9 +668,9 @@ export function TransactionDetailSheet({
                       control={form.control}
                       name="costCenterDistributions"
                       render={({ field }) => (
-                        <FormItem className="flex flex-col h-full">
+                        <FormItem>
                           <FormLabel className="text-xs">Centros de Custo (Distribuição)</FormLabel>
-                          <FormControl className="flex-1">
+                          <FormControl>
                             <TransactionCostCenterPicker
                               value={field.value || []}
                               onChange={field.onChange}

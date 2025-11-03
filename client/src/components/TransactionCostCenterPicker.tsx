@@ -105,9 +105,9 @@ export function TransactionCostCenterPicker({
   }
 
   return (
-    <div className="flex flex-col h-full space-y-2">
+    <div className="space-y-2">
       {/* Unified Grid - 3 Columns */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-1.5 flex-1 overflow-y-auto">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-1.5 max-h-[250px] overflow-y-auto scrollbar-hide">
         {costCenters.map((costCenter) => {
           const distribution = distributions.find(d => d.costCenterId === costCenter.id);
           const isSelected = !!distribution;
