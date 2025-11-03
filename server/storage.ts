@@ -678,6 +678,36 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteCostCenter(tenantId: string, id: string): Promise<boolean> {
+    // Check if there are active transactions using this cost center
+    // Need to check inside the JSONB cost_center_distributions array
+    const activeTransactions = await db.execute<{ id: string }>(sql`
+      SELECT id FROM ${transactions}
+      WHERE ${transactions.tenantId} = ${tenantId}
+        AND ${transactions.deleted} = false
+        AND EXISTS (
+          SELECT 1 FROM jsonb_array_elements(cost_center_distributions) AS dist
+          WHERE dist->>'costCenterId' = ${id}
+        )
+      LIMIT 1
+    `);
+    
+    if (activeTransactions.rows.length > 0) {
+      // Count total active transactions for better error message
+      const count = await db.execute<{ count: number }>(sql`
+        SELECT COUNT(*) as count
+        FROM ${transactions}
+        WHERE ${transactions.tenantId} = ${tenantId}
+          AND ${transactions.deleted} = false
+          AND EXISTS (
+            SELECT 1 FROM jsonb_array_elements(cost_center_distributions) AS dist
+            WHERE dist->>'costCenterId' = ${id}
+          )
+      `);
+      
+      const total = Number(count.rows[0]?.count) || 0;
+      throw new Error(`Não é possível excluir este centro de custo. Existem ${total} lançamento(s) ativo(s) vinculado(s). Considere inativar em vez de excluir.`);
+    }
+    
     // Soft-delete: mark as deleted instead of physically removing
     const result = await db
       .update(costCenters)
@@ -887,7 +917,33 @@ export class DatabaseStorage implements IStorage {
       ));
     
     if (children.length > 0) {
-      throw new Error('Cannot delete account with children. Delete children first.');
+      throw new Error('Não é possível excluir conta com contas filhas. Exclua as contas filhas primeiro.');
+    }
+    
+    // Check if there are active transactions using this account
+    const activeTransactions = await db
+      .select({ id: transactions.id })
+      .from(transactions)
+      .where(and(
+        eq(transactions.tenantId, tenantId),
+        eq(transactions.chartAccountId, id),
+        eq(transactions.deleted, false)
+      ))
+      .limit(1);
+    
+    if (activeTransactions.length > 0) {
+      // Count total active transactions for better error message
+      const count = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(transactions)
+        .where(and(
+          eq(transactions.tenantId, tenantId),
+          eq(transactions.chartAccountId, id),
+          eq(transactions.deleted, false)
+        ));
+      
+      const total = count[0]?.count || 0;
+      throw new Error(`Não é possível excluir esta conta. Existem ${total} lançamento(s) ativo(s) vinculado(s). Considere inativar a conta em vez de excluí-la.`);
     }
     
     // Soft-delete: mark as deleted instead of physically removing
@@ -1006,6 +1062,32 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteBankAccount(tenantId: string, id: string): Promise<boolean> {
+    // Check if there are active transactions using this bank account
+    const activeTransactions = await db
+      .select({ id: transactions.id })
+      .from(transactions)
+      .where(and(
+        eq(transactions.tenantId, tenantId),
+        eq(transactions.bankAccountId, id),
+        eq(transactions.deleted, false)
+      ))
+      .limit(1);
+    
+    if (activeTransactions.length > 0) {
+      // Count total active transactions for better error message
+      const count = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(transactions)
+        .where(and(
+          eq(transactions.tenantId, tenantId),
+          eq(transactions.bankAccountId, id),
+          eq(transactions.deleted, false)
+        ));
+      
+      const total = count[0]?.count || 0;
+      throw new Error(`Não é possível excluir esta conta bancária. Existem ${total} lançamento(s) ativo(s) vinculado(s). Considere inativar em vez de excluir.`);
+    }
+    
     // Soft-delete: mark as deleted instead of physically removing
     const result = await db
       .update(bankAccounts)
@@ -1479,6 +1561,32 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteCustomerSupplier(tenantId: string, id: string): Promise<boolean> {
+    // Check if there are active transactions using this customer/supplier
+    const activeTransactions = await db
+      .select({ id: transactions.id })
+      .from(transactions)
+      .where(and(
+        eq(transactions.tenantId, tenantId),
+        eq(transactions.personId, id),
+        eq(transactions.deleted, false)
+      ))
+      .limit(1);
+    
+    if (activeTransactions.length > 0) {
+      // Count total active transactions for better error message
+      const count = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(transactions)
+        .where(and(
+          eq(transactions.tenantId, tenantId),
+          eq(transactions.personId, id),
+          eq(transactions.deleted, false)
+        ));
+      
+      const total = count[0]?.count || 0;
+      throw new Error(`Não é possível excluir este cliente/fornecedor. Existem ${total} lançamento(s) ativo(s) vinculado(s). Considere inativar em vez de excluir.`);
+    }
+    
     return await db.transaction(async (tx) => {
       // Soft delete
       const [deleted] = await tx
