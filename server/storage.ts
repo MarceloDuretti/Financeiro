@@ -964,6 +964,36 @@ export class DatabaseStorage implements IStorage {
   }
 
   async clearChildrenChartAccounts(tenantId: string): Promise<string[]> {
+    // First, check if any child accounts (depth > 0) have active transactions
+    const accountsWithTransactions = await db.execute<{ 
+      account_id: string; 
+      account_name: string; 
+      transaction_count: number 
+    }>(sql`
+      SELECT 
+        ca.id as account_id, 
+        ca.name as account_name,
+        COUNT(t.id) as transaction_count
+      FROM ${chartOfAccounts} ca
+      INNER JOIN ${transactions} t ON t.chart_account_id = ca.id AND t.deleted = false
+      WHERE ca.tenant_id = ${tenantId}
+        AND ca.depth > 0
+        AND ca.deleted = false
+        AND t.tenant_id = ${tenantId}
+      GROUP BY ca.id, ca.name
+    `);
+    
+    if (accountsWithTransactions.rows.length > 0) {
+      const accountsList = accountsWithTransactions.rows
+        .map(row => `"${row.account_name}" (${row.transaction_count} lançamento(s))`)
+        .join(', ');
+      
+      throw new Error(
+        `Não é possível limpar as contas filhas. As seguintes contas possuem lançamentos ativos: ${accountsList}. ` +
+        `Considere inativar essas contas em vez de excluí-las.`
+      );
+    }
+    
     // Delete all accounts with depth > 0 (keep only root accounts)
     const result = await db
       .update(chartOfAccounts)
