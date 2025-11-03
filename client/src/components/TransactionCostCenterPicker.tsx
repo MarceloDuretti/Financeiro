@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Loader2, ChevronUp, ChevronDown, CheckCircle2, AlertCircle } from "lucide-react";
+import { Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import type { CostCenter } from "@shared/schema";
 
 export interface CostCenterDistribution {
@@ -45,6 +45,7 @@ export function TransactionCostCenterPicker({
 
   // Calculate total percentage
   const totalPercentage = distributions.reduce((sum, d) => sum + d.percentage, 0);
+  const remaining = 100 - totalPercentage;
   const isValid = totalPercentage === 100;
   const hasSelections = distributions.length > 0;
 
@@ -75,21 +76,15 @@ export function TransactionCostCenterPicker({
   };
 
   // Handle percentage change
-  const handlePercentageChange = (costCenterId: string, percentage: number) => {
+  const handlePercentageChange = (costCenterId: string, value: string) => {
+    const percentage = parseInt(value) || 0;
+    const clampedPercentage = Math.max(0, Math.min(100, percentage));
+    
     const newDistributions = distributions.map(d =>
-      d.costCenterId === costCenterId ? { ...d, percentage } : d
+      d.costCenterId === costCenterId ? { ...d, percentage: clampedPercentage } : d
     );
     setDistributions(newDistributions);
     onChange(newDistributions);
-  };
-
-  // Increment/decrement percentage
-  const adjustPercentage = (costCenterId: string, delta: number) => {
-    const distribution = distributions.find(d => d.costCenterId === costCenterId);
-    if (!distribution) return;
-    
-    const newPercentage = Math.max(0, Math.min(100, distribution.percentage + delta));
-    handlePercentageChange(costCenterId, newPercentage);
   };
 
   // Auto-distribute equally
@@ -132,24 +127,40 @@ export function TransactionCostCenterPicker({
       {hasSelections && (
         <Card className={isValid ? "border-green-600" : "border-destructive"}>
           <CardContent className="p-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                {isValid ? (
-                  <CheckCircle2 className="h-4 w-4 text-green-600" />
-                ) : (
-                  <AlertCircle className="h-4 w-4 text-destructive" />
-                )}
-                <span className="text-sm font-medium">
-                  Total distribuído: {totalPercentage}%
-                </span>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  {isValid ? (
+                    <CheckCircle2 className="h-4 w-4 text-green-600" />
+                  ) : (
+                    <AlertCircle className="h-4 w-4 text-destructive" />
+                  )}
+                  <span className="text-sm font-medium">
+                    Total: {totalPercentage}%
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {remaining !== 0 && (
+                    <Badge variant={remaining > 0 ? "outline" : "destructive"} className="text-xs">
+                      {remaining > 0 ? `Faltam ${remaining}%` : `Excesso de ${Math.abs(remaining)}%`}
+                    </Badge>
+                  )}
+                  {isValid && (
+                    <Badge variant="default" className="bg-green-600 text-xs">
+                      Completo ✓
+                    </Badge>
+                  )}
+                </div>
               </div>
-              {!isValid && (
-                <span className="text-xs text-destructive">
-                  {totalPercentage < 100 
-                    ? `Faltam ${100 - totalPercentage}%` 
-                    : `Excesso de ${totalPercentage - 100}%`}
-                </span>
-              )}
+              {/* Progress bar */}
+              <div className="h-2 bg-muted rounded-full overflow-hidden">
+                <div
+                  className={`h-full transition-all ${
+                    isValid ? "bg-green-600" : remaining > 0 ? "bg-primary" : "bg-destructive"
+                  }`}
+                  style={{ width: `${Math.min(totalPercentage, 100)}%` }}
+                />
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -210,41 +221,17 @@ export function TransactionCostCenterPicker({
                   {/* Percentage Input (only when selected) */}
                   {isSelected && (
                     <div className="flex items-center gap-1">
-                      <div className="flex flex-col gap-0.5">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="h-5 w-5 p-0"
-                          onClick={() => adjustPercentage(costCenter.id, 1)}
-                          data-testid={`button-increment-${costCenter.id}`}
-                        >
-                          <ChevronUp className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="h-5 w-5 p-0"
-                          onClick={() => adjustPercentage(costCenter.id, -1)}
-                          data-testid={`button-decrement-${costCenter.id}`}
-                        >
-                          <ChevronDown className="h-3 w-3" />
-                        </Button>
-                      </div>
                       <Input
                         type="number"
                         min="0"
                         max="100"
                         value={distribution.percentage}
-                        onChange={(e) => handlePercentageChange(
-                          costCenter.id,
-                          parseInt(e.target.value) || 0
-                        )}
-                        className="w-16 h-8 text-center"
+                        onChange={(e) => handlePercentageChange(costCenter.id, e.target.value)}
+                        className="w-20 h-8 text-center text-sm font-medium"
+                        placeholder="0"
                         data-testid={`input-percentage-${costCenter.id}`}
                       />
-                      <span className="text-sm font-medium">%</span>
+                      <span className="text-sm font-medium text-muted-foreground">%</span>
                     </div>
                   )}
                 </div>
