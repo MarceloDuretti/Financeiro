@@ -41,7 +41,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { CalendarIcon, TrendingDown, TrendingUp, CheckCircle2, ChevronRight } from "lucide-react";
+import { CalendarIcon, TrendingDown, TrendingUp, CheckCircle2, ChevronRight, AlertTriangle, TrendingDownIcon } from "lucide-react";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { cn } from "@/lib/utils";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { insertTransactionSchema, type Transaction } from "@shared/schema";
@@ -375,6 +376,166 @@ const Step1Content = ({ form }: Step1ContentProps) => (
     </div>
   </div>
 );
+
+interface SupplierAnalyticsProps {
+  supplierId: string;
+  companyId: string;
+  transactionType: "expense" | "revenue";
+}
+
+const SupplierAnalytics = ({ supplierId, companyId, transactionType }: SupplierAnalyticsProps) => {
+  const { data: transactions = [], isLoading } = useQuery<Transaction[]>({
+    queryKey: ["/api/transactions", companyId, supplierId],
+    queryFn: async () => {
+      const response = await fetch(`/api/transactions?companyId=${companyId}&personId=${supplierId}`);
+      if (!response.ok) throw new Error("Failed to fetch transactions");
+      return response.json();
+    },
+    enabled: !!supplierId && !!companyId,
+  });
+
+  if (isLoading) {
+    return (
+      <Card className="border-primary/20">
+        <CardContent className="p-4">
+          <p className="text-sm text-muted-foreground text-center">Carregando análise...</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!transactions || transactions.length === 0) {
+    return (
+      <Card className="border-primary/20">
+        <CardContent className="p-4">
+          <p className="text-sm text-muted-foreground text-center">Nenhum histórico encontrado com este fornecedor</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Filter by type
+  const relevantTransactions = transactions.filter(t => t.type === transactionType);
+  
+  if (relevantTransactions.length === 0) {
+    return (
+      <Card className="border-primary/20">
+        <CardContent className="p-4">
+          <p className="text-sm text-muted-foreground text-center">
+            Nenhum histórico de {transactionType === "expense" ? "despesas" : "receitas"} com este fornecedor
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Calculate metrics
+  const total = relevantTransactions.reduce((sum, t) => sum + parseFloat(t.amount), 0);
+  const average = total / relevantTransactions.length;
+  const count = relevantTransactions.length;
+
+  // Prepare chart data (last 6 months)
+  const chartData = relevantTransactions
+    .slice(-6)
+    .map(t => ({
+      date: format(new Date(t.issueDate), "dd/MM"),
+      valor: parseFloat(t.amount),
+    }));
+
+  // Check for alerts (above average spending)
+  const lastTransaction = relevantTransactions[relevantTransactions.length - 1];
+  const lastAmount = parseFloat(lastTransaction.amount);
+  const hasAlert = lastAmount > average * 1.5; // 50% above average
+
+  return (
+    <Card className={cn("border-2", transactionType === "expense" ? "border-red-200" : "border-blue-200")}>
+      <CardContent className="p-3">
+        <div className="space-y-3">
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <h4 className="text-xs font-semibold">Análise do Fornecedor</h4>
+            {hasAlert && (
+              <Badge variant="destructive" className="text-[10px] h-5 px-1.5">
+                <AlertTriangle className="h-3 w-3 mr-1" />
+                Alerta
+              </Badge>
+            )}
+          </div>
+
+          <Separator />
+
+          {/* Metrics Grid */}
+          <div className="grid grid-cols-3 gap-2">
+            <div className="space-y-0.5">
+              <p className="text-[10px] text-muted-foreground">Total Gasto</p>
+              <p className="text-sm font-semibold">
+                R$ {total.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+              </p>
+            </div>
+            <div className="space-y-0.5">
+              <p className="text-[10px] text-muted-foreground">Média</p>
+              <p className="text-sm font-semibold">
+                R$ {average.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+              </p>
+            </div>
+            <div className="space-y-0.5">
+              <p className="text-[10px] text-muted-foreground">Lançamentos</p>
+              <p className="text-sm font-semibold">{count}</p>
+            </div>
+          </div>
+
+          {/* Chart */}
+          {chartData.length > 1 && (
+            <div className="h-24">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <XAxis dataKey="date" tick={{ fontSize: 10 }} stroke="#9ca3af" />
+                  <YAxis tick={{ fontSize: 10 }} stroke="#9ca3af" />
+                  <Tooltip 
+                    formatter={(value: number) => `R$ ${value.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
+                    contentStyle={{ fontSize: 11 }}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="valor" 
+                    stroke={transactionType === "expense" ? "#ef4444" : "#3b82f6"} 
+                    strokeWidth={2}
+                    dot={{ r: 3 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+
+          {/* Alert Message */}
+          {hasAlert && (
+            <div className="bg-destructive/10 border border-destructive/20 rounded-md p-2">
+              <p className="text-[10px] text-destructive font-medium">
+                ⚠️ Último lançamento (R$ {lastAmount.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}) está 50% acima da média
+              </p>
+            </div>
+          )}
+
+          {/* Recent Transactions */}
+          <div>
+            <p className="text-[10px] text-muted-foreground mb-1">Últimos 3 Lançamentos</p>
+            <div className="space-y-1">
+              {relevantTransactions.slice(-3).reverse().map((t) => (
+                <div key={t.id} className="flex items-center justify-between text-[10px] py-0.5">
+                  <span className="truncate flex-1">{t.title}</span>
+                  <span className="font-medium ml-2">
+                    R$ {parseFloat(t.amount).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
 
 interface Step2ContentProps {
   form: UseFormReturn<FormValues>;
