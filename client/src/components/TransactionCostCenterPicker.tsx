@@ -138,8 +138,8 @@ export function TransactionCostCenterPicker({
               </div>
             </div>
 
-            {/* Selected Items - Editable */}
-            <div className="space-y-2">
+            {/* Selected Items - Editable - Horizontal Layout */}
+            <div className="flex flex-wrap gap-2">
               {distributions.map((dist) => {
                 const cc = costCenters.find(c => c.id === dist.costCenterId);
                 if (!cc) return null;
@@ -152,7 +152,7 @@ export function TransactionCostCenterPicker({
                     <Badge variant="outline" className="text-[10px] h-5 px-1.5 shrink-0">
                       {String(cc.code).padStart(4, '0')}
                     </Badge>
-                    <span className="text-sm font-medium flex-1 truncate">
+                    <span className="text-sm font-medium truncate max-w-[150px]">
                       {cc.name}
                     </span>
                     <div className="flex items-center gap-1 shrink-0">
@@ -162,7 +162,7 @@ export function TransactionCostCenterPicker({
                         max="100"
                         value={dist.percentage}
                         onChange={(e) => handlePercentageChange(dist.costCenterId, e.target.value)}
-                        className="w-20 h-7 text-center text-sm font-medium"
+                        className="w-16 h-7 text-center text-sm font-medium"
                         data-testid={`input-quick-percentage-${dist.costCenterId}`}
                       />
                       <span className="text-sm font-medium text-muted-foreground">%</span>
