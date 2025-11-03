@@ -1214,12 +1214,7 @@ export function TransactionDialog({
 
   const updateMutation = useMutation({
     mutationFn: async (data: FormValues) => {
-      console.log("[TransactionDialog] Update mutation called");
-      console.log("[TransactionDialog] transaction.id:", transaction?.id);
-      console.log("[TransactionDialog] selectedCompanyId:", selectedCompanyId);
-      console.log("[TransactionDialog] form data:", data);
-      
-      if (!transaction?.id || !selectedCompanyId) {
+      if (!transaction?.id || !transaction?.companyId) {
         throw new Error("ID da transação ou empresa não encontrado");
       }
       
@@ -1236,10 +1231,7 @@ export function TransactionDialog({
         return acc;
       }, {} as any);
       
-      console.log("[TransactionDialog] Sanitized data:", sanitizedData);
-      console.log("[TransactionDialog] URL:", `/api/transactions/${transaction.id}?companyId=${selectedCompanyId}`);
-      
-      return apiRequest("PATCH", `/api/transactions/${transaction.id}?companyId=${selectedCompanyId}`, sanitizedData);
+      return apiRequest("PATCH", `/api/transactions/${transaction.id}?companyId=${transaction.companyId}`, sanitizedData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
