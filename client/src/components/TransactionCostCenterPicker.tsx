@@ -1,12 +1,10 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import type { CostCenter } from "@shared/schema";
 
 export interface CostCenterDistribution {
@@ -107,53 +105,7 @@ export function TransactionCostCenterPicker({
   }
 
   return (
-    <div className="space-y-3">
-      {/* Header with Total and Progress */}
-      <Card className={isValid ? "border-green-600" : hasSelections ? "border-destructive" : ""}>
-        <CardContent className="p-3 space-y-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              {hasSelections && (
-                <>
-                  {isValid ? (
-                    <CheckCircle2 className="h-4 w-4 text-green-600" />
-                  ) : (
-                    <AlertCircle className="h-4 w-4 text-destructive" />
-                  )}
-                </>
-              )}
-              <span className="text-sm font-semibold">
-                Total: {totalPercentage}%
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              {hasSelections && remaining !== 0 && (
-                <Badge variant={remaining > 0 ? "outline" : "destructive"} className="text-xs">
-                  {remaining > 0 ? `Faltam ${remaining}%` : `Excesso de ${Math.abs(remaining)}%`}
-                </Badge>
-              )}
-              {isValid && (
-                <Badge variant="default" className="bg-green-600 text-xs">
-                  Completo ✓
-                </Badge>
-              )}
-            </div>
-          </div>
-
-          {/* Progress bar */}
-          {hasSelections && (
-            <div className="h-2 bg-muted rounded-full overflow-hidden">
-              <div
-                className={`h-full transition-all ${
-                  isValid ? "bg-green-600" : remaining > 0 ? "bg-primary" : "bg-destructive"
-                }`}
-                style={{ width: `${Math.min(totalPercentage, 100)}%` }}
-              />
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
+    <div>
       {/* Unified Grid - 2 Columns */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-[400px] overflow-y-auto">
         {costCenters.map((costCenter) => {
