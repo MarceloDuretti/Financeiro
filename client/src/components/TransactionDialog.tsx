@@ -1214,8 +1214,15 @@ export function TransactionDialog({
 
   const updateMutation = useMutation({
     mutationFn: async (data: FormValues) => {
-      if (!transaction?.id || !transaction?.companyId) {
-        throw new Error("ID da transação ou empresa não encontrado");
+      if (!transaction?.id) {
+        throw new Error("ID da transação não encontrado");
+      }
+      
+      // Use companyId from form data (always populated) as fallback
+      const companyId = transaction.companyId || data.companyId || selectedCompanyId;
+      
+      if (!companyId) {
+        throw new Error("ID da empresa não encontrado");
       }
       
       // Sanitize data - remove undefined values and convert dates
@@ -1231,7 +1238,7 @@ export function TransactionDialog({
         return acc;
       }, {} as any);
       
-      return apiRequest("PATCH", `/api/transactions/${transaction.id}?companyId=${transaction.companyId}`, sanitizedData);
+      return apiRequest("PATCH", `/api/transactions/${transaction.id}?companyId=${companyId}`, sanitizedData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
