@@ -83,9 +83,9 @@ interface TransactionDialogProps {
 
 const STEPS = [
   { id: 1, title: "Dados Básicos" },
-  { id: 2, title: "Categorização" },
-  { id: 3, title: "Forma de Pagamento" },
-  { id: 4, title: "Informações Adicionais" },
+  { id: 2, title: "Fornecedor" },
+  { id: 3, title: "Categorização" },
+  { id: 4, title: "Forma de Pagamento" },
   { id: 5, title: "Revisão Final" },
 ];
 
