@@ -24,7 +24,8 @@ import {
   List,
   ArrowUp,
   ArrowDown,
-  CalendarDays
+  CalendarDays,
+  Sparkles
 } from "lucide-react";
 import { 
   format, 
@@ -83,6 +84,7 @@ export default function Lancamentos() {
   const [selectedWeekStart, setSelectedWeekStart] = useState<Date>(() => {
     return startOfWeek(now, { locale: ptBR });
   });
+  const [aiAssistOpen, setAiAssistOpen] = useState(false);
   const parentRef = useRef<HTMLDivElement>(null);
 
   // Save view mode preference
@@ -584,17 +586,28 @@ export default function Lancamentos() {
           </div>
         </div>
 
-        <Button 
-          size="sm" 
-          onClick={() => {
-            setSelectedTransaction(null);
-            setDialogOpen(true);
-          }}
-          data-testid="button-new-transaction"
-        >
-          <Plus className="w-4 h-4" />
-          <span className="hidden sm:inline">Novo</span>
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            size="sm"
+            variant="outline"
+            onClick={() => setAiAssistOpen(true)}
+            data-testid="button-ai-assist"
+          >
+            <Sparkles className="w-4 h-4" />
+            <span className="hidden sm:inline">Assistência IA</span>
+          </Button>
+          <Button 
+            size="sm" 
+            onClick={() => {
+              setSelectedTransaction(null);
+              setDialogOpen(true);
+            }}
+            data-testid="button-new-transaction"
+          >
+            <Plus className="w-4 h-4" />
+            <span className="hidden sm:inline">Novo</span>
+          </Button>
+        </div>
       </div>
 
       {/* Main Content Area */}
@@ -1359,6 +1372,43 @@ export default function Lancamentos() {
         onOpenChange={setDialogOpen}
         transaction={selectedTransaction}
       />
+
+      {/* AI Assistance Sheet */}
+      <Sheet open={aiAssistOpen} onOpenChange={setAiAssistOpen}>
+        <SheetContent className="sm:max-w-2xl">
+          <SheetHeader>
+            <SheetTitle className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-primary" />
+              Assistência de IA para Lançamentos
+            </SheetTitle>
+          </SheetHeader>
+          <div className="mt-6 space-y-4">
+            <div className="rounded-lg border p-4 bg-muted/30">
+              <h3 className="font-medium mb-2">Como posso ajudar?</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Use a assistência de IA para criar lançamentos de forma inteligente. Você pode digitar ou falar suas solicitações.
+              </p>
+              <div className="space-y-3">
+                <div className="text-sm">
+                  <span className="font-medium">Exemplos:</span>
+                  <ul className="mt-2 space-y-1 text-muted-foreground ml-4 list-disc">
+                    <li>"Registrar pagamento de R$ 500 para fornecedor XYZ"</li>
+                    <li>"Criar despesa com aluguel de janeiro"</li>
+                    <li>"Lançar receita de venda para cliente ABC"</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            
+            <div className="rounded-lg border p-6 bg-background text-center text-muted-foreground">
+              <Sparkles className="w-12 h-12 mx-auto mb-3 opacity-50" />
+              <p className="text-sm">
+                A funcionalidade completa de assistência de IA estará disponível em breve.
+              </p>
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
