@@ -53,7 +53,7 @@ import {
   Printer,
 } from "lucide-react";
 import { LineChart, Line, ResponsiveContainer, XAxis, Tooltip } from "recharts";
-import type { Transaction, InsertTransaction } from "@shared/schema";
+import type { Transaction, InsertTransaction, TransactionCostCenter } from "@shared/schema";
 import { insertTransactionSchema } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -242,6 +242,10 @@ export function TransactionDetailSheet({
   const chartAccount = chartAccounts.find((c) => c.id === transaction.chartAccountId);
   const paymentMethod = paymentMethods.find((p) => p.id === transaction.paymentMethodId);
   const bankAccount = bankAccounts.find((b) => b.id === transaction.bankAccountId);
+
+  // Get cost center distributions from transaction
+  const costCenterDistributions = (transaction as any).costCenterDistributions || [];
+  const hasMultipleCostCenters = costCenterDistributions.length > 1;
 
   const amount = parseFloat(transaction.amount || "0");
   const total = transaction.type === "revenue" ? monthlyTotals.totalRevenues : monthlyTotals.totalExpenses;
@@ -593,10 +597,28 @@ export function TransactionDetailSheet({
               <div>
                 {!isEditing ? (
                   <div>
-                    <p className="text-xs text-muted-foreground mb-1.5">Centro de Custo</p>
-                    <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium">
-                      {costCenter?.name || "-"}
-                    </div>
+                    <p className="text-xs text-muted-foreground mb-1.5">
+                      {hasMultipleCostCenters ? "Centros de Custo" : "Centro de Custo"}
+                    </p>
+                    {costCenterDistributions.length > 0 ? (
+                      <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm space-y-1">
+                        {costCenterDistributions.map((dist: any) => {
+                          const cc = costCenters.find((c) => c.id === dist.costCenterId);
+                          return (
+                            <div key={dist.costCenterId} className="flex items-center justify-between">
+                              <span className="font-medium">{cc?.name || "-"}</span>
+                              <Badge variant="outline" className="text-[10px] h-5 px-1.5">
+                                {dist.percentage}%
+                              </Badge>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="border rounded-md px-3 py-2 bg-muted/20 text-sm font-medium">
+                        {costCenter?.name || "-"}
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <FormField
