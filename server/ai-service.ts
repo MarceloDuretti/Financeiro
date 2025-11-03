@@ -514,26 +514,31 @@ ANÁLISE EM DUAS CAMADAS - MUITO IMPORTANTE:
 
 REGRA DE OURO: Se o usuário mencionar algo específico (mesmo que seja só um exemplo), você DEVE criar uma conta para aquilo.
 
-IMPORTANTE:
-- As 5 contas raiz JÁ EXISTEM no sistema: 1-Receitas, 2-Despesas, 3-Ativo, 4-Passivo, 5-Patrimônio Líquido
-- Você deve gerar APENAS as subcontas dentro dessas raízes
+CRÍTICO - CONTAS RAÍZES OBRIGATÓRIAS:
+- Você DEVE incluir SEMPRE as 5 contas raízes no INÍCIO do array:
+  1. Código "1" - Receitas
+  2. Código "2" - Despesas  
+  3. Código "3" - Ativo
+  4. Código "4" - Passivo
+  5. Código "5" - Patrimônio Líquido
+- Depois das raízes, gere as subcontas hierárquicas
 - Use códigos numéricos hierárquicos: 1.1, 1.1.1, 1.1.1.01 (até 5 níveis)
 - Siga as normas contábeis brasileiras
 - Seja específico para o ramo de atividade informado
 
 Estrutura de códigos:
-- Nível 1: 1, 2, 3, 4, 5 (raízes - JÁ EXISTEM)
+- Nível 1: 1, 2, 3, 4, 5 (raízes - DEVEM ser incluídas)
 - Nível 2: 1.1, 1.2, 2.1, 2.2, etc.
 - Nível 3: 1.1.1, 1.1.2, etc.
 - Nível 4: 1.1.1.01, 1.1.1.02, etc.
 - Nível 5: 1.1.1.01.001, etc.
 
 Types permitidos:
-- receita (para código 1.x)
-- despesa (para código 2.x)
-- ativo (para código 3.x)
-- passivo (para código 4.x)
-- patrimonio_liquido (para código 5.x)`;
+- receita (para código 1 e 1.x)
+- despesa (para código 2 e 2.x)
+- ativo (para código 3 e 3.x)
+- passivo (para código 4 e 4.x)
+- patrimonio_liquido (para código 5 e 5.x)`;
 
   const userPrompt = `Analise esta descrição e gere um plano de contas COMPLETO: "${businessDescription}"
 
@@ -554,13 +559,13 @@ EXEMPLOS DE INTERPRETAÇÃO:
 - "transportadora com frotas" → gerar Combustível, IPVA, Manutenção de Veículos, Seguro de Veículos, mais outras
 - "só preciso de água, luz, telefone" → gerar Água, Luz, Telefone, mais outras contas essenciais
 
-RETORNE APENAS UM ARRAY JSON com as subcontas (NÃO inclua as raízes 1,2,3,4,5).
+RETORNE UM ARRAY JSON COMEÇANDO COM AS 5 CONTAS RAÍZES, seguidas de todas as subcontas.
 Cada conta deve ter:
-- code: código hierárquico (ex: "1.1", "1.1.1", "1.1.1.01")
+- code: código hierárquico (ex: "1", "1.1", "1.1.1", "1.1.1.01")
 - name: nome da conta (USE O NOME EXATO mencionado pelo usuário quando aplicável)
 - type: tipo (receita|despesa|ativo|passivo|patrimonio_liquido)
 - description: descrição breve
-- parentCode: código da conta pai (ex: "1.1" é pai de "1.1.1")
+- parentCode: código da conta pai (null para raízes, ex: "1.1" é pai de "1.1.1")
 
 IMPORTANTE - SEJA MUITO ANALÍTICO E DETALHADO:
 1. Gere NO MÍNIMO 50-70 contas (quanto mais detalhadas, melhor)
@@ -577,8 +582,50 @@ IMPORTANTE - SEJA MUITO ANALÍTICO E DETALHADO:
 7. Para PASSIVOS, inclua: fornecedores, impostos a pagar, salários a pagar, empréstimos
 8. Crie contas PRONTAS PARA USO REAL, não genéricas
 
-Estrutura hierárquica exemplo:
+Estrutura hierárquica exemplo (SEMPRE comece com as 5 raízes):
 [
+  {
+    "code": "1",
+    "name": "Receitas",
+    "type": "receita",
+    "description": "Contas de receita da empresa",
+    "parentCode": null
+  },
+  {
+    "code": "2",
+    "name": "Despesas",
+    "type": "despesa",
+    "description": "Contas de despesa da empresa",
+    "parentCode": null
+  },
+  {
+    "code": "3",
+    "name": "Ativo",
+    "type": "ativo",
+    "description": "Bens e direitos da empresa",
+    "parentCode": null
+  },
+  {
+    "code": "4",
+    "name": "Passivo",
+    "type": "passivo",
+    "description": "Obrigações da empresa",
+    "parentCode": null
+  },
+  {
+    "code": "5",
+    "name": "Patrimônio Líquido",
+    "type": "patrimonio_liquido",
+    "description": "Recursos próprios da empresa",
+    "parentCode": null
+  },
+  {
+    "code": "1.1",
+    "name": "Receita de Vendas",
+    "type": "receita",
+    "description": "Receitas com vendas de produtos/serviços",
+    "parentCode": "1"
+  },
   {
     "code": "2.1",
     "name": "Despesas Operacionais",
@@ -612,13 +659,6 @@ Estrutura hierárquica exemplo:
     "name": "Telefone",
     "type": "despesa",
     "description": "Telefonia fixa e móvel",
-    "parentCode": "2.1.1"
-  },
-  {
-    "code": "2.1.1.04",
-    "name": "Internet",
-    "type": "despesa",
-    "description": "Serviço de internet",
     "parentCode": "2.1.1"
   }
 ]
