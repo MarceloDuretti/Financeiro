@@ -164,6 +164,12 @@ export default function PlanoDeContas() {
     setAiPreviewOpen(true);
   };
 
+  const handleRetry = () => {
+    setAiPreviewOpen(false);
+    setGeneratedAccounts([]);
+    setAiAssistantOpen(true);
+  };
+
   // Auto-expand all nodes when accounts are loaded
   useEffect(() => {
     if (accounts.length > 0) {
@@ -1417,6 +1423,7 @@ export default function PlanoDeContas() {
           open={aiPreviewOpen}
           onOpenChange={setAiPreviewOpen}
           accounts={generatedAccounts}
+          onRetry={handleRetry}
         />
       </div>
     </div>

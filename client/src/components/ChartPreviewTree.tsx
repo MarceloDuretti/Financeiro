@@ -11,7 +11,7 @@ import {
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ChevronRight, ChevronDown, Check, Loader2, FileText } from "lucide-react";
+import { ChevronRight, ChevronDown, Check, Loader2, FileText, Mic } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
 
@@ -27,6 +27,7 @@ interface ChartPreviewTreeProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   accounts: GeneratedAccount[];
+  onRetry?: () => void;
 }
 
 interface AccountNode extends GeneratedAccount {
@@ -93,7 +94,7 @@ function getTypeLabel(type: string): string {
   return labels[type] || type;
 }
 
-export function ChartPreviewTree({ open, onOpenChange, accounts }: ChartPreviewTreeProps) {
+export function ChartPreviewTree({ open, onOpenChange, accounts, onRetry }: ChartPreviewTreeProps) {
   const { toast } = useToast();
   // Start with all nodes expanded
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(() => 
@@ -278,6 +279,17 @@ export function ChartPreviewTree({ open, onOpenChange, accounts }: ChartPreviewT
           >
             Cancelar
           </Button>
+          {onRetry && (
+            <Button
+              variant="outline"
+              onClick={onRetry}
+              disabled={isConfirming}
+              className="mr-auto"
+            >
+              <Mic className="h-4 w-4 mr-2" />
+              Nova Gravação
+            </Button>
+          )}
           <Button
             onClick={handleConfirm}
             disabled={isConfirming}
