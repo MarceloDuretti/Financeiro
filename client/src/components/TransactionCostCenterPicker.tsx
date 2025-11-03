@@ -89,15 +89,25 @@ export function TransactionCostCenterPicker({
 
   // Auto-distribute equally
   const handleAutoDistribute = () => {
-    if (distributions.length === 0) return;
+    console.log('[Auto Distribute] Botão clicado');
+    console.log('[Auto Distribute] Distributions antes:', distributions);
+    
+    if (distributions.length === 0) {
+      console.log('[Auto Distribute] Nenhuma distribuição selecionada');
+      return;
+    }
     
     const autoPercentage = Math.floor(100 / distributions.length);
     const remainder = 100 - (autoPercentage * distributions.length);
+    
+    console.log('[Auto Distribute] autoPercentage:', autoPercentage, 'remainder:', remainder);
     
     const withPercentages = distributions.map((d, idx) => ({
       ...d,
       percentage: idx === 0 ? autoPercentage + remainder : autoPercentage,
     }));
+    
+    console.log('[Auto Distribute] Distributions depois:', withPercentages);
     
     setDistributions(withPercentages);
     onChange(withPercentages);
