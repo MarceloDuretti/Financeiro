@@ -1807,7 +1807,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { id } = req.params;
       const { companyId } = req.query;
       
+      console.log("=== PATCH /api/transactions/:id ===");
+      console.log("URL:", req.url);
+      console.log("Query params:", req.query);
+      console.log("companyId from query:", companyId);
+      console.log("companyId type:", typeof companyId);
+      
       if (!companyId || typeof companyId !== 'string') {
+        console.log("ERROR: companyId validation failed!");
         return res.status(400).json({ error: "companyId é obrigatório" });
       }
       
