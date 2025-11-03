@@ -195,7 +195,14 @@ export function TransactionDetailSheet({
       setIsSaving(true);
       const formData = form.getValues();
 
-      await apiRequest("PATCH", `/api/transactions/${transaction.id}`, {
+      console.log("🔴 DEBUG 3 - Salvando via DetailSheet:", {
+        transactionId: transaction.id,
+        companyId: transaction.companyId,
+        formDataCompanyId: formData.companyId,
+        finalUrl: `/api/transactions/${transaction.id}?companyId=${transaction.companyId}`
+      });
+
+      await apiRequest("PATCH", `/api/transactions/${transaction.id}?companyId=${transaction.companyId}`, {
         ...formData,
         version: transaction.version,
       });
