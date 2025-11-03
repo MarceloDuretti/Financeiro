@@ -159,7 +159,7 @@ export default function FormasPagamento() {
             <Card
               key={method.id}
               className={`h-full transition-all hover-elevate ${
-                method.isActive ? "bg-accent/70 shadow-lg" : ""
+                method.isActive ? "bg-primary shadow-lg border-primary" : ""
               }`}
               data-testid={`card-payment-method-${method.id}`}
             >
@@ -170,7 +170,7 @@ export default function FormasPagamento() {
                     <div className="flex items-start justify-between">
                       {renderIcon(method.icon, method.isActive, colorScheme)}
                       {method.isActive && (
-                        <Badge variant="default" className="gap-1 text-xs px-2 py-0">
+                        <Badge variant="secondary" className="gap-1 text-xs px-2 py-0 bg-white/90 text-primary border-0">
                           <Check className="h-3 w-3" />
                           Ativo
                         </Badge>
@@ -182,15 +182,17 @@ export default function FormasPagamento() {
                       <h3 
                         className={`text-sm transition-all ${
                           method.isActive 
-                            ? "font-bold text-foreground" 
+                            ? "font-bold text-primary-foreground" 
                             : "font-semibold opacity-50"
                         }`}
                         data-testid={`text-method-name-${method.id}`}
                       >
                         {method.name}
                       </h3>
-                      <p className={`text-xs text-muted-foreground line-clamp-2 transition-opacity ${
-                        method.isActive ? "opacity-100" : "opacity-50"
+                      <p className={`text-xs line-clamp-2 transition-opacity ${
+                        method.isActive 
+                          ? "text-primary-foreground/80 opacity-100" 
+                          : "text-muted-foreground opacity-50"
                       }`}>
                         {method.description}
                       </p>
@@ -202,7 +204,7 @@ export default function FormasPagamento() {
                     <button
                       onClick={() => handleToggle(method)}
                       disabled={isToggling}
-                      className="text-xs text-destructive underline hover:text-destructive/80 transition-colors text-center disabled:opacity-50"
+                      className="text-xs text-primary-foreground/90 underline hover:text-primary-foreground transition-colors text-center disabled:opacity-50 font-medium"
                       data-testid={`button-toggle-${method.id}`}
                     >
                       {isToggling ? "Desativando..." : "Desativar"}
