@@ -163,25 +163,27 @@ const StepSummary = ({
   if (step < 1) return null;
 
   return (
-    <Card className="mb-4">
-      <CardContent className="p-3">
-        <div className="flex items-center gap-2 mb-2">
-          <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />
-          <h3 className="text-xs font-semibold">Resumo</h3>
+    <Card className="mb-2">
+      <CardContent className="p-2 space-y-1">
+        <div className="flex items-center gap-1.5 mb-1">
+          <CheckCircle2 className="h-3 w-3 text-green-600" />
+          <h3 className="text-[10px] font-semibold">Resumo</h3>
         </div>
-        <Separator className="mb-2" />
-        <div className="text-xs grid grid-cols-2 gap-x-4 gap-y-1.5">
+        <div className="text-[10px] grid grid-cols-2 gap-x-3 gap-y-0.5">
           {step >= 2 && (
             <>
-              <p>
-                <span className="text-muted-foreground">Tipo:</span>{" "}
-                <Badge variant={values.type === "expense" ? "destructive" : "default"} className="ml-1 text-xs h-5">
+              <div className="flex items-center gap-1.5">
+                <span className="text-muted-foreground">Tipo:</span>
+                <Badge variant={values.type === "expense" ? "destructive" : "default"} className={cn(
+                  "text-[9px] h-4 px-1.5",
+                  values.type === "revenue" && "bg-blue-600 hover:bg-blue-700"
+                )}>
                   {values.type === "expense" ? "Despesa" : "Receita"}
                 </Badge>
-              </p>
+              </div>
               <p><span className="text-muted-foreground">Valor:</span> R$ {parseFloat(values.amount || "0").toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
               <p className="truncate"><span className="text-muted-foreground">Título:</span> {values.title || "-"}</p>
-              <p><span className="text-muted-foreground">Vencimento:</span> {format(values.dueDate, "dd/MM/yyyy")}</p>
+              <p><span className="text-muted-foreground">Venc.:</span> {format(values.dueDate, "dd/MM/yyyy")}</p>
             </>
           )}
 
@@ -189,34 +191,21 @@ const StepSummary = ({
             <>
               <p className="truncate"><span className="text-muted-foreground">Pessoa:</span> {customersSuppliers.find(p => p.id === values.personId)?.name || "-"}</p>
               <p className="truncate"><span className="text-muted-foreground">Plano:</span> {chartAccounts.find(c => c.id === values.chartAccountId)?.name || "-"}</p>
-              {values.costCenterDistributions && values.costCenterDistributions.length > 0 ? (
-                <div className="col-span-2">
-                  <span className="text-muted-foreground">Centros de Custo:</span>
-                  <div className="mt-0.5 grid grid-cols-2 gap-x-2 gap-y-0.5">
-                    {values.costCenterDistributions.map((dist) => {
-                      const cc = costCenters.find(c => c.id === dist.costCenterId);
-                      return (
-                        <div key={dist.costCenterId} className="flex items-center gap-1">
-                          <span className="truncate text-[10px]">• {cc?.name || "?"}</span>
-                          <Badge variant="outline" className="text-[9px] h-4 px-1 shrink-0">
-                            {dist.percentage}%
-                          </Badge>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              ) : values.costCenterId ? (
-                <p className="truncate"><span className="text-muted-foreground">C. Custo:</span> {costCenters.find(c => c.id === values.costCenterId)?.name || "-"}</p>
-              ) : null}
+              {values.costCenterDistributions && values.costCenterDistributions.length > 0 && (
+                <p className="col-span-2 truncate">
+                  <span className="text-muted-foreground">CCs:</span> {values.costCenterDistributions.map(dist => {
+                    const cc = costCenters.find(c => c.id === dist.costCenterId);
+                    return `${cc?.name} (${dist.percentage}%)`;
+                  }).join(", ")}
+                </p>
+              )}
             </>
           )}
 
           {step >= 4 && (
             <>
               <p><span className="text-muted-foreground">Status:</span> {values.status === "pending" ? "Pendente" : values.status === "paid" ? "Pago" : "Cancelado"}</p>
-              <p className="truncate"><span className="text-muted-foreground">Pagamento:</span> {paymentMethods.find(p => p.id === values.paymentMethodId)?.name || "-"}</p>
-              <p className="truncate"><span className="text-muted-foreground">Conta:</span> {bankAccounts.find(b => b.id === values.bankAccountId)?.accountNumber || "-"}</p>
+              <p className="truncate"><span className="text-muted-foreground">Pgto:</span> {paymentMethods.find(p => p.id === values.paymentMethodId)?.name || "-"}</p>
             </>
           )}
 
@@ -1106,7 +1095,7 @@ const FormContent = ({
             <Button
               type="button"
               onClick={handleNext}
-              className="flex-1"
+              className="flex-1 bg-foreground text-background hover:bg-foreground/90"
               data-testid="button-next"
             >
               Próximo
@@ -1116,7 +1105,7 @@ const FormContent = ({
             <Button
               type="button"
               onClick={handleSaveClick}
-              className="flex-1"
+              className="flex-1 bg-foreground text-background hover:bg-foreground/90"
               disabled={isSubmitting || form.formState.isSubmitting}
               data-testid="button-save"
             >
