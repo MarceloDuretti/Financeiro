@@ -30,6 +30,11 @@ export function TransactionCostCenterPicker({
   // Fetch cost centers for the company
   const { data: costCenters, isLoading } = useQuery<CostCenter[]>({
     queryKey: ["/api/cost-centers", companyId],
+    queryFn: async () => {
+      const response = await fetch(`/api/cost-centers?companyId=${companyId}`);
+      if (!response.ok) throw new Error("Failed to fetch cost centers");
+      return response.json();
+    },
     enabled: !!companyId,
   });
 
