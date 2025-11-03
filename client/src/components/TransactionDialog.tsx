@@ -555,11 +555,11 @@ const Step2Content = ({
   bankAccounts
 }: Step2ContentProps) => {
   const companyId = form.watch("companyId");
-  const costCenterDistributions = form.watch("costCenterDistributions") || [];
-  const chartAccountId = form.watch("chartAccountId");
+  const personId = form.watch("personId");
+  const transactionType = form.watch("type");
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <StepSummary 
         step={2} 
         form={form} 
@@ -593,6 +593,51 @@ const Step2Content = ({
             <FormMessage />
           </FormItem>
         )}
+      />
+
+      {/* Show analytics when supplier is selected */}
+      {personId && companyId && (
+        <SupplierAnalytics 
+          supplierId={personId} 
+          companyId={companyId} 
+          transactionType={transactionType}
+        />
+      )}
+    </div>
+  );
+};
+
+interface Step3ContentProps {
+  form: UseFormReturn<FormValues>;
+  customersSuppliers: any[];
+  costCenters: any[];
+  chartAccounts: any[];
+  paymentMethods: any[];
+  bankAccounts: any[];
+}
+
+const Step3Content = ({ 
+  form,
+  customersSuppliers,
+  costCenters,
+  chartAccounts,
+  paymentMethods,
+  bankAccounts
+}: Step3ContentProps) => {
+  const companyId = form.watch("companyId");
+  const costCenterDistributions = form.watch("costCenterDistributions") || [];
+  const chartAccountId = form.watch("chartAccountId");
+
+  return (
+    <div className="space-y-3">
+      <StepSummary 
+        step={3} 
+        form={form} 
+        customersSuppliers={customersSuppliers}
+        costCenters={costCenters}
+        chartAccounts={chartAccounts}
+        paymentMethods={paymentMethods}
+        bankAccounts={bankAccounts}
       />
 
       <FormField
@@ -635,7 +680,7 @@ const Step2Content = ({
   );
 };
 
-interface Step3ContentProps {
+interface Step4ContentProps {
   form: UseFormReturn<FormValues>;
   watchStatus: string | undefined;
   paymentMethods: any[];
@@ -645,7 +690,7 @@ interface Step3ContentProps {
   chartAccounts: any[];
 }
 
-const Step3Content = ({ 
+const Step4Content = ({ 
   form, 
   watchStatus, 
   paymentMethods, 
@@ -653,10 +698,10 @@ const Step3Content = ({
   customersSuppliers,
   costCenters,
   chartAccounts
-}: Step3ContentProps) => (
-  <div className="space-y-4">
+}: Step4ContentProps) => (
+  <div className="space-y-3">
     <StepSummary 
-      step={3} 
+      step={4} 
       form={form} 
       customersSuppliers={customersSuppliers}
       costCenters={costCenters}
@@ -778,100 +823,6 @@ const Step3Content = ({
         />
       </>
     )}
-  </div>
-);
-
-interface Step4ContentProps {
-  form: UseFormReturn<FormValues>;
-  customersSuppliers: any[];
-  costCenters: any[];
-  chartAccounts: any[];
-  paymentMethods: any[];
-  bankAccounts: any[];
-}
-
-const Step4Content = ({ 
-  form,
-  customersSuppliers,
-  costCenters,
-  chartAccounts,
-  paymentMethods,
-  bankAccounts
-}: Step4ContentProps) => (
-  <div className="space-y-4">
-    <StepSummary 
-      step={4} 
-      form={form} 
-      customersSuppliers={customersSuppliers}
-      costCenters={costCenters}
-      chartAccounts={chartAccounts}
-      paymentMethods={paymentMethods}
-      bankAccounts={bankAccounts}
-    />
-
-    <FormField
-      control={form.control}
-      name="description"
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel>Descrição/Observações</FormLabel>
-          <FormControl>
-            <Textarea
-              placeholder="Informações adicionais (opcional)"
-              className="resize-none"
-              rows={4}
-              {...field}
-              data-testid="input-description"
-            />
-          </FormControl>
-          <FormMessage />
-        </FormItem>
-      )}
-    />
-
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <FormField
-        control={form.control}
-        name="discount"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Desconto</FormLabel>
-            <FormControl>
-              <Input type="number" step="0.01" placeholder="0,00" {...field} data-testid="input-discount" />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-
-      <FormField
-        control={form.control}
-        name="interest"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Juros</FormLabel>
-            <FormControl>
-              <Input type="number" step="0.01" placeholder="0,00" {...field} data-testid="input-interest" />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-
-      <FormField
-        control={form.control}
-        name="fees"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Taxas</FormLabel>
-            <FormControl>
-              <Input type="number" step="0.01" placeholder="0,00" {...field} data-testid="input-fees" />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-    </div>
   </div>
 );
 
@@ -1085,23 +1036,23 @@ const FormContent = ({
         return (
           <Step3Content 
             form={form} 
-            watchStatus={watchStatus}
-            paymentMethods={paymentMethods}
-            bankAccounts={bankAccounts}
             customersSuppliers={customersSuppliers}
             costCenters={costCenters}
             chartAccounts={chartAccounts}
+            paymentMethods={paymentMethods}
+            bankAccounts={bankAccounts}
           />
         );
       case 4:
         return (
           <Step4Content 
             form={form}
+            watchStatus={watchStatus}
+            paymentMethods={paymentMethods}
+            bankAccounts={bankAccounts}
             customersSuppliers={customersSuppliers}
             costCenters={costCenters}
             chartAccounts={chartAccounts}
-            paymentMethods={paymentMethods}
-            bankAccounts={bankAccounts}
           />
         );
       case 5:
