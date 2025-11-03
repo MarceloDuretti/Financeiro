@@ -47,6 +47,7 @@ import { ptBR } from "date-fns/locale";
 import type { Transaction } from "@shared/schema";
 import { TransactionDialog } from "@/components/TransactionDialog";
 import { TransactionDetailSheet } from "@/components/TransactionDetailSheet";
+import { AITransactionInput } from "@/components/AITransactionInput";
 
 const SELECTED_COMPANY_KEY = "fincontrol_selected_company_id";
 
@@ -85,6 +86,7 @@ export default function Lancamentos() {
     return startOfWeek(now, { locale: ptBR });
   });
   const [aiAssistOpen, setAiAssistOpen] = useState(false);
+  const [aiProcessing, setAiProcessing] = useState(false);
   const parentRef = useRef<HTMLDivElement>(null);
 
   // Save view mode preference
@@ -1383,29 +1385,16 @@ export default function Lancamentos() {
             </SheetTitle>
           </SheetHeader>
           <div className="mt-6 space-y-4">
-            <div className="rounded-lg border p-4 bg-muted/30">
-              <h3 className="font-medium mb-2">Como posso ajudar?</h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                Use a assistência de IA para criar lançamentos de forma inteligente. Você pode digitar ou falar suas solicitações.
-              </p>
-              <div className="space-y-3">
-                <div className="text-sm">
-                  <span className="font-medium">Exemplos:</span>
-                  <ul className="mt-2 space-y-1 text-muted-foreground ml-4 list-disc">
-                    <li>"Registrar pagamento de R$ 500 para fornecedor XYZ"</li>
-                    <li>"Criar despesa com aluguel de janeiro"</li>
-                    <li>"Lançar receita de venda para cliente ABC"</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-            
-            <div className="rounded-lg border p-6 bg-background text-center text-muted-foreground">
-              <Sparkles className="w-12 h-12 mx-auto mb-3 opacity-50" />
-              <p className="text-sm">
-                A funcionalidade completa de assistência de IA estará disponível em breve.
-              </p>
-            </div>
+            <AITransactionInput
+              onProcess={(input) => {
+                setAiProcessing(true);
+                // TODO: Implementar análise de IA
+                console.log("Processar comando:", input);
+                setTimeout(() => setAiProcessing(false), 2000);
+              }}
+              isProcessing={aiProcessing}
+              placeholder="Descreva o lançamento que deseja criar..."
+            />
           </div>
         </SheetContent>
       </Sheet>
