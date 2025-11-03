@@ -227,7 +227,7 @@ export function TransactionCostCenterPicker({
                         max="100"
                         value={distribution.percentage}
                         onChange={(e) => handlePercentageChange(costCenter.id, e.target.value)}
-                        className="w-20 h-8 text-center text-sm font-medium"
+                        className="w-24 h-8 text-center text-sm font-medium"
                         placeholder="0"
                         data-testid={`input-percentage-${costCenter.id}`}
                       />
