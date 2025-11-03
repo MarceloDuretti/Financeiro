@@ -40,6 +40,7 @@ export function TransactionCostCenterPicker({
 
   // Sync with parent value changes
   useEffect(() => {
+    console.log('[TransactionCostCenterPicker] Value changed:', value);
     setDistributions(value);
   }, [value]);
 
@@ -106,45 +107,89 @@ export function TransactionCostCenterPicker({
   }
 
   return (
-    <div className="space-y-4">
-      {/* Summary Card */}
+    <div className="space-y-3">
+      {/* Selected Cost Centers - Quick Edit */}
       {hasSelections && (
         <Card className={isValid ? "border-green-600" : "border-destructive"}>
-          <CardContent className="p-3">
+          <CardContent className="p-3 space-y-3">
+            {/* Header with Total */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                {isValid ? (
+                  <CheckCircle2 className="h-4 w-4 text-green-600" />
+                ) : (
+                  <AlertCircle className="h-4 w-4 text-destructive" />
+                )}
+                <span className="text-sm font-semibold">
+                  Centros Selecionados - Total: {totalPercentage}%
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                {remaining !== 0 && (
+                  <Badge variant={remaining > 0 ? "outline" : "destructive"} className="text-xs">
+                    {remaining > 0 ? `Faltam ${remaining}%` : `Excesso de ${Math.abs(remaining)}%`}
+                  </Badge>
+                )}
+                {isValid && (
+                  <Badge variant="default" className="bg-green-600 text-xs">
+                    Completo ✓
+                  </Badge>
+                )}
+              </div>
+            </div>
+
+            {/* Selected Items - Editable */}
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  {isValid ? (
-                    <CheckCircle2 className="h-4 w-4 text-green-600" />
-                  ) : (
-                    <AlertCircle className="h-4 w-4 text-destructive" />
-                  )}
-                  <span className="text-sm font-medium">
-                    Total: {totalPercentage}%
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  {remaining !== 0 && (
-                    <Badge variant={remaining > 0 ? "outline" : "destructive"} className="text-xs">
-                      {remaining > 0 ? `Faltam ${remaining}%` : `Excesso de ${Math.abs(remaining)}%`}
+              {distributions.map((dist) => {
+                const cc = costCenters.find(c => c.id === dist.costCenterId);
+                if (!cc) return null;
+                
+                return (
+                  <div 
+                    key={dist.costCenterId} 
+                    className="flex items-center gap-2 p-2 bg-accent/30 rounded-md border"
+                  >
+                    <Badge variant="outline" className="text-[10px] h-5 px-1.5 shrink-0">
+                      {String(cc.code).padStart(4, '0')}
                     </Badge>
-                  )}
-                  {isValid && (
-                    <Badge variant="default" className="bg-green-600 text-xs">
-                      Completo ✓
-                    </Badge>
-                  )}
-                </div>
-              </div>
-              {/* Progress bar */}
-              <div className="h-2 bg-muted rounded-full overflow-hidden">
-                <div
-                  className={`h-full transition-all ${
-                    isValid ? "bg-green-600" : remaining > 0 ? "bg-primary" : "bg-destructive"
-                  }`}
-                  style={{ width: `${Math.min(totalPercentage, 100)}%` }}
-                />
-              </div>
+                    <span className="text-sm font-medium flex-1 truncate">
+                      {cc.name}
+                    </span>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <Input
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={dist.percentage}
+                        onChange={(e) => handlePercentageChange(dist.costCenterId, e.target.value)}
+                        className="w-20 h-7 text-center text-sm font-medium"
+                        data-testid={`input-quick-percentage-${dist.costCenterId}`}
+                      />
+                      <span className="text-sm font-medium text-muted-foreground">%</span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleToggle(dist.costCenterId)}
+                        className="h-7 w-7 text-destructive hover:text-destructive"
+                        data-testid={`button-remove-${dist.costCenterId}`}
+                      >
+                        ×
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Progress bar */}
+            <div className="h-2 bg-muted rounded-full overflow-hidden">
+              <div
+                className={`h-full transition-all ${
+                  isValid ? "bg-green-600" : remaining > 0 ? "bg-primary" : "bg-destructive"
+                }`}
+                style={{ width: `${Math.min(totalPercentage, 100)}%` }}
+              />
             </div>
           </CardContent>
         </Card>
