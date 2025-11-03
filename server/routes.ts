@@ -1958,6 +1958,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Analyze transaction command with AI
+  app.post("/api/transactions/analyze-command", isAuthenticated, async (req, res) => {
+    try {
+      const tenantId = getTenantId((req as any).user);
+      const { command, companyId } = req.body;
+
+      if (!command || typeof command !== "string") {
+        return res.status(400).json({ message: "Comando é obrigatório" });
+      }
+
+      if (!companyId || typeof companyId !== "string") {
+        return res.status(400).json({ message: "companyId é obrigatório" });
+      }
+
+      // Import AI service
+      const { analyzeTransactionCommand } = await import("./ai-service");
+
+      // Fetch available entities for matching
+      const persons = await storage.listCustomersSuppliers(tenantId);
+      const accounts = await storage.listChartOfAccounts(tenantId);
+      const costCenters = await storage.listCostCenters(tenantId, companyId);
+
+      // Analyze command using AI
+      const result = await analyzeTransactionCommand(
+        command,
+        companyId,
+        persons.map(p => ({ id: p.id, name: p.name })),
+        accounts.map(a => ({ id: a.id, code: a.code, name: a.name })),
+        costCenters.map(c => ({ id: c.id, code: c.code.toString(), name: c.name }))
+      );
+
+      res.json(result);
+    } catch (error: any) {
+      console.error("Error analyzing transaction command:", error);
+      res.status(500).json({ message: error.message || "Erro ao analisar comando" });
+    }
+  });
+
   // ============================================
   // ANALYTICS ROUTES
   // ============================================

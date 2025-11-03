@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -67,6 +69,7 @@ const MONTHS = [
 ];
 
 export default function Lancamentos() {
+  const { toast } = useToast();
   const selectedCompanyId = localStorage.getItem(SELECTED_COMPANY_KEY);
   const now = new Date();
   const [selectedMonth, setSelectedMonth] = useState<number>(getMonth(now));
@@ -86,8 +89,33 @@ export default function Lancamentos() {
     return startOfWeek(now, { locale: ptBR });
   });
   const [aiAssistOpen, setAiAssistOpen] = useState(false);
-  const [aiProcessing, setAiProcessing] = useState(false);
   const parentRef = useRef<HTMLDivElement>(null);
+
+  // AI command analysis mutation
+  const analyzeCommandMutation = useMutation({
+    mutationFn: async (command: string) => {
+      if (!selectedCompanyId) throw new Error("Nenhuma empresa selecionada");
+      
+      return apiRequest<any>("/api/transactions/analyze-command", {
+        method: "POST",
+        body: JSON.stringify({ command, companyId: selectedCompanyId }),
+      });
+    },
+    onSuccess: (data) => {
+      console.log("[AI Command] Analysis result:", data);
+      toast({
+        title: "Comando analisado",
+        description: `Operação: ${data.operation}, Confiança: ${(data.confidence * 100).toFixed(0)}%`,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro ao analisar comando",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
 
   // Save view mode preference
   useEffect(() => {
@@ -1386,13 +1414,8 @@ export default function Lancamentos() {
           </SheetHeader>
           <div className="mt-6 space-y-4">
             <AITransactionInput
-              onProcess={(input) => {
-                setAiProcessing(true);
-                // TODO: Implementar análise de IA
-                console.log("Processar comando:", input);
-                setTimeout(() => setAiProcessing(false), 2000);
-              }}
-              isProcessing={aiProcessing}
+              onProcess={(input) => analyzeCommandMutation.mutate(input)}
+              isProcessing={analyzeCommandMutation.isPending}
               placeholder="Descreva o lançamento que deseja criar..."
             />
           </div>

@@ -830,3 +830,161 @@ RETORNE APENAS O JSON, SEM EXPLICAÇÕES.`;
     throw new Error("Erro ao processar solicitação de relatório");
   }
 }
+
+// Types for AI transaction command processing
+export interface TransactionCommand {
+  operation: "create" | "clone" | "pay" | "unknown";
+  type?: "revenue" | "expense";
+  amount?: string;
+  title?: string;
+  description?: string;
+  personName?: string;
+  dueDate?: string;
+  clonePeriod?: {
+    type: "month" | "semester" | "year" | "custom";
+    count?: number;
+  };
+  missingFields: string[];
+  suggestions?: {
+    personId?: string;
+    chartAccountId?: string;
+    costCenterId?: string;
+    paymentMethodId?: string;
+  };
+  confidence: number;
+}
+
+/**
+ * Analyzes user command for transaction operations
+ * Uses GPT-4o-mini for cost-effective processing
+ */
+export async function analyzeTransactionCommand(
+  input: string,
+  companyId: string,
+  availablePersons: Array<{ id: string; name: string; }>,
+  availableAccounts: Array<{ id: string; code: string; name: string; }>,
+  availableCostCenters: Array<{ id: string; code: string; name: string; }>
+): Promise<TransactionCommand> {
+  try {
+    console.log("[AI Transaction] Analyzing command:", input);
+    
+    const systemPrompt = `Você é um assistente especializado em analisar comandos para criar lançamentos financeiros.
+
+Analise o comando fornecido e extraia as informações no formato JSON:
+
+{
+  "operation": "create | clone | pay | unknown",
+  "type": "revenue ou expense (se identificado)",
+  "amount": "valor numérico sem formatação",
+  "title": "título/descrição do lançamento",
+  "description": "descrição adicional",
+  "personName": "nome do cliente/fornecedor mencionado",
+  "dueDate": "data no formato YYYY-MM-DD (se mencionada)",
+  "clonePeriod": {
+    "type": "month | semester | year | custom",
+    "count": número de vezes para clonar
+  },
+  "missingFields": ["lista", "de", "campos", "faltantes"],
+  "confidence": número de 0 a 1
+}
+
+REGRAS DE ANÁLISE:
+
+1. OPERAÇÕES:
+   - "create": Criar novo lançamento ("criar", "registrar", "adicionar", "lançar")
+   - "clone": Clonar lançamento existente ("copiar", "clonar", "igual ao", "repetir")
+   - "pay": Baixar/marcar como pago ("baixar", "pagar", "quitar")
+   - "unknown": Não conseguiu identificar
+
+2. TIPO:
+   - "revenue": Receita ("receita", "venda", "entrada", "receber")
+   - "expense": Despesa ("despesa", "pagamento", "gasto", "pagar")
+
+3. VALOR:
+   - Extrair apenas números (ex: "R$ 1.500,00" → "1500.00")
+   - Se não mencionado, deixar null
+
+4. PERÍODO DE CLONAGEM:
+   - "ano todo" / "12 meses" → {"type": "year", "count": 12}
+   - "semestre" / "6 meses" → {"type": "semester", "count": 6}
+   - "próximos 3 meses" → {"type": "custom", "count": 3}
+
+5. CAMPOS FALTANTES:
+   Sempre incluir campos que NÃO foram mencionados:
+   - "dueDate" (se não mencionou data)
+   - "chartAccountId" (se não mencionou conta contábil)
+   - "costCenterId" (se não mencionou centro de custo)
+   - "paymentMethodId" (se não mencionou forma de pagamento)
+   - "bankAccountId" (se não mencionou conta bancária)
+
+Exemplos:
+
+Input: "Criar despesa de R$ 250 para Cemig no dia 10"
+Output: {
+  "operation": "create",
+  "type": "expense",
+  "amount": "250.00",
+  "title": null,
+  "personName": "Cemig",
+  "dueDate": null,
+  "missingFields": ["chartAccountId", "costCenterId", "title", "dueDate"],
+  "confidence": 0.85
+}
+
+Input: "Clonar conta da AWS para o ano todo"
+Output: {
+  "operation": "clone",
+  "personName": "AWS",
+  "clonePeriod": {"type": "year", "count": 12},
+  "missingFields": [],
+  "confidence": 0.9
+}
+
+Input: "Receita de R$ 5000 do cliente XYZ para amanhã"
+Output: {
+  "operation": "create",
+  "type": "revenue",
+  "amount": "5000.00",
+  "personName": "XYZ",
+  "dueDate": "[tomorrow's date]",
+  "missingFields": ["chartAccountId", "title"],
+  "confidence": 0.9
+}
+
+RETORNE APENAS O JSON, SEM EXPLICAÇÕES.`;
+
+    const response = await callOpenAI(
+      [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: input },
+      ],
+      { jsonMode: true, maxTokens: 500 }
+    );
+
+    console.log(`[AI Transaction] Raw response:`, response);
+
+    const command: TransactionCommand = JSON.parse(response);
+    
+    // Try to match person name to existing persons
+    if (command.personName && availablePersons.length > 0) {
+      const personNameLower = command.personName.toLowerCase();
+      const matchedPerson = availablePersons.find(p => 
+        p.name.toLowerCase().includes(personNameLower) || 
+        personNameLower.includes(p.name.toLowerCase())
+      );
+      
+      if (matchedPerson) {
+        command.suggestions = command.suggestions || {};
+        command.suggestions.personId = matchedPerson.id;
+        console.log(`[AI Transaction] Matched person: ${matchedPerson.name} (${matchedPerson.id})`);
+      }
+    }
+    
+    console.log(`[AI Transaction] Processed command:`, command);
+    
+    return command;
+  } catch (error: any) {
+    console.error("[AI Transaction] Error analyzing command:", error);
+    throw new Error("Erro ao processar comando de lançamento");
+  }
+}
