@@ -52,6 +52,8 @@ import { TransactionDetailSheet } from "@/components/TransactionDetailSheet";
 import { AITransactionInput } from "@/components/AITransactionInput";
 import { AITransactionForm } from "@/components/AITransactionForm";
 import { AITransactionPreview } from "@/components/AITransactionPreview";
+import { DndContext, useDraggable, useDroppable, DragEndEvent } from '@dnd-kit/core';
+import { CSS } from '@dnd-kit/utilities';
 
 const SELECTED_COMPANY_KEY = "fincontrol_selected_company_id";
 
@@ -60,6 +62,51 @@ function formatTransactionCode(transaction: Transaction): string {
   const prefix = transaction.type === 'revenue' ? 'REC' : 'DES';
   const paddedCode = String(transaction.code || 0).padStart(3, '0');
   return `${prefix}${paddedCode}`;
+}
+
+// Draggable Transaction Card Component
+function DraggableTransactionCard({ transaction, children, onClick }: { transaction: Transaction, children: React.ReactNode, onClick: () => void }) {
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: `transaction-${transaction.id}`,
+    data: { transaction }
+  });
+
+  const style = {
+    transform: CSS.Translate.toString(transform),
+    opacity: isDragging ? 0.5 : 1,
+    cursor: isDragging ? 'grabbing' : 'grab',
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      onClick={!isDragging ? onClick : undefined}
+    >
+      {children}
+    </div>
+  );
+}
+
+// Droppable Day Column Component  
+function DroppableDayColumn({ dayDate, children }: { dayDate: Date, children: React.ReactNode }) {
+  const { setNodeRef, isOver } = useDroppable({
+    id: `day-${format(dayDate, 'yyyy-MM-dd')}`,
+    data: { date: format(dayDate, 'yyyy-MM-dd') }
+  });
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={`flex-1 overflow-y-auto scrollbar-hidden p-1.5 space-y-1 transition-colors ${
+        isOver ? 'bg-primary/10' : ''
+      }`}
+    >
+      {children}
+    </div>
+  );
 }
 
 const MONTHS = [
@@ -252,6 +299,53 @@ export default function Lancamentos() {
       });
     },
   });
+
+  // Update transaction date mutation (for drag-and-drop)
+  const updateTransactionDateMutation = useMutation({
+    mutationFn: async ({ transactionId, newDate }: { transactionId: string, newDate: string }) => {
+      const res = await apiRequest("PATCH", `/api/transactions/${transactionId}`, {
+        dueDate: convertDateToISO(newDate),
+        issueDate: convertDateToISO(newDate),
+      });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/transactions'] });
+      toast({
+        title: "Data atualizada",
+        description: "A transação foi movida com sucesso!",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro ao atualizar data",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Handle drag end event (when dropping a transaction on another day)
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    
+    if (!over) return; // Dropped outside a valid drop zone
+    
+    const transactionData = active.data.current?.transaction as Transaction;
+    const newDate = over.data.current?.date as string;
+    
+    if (!transactionData || !newDate) return;
+    
+    // Only update if the date actually changed
+    const currentDate = transactionData.dueDate ? format(new Date(transactionData.dueDate), 'yyyy-MM-dd') : null;
+    if (currentDate === newDate) return;
+    
+    // Update the transaction date
+    updateTransactionDateMutation.mutate({
+      transactionId: transactionData.id,
+      newDate: newDate,
+    });
+  };
 
   // Save view mode preference
   useEffect(() => {
@@ -1071,9 +1165,10 @@ export default function Lancamentos() {
               </div>
             ) : viewMode === 'week' ? (
               // WEEK VIEW
-              <div className="flex flex-col h-full">
-                {/* Week Navigation */}
-                <div className="flex items-center justify-between gap-4 mb-4 pb-3 border-b">
+              <DndContext onDragEnd={handleDragEnd}>
+                <div className="flex flex-col h-full">
+                  {/* Week Navigation */}
+                  <div className="flex items-center justify-between gap-4 mb-4 pb-3 border-b">
                   <Button
                     variant="outline"
                     size="sm"
@@ -1233,8 +1328,8 @@ export default function Lancamentos() {
                           </div>
                         </div>
                         
-                        {/* Transactions List - SCROLLÁVEL */}
-                        <div className="flex-1 overflow-y-auto scrollbar-hidden p-1.5 space-y-1">
+                        {/* Transactions List - SCROLLÁVEL com Drag & Drop */}
+                        <DroppableDayColumn dayDate={day}>
                           {dayTransactions.map((transaction) => {
                             const isPaid = transaction.status === 'paid';
                             const isOverdue = transaction.status !== 'paid' && transaction.dueDate && new Date(transaction.dueDate) < new Date();
@@ -1242,57 +1337,62 @@ export default function Lancamentos() {
                             const person = customersSuppliers.find(p => p.id === transaction.personId);
                             
                             return (
-                              <div
+                              <DraggableTransactionCard
                                 key={transaction.id}
-                                className="p-1.5 rounded-md border border-border/40 bg-background hover-elevate cursor-pointer transition-all duration-150"
+                                transaction={transaction}
                                 onClick={() => handleCardClick(transaction)}
-                                data-testid={`week-transaction-${transaction.id}`}
                               >
-                                <div className="space-y-0.5">
-                                  {/* Code e Status na mesma linha */}
-                                  <div className="flex items-center justify-between gap-1">
-                                    <Badge 
-                                      variant="outline" 
-                                      className="text-[9px] h-4 px-1.5 font-mono bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600"
-                                      data-testid={`badge-code-week-${transaction.id}`}
-                                    >
-                                      {formatTransactionCode(transaction)}
-                                    </Badge>
-                                    <Badge 
-                                      variant="outline" 
-                                      className={`text-[9px] h-4 px-1.5 ${
-                                        isPaid ? 'border-blue-600/50 text-blue-600' : 
-                                        isOverdue ? 'border-orange-600/50 text-orange-600' : 
-                                        'border-border/50 text-muted-foreground'
-                                      }`}
-                                    >
-                                      {isPaid ? 'Pago' : isOverdue ? 'Atraso' : 'Pend'}
-                                    </Badge>
-                                  </div>
-                                  
-                                  {/* Person - PRIORIDADE */}
-                                  {person && (
-                                    <div className="font-medium text-[11px] truncate tracking-tight">
-                                      {person.name}
+                                <div
+                                  className="p-1.5 rounded-md border border-border/40 bg-background hover-elevate cursor-pointer transition-all duration-150"
+                                  data-testid={`week-transaction-${transaction.id}`}
+                                >
+                                  <div className="space-y-0.5">
+                                    {/* Code e Status na mesma linha */}
+                                    <div className="flex items-center justify-between gap-1">
+                                      <Badge 
+                                        variant="outline" 
+                                        className="text-[9px] h-4 px-1.5 font-mono bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600"
+                                        data-testid={`badge-code-week-${transaction.id}`}
+                                      >
+                                        {formatTransactionCode(transaction)}
+                                      </Badge>
+                                      <Badge 
+                                        variant="outline" 
+                                        className={`text-[9px] h-4 px-1.5 ${
+                                          isPaid ? 'border-blue-600/50 text-blue-600' : 
+                                          isOverdue ? 'border-orange-600/50 text-orange-600' : 
+                                          'border-border/50 text-muted-foreground'
+                                        }`}
+                                      >
+                                        {isPaid ? 'Pago' : isOverdue ? 'Atraso' : 'Pend'}
+                                      </Badge>
                                     </div>
-                                  )}
-                                  
-                                  {/* Amount - DESTAQUE */}
-                                  <div className={`text-[12px] font-medium tracking-tight ${
-                                    transaction.type === 'expense' ? 'text-destructive' : 'text-blue-600'
-                                  }`}>
-                                    {transaction.type === 'expense' ? '-' : '+'} R$ {amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                    
+                                    {/* Person - PRIORIDADE */}
+                                    {person && (
+                                      <div className="font-medium text-[11px] truncate tracking-tight">
+                                        {person.name}
+                                      </div>
+                                    )}
+                                    
+                                    {/* Amount - DESTAQUE */}
+                                    <div className={`text-[12px] font-medium tracking-tight ${
+                                      transaction.type === 'expense' ? 'text-destructive' : 'text-blue-600'
+                                    }`}>
+                                      {transaction.type === 'expense' ? '-' : '+'} R$ {amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
+                              </DraggableTransactionCard>
                             );
                           })}
-                        </div>
+                        </DroppableDayColumn>
                       </div>
                     );
                   })}
                 </div>
-              </div>
+                </div>
+              </DndContext>
             ) : filteredTransactions.length === 0 ? (
               <Card>
                 <CardContent className="pt-6">
