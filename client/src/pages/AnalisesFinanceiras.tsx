@@ -100,7 +100,8 @@ export default function AnalisesFinanceiras() {
     queryKey: ['/api/analytics/yearly-evolution', activeCompanyId, selectedYear, regime],
     queryFn: async () => {
       const response = await fetch(
-        `/api/analytics/yearly-evolution?companyId=${activeCompanyId}&year=${selectedYear}&regime=${regime}`
+        `/api/analytics/yearly-evolution?companyId=${activeCompanyId}&year=${selectedYear}&regime=${regime}&_t=${Date.now()}`,
+        { cache: 'no-store' }
       );
       if (!response.ok) throw new Error('Failed to fetch yearly evolution');
       return response.json();
