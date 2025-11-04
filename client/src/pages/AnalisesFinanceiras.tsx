@@ -135,6 +135,9 @@ export default function AnalisesFinanceiras() {
 
   const isLoading = isLoadingDRE || isLoadingYearly;
 
+  // Extract current month data from yearly evolution (source of truth for totals)
+  const currentMonthData = yearlyEvolution?.data?.find((m: any) => m.month === selectedMonth) || { revenues: 0, expenses: 0, profit: 0 };
+
   const months = [
     { value: 1, label: "Janeiro" }, { value: 2, label: "Fevereiro" },
     { value: 3, label: "Março" }, { value: 4, label: "Abril" },
@@ -343,7 +346,7 @@ export default function AnalisesFinanceiras() {
                     </div>
                     <p className="text-xs text-muted-foreground mb-0.5">Receitas</p>
                     <p className="text-lg font-bold text-green-700 dark:text-green-300">
-                      R$ {(dreHierarchical?.totalRevenues || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      R$ {(currentMonthData.revenues || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </p>
                   </Card>
 
@@ -363,7 +366,7 @@ export default function AnalisesFinanceiras() {
                     </div>
                     <p className="text-xs text-muted-foreground mb-0.5">Despesas</p>
                     <p className="text-lg font-bold text-red-700 dark:text-red-300">
-                      R$ {(dreHierarchical?.totalExpenses || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      R$ {(currentMonthData.expenses || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </p>
                   </Card>
 
@@ -382,8 +385,8 @@ export default function AnalisesFinanceiras() {
                       </div>
                     </div>
                     <p className="text-xs text-muted-foreground mb-0.5">Lucro</p>
-                    <p className={`text-lg font-bold ${(dreHierarchical?.netResult || 0) >= 0 ? 'text-blue-700 dark:text-blue-300' : 'text-red-700 dark:text-red-300'}`}>
-                      R$ {(dreHierarchical?.netResult || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    <p className={`text-lg font-bold ${(currentMonthData.profit || 0) >= 0 ? 'text-blue-700 dark:text-blue-300' : 'text-red-700 dark:text-red-300'}`}>
+                      R$ {(currentMonthData.profit || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </p>
                   </Card>
                 </div>
@@ -538,7 +541,7 @@ export default function AnalisesFinanceiras() {
                           RECEITAS
                         </span>
                         <span className="text-sm font-bold text-green-700 dark:text-green-300">
-                          R$ {(dreHierarchical?.totalRevenues || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                          R$ {(currentMonthData.revenues || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                         </span>
                       </div>
                       {dreHierarchical?.revenues?.map((account: AccountNode) => 
@@ -553,7 +556,7 @@ export default function AnalisesFinanceiras() {
                           DESPESAS
                         </span>
                         <span className="text-sm font-bold text-red-700 dark:text-red-300">
-                          R$ {(dreHierarchical?.totalExpenses || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                          R$ {(currentMonthData.expenses || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                         </span>
                       </div>
                       {dreHierarchical?.expenses?.map((account: AccountNode) => 
@@ -564,8 +567,8 @@ export default function AnalisesFinanceiras() {
                     {/* Net Result */}
                     <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-950/20 rounded-md border-t-2 border-blue-500">
                       <span className="text-sm font-bold">RESULTADO LÍQUIDO</span>
-                      <span className={`text-lg font-bold ${(dreHierarchical?.netResult || 0) >= 0 ? 'text-blue-700 dark:text-blue-300' : 'text-red-700 dark:text-red-300'}`}>
-                        R$ {(dreHierarchical?.netResult || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      <span className={`text-lg font-bold ${(currentMonthData.profit || 0) >= 0 ? 'text-blue-700 dark:text-blue-300' : 'text-red-700 dark:text-red-300'}`}>
+                        R$ {(currentMonthData.profit || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                       </span>
                     </div>
                   </div>
