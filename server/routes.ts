@@ -2127,7 +2127,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const result = await analyzeTransactionCommand(
         command,
         companyId,
-        persons.map(p => ({ id: p.id, name: p.name })),
+        persons.map(p => ({ id: p.id, name: p.name, isCustomer: p.isCustomer, isSupplier: p.isSupplier })),
         accounts.map(a => ({ id: a.id, code: a.code, name: a.name })),
         costCenters.map(c => ({ id: c.id, code: c.code.toString(), name: c.name }))
       );
@@ -2164,7 +2164,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Analyze command using AI (batch version)
       const result = await analyzeBatchTransactionCommand(
         command,
-        persons.map(p => ({ id: p.id, name: p.name })),
+        persons.map(p => ({ id: p.id, name: p.name, isCustomer: p.isCustomer, isSupplier: p.isSupplier })),
         accounts.map(a => ({ id: a.id, code: a.code, name: a.name })),
         costCenters.map(c => ({ id: c.id, code: c.code.toString(), name: c.name }))
       );

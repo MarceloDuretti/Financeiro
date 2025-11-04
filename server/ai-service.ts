@@ -951,7 +951,7 @@ export function generateClonedTransactions(
 export async function analyzeTransactionCommand(
   input: string,
   companyId: string,
-  availablePersons: Array<{ id: string; name: string; }>,
+  availablePersons: Array<{ id: string; name: string; isCustomer: boolean; isSupplier: boolean; }>,
   availableAccounts: Array<{ id: string; code: string; name: string; }>,
   availableCostCenters: Array<{ id: string; code: string; name: string; }>
 ): Promise<TransactionCommand> {
@@ -1108,6 +1108,23 @@ RETORNE APENAS O JSON, SEM EXPLICAÇÕES.`;
         command.suggestions = command.suggestions || {};
         command.suggestions.personId = matchedPerson.id;
         console.log(`[AI Transaction] Matched person: ${matchedPerson.name} (${matchedPerson.id})`);
+        
+        // CRITICAL: Force transaction type based on person registration
+        // This ensures business rule compliance: Customer = Revenue, Supplier = Expense
+        if (matchedPerson.isCustomer && !matchedPerson.isSupplier) {
+          // Customer ONLY → MUST be revenue
+          if (command.type !== "revenue") {
+            console.log(`[AI Transaction] ⚠️  Forcing type to REVENUE (person is registered as Customer only)`);
+            command.type = "revenue";
+          }
+        } else if (matchedPerson.isSupplier && !matchedPerson.isCustomer) {
+          // Supplier ONLY → MUST be expense
+          if (command.type !== "expense") {
+            console.log(`[AI Transaction] ⚠️  Forcing type to EXPENSE (person is registered as Supplier only)`);
+            command.type = "expense";
+          }
+        }
+        // If both isCustomer and isSupplier are true (dual-role), use AI interpretation
       }
     }
     
@@ -1205,7 +1222,7 @@ function isValidDate(dateStr: string): boolean {
  */
 export async function analyzeBatchTransactionCommand(
   input: string,
-  availablePersons: Array<{ id: string; name: string; }>,
+  availablePersons: Array<{ id: string; name: string; isCustomer: boolean; isSupplier: boolean; }>,
   availableAccounts: Array<{ id: string; code: string; name: string; }>,
   availableCostCenters: Array<{ id: string; code: string; name: string; }>
 ): Promise<BatchTransactionCommand> {
@@ -1404,6 +1421,23 @@ RETORNE APENAS JSON, SEM EXPLICAÇÕES.`;
           if (matchedPerson) {
             transaction.personId = matchedPerson.id;
             console.log(`[AI Batch] Matched person: ${matchedPerson.name} (${matchedPerson.id})`);
+            
+            // CRITICAL: Force transaction type based on person registration
+            // This ensures business rule compliance: Customer = Revenue, Supplier = Expense
+            if (matchedPerson.isCustomer && !matchedPerson.isSupplier) {
+              // Customer ONLY → MUST be revenue
+              if (transaction.type !== "revenue") {
+                console.log(`[AI Batch] ⚠️  Forcing type to REVENUE (person is registered as Customer only)`);
+                transaction.type = "revenue";
+              }
+            } else if (matchedPerson.isSupplier && !matchedPerson.isCustomer) {
+              // Supplier ONLY → MUST be expense
+              if (transaction.type !== "expense") {
+                console.log(`[AI Batch] ⚠️  Forcing type to EXPENSE (person is registered as Supplier only)`);
+                transaction.type = "expense";
+              }
+            }
+            // If both isCustomer and isSupplier are true (dual-role), use AI interpretation
           }
         }
         
