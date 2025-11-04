@@ -477,69 +477,6 @@ export default function AnalisesFinanceiras() {
                     </PieChart>
                   </ResponsiveContainer>
                 </Card>
-
-                {/* AI Insights */}
-                <Card className="p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-sm font-semibold flex items-center gap-2">
-                      <Sparkles className="h-4 w-4 text-primary" />
-                      Insights Inteligentes
-                    </h3>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      data-testid="button-generate-insights"
-                      onClick={() => generateInsightsMutation.mutate()}
-                      disabled={generateInsightsMutation.isPending}
-                    >
-                      {generateInsightsMutation.isPending ? (
-                        <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
-                      ) : (
-                        <Sparkles className="h-3.5 w-3.5 mr-1.5" />
-                      )}
-                      {generateInsightsMutation.isPending ? 'Gerando...' : 'Gerar'}
-                    </Button>
-                  </div>
-                  {aiInsights.length > 0 ? (
-                    <div className="space-y-2 max-h-48 overflow-y-auto">
-                      {aiInsights.map((insight: any, index: number) => {
-                        const Icon = insight.type === 'warning' ? AlertCircle
-                          : insight.type === 'success' ? CheckCircle
-                          : insight.type === 'tip' ? Lightbulb
-                          : Info;
-                        
-                        const colorClass = insight.type === 'warning' ? 'text-red-600 dark:text-red-400'
-                          : insight.type === 'success' ? 'text-green-600 dark:text-green-400'
-                          : insight.type === 'tip' ? 'text-amber-600 dark:text-amber-400'
-                          : 'text-blue-600 dark:text-blue-400';
-                        
-                        const bgClass = insight.type === 'warning' ? 'bg-red-50 dark:bg-red-950/20'
-                          : insight.type === 'success' ? 'bg-green-50 dark:bg-green-950/20'
-                          : insight.type === 'tip' ? 'bg-amber-50 dark:bg-amber-950/20'
-                          : 'bg-blue-50 dark:bg-blue-950/20';
-                        
-                        return (
-                          <div key={index} className={`p-2 rounded-md ${bgClass}`}>
-                            <div className="flex items-start gap-2">
-                              <Icon className={`h-4 w-4 ${colorClass} mt-0.5 flex-shrink-0`} />
-                              <div className="flex-1 min-w-0">
-                                <h4 className="font-semibold text-xs mb-0.5">{insight.title}</h4>
-                                <p className="text-xs text-muted-foreground">{insight.description}</p>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <div className="text-center py-6 text-muted-foreground">
-                      <Sparkles className="h-10 w-10 mx-auto mb-2 opacity-50" />
-                      <p className="text-xs">
-                        Clique em "Gerar" para obter insights inteligentes
-                      </p>
-                    </div>
-                  )}
-                </Card>
               </div>
 
               {/* RIGHT COLUMN: Hierarchical Table */}
