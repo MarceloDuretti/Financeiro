@@ -2521,7 +2521,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/analytics/dre-hierarchical", isAuthenticated, async (req, res) => {
     try {
       const tenantId = getTenantId((req as any).user);
-      const { companyId, month, year } = req.query;
+      const { companyId, month, year, regime = 'caixa' } = req.query;
       
       if (!companyId) {
         return res.status(400).json({ error: "companyId é obrigatório" });
@@ -2529,6 +2529,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const monthNum = parseInt(month as string);
       const yearNum = parseInt(year as string);
+      const useCaixa = regime === 'caixa';
       
       // Get month boundaries
       const startDate = new Date(yearNum, monthNum - 1, 1);
@@ -2548,7 +2549,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const accountTotals = new Map<string, number>();
       monthTransactions.forEach((t: any) => {
         if (t.chartAccountId) {
-          const amount = parseFloat(t.amount || '0');
+          // Use paidAmount for caixa, amount for competência
+          const amount = parseFloat(useCaixa ? (t.paidAmount || t.amount || '0') : (t.amount || '0'));
           accountTotals.set(
             t.chartAccountId,
             (accountTotals.get(t.chartAccountId) || 0) + amount
@@ -2648,13 +2650,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/analytics/yearly-evolution", isAuthenticated, async (req, res) => {
     try {
       const tenantId = getTenantId((req as any).user);
-      const { companyId, year } = req.query;
+      const { companyId, year, regime = 'caixa' } = req.query;
       
       if (!companyId) {
         return res.status(400).json({ error: "companyId é obrigatório" });
       }
       
       const yearNum = parseInt(year as string);
+      const useCaixa = regime === 'caixa';
       
       // Fetch all transactions for the year
       const transactions = await storage.listTransactions(tenantId, companyId as string);
@@ -2677,11 +2680,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         const revenues = monthTransactions
           .filter((t: any) => t.type === 'revenue')
-          .reduce((sum: number, t: any) => sum + parseFloat(t.amount || '0'), 0);
+          .reduce((sum: number, t: any) => sum + parseFloat(useCaixa ? (t.paidAmount || t.amount || '0') : (t.amount || '0')), 0);
         
         const expenses = monthTransactions
           .filter((t: any) => t.type === 'expense')
-          .reduce((sum: number, t: any) => sum + parseFloat(t.amount || '0'), 0);
+          .reduce((sum: number, t: any) => sum + parseFloat(useCaixa ? (t.paidAmount || t.amount || '0') : (t.amount || '0')), 0);
         
         monthlyData.push({
           month,
