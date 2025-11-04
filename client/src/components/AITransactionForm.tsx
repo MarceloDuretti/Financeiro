@@ -28,6 +28,7 @@ const formSchema = z.object({
   title: z.string().min(1, "Título é obrigatório"),
   description: z.string().optional(),
   personName: z.string().optional(),
+  issueDate: z.string().min(1, "Data de emissão é obrigatória"),
   dueDate: z.string().min(1, "Data de vencimento é obrigatória"),
   personId: z.string().optional(),
   chartAccountId: z.string().optional(),
@@ -82,6 +83,7 @@ export function AITransactionForm({
       title: command.title || "",
       description: command.description || "",
       personName: command.personName || "",
+      issueDate: command.dueDate || format(new Date(), "yyyy-MM-dd"),
       dueDate: command.dueDate || "",
       personId: command.suggestions?.personId || "",
       chartAccountId: command.suggestions?.chartAccountId || "",
@@ -101,7 +103,7 @@ export function AITransactionForm({
 
   const wasFilledByAI = (field: keyof FormData): boolean => {
     // Check if this field was filled by the AI in the command
-    const aiFilledFields = ['type', 'amount', 'title', 'description', 'personName', 'dueDate'] as const;
+    const aiFilledFields = ['type', 'amount', 'title', 'description', 'personName', 'issueDate', 'dueDate'] as const;
     if (aiFilledFields.includes(field as any)) {
       const commandValue = command[field as keyof typeof command];
       return commandValue !== undefined && commandValue !== "";
