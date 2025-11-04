@@ -55,6 +55,13 @@ import { AITransactionPreview } from "@/components/AITransactionPreview";
 
 const SELECTED_COMPANY_KEY = "fincontrol_selected_company_id";
 
+// Format transaction code for display (e.g., REC001, DES045)
+function formatTransactionCode(transaction: Transaction): string {
+  const prefix = transaction.type === 'revenue' ? 'REC' : 'DES';
+  const paddedCode = String(transaction.code || 0).padStart(3, '0');
+  return `${prefix}${paddedCode}`;
+}
+
 const MONTHS = [
   { index: 0, short: "Jan", full: "Janeiro" },
   { index: 1, short: "Fev", full: "Fevereiro" },
@@ -1332,8 +1339,15 @@ export default function Lancamentos() {
                             data-testid={`card-transaction-${transaction.id}`}
                           >
                             <CardContent className="p-2 space-y-1">
-                              {/* Type Badge and Overdue */}
+                              {/* Code, Type Badge and Overdue */}
                               <div className="flex items-center gap-1 flex-wrap">
+                                <Badge 
+                                  variant="outline" 
+                                  className="text-[10px] h-5 px-1.5 font-mono bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600"
+                                  data-testid={`badge-code-${transaction.id}`}
+                                >
+                                  {formatTransactionCode(transaction)}
+                                </Badge>
                                 <Badge 
                                   variant={transaction.type === 'expense' ? 'destructive' : 'default'}
                                   className={`text-[10px] h-5 px-1.5 ${transaction.type === 'revenue' ? 'bg-blue-600 hover:bg-blue-700' : ''}`}
@@ -1423,6 +1437,17 @@ export default function Lancamentos() {
                               onClick={() => handleCardClick(transaction)}
                               data-testid={`row-transaction-${transaction.id}`}
                             >
+                              {/* Code */}
+                              <div className="w-[65px] flex-shrink-0">
+                                <Badge 
+                                  variant="outline" 
+                                  className="text-[11px] h-6 px-2 font-mono bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600"
+                                  data-testid={`badge-code-list-${transaction.id}`}
+                                >
+                                  {formatTransactionCode(transaction)}
+                                </Badge>
+                              </div>
+
                               {/* Type */}
                               <div className="w-[70px] flex-shrink-0">
                                 <Badge 

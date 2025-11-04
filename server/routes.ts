@@ -1720,6 +1720,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Transactions routes (authenticated + multi-tenant)
 
+  // Backfill transaction codes for existing records (one-time migration)
+  app.post("/api/transactions/backfill-codes", isAuthenticated, async (req, res) => {
+    try {
+      const tenantId = getTenantId((req as any).user);
+      const { companyId } = req.body;
+      
+      if (!companyId || typeof companyId !== 'string') {
+        return res.status(400).json({ error: "companyId é obrigatório" });
+      }
+
+      console.log(`[Backfill] Starting code backfill for tenant=${tenantId}, company=${companyId}`);
+      
+      // Get all transactions with code=0 (old records)
+      const oldTransactions = await storage.listTransactions(tenantId, companyId, {});
+      const needsBackfill = oldTransactions.filter(t => t.code === 0);
+      
+      console.log(`[Backfill] Found ${needsBackfill.length} transactions needing code assignment`);
+      
+      if (needsBackfill.length === 0) {
+        return res.json({ message: "Nenhum lançamento precisa de código", updated: 0 });
+      }
+      
+      // Sort by creation date to maintain chronological order
+      needsBackfill.sort((a, b) => 
+        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      );
+      
+      let nextCode = 1;
+      let updatedCount = 0;
+      
+      for (const transaction of needsBackfill) {
+        // Use raw SQL to update code without triggering full transaction logic
+        await db.execute(sql`
+          UPDATE transactions 
+          SET code = ${nextCode}, updated_at = NOW()
+          WHERE id = ${transaction.id}
+            AND tenant_id = ${tenantId}
+            AND company_id = ${companyId}
+        `);
+        
+        nextCode++;
+        updatedCount++;
+        
+        if (updatedCount % 100 === 0) {
+          console.log(`[Backfill] Updated ${updatedCount}/${needsBackfill.length} transactions`);
+        }
+      }
+      
+      console.log(`[Backfill] Completed! Updated ${updatedCount} transactions`);
+      
+      res.json({ 
+        message: `Códigos atribuídos com sucesso a ${updatedCount} lançamentos`,
+        updated: updatedCount 
+      });
+    } catch (error: any) {
+      console.error("Error backfilling transaction codes:", error);
+      res.status(500).json({ error: "Erro ao atribuir códigos" });
+    }
+  });
+
   // List all transactions with filters
   app.get("/api/transactions", isAuthenticated, async (req, res) => {
     try {

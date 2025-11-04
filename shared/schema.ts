@@ -709,6 +709,9 @@ export const transactions = pgTable("transactions", {
   tenantId: varchar("tenant_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
   companyId: varchar("company_id").notNull().references(() => companies.id, { onDelete: 'cascade' }),
   
+  // Auto-generated code for easy reference (REC001, DES001, etc.)
+  code: integer("code").notNull().default(0), // Auto-generated sequential code (default 0 for existing records)
+  
   // Transaction type
   type: text("type").notNull(), // "expense" or "revenue"
   
@@ -784,11 +787,14 @@ export const transactions = pgTable("transactions", {
   index("transactions_tenant_company_updated_idx").on(table.tenantId, table.companyId, table.updatedAt),
   // Index for cash register
   index("transactions_tenant_cash_register_idx").on(table.tenantId, table.cashRegisterId, table.deleted),
+  // Index for code lookup (non-unique to accommodate existing records with code=0)
+  index("transactions_tenant_company_code_idx").on(table.tenantId, table.companyId, table.code),
 ]);
 
 export const insertTransactionSchema = createInsertSchema(transactions).omit({
   id: true,
   tenantId: true,
+  code: true, // Auto-generated
   createdAt: true,
   updatedAt: true,
   version: true,

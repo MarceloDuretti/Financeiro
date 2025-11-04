@@ -219,6 +219,7 @@ export interface IStorage {
     }
   ): Promise<Transaction[]>;
   getTransaction(tenantId: string, companyId: string, id: string): Promise<Transaction | undefined>;
+  getTransactionByCode(tenantId: string, companyId: string, code: number): Promise<Transaction | undefined>;
   createTransaction(
     tenantId: string,
     companyId: string,
@@ -2338,6 +2339,51 @@ export class DatabaseStorage implements IStorage {
     return transaction;
   }
 
+  async getTransactionByCode(
+    tenantId: string,
+    companyId: string,
+    code: number
+  ): Promise<Transaction | undefined> {
+    const [transaction] = await db
+      .select()
+      .from(transactions)
+      .where(
+        and(
+          eq(transactions.tenantId, tenantId),
+          eq(transactions.companyId, companyId),
+          eq(transactions.code, code),
+          eq(transactions.deleted, false)
+        )
+      )
+      .limit(1);
+
+    return transaction;
+  }
+
+  private async getNextTransactionCode(tenantId: string, companyId: string): Promise<number> {
+    // Use advisory lock to prevent race conditions
+    return await db.transaction(async (tx) => {
+      const lockKey = this.hashStringToInt(`transaction_${tenantId}_${companyId}`);
+      
+      // Acquire transactional advisory lock (auto-released on commit)
+      await tx.execute(sql`SELECT pg_advisory_xact_lock(${lockKey})`);
+      
+      // Now safely read max code for this tenant+company
+      const result = await tx
+        .select({ maxCode: max(transactions.code) })
+        .from(transactions)
+        .where(
+          and(
+            eq(transactions.tenantId, tenantId),
+            eq(transactions.companyId, companyId)
+          )
+        );
+      
+      const currentMax = result[0]?.maxCode || 0;
+      return currentMax + 1;
+    });
+  }
+
   async createTransaction(
     tenantId: string,
     companyId: string,
@@ -2345,6 +2391,22 @@ export class DatabaseStorage implements IStorage {
     userId: string
   ): Promise<Transaction> {
     return await db.transaction(async (tx) => {
+      // Generate code with advisory lock
+      const lockKey = this.hashStringToInt(`transaction_${tenantId}_${companyId}`);
+      await tx.execute(sql`SELECT pg_advisory_xact_lock(${lockKey})`);
+      
+      const [result] = await tx
+        .select({ maxCode: max(transactions.code) })
+        .from(transactions)
+        .where(
+          and(
+            eq(transactions.tenantId, tenantId),
+            eq(transactions.companyId, companyId)
+          )
+        );
+      
+      const code = (result?.maxCode ?? 0) + 1;
+
       // If this is a paid transaction and no cash register is specified, ensure default exists
       if (transactionData.status === 'paid' && !transactionData.cashRegisterId) {
         const defaultCashRegister = await this.ensureDefaultCashRegister(tenantId, companyId);
@@ -2355,6 +2417,7 @@ export class DatabaseStorage implements IStorage {
         .insert(transactions)
         .values({
           ...transactionData,
+          code,
           tenantId,
           companyId,
           createdBy: userId,

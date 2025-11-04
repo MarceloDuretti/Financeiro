@@ -1136,3 +1136,298 @@ RETORNE APENAS O JSON, SEM EXPLICAÇÕES.`;
     throw new Error("Erro ao processar comando de lançamento");
   }
 }
+
+// ====================================
+// BATCH TRANSACTION PROCESSING
+// ====================================
+
+/**
+ * Enhanced transaction command that supports multiple transactions
+ */
+export interface BatchTransactionCommand {
+  operation: "create_multiple" | "clone_by_code" | "clone_period" | "unknown";
+  transactions: Array<{
+    type?: "revenue" | "expense";
+    amount?: string;
+    title?: string;
+    description?: string;
+    personName?: string;
+    dueDate?: string;
+    personId?: string;
+    chartAccountId?: string;
+    costCenterId?: string;
+    paymentMethodId?: string;
+  }>;
+  cloneConfig?: {
+    sourceCode?: string; // e.g., "REC001"
+    periodType?: "daily" | "weekly" | "monthly" | "yearly";
+    count?: number; // number of occurrences
+  };
+  missingFields: string[];
+  needsCountInput: boolean; // true if user didn't specify how many
+  confidence: number;
+}
+
+/**
+ * Validates if a date is valid
+ */
+function isValidDate(dateStr: string): boolean {
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) {
+    return false;
+  }
+  
+  // Parse YYYY-MM-DD
+  const parts = dateStr.split('-');
+  if (parts.length !== 3) return false;
+  
+  const year = parseInt(parts[0]);
+  const month = parseInt(parts[1]);
+  const day = parseInt(parts[2]);
+  
+  // Check ranges
+  if (month < 1 || month > 12) return false;
+  if (day < 1 || day > 31) return false;
+  
+  // Check specific month limits
+  const daysInMonth = new Date(year, month, 0).getDate();
+  if (day > daysInMonth) return false;
+  
+  return true;
+}
+
+/**
+ * Analyzes user command for batch transaction creation
+ * Supports:
+ * - Multiple specific dates: "02/11, 03/11, 04/11"
+ * - Clone by code: "clone REC001 for next 6 months"
+ * - Clone with period: "monthly for 12 months"
+ */
+export async function analyzeBatchTransactionCommand(
+  input: string,
+  availablePersons: Array<{ id: string; name: string; }>,
+  availableAccounts: Array<{ id: string; code: string; name: string; }>,
+  availableCostCenters: Array<{ id: string; code: string; name: string; }>
+): Promise<BatchTransactionCommand> {
+  try {
+    console.log("========================================");
+    console.log("[AI Batch] INPUT RECEBIDO:", input);
+    console.log("========================================");
+    
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1;
+    const currentDay = now.getDate();
+    const todayFormatted = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(currentDay).padStart(2, '0')}`;
+    
+    const systemPrompt = `Você é um assistente especializado em analisar comandos para criar MÚLTIPLAS transações financeiras.
+
+DATA ATUAL: ${todayFormatted} (ano: ${currentYear})
+
+LIMITE MÁXIMO: 50 transações por comando
+
+Analise o comando e retorne JSON:
+{
+  "operation": "create_multiple | clone_by_code | clone_period | unknown",
+  "transactions": [
+    {
+      "type": "revenue ou expense",
+      "amount": "valor",
+      "title": "título",
+      "description": "descrição",
+      "personName": "cliente/fornecedor",
+      "dueDate": "YYYY-MM-DD"
+    }
+  ],
+  "cloneConfig": {
+    "sourceCode": "código da transação (ex: REC001, DES045)",
+    "periodType": "daily | weekly | monthly | yearly",
+    "count": número de ocorrências
+  },
+  "missingFields": ["campos faltantes"],
+  "needsCountInput": true/false,
+  "confidence": 0-1
+}
+
+DETECÇÃO DE CENÁRIOS:
+
+1. MÚLTIPLAS DATAS ESPECÍFICAS (operation: "create_multiple"):
+   - Input: "crie conta Copasa para 02/11, 03/11, 04/11 valor 100"
+   - Detectar lista de datas separadas por vírgula/e
+   - Criar um objeto em transactions[] para CADA data
+   - Todas compartilham mesmo fornecedor, valor, etc.
+   - Limite: máximo 50 datas
+
+2. CLONAGEM POR CÓDIGO (operation: "clone_by_code"):
+   - Input: "clone REC001 para próximos 6 meses"
+   - Input: "copie DES045 mensalmente por 12 meses"
+   - Detectar código (padrão: 3 letras + 3 dígitos)
+   - Em cloneConfig: sourceCode, periodType, count
+   - transactions[] fica vazio (será preenchido pelo backend após buscar original)
+
+3. CLONAGEM COM PADRÃO (operation: "clone_period"):
+   - Input: "conta da Cemig mensalmente por 12 meses começando dia 15"
+   - Input: "Copasa semanalmente por 4 semanas"
+   - Detectar período (diário/semanal/mensal/anual)
+   - Detectar quantidade
+   - Gerar transactions[] com as datas calculadas
+
+4. QUANTIDADE NÃO ESPECIFICADA (needsCountInput: true):
+   - Input: "clone para meses subsequentes" (sem quantidade)
+   - Input: "crie mensalmente" (sem dizer quantos meses)
+   - Marcar needsCountInput=true
+   - Frontend perguntará quantidade ao usuário
+
+REGRAS CRÍTICAS:
+
+1. VALIDAÇÃO DE DATAS:
+   - Rejeitar datas inválidas (ex: 31/02, 30/02)
+   - Anos: sempre 4 dígitos (2025, não 25)
+   - "de dois mil e vinte e cinco" = 2025
+   - Sem ano: assumir ${currentYear}
+
+2. LIMITE:
+   - Se detectar >50 transações, retornar apenas as 50 primeiras
+   - Adicionar em missingFields: "limit_exceeded"
+
+3. CÓDIGOS DE TRANSAÇÃO:
+   - Formato: 3 letras maiúsculas + 3 dígitos (REC001, DES045, REC123)
+   - Exemplos: REC001, DES001, REC045, DES123
+   - Se detectar código, usar operation="clone_by_code"
+
+4. AUTO-PREENCHIMENTO:
+   - Se mencionar fornecedor, preencher personName em TODAS transactions
+   - Se mencionar valor, preencher amount em TODAS
+   - Se mencionar tipo, preencher type em TODAS
+
+EXEMPLOS:
+
+Input: "crie conta Copasa para 02/11, 03/11, 04/11 valor 100"
+{
+  "operation": "create_multiple",
+  "transactions": [
+    {"personName": "Copasa", "amount": "100.00", "dueDate": "${currentYear}-11-02"},
+    {"personName": "Copasa", "amount": "100.00", "dueDate": "${currentYear}-11-03"},
+    {"personName": "Copasa", "amount": "100.00", "dueDate": "${currentYear}-11-04"}
+  ],
+  "missingFields": ["type", "chartAccountId"],
+  "needsCountInput": false,
+  "confidence": 0.9
+}
+
+Input: "clone REC001 para próximos 6 meses"
+{
+  "operation": "clone_by_code",
+  "transactions": [],
+  "cloneConfig": {
+    "sourceCode": "REC001",
+    "periodType": "monthly",
+    "count": 6
+  },
+  "missingFields": [],
+  "needsCountInput": false,
+  "confidence": 0.95
+}
+
+Input: "Cemig mensalmente por 12 meses valor 250 começando dia 15"
+{
+  "operation": "clone_period",
+  "transactions": [
+    {"personName": "Cemig", "amount": "250.00", "dueDate": "${currentYear}-${String(currentMonth).padStart(2, '0')}-15"},
+    {"personName": "Cemig", "amount": "250.00", "dueDate": "[next month]-15"},
+    ... (12 total)
+  ],
+  "cloneConfig": {
+    "periodType": "monthly",
+    "count": 12
+  },
+  "missingFields": ["type", "chartAccountId"],
+  "needsCountInput": false,
+  "confidence": 0.9
+}
+
+Input: "clone para meses subsequentes a partir de 03/11"
+{
+  "operation": "clone_period",
+  "transactions": [],
+  "cloneConfig": {
+    "periodType": "monthly",
+    "count": null
+  },
+  "missingFields": ["count"],
+  "needsCountInput": true,
+  "confidence": 0.7
+}
+
+RETORNE APENAS JSON, SEM EXPLICAÇÕES.`;
+
+    const response = await callOpenAI(
+      [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: input },
+      ],
+      { jsonMode: true, maxTokens: 2000 }
+    );
+
+    console.log(`[AI Batch] Raw response:`, response);
+
+    const command: BatchTransactionCommand = JSON.parse(response);
+    
+    // Validate and limit transactions
+    if (command.transactions && command.transactions.length > 50) {
+      console.warn(`[AI Batch] Limiting from ${command.transactions.length} to 50 transactions`);
+      command.transactions = command.transactions.slice(0, 50);
+      command.missingFields.push("limit_exceeded");
+    }
+    
+    // Validate dates in transactions
+    if (command.transactions) {
+      command.transactions = command.transactions.filter(t => {
+        if (t.dueDate && !isValidDate(t.dueDate)) {
+          console.warn(`[AI Batch] Invalid date detected and removed: ${t.dueDate}`);
+          return false;
+        }
+        return true;
+      });
+    }
+    
+    // Match person names to existing persons
+    if (command.transactions) {
+      for (const transaction of command.transactions) {
+        if (transaction.personName && availablePersons.length > 0) {
+          const personNameLower = transaction.personName.toLowerCase();
+          const matchedPerson = availablePersons.find(p => 
+            p.name.toLowerCase().includes(personNameLower) || 
+            personNameLower.includes(p.name.toLowerCase())
+          );
+          
+          if (matchedPerson) {
+            transaction.personId = matchedPerson.id;
+            console.log(`[AI Batch] Matched person: ${matchedPerson.name} (${matchedPerson.id})`);
+          }
+        }
+        
+        // Suggest chart account based on type
+        if (transaction.type && availableAccounts.length > 0) {
+          const accountType = transaction.type === "revenue" ? "receita" : "despesa";
+          const matchedAccount = availableAccounts.find((acc: any) => 
+            acc.type === accountType && acc.isAnalytical === true
+          );
+          
+          if (matchedAccount) {
+            transaction.chartAccountId = matchedAccount.id;
+            console.log(`[AI Batch] Suggested chart account: ${matchedAccount.name}`);
+          }
+        }
+      }
+    }
+    
+    console.log(`[AI Batch] Processed ${command.transactions.length} transactions`);
+    console.log(`[AI Batch] Operation:`, command.operation);
+    
+    return command;
+  } catch (error: any) {
+    console.error("[AI Batch] Error analyzing command:", error);
+    throw new Error("Erro ao processar comando em lote");
+  }
+}
