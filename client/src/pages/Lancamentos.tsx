@@ -1278,7 +1278,7 @@ export default function Lancamentos() {
                                   )}
                                   
                                   {/* Amount - DESTAQUE */}
-                                  <div className={`text-[11px] font-normal tracking-tight ${
+                                  <div className={`text-[12px] font-medium tracking-tight ${
                                     transaction.type === 'expense' ? 'text-destructive' : 'text-blue-600'
                                   }`}>
                                     {transaction.type === 'expense' ? '-' : '+'} R$ {amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
