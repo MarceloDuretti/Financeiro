@@ -1003,11 +1003,19 @@ REGRAS DE ANÁLISE:
    - Extrair apenas números (ex: "R$ 1.500,00" → "1500.00")
    - Se não mencionado, deixar null
 
-4. DATAS:
-   - SEMPRE usar o ano ${currentYear} quando o usuário não especificar o ano
-   - Exemplos: "05/11" → "${currentYear}-11-05", "dia 10" → "${currentYear}-${String(currentMonth).padStart(2, '0')}-10"
-   - Se o usuário mencionar "amanhã", "hoje", "próxima semana", calcular baseado em ${todayFormatted}
-   - Formato de saída SEMPRE YYYY-MM-DD
+4. DATAS (REGRAS CRÍTICAS):
+   - ANO VIGENTE É ${currentYear} - SEMPRE priorize este ano
+   - Anos de 2 dígitos (ex: "25", "26") → interpretar como 20XX (2025, 2026), NUNCA 19XX
+   - Se mencionar ano que já passou (2015, 2020, 2023) → usar ${currentYear}
+   - Sem ano especificado: "05/11" → "${currentYear}-11-05", "dia 10" → "${currentYear}-${String(currentMonth).padStart(2, '0')}-10"
+   - Datas relativas: "amanhã", "hoje", "próxima semana" → calcular baseado em ${todayFormatted}
+   - Formato de saída SEMPRE YYYY-MM-DD (ano com 4 dígitos)
+   
+   EXEMPLOS DE INTERPRETAÇÃO CORRETA:
+   - "05/11" → "${currentYear}-11-05"
+   - "05/11/25" → "2025-11-05" (NÃO "2015-11-05"!)
+   - "dia 10 de dezembro de 2025" → "2025-12-10"
+   - "próximo mês" → considerar ${currentYear} ou ${currentYear + 1} conforme o mês atual
 
 5. PERÍODO DE CLONAGEM:
    - "ano todo" / "12 meses" → {"type": "year", "count": 12}
