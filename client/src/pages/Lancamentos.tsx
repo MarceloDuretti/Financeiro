@@ -103,7 +103,6 @@ function DraggableTransactionCard({ transaction, children, onClick }: { transact
       // CRITICAL: Detect click here (not in onClick which never fires due to DnD listeners)
       // If pointer went down and up without significant movement, it's a click
       if (!hasMoved && startPos) {
-        console.log('🎯 Click detectado via onPointerUp:', transaction.id);
         onClick();
       }
       
@@ -762,13 +761,6 @@ export default function Lancamentos() {
   });
 
   const handleCardClick = (transaction: Transaction) => {
-    console.log("🔵 DEBUG 1 - Card clicado:", {
-      transactionId: transaction.id,
-      transactionTitle: transaction.title,
-      companyId: transaction.companyId,
-      personId: transaction.personId,
-      fullTransaction: transaction
-    });
     setDetailTransaction(transaction);
     setDetailSheetOpen(true);
   };
