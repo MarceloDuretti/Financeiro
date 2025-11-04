@@ -176,36 +176,11 @@ export default function Lancamentos() {
     onSuccess: (data) => {
       console.log("[AI Command] Analysis result:", data);
       setAiCommandResult(data);
-      
-      // Generate transaction(s) directly from command result
-      const baseTransaction = {
-        type: data.type || "expense",
-        amount: data.amount || "",
-        title: data.title || "",
-        description: data.description || "",
-        personName: data.personName || "",
-        issueDate: data.dueDate || format(new Date(), "yyyy-MM-dd"),
-        dueDate: data.dueDate || "",
-        personId: data.suggestions?.personId || "",
-        chartAccountId: data.suggestions?.chartAccountId || "",
-        costCenterId: data.suggestions?.costCenterId || "",
-        paymentMethodId: data.suggestions?.paymentMethodId || "",
-      };
-      
-      let transactions: any[];
-      if (data.clonePeriod) {
-        transactions = generateClonedTransactions(baseTransaction, data.clonePeriod);
-      } else {
-        transactions = [baseTransaction];
-      }
-      
-      console.log("[AI Command] Generated transactions for inline preview:", transactions);
-      setGeneratedTransactions(transactions);
-      setShowAiPreview(true); // Show preview inline, not in sheet
+      setShowAiForm(true); // Show form first to review AI interpretation
       
       toast({
-        title: "Análise concluída",
-        description: `${transactions.length} lançamento(s) pronto(s) para revisão`,
+        title: "Comando analisado",
+        description: "Revise os dados antes de continuar",
       });
     },
     onError: (error: Error) => {
