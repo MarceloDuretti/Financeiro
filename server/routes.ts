@@ -2714,7 +2714,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Generate AI insights
+  // Generate AI insights - Professional Consultative Report
   app.post("/api/analytics/ai-insights", isAuthenticated, async (req, res) => {
     try {
       const tenantId = getTenantId((req as any).user);
@@ -2728,6 +2728,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "month e year são obrigatórios" });
       }
       
+      // Get company info for report
+      const companies = await storage.listCompanies(tenantId);
+      const company = companies.find(c => c.id === companyId);
+      const companyName = company?.tradingName || company?.legalName || "Empresa";
+      
       // Get DRE and indicators data
       const monthNum = parseInt(month);
       const yearNum = parseInt(year);
@@ -2736,15 +2741,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const currentStart = new Date(yearNum, monthNum - 1, 1);
       const currentEnd = new Date(yearNum, monthNum, 0, 23, 59, 59);
       
+      // Get previous month data for comparison
+      const prevMonthNum = monthNum === 1 ? 12 : monthNum - 1;
+      const prevYearNum = monthNum === 1 ? yearNum - 1 : yearNum;
+      const prevStart = new Date(prevYearNum, prevMonthNum - 1, 1);
+      const prevEnd = new Date(prevYearNum, prevMonthNum, 0, 23, 59, 59);
+      
+      // Get same month last year for YoY comparison
+      const lastYearStart = new Date(yearNum - 1, monthNum - 1, 1);
+      const lastYearEnd = new Date(yearNum - 1, monthNum, 0, 23, 59, 59);
+      
       const transactions = await storage.listTransactions(tenantId, companyId);
       const chartAccounts = await storage.listChartOfAccounts(tenantId);
       
+      // Filter transactions for each period
       const monthTransactions = transactions.filter((t: any) => {
         const issueDate = new Date(t.issueDate);
         return issueDate >= currentStart && issueDate <= currentEnd && t.status !== 'cancelled';
       });
       
-      // Calculate basic metrics
+      const prevMonthTransactions = transactions.filter((t: any) => {
+        const issueDate = new Date(t.issueDate);
+        return issueDate >= prevStart && issueDate <= prevEnd && t.status !== 'cancelled';
+      });
+      
+      const lastYearTransactions = transactions.filter((t: any) => {
+        const issueDate = new Date(t.issueDate);
+        return issueDate >= lastYearStart && issueDate <= lastYearEnd && t.status !== 'cancelled';
+      });
+      
+      // Calculate metrics for current month
       const revenues = monthTransactions
         .filter((t: any) => t.type === 'revenue')
         .reduce((sum: number, t: any) => sum + parseFloat(t.paidAmount || t.amount || '0'), 0);
@@ -2755,6 +2781,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const profit = revenues - expenses;
       const margin = revenues > 0 ? (profit / revenues) * 100 : 0;
+      
+      // Calculate metrics for previous month
+      const prevRevenues = prevMonthTransactions
+        .filter((t: any) => t.type === 'revenue')
+        .reduce((sum: number, t: any) => sum + parseFloat(t.paidAmount || t.amount || '0'), 0);
+      
+      const prevExpenses = prevMonthTransactions
+        .filter((t: any) => t.type === 'expense')
+        .reduce((sum: number, t: any) => sum + parseFloat(t.paidAmount || t.amount || '0'), 0);
+      
+      const prevProfit = prevRevenues - prevExpenses;
+      
+      // Calculate metrics for last year same month
+      const lastYearRevenues = lastYearTransactions
+        .filter((t: any) => t.type === 'revenue')
+        .reduce((sum: number, t: any) => sum + parseFloat(t.paidAmount || t.amount || '0'), 0);
+      
+      const lastYearExpenses = lastYearTransactions
+        .filter((t: any) => t.type === 'expense')
+        .reduce((sum: number, t: any) => sum + parseFloat(t.paidAmount || t.amount || '0'), 0);
+      
+      const lastYearProfit = lastYearRevenues - lastYearExpenses;
+      
+      // Calculate growth rates
+      const revenueGrowthMoM = prevRevenues > 0 ? ((revenues - prevRevenues) / prevRevenues) * 100 : 0;
+      const revenueGrowthYoY = lastYearRevenues > 0 ? ((revenues - lastYearRevenues) / lastYearRevenues) * 100 : 0;
+      const expenseGrowthMoM = prevExpenses > 0 ? ((expenses - prevExpenses) / prevExpenses) * 100 : 0;
       
       // Group by chart account
       const accountTotals = new Map<string, { name: string, total: number, type: string }>();
@@ -2773,7 +2826,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       });
       
-      // Get top 5 revenue and expense accounts
+      // Get top revenue and expense accounts
       const accountsArray = Array.from(accountTotals.values());
       const topRevenues = accountsArray
         .filter((a: any) => a.type === 'receita')
@@ -2785,38 +2838,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .sort((a, b) => b.total - a.total)
         .slice(0, 5);
       
-      // Generate AI insights
-      const prompt = `Você é um analista financeiro especializado. Analise os seguintes dados financeiros e forneça 3-5 insights práticos e acionáveis em português:
+      // Calculate expense ratios
+      const expenseToRevenueRatio = revenues > 0 ? (expenses / revenues) * 100 : 0;
+      
+      // Month name
+      const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", 
+                          "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+      const monthName = monthNames[monthNum - 1];
+      const prevMonthName = monthNames[prevMonthNum - 1];
+      
+      // Generate comprehensive AI analysis
+      const prompt = `Você é um consultor financeiro sênior. Analise os dados financeiros abaixo e crie um relatório consultivo profissional e completo em formato JSON com texto analítico.
 
-Período: ${monthNum}/${yearNum}
+**CONTEXTO DA EMPRESA:**
+Empresa: ${companyName}
+Período analisado: ${monthName}/${yearNum}
 
-Resumo Financeiro:
-- Receitas: R$ ${revenues.toFixed(2)}
-- Despesas: R$ ${expenses.toFixed(2)}
-- Lucro: R$ ${profit.toFixed(2)}
-- Margem: ${margin.toFixed(1)}%
+**DADOS FINANCEIROS DO PERÍODO:**
 
-Top 5 Contas de Receita:
-${topRevenues.map(a => `- ${a.name}: R$ ${a.total.toFixed(2)}`).join('\n')}
+Mês Atual (${monthName}/${yearNum}):
+- Receitas: R$ ${revenues.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+- Despesas: R$ ${expenses.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+- Resultado: R$ ${profit.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+- Margem Líquida: ${margin.toFixed(1)}%
+- Despesas/Receita: ${expenseToRevenueRatio.toFixed(1)}%
 
-Top 5 Contas de Despesa:
-${topExpenses.map(a => `- ${a.name}: R$ ${a.total.toFixed(2)}`).join('\n')}
+Comparação com Mês Anterior (${prevMonthName}/${prevYearNum}):
+- Receitas anterior: R$ ${prevRevenues.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+- Variação MoM: ${revenueGrowthMoM > 0 ? '+' : ''}${revenueGrowthMoM.toFixed(1)}%
+- Despesas anterior: R$ ${prevExpenses.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+- Variação MoM: ${expenseGrowthMoM > 0 ? '+' : ''}${expenseGrowthMoM.toFixed(1)}%
+- Resultado anterior: R$ ${prevProfit.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
 
-Forneça insights em formato JSON como um array de objetos com as chaves:
-- type: "warning" (vermelho), "success" (verde), "info" (azul), ou "tip" (amarelo)
-- title: título curto (max 50 caracteres)
-- description: descrição detalhada (max 200 caracteres)
+Comparação Anual (${monthName}/${yearNum - 1}):
+- Receitas ano anterior: R$ ${lastYearRevenues.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+- Variação YoY: ${revenueGrowthYoY > 0 ? '+' : ''}${revenueGrowthYoY.toFixed(1)}%
+- Resultado ano anterior: R$ ${lastYearProfit.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
 
-Exemplo de resposta:
-[
-  {
-    "type": "warning",
-    "title": "Despesas operacionais altas",
-    "description": "As despesas operacionais representam 65% da receita, acima da média do setor de 40-50%."
-  }
-]
+Principais Fontes de Receita:
+${topRevenues.map((a, i) => `${i+1}. ${a.name}: R$ ${a.total.toLocaleString('pt-BR', {minimumFractionDigits: 2})} (${revenues > 0 ? ((a.total/revenues)*100).toFixed(1) : 0}%)`).join('\n')}
 
-Retorne apenas o array JSON, sem explicações adicionais.`;
+Principais Despesas:
+${topExpenses.map((a, i) => `${i+1}. ${a.name}: R$ ${a.total.toLocaleString('pt-BR', {minimumFractionDigits: 2})} (${revenues > 0 ? ((a.total/revenues)*100).toFixed(1) : 0}% da receita)`).join('\n')}
+
+**INSTRUÇÕES PARA O RELATÓRIO:**
+
+Retorne um JSON com a seguinte estrutura (OBRIGATÓRIO usar esta estrutura exata):
+
+{
+  "executiveSummary": "Texto de 2-4 parágrafos resumindo a situação geral da empresa no período, destacando os principais resultados e tendências observadas. Escreva como um consultor experiente analisando a saúde financeira do negócio.",
+  
+  "revenueAnalysis": "Texto de 2-3 parágrafos analisando as receitas: evolução, principais fontes, tendências, sazonalidade e pontos de atenção.",
+  
+  "expenseAnalysis": "Texto de 2-3 parágrafos analisando as despesas: evolução, principais categorias, eficiência operacional, despesas atípicas e oportunidades de otimização.",
+  
+  "indicators": "Texto de 1-2 parágrafos apresentando e interpretando os principais indicadores financeiros calculados (margem líquida, despesas/receita, etc).",
+  
+  "trends": "Texto de 1-2 parágrafos identificando tendências observadas nos últimos meses e comparação anual.",
+  
+  "alerts": "Texto de 1-2 parágrafos destacando alertas, riscos e pontos críticos que merecem atenção imediata.",
+  
+  "recommendations": "Texto de 2-3 parágrafos com recomendações estratégicas práticas e acionáveis para melhorar a performance financeira.",
+  
+  "insights": [
+    {
+      "type": "warning" | "success" | "info" | "tip",
+      "title": "Título curto (max 60 caracteres)",
+      "description": "Descrição detalhada (max 250 caracteres)"
+    }
+  ]
+}
+
+**DIRETRIZES DE ESCRITA:**
+- Use linguagem profissional mas acessível
+- Seja específico com números e percentuais
+- Compare sempre com períodos anteriores
+- Identifique causas e efeitos
+- Sugira ações concretas
+- Mantenha tom consultivo e construtivo
+- Use parágrafos bem estruturados
+- Crie pelo menos 5-8 insights no array final`;
 
       const response = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
@@ -2829,7 +2930,7 @@ Retorne apenas o array JSON, sem explicações adicionais.`;
           messages: [
             {
               role: "system",
-              content: "Você é um assistente financeiro especializado em análise de demonstrativos financeiros. Sempre responda em português do Brasil com insights práticos e acionáveis."
+              content: "Você é um consultor financeiro sênior especializado em análise de demonstrativos financeiros. Escreva relatórios consultivos completos e profissionais em português do Brasil, como se estivesse assessorando o CEO da empresa."
             },
             {
               role: "user",
@@ -2837,7 +2938,8 @@ Retorne apenas o array JSON, sem explicações adicionais.`;
             }
           ],
           temperature: 0.7,
-          max_tokens: 1000,
+          max_tokens: 3000,
+          response_format: { type: "json_object" }
         }),
       });
       
@@ -2846,22 +2948,43 @@ Retorne apenas o array JSON, sem explicações adicionais.`;
       }
       
       const data = await response.json();
-      const content = data.choices[0]?.message?.content || "[]";
+      const content = data.choices[0]?.message?.content || "{}";
       
       // Parse AI response
-      let insights = [];
+      let analysisData: any = {};
       try {
-        insights = JSON.parse(content);
+        analysisData = JSON.parse(content);
       } catch (e) {
-        // If parsing fails, create a fallback insight
-        insights = [{
-          type: "info",
-          title: "Análise disponível",
-          description: "Os dados foram processados. Continue monitorando seus indicadores financeiros."
-        }];
+        console.error("Failed to parse AI response:", e);
+        analysisData = {
+          executiveSummary: "Não foi possível gerar a análise completa. Por favor, tente novamente.",
+          insights: [{
+            type: "info",
+            title: "Análise indisponível",
+            description: "Ocorreu um erro ao processar os dados. Tente novamente em alguns instantes."
+          }]
+        };
       }
       
-      res.json({ insights });
+      // Ensure insights array exists
+      if (!analysisData.insights || !Array.isArray(analysisData.insights)) {
+        analysisData.insights = [];
+      }
+      
+      // Add metadata for PDF generation
+      analysisData.metadata = {
+        companyName,
+        period: `${monthName}/${yearNum}`,
+        generatedAt: new Date().toISOString(),
+        revenues,
+        expenses,
+        profit,
+        margin,
+        revenueGrowthMoM,
+        revenueGrowthYoY
+      };
+      
+      res.json(analysisData);
     } catch (error: any) {
       console.error("Error generating AI insights:", error);
       res.status(500).json({ message: error.message || "Erro ao gerar insights" });
