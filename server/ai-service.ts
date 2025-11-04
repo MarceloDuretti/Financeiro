@@ -958,7 +958,16 @@ export async function analyzeTransactionCommand(
   try {
     console.log("[AI Transaction] Analyzing command:", input);
     
+    // Get current date for AI context
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1;
+    const currentDay = now.getDate();
+    const todayFormatted = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(currentDay).padStart(2, '0')}`;
+    
     const systemPrompt = `Você é um assistente especializado em analisar comandos para criar lançamentos financeiros.
+
+DATA ATUAL: ${todayFormatted} (ano: ${currentYear})
 
 Analise o comando fornecido e extraia as informações no formato JSON:
 
@@ -994,12 +1003,18 @@ REGRAS DE ANÁLISE:
    - Extrair apenas números (ex: "R$ 1.500,00" → "1500.00")
    - Se não mencionado, deixar null
 
-4. PERÍODO DE CLONAGEM:
+4. DATAS:
+   - SEMPRE usar o ano ${currentYear} quando o usuário não especificar o ano
+   - Exemplos: "05/11" → "${currentYear}-11-05", "dia 10" → "${currentYear}-${String(currentMonth).padStart(2, '0')}-10"
+   - Se o usuário mencionar "amanhã", "hoje", "próxima semana", calcular baseado em ${todayFormatted}
+   - Formato de saída SEMPRE YYYY-MM-DD
+
+5. PERÍODO DE CLONAGEM:
    - "ano todo" / "12 meses" → {"type": "year", "count": 12}
    - "semestre" / "6 meses" → {"type": "semester", "count": 6}
    - "próximos 3 meses" → {"type": "custom", "count": 3}
 
-5. CAMPOS FALTANTES:
+6. CAMPOS FALTANTES:
    Sempre incluir campos que NÃO foram mencionados:
    - "dueDate" (se não mencionou data)
    - "chartAccountId" (se não mencionou conta contábil)
