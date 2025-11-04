@@ -956,7 +956,9 @@ export async function analyzeTransactionCommand(
   availableCostCenters: Array<{ id: string; code: string; name: string; }>
 ): Promise<TransactionCommand> {
   try {
-    console.log("[AI Transaction] Analyzing command:", input);
+    console.log("========================================");
+    console.log("[AI Transaction] INPUT RECEBIDO:", input);
+    console.log("========================================");
     
     // Get current date for AI context
     const now = new Date();
@@ -1070,6 +1072,14 @@ Output: {
   "dueDate": "[tomorrow's date]",
   "missingFields": ["chartAccountId", "title"],
   "confidence": 0.9
+}
+
+Input: "cinco do onze de dois mil e vinte e cinco"
+Output: {
+  "operation": "create",
+  "dueDate": "2025-11-05",
+  "missingFields": ["type", "amount", "chartAccountId", "costCenterId", "title"],
+  "confidence": 0.7
 }
 
 RETORNE APENAS O JSON, SEM EXPLICAÇÕES.`;
