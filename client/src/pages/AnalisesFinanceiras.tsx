@@ -33,6 +33,7 @@ import {
   Lightbulb,
   ChevronRight,
   ChevronDown,
+  FileDown,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
@@ -49,6 +50,8 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
 
 // Hierarchical account node interface
 interface AccountNode {
@@ -147,6 +150,147 @@ export default function AnalisesFinanceiras() {
 
   // Extract current month data from yearly evolution (source of truth for totals)
   const currentMonthData = yearlyEvolution?.data?.find((m: any) => m.month === selectedMonth) || { revenues: 0, expenses: 0, profit: 0 };
+
+  // Export PDF function
+  const exportToPDF = () => {
+    if (!aiAnalysis) return;
+
+    const doc = new jsPDF();
+    const monthName = months.find(m => m.value === selectedMonth)?.label || '';
+    
+    // Add header and title
+    doc.setFontSize(20);
+    doc.setTextColor(59, 130, 246); // primary color
+    doc.text('Relatório Consultivo Financeiro', 105, 20, { align: 'center' });
+    
+    doc.setFontSize(14);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`${monthName} ${selectedYear}`, 105, 28, { align: 'center' });
+    
+    if (aiAnalysis.metadata?.companyName) {
+      doc.setFontSize(11);
+      doc.text(aiAnalysis.metadata.companyName, 105, 35, { align: 'center' });
+    }
+    
+    let yPos = 50;
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 20;
+    const maxWidth = pageWidth - (margin * 2);
+    
+    // Helper function to add text with word wrap
+    const addSection = (title: string, content: string, color: [number, number, number] = [0, 0, 0]) => {
+      // Check if we need a new page
+      if (yPos > 250) {
+        doc.addPage();
+        yPos = 20;
+      }
+      
+      // Title
+      doc.setFontSize(12);
+      doc.setTextColor(color[0], color[1], color[2]);
+      doc.setFont('helvetica', 'bold');
+      doc.text(title, margin, yPos);
+      yPos += 7;
+      
+      // Content
+      doc.setFontSize(10);
+      doc.setTextColor(50, 50, 50);
+      doc.setFont('helvetica', 'normal');
+      const lines = doc.splitTextToSize(content, maxWidth);
+      doc.text(lines, margin, yPos);
+      yPos += (lines.length * 5) + 8;
+    };
+    
+    // Add sections
+    if (aiAnalysis.executiveSummary) {
+      addSection('Resumo Executivo', aiAnalysis.executiveSummary, [59, 130, 246]);
+    }
+    
+    if (aiAnalysis.revenueAnalysis) {
+      addSection('Análise de Receitas', aiAnalysis.revenueAnalysis, [34, 197, 94]);
+    }
+    
+    if (aiAnalysis.expenseAnalysis) {
+      addSection('Análise de Despesas', aiAnalysis.expenseAnalysis, [239, 68, 68]);
+    }
+    
+    if (aiAnalysis.indicators) {
+      addSection('Indicadores Financeiros', aiAnalysis.indicators, [59, 130, 246]);
+    }
+    
+    if (aiAnalysis.trends) {
+      addSection('Tendências', aiAnalysis.trends, [168, 85, 247]);
+    }
+    
+    if (aiAnalysis.alerts) {
+      addSection('Alertas e Riscos', aiAnalysis.alerts, [245, 158, 11]);
+    }
+    
+    if (aiAnalysis.recommendations) {
+      addSection('Recomendações Estratégicas', aiAnalysis.recommendations, [6, 182, 212]);
+    }
+    
+    // Add insights table if available
+    if (aiAnalysis.insights && aiAnalysis.insights.length > 0) {
+      if (yPos > 220) {
+        doc.addPage();
+        yPos = 20;
+      }
+      
+      doc.setFontSize(12);
+      doc.setTextColor(0, 0, 0);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Insights Rápidos', margin, yPos);
+      yPos += 5;
+      
+      const tableData = aiAnalysis.insights.map((insight: any) => [
+        insight.type === 'warning' ? '⚠️' : insight.type === 'success' ? '✓' : insight.type === 'tip' ? '💡' : 'ℹ️',
+        insight.title,
+        insight.description
+      ]);
+      
+      (doc as any).autoTable({
+        startY: yPos,
+        head: [['', 'Insight', 'Descrição']],
+        body: tableData,
+        theme: 'grid',
+        styles: { fontSize: 9, cellPadding: 2 },
+        headStyles: { fillColor: [59, 130, 246], textColor: [255, 255, 255] },
+        columnStyles: {
+          0: { cellWidth: 10 },
+          1: { cellWidth: 50 },
+          2: { cellWidth: 120 }
+        }
+      });
+    }
+    
+    // Add footer with metadata
+    const pageCount = (doc as any).internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setTextColor(150, 150, 150);
+      doc.text(
+        `Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`,
+        margin,
+        doc.internal.pageSize.getHeight() - 10
+      );
+      doc.text(
+        `Página ${i} de ${pageCount}`,
+        pageWidth - margin,
+        doc.internal.pageSize.getHeight() - 10,
+        { align: 'right' }
+      );
+    }
+    
+    // Save PDF
+    doc.save(`Relatorio_Consultivo_${monthName}_${selectedYear}.pdf`);
+    
+    toast({
+      title: "PDF exportado com sucesso",
+      description: "O relatório foi salvo em seu computador.",
+    });
+  };
 
   const months = [
     { value: 1, label: "Janeiro" }, { value: 2, label: "Fevereiro" },
@@ -565,6 +709,17 @@ export default function AnalisesFinanceiras() {
           <div className="space-y-4">
             {/* Action Buttons */}
             <div className="flex justify-end gap-2">
+              {aiAnalysis && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={exportToPDF}
+                  data-testid="button-export-pdf"
+                >
+                  <FileDown className="h-4 w-4 mr-2" />
+                  Exportar PDF
+                </Button>
+              )}
               <Button 
                 variant="default" 
                 size="sm" 
