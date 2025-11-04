@@ -1011,9 +1011,17 @@ REGRAS DE ANÁLISE:
    - Datas relativas: "amanhã", "hoje", "próxima semana" → calcular baseado em ${todayFormatted}
    - Formato de saída SEMPRE YYYY-MM-DD (ano com 4 dígitos)
    
+   ATENÇÃO ESPECIAL - ANOS POR EXTENSO COM "DE":
+   - "de dois mil e vinte e cinco" → 2025 (NÃO 2015!)
+   - "de dois mil e vinte e seis" → 2026 (NÃO 2016!)
+   - "de dois mil e vinte e sete" → 2027 (NÃO 2017!)
+   - Quando ouvir "de dois mil e [número]", interpretar como ano completo 20XX
+   - "vinte e cinco" após "dois mil" = 2025, não 25 ou 2015
+   
    EXEMPLOS DE INTERPRETAÇÃO CORRETA:
    - "05/11" → "${currentYear}-11-05"
    - "05/11/25" → "2025-11-05" (NÃO "2015-11-05"!)
+   - "cinco do onze de dois mil e vinte e cinco" → "2025-11-05" (CRÍTICO!)
    - "dia 10 de dezembro de 2025" → "2025-12-10"
    - "próximo mês" → considerar ${currentYear} ou ${currentYear + 1} conforme o mês atual
 
