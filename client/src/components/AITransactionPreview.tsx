@@ -94,14 +94,20 @@ export function AITransactionPreview({
   }, 0);
 
   const handleConfirm = () => {
-    // Apply edited fields to all transactions
-    const updatedTransactions = transactions.map(t => ({
-      ...t,
-      chartAccountId: chartAccountId || t.chartAccountId,
-      // For cost center, we'll send the distributions and backend will handle it
-      // For now, just use the first one if single selection
-      costCenterId: costCenterDistributions[0]?.costCenterId || t.costCenterId,
-    }));
+    // Apply edited fields to all transactions, removing empty strings
+    const updatedTransactions = transactions.map(t => {
+      const transaction: any = {
+        ...t,
+        chartAccountId: chartAccountId || t.chartAccountId,
+        costCenterId: costCenterDistributions[0]?.costCenterId || t.costCenterId,
+      };
+      
+      // Remove empty string fields to avoid foreign key violations
+      if (transaction.paymentMethodId === "") delete transaction.paymentMethodId;
+      if (transaction.bankAccountId === "") delete transaction.bankAccountId;
+      
+      return transaction;
+    });
     onConfirm(updatedTransactions);
   };
 
