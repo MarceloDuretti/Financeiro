@@ -2545,16 +2545,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return issueDate >= startDate && issueDate <= endDate && t.status !== 'cancelled';
       });
       
-      // Build account totals map
-      const accountTotals = new Map<string, number>();
+      // Build SEPARATE account totals maps for revenues and expenses
+      // This handles cases where revenue transactions are in expense accounts (or vice-versa)
+      const revenueAccountTotals = new Map<string, number>();
+      const expenseAccountTotals = new Map<string, number>();
+      
       monthTransactions.forEach((t: any) => {
         if (t.chartAccountId) {
           // Use paidAmount for caixa, amount for competência
           const amount = parseFloat(useCaixa ? (t.paidAmount || t.amount || '0') : (t.amount || '0'));
-          accountTotals.set(
-            t.chartAccountId,
-            (accountTotals.get(t.chartAccountId) || 0) + amount
-          );
+          
+          if (t.type === 'revenue') {
+            revenueAccountTotals.set(
+              t.chartAccountId,
+              (revenueAccountTotals.get(t.chartAccountId) || 0) + amount
+            );
+          } else if (t.type === 'expense') {
+            expenseAccountTotals.set(
+              t.chartAccountId,
+              (expenseAccountTotals.get(t.chartAccountId) || 0) + amount
+            );
+          }
         }
       });
       
@@ -2575,16 +2586,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         accounts: any[],
         parentPath: string | null,
         depth: number,
-        rootTotal: number
+        rootTotal: number,
+        accountTotalsMap: Map<string, number>
       ): AccountNode[] => {
         const children = accounts.filter(acc => acc.parentPath === parentPath);
         
         return children.map(account => {
           // Get direct transaction total for this account
-          const directTotal = accountTotals.get(account.id) || 0;
+          const directTotal = accountTotalsMap.get(account.id) || 0;
           
           // Recursively get children
-          const childrenNodes = buildHierarchy(accounts, account.path, depth + 1, rootTotal);
+          const childrenNodes = buildHierarchy(accounts, account.path, depth + 1, rootTotal, accountTotalsMap);
           
           // Calculate total: direct + all children
           const childrenTotal = childrenNodes.reduce((sum, child) => sum + child.total, 0);
@@ -2616,8 +2628,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       };
       
-      // Separate revenues and expenses based on TRANSACTION type, not account type
-      // (to handle cases where revenues are in expense accounts or vice-versa)
+      // Calculate totals based on TRANSACTION type (handles mismatched account types)
       const totalRevenues = monthTransactions
         .filter((t: any) => t.type === 'revenue')
         .reduce((sum: number, t: any) => sum + parseFloat(useCaixa ? (t.paidAmount || t.amount || '0') : (t.amount || '0')), 0);
@@ -2626,13 +2637,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .filter((t: any) => t.type === 'expense')
         .reduce((sum: number, t: any) => sum + parseFloat(useCaixa ? (t.paidAmount || t.amount || '0') : (t.amount || '0')), 0);
       
-      // Keep account separation for hierarchy building
+      // Separate accounts by type for hierarchy structure
       const revenueAccounts = chartAccounts.filter((a: any) => a.type === 'receita');
       const expenseAccounts = chartAccounts.filter((a: any) => a.type === 'despesa');
       
-      // Build hierarchies (starting from root accounts)
-      const revenues = buildHierarchy(revenueAccounts, null, 0, totalRevenues);
-      const expenses = buildHierarchy(expenseAccounts, null, 0, totalExpenses);
+      // Build hierarchies with correct transaction maps
+      const revenues = buildHierarchy(revenueAccounts, null, 0, totalRevenues, revenueAccountTotals);
+      const expenses = buildHierarchy(expenseAccounts, null, 0, totalExpenses, expenseAccountTotals);
       
       res.json({
         revenues,
