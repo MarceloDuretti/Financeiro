@@ -191,15 +191,26 @@ export default function Lancamentos() {
     },
   });
 
+  // Helper function to convert date string (yyyy-MM-dd) to ISO string with proper timezone
+  const convertDateToISO = (dateStr: string): string => {
+    // Parse yyyy-MM-dd and create Date at noon UTC to avoid timezone shifts
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const date = new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
+    return date.toISOString();
+  };
+
   // Batch transaction creation mutation
   const createBatchMutation = useMutation({
     mutationFn: async (transactions: any[]) => {
       if (!selectedCompanyId) throw new Error("Nenhuma empresa selecionada");
       
-      // Add companyId to each transaction
+      // Add companyId and convert dates to ISO strings
       const transactionsWithCompany = transactions.map(t => ({
         ...t,
         companyId: selectedCompanyId,
+        issueDate: t.issueDate ? convertDateToISO(t.issueDate) : undefined,
+        dueDate: t.dueDate ? convertDateToISO(t.dueDate) : undefined,
+        paidDate: t.paidDate ? convertDateToISO(t.paidDate) : undefined,
       }));
       
       const res = await apiRequest("POST", "/api/transactions/batch", { 
