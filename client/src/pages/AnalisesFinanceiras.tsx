@@ -244,22 +244,22 @@ export default function AnalisesFinanceiras() {
       yPos += 5;
       
       const tableData = aiAnalysis.insights.map((insight: any) => [
-        insight.type === 'warning' ? '⚠️' : insight.type === 'success' ? '✓' : insight.type === 'tip' ? '💡' : 'ℹ️',
+        insight.type === 'warning' ? 'ALERTA' : insight.type === 'success' ? 'SUCESSO' : insight.type === 'tip' ? 'DICA' : 'INFO',
         insight.title,
         insight.description
       ]);
       
       (doc as any).autoTable({
         startY: yPos,
-        head: [['', 'Insight', 'Descrição']],
+        head: [['Tipo', 'Insight', 'Descrição']],
         body: tableData,
         theme: 'grid',
         styles: { fontSize: 9, cellPadding: 2 },
         headStyles: { fillColor: [59, 130, 246], textColor: [255, 255, 255] },
         columnStyles: {
-          0: { cellWidth: 10 },
+          0: { cellWidth: 20 },
           1: { cellWidth: 50 },
-          2: { cellWidth: 120 }
+          2: { cellWidth: 110 }
         }
       });
     }
