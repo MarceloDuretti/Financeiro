@@ -66,6 +66,12 @@ export function AITransactionPreview({
     queryKey: ['/api/chart-of-accounts'],
   });
 
+  // Load the customer/supplier details (includes defaultChartAccountId)
+  const { data: personDetails } = useQuery<any>({
+    queryKey: [`/api/customers-suppliers/${personId}`],
+    enabled: !!personId,
+  });
+
   // Load cost centers for the selected person (customer/supplier)
   const { data: personCostCenters = [] } = useQuery<Array<{ id: string; code: number; name: string }>>({
     queryKey: [`/api/customers-suppliers/${personId}/cost-centers`],
@@ -83,6 +89,12 @@ export function AITransactionPreview({
       return;
     }
     
+    // Second, check if the customer/supplier has a default chart account
+    if (personDetails?.defaultChartAccountId) {
+      setChartAccountId(personDetails.defaultChartAccountId);
+      return;
+    }
+    
     // Otherwise, find account based on transaction type
     const transactionType = transactions[0]?.type; // "revenue" or "expense"
     if (transactionType) {
@@ -96,7 +108,7 @@ export function AITransactionPreview({
         setChartAccountId(matchingAccount.id);
       }
     }
-  }, [chartAccounts, chartAccountId, transactions]);
+  }, [chartAccounts, chartAccountId, transactions, personDetails]);
 
   // Pre-fill cost center distributions based on person's cost centers
   useEffect(() => {
