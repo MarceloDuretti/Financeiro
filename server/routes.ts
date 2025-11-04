@@ -2261,6 +2261,161 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get DRE with hierarchical structure and percentages
+  app.get("/api/analytics/dre-hierarchical", isAuthenticated, async (req, res) => {
+    try {
+      const tenantId = getTenantId((req as any).user);
+      const { companyId, month, year } = req.query;
+      
+      if (!companyId || typeof companyId !== 'string') {
+        return res.status(400).json({ error: "companyId é obrigatório" });
+      }
+      
+      if (!month || !year) {
+        return res.status(400).json({ error: "month e year são obrigatórios" });
+      }
+      
+      const monthNum = parseInt(month as string);
+      const yearNum = parseInt(year as string);
+      
+      const startDate = new Date(yearNum, monthNum - 1, 1);
+      const endDate = new Date(yearNum, monthNum, 0, 23, 59, 59);
+      
+      const transactions = await storage.listTransactions(tenantId, companyId);
+      const chartAccounts = await storage.listChartOfAccounts(tenantId);
+      
+      // Filter transactions by date
+      const monthTransactions = transactions.filter((t: any) => {
+        const issueDate = new Date(t.issueDate);
+        return issueDate >= startDate && issueDate <= endDate && t.status !== 'cancelled';
+      });
+      
+      // Group by chart account
+      const accountTotals = new Map<string, number>();
+      monthTransactions.forEach((t: any) => {
+        if (t.chartAccountId) {
+          const amount = parseFloat(t.paidAmount || t.amount || '0');
+          const current = accountTotals.get(t.chartAccountId) || 0;
+          accountTotals.set(t.chartAccountId, current + amount);
+        }
+      });
+      
+      // Build hierarchical structure
+      const buildHierarchy = (parentId: string | null, type: string): any[] => {
+        const accounts = chartAccounts
+          .filter((a: any) => a.type === type && a.parentId === parentId && !a.deleted)
+          .sort((a: any, b: any) => a.code.localeCompare(b.code));
+        
+        return accounts.map((account: any) => {
+          const children: any[] = buildHierarchy(account.id, type);
+          const directValue: number = accountTotals.get(account.id) || 0;
+          const childrenValue: number = children.reduce((sum: number, child: any) => sum + child.total, 0);
+          const total: number = directValue + childrenValue;
+          
+          return {
+            id: account.id,
+            code: account.code,
+            name: account.name,
+            depth: account.depth,
+            total,
+            children: children.length > 0 ? children : undefined,
+            hasChildren: children.length > 0,
+          };
+        });
+      };
+      
+      const revenues = buildHierarchy(null, 'receita');
+      const expenses = buildHierarchy(null, 'despesa');
+      
+      const totalRevenues = revenues.reduce((sum: number, a: any) => sum + a.total, 0);
+      const totalExpenses = expenses.reduce((sum: number, a: any) => sum + a.total, 0);
+      const netResult = totalRevenues - totalExpenses;
+      
+      // Add percentages to all nodes
+      const addPercentages = (nodes: any[], parentTotal: number, rootTotal: number): any[] => {
+        return nodes.map((node: any) => {
+          const percentOfParent = parentTotal > 0 ? (node.total / parentTotal) * 100 : 0;
+          const percentOfRoot = rootTotal > 0 ? (node.total / rootTotal) * 100 : 0;
+          
+          return {
+            ...node,
+            percentOfParent,
+            percentOfRoot,
+            children: node.children ? addPercentages(node.children, node.total, rootTotal) : undefined,
+          };
+        });
+      };
+      
+      const revenuesWithPercent = addPercentages(revenues, totalRevenues, totalRevenues);
+      const expensesWithPercent = addPercentages(expenses, totalExpenses, totalExpenses);
+      
+      res.json({
+        revenues: revenuesWithPercent,
+        expenses: expensesWithPercent,
+        totalRevenues,
+        totalExpenses,
+        netResult,
+      });
+    } catch (error: any) {
+      console.error("Error calculating hierarchical DRE:", error);
+      res.status(500).json({ message: error.message || "Erro ao calcular DRE hierárquico" });
+    }
+  });
+
+  // Get yearly evolution (last 12 months)
+  app.get("/api/analytics/yearly-evolution", isAuthenticated, async (req, res) => {
+    try {
+      const tenantId = getTenantId((req as any).user);
+      const { companyId, year } = req.query;
+      
+      if (!companyId || typeof companyId !== 'string') {
+        return res.status(400).json({ error: "companyId é obrigatório" });
+      }
+      
+      if (!year) {
+        return res.status(400).json({ error: "year é obrigatório" });
+      }
+      
+      const yearNum = parseInt(year as string);
+      const transactions = await storage.listTransactions(tenantId, companyId);
+      
+      // Calculate for all 12 months
+      const monthlyData = [];
+      for (let month = 1; month <= 12; month++) {
+        const startDate = new Date(yearNum, month - 1, 1);
+        const endDate = new Date(yearNum, month, 0, 23, 59, 59);
+        
+        const monthTransactions = transactions.filter((t: any) => {
+          const issueDate = new Date(t.issueDate);
+          return issueDate >= startDate && issueDate <= endDate && t.status !== 'cancelled';
+        });
+        
+        const revenues = monthTransactions
+          .filter((t: any) => t.type === 'revenue')
+          .reduce((sum: number, t: any) => sum + parseFloat(t.paidAmount || t.amount || '0'), 0);
+        
+        const expenses = monthTransactions
+          .filter((t: any) => t.type === 'expense')
+          .reduce((sum: number, t: any) => sum + parseFloat(t.paidAmount || t.amount || '0'), 0);
+        
+        const profit = revenues - expenses;
+        
+        monthlyData.push({
+          month,
+          monthName: new Date(yearNum, month - 1, 1).toLocaleDateString('pt-BR', { month: 'short' }),
+          revenues,
+          expenses,
+          profit,
+        });
+      }
+      
+      res.json({ data: monthlyData, year: yearNum });
+    } catch (error: any) {
+      console.error("Error calculating yearly evolution:", error);
+      res.status(500).json({ message: error.message || "Erro ao calcular evolução anual" });
+    }
+  });
+
   // Get financial indicators
   app.get("/api/analytics/indicators", isAuthenticated, async (req, res) => {
     try {

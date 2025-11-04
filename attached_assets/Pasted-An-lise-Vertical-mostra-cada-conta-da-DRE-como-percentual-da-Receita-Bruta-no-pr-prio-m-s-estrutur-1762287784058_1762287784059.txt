@@ -1,0 +1,43 @@
+Análise Vertical: mostra cada conta da DRE como percentual da Receita Bruta no próprio mês (estrutura de custos/receitas).
+Análise Horizontal: mostra a variação percentual mês a mês por conta (tendências e aceleração/queda).
+DRE Planejado x Realizado: compara valores orçados/planejados com os realizados, evidenciando desvios em R$ e %.
+Indicadores de Desempenho (KPIs): gauges para Faturamento, Ticket Médio, Margem de Contribuição, Ponto de Equilíbrio, EBITDA e Lucratividade, comparando Planejado vs Realizado.
+Como calcular (fórmulas essenciais)
+
+Vertical (A.V.): AV(conta,m) = 100 × valor(conta,m) / ReceitaBruta(m)
+Para despesas, usar valor absoluto no numerador (exibir sinal na linha se quiser).
+Horizontal (A.H.): AH(conta,m) = 100 × [valor(conta,m) − valor(conta,m−1)] / |valor(conta,m−1)|
+Planejado x Realizado:
+Desvio R$: ΔR$ = Realizado − Planejado
+Desvio %: Δ% = 100 × (Realizado − Planejado) / |Planejado|
+KPIs típicos:
+Faturamento Bruto = Σ receitas do mês
+Ticket Médio = Receita Líquida / nº de vendas (ou nº transações de receita)
+Margem de Contribuição (%) = (Receita Líquida − Despesas Variáveis) / Receita Líquida × 100
+Ponto de Equilíbrio (R$) = Custos Fixos / (Margem de Contribuição %/100)
+EBITDA = Lucro Operacional + Depreciação + Amortização
+Lucratividade (%) = Lucro Líquido / Receita Líquida × 100
+Mapeando para seu sistema atual
+
+DRE atual: server/routes.ts (line 2184) já retorna receitas/despesas por conta do mês. Dá para derivar a Vertical calculando % de cada linha sobre totalRevenues.
+Indicadores atuais: server/routes.ts (line 2265) já calcula crescimento agregado (Receitas, Despesas, Lucro). A Horizontal por conta exige também os totais do mês anterior por conta (hoje só há agregados).
+Insights IA: já existem em server/routes.ts (line 2366), sem impacto aqui.
+Lacunas que impedem 100% das telas das imagens
+
+Planejado (budget): não há tabela de orçado/planejado por conta/período; a tela “Metas” é só placeholder (client/src/pages/Metas.tsx). Precisamos de um “budget” para o Planejado x Realizado e para os gauges (valores “Planejado”).
+Classificações DRE: para KPIs como Margem de Contribuição/PE/EBITDA, é preciso separar contas em Variáveis x Fixas, além de marcar Depreciação/Amortização e Deduções de Receita. Hoje temos só type receita/despesa e código da conta.
+Proposta objetiva de implementação
+
+Backend
+Vertical: novo endpoint GET /api/analytics/vertical que reaproveita o retorno da DRE e devolve, por conta, valor e percent = valor/totalRevenues.
+Horizontal: GET /api/analytics/horizontal que retorna, por conta, valor_m, valor_m_1 e variacao%. Pode aceitar month/year e calcular m-1 internamente.
+Planejado x Realizado: criar tabela de orçamento (companyId, month, year, chartAccountId, amount) e endpoint GET /api/analytics/plan-vs-actual com planejado, realizado, ΔR$, Δ%.
+Classificadores DRE: adicionar campos em Plano de Contas (ex.: naturezaDre: 'deducao'|'cogs'|'despesa_variavel'|'despesa_fixa'|'depreciacao'|'amortizacao'|...) para calcular KPIs (margem contrib., EBITDA, PE).
+Frontend
+Em client/src/pages/AnalisesFinanceiras.tsx, criar abas “Vertical”, “Horizontal” e “Planejado x Realizado”.
+Tabelas: colunas extras “A.V.” e “A.H.” como nas imagens; coloração verde/vermelho por sinal da variação.
+KPIs: gauges comparando Planejado x Realizado no mês (cards com subtítulo dos dois valores).
+Observações importantes
+
+Base temporal: hoje seus cálculos usam competência (issueDate). Se preferir “caixa” ou “vencimento”, adicionar parâmetro basis=accrual|due|cash nos endpoints.
+Pendente x Pago: atualmente pendentes entram nos cálculos (exceto canceladas). Para Planejado x Realizado, normalmente considera-se somente “realizado” (pagas) em base caixa; deixe isso configurável.
