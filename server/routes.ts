@@ -2616,18 +2616,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       };
       
-      // Separate revenues and expenses
+      // Separate revenues and expenses based on TRANSACTION type, not account type
+      // (to handle cases where revenues are in expense accounts or vice-versa)
+      const totalRevenues = monthTransactions
+        .filter((t: any) => t.type === 'revenue')
+        .reduce((sum: number, t: any) => sum + parseFloat(useCaixa ? (t.paidAmount || t.amount || '0') : (t.amount || '0')), 0);
+      
+      const totalExpenses = monthTransactions
+        .filter((t: any) => t.type === 'expense')
+        .reduce((sum: number, t: any) => sum + parseFloat(useCaixa ? (t.paidAmount || t.amount || '0') : (t.amount || '0')), 0);
+      
+      // Keep account separation for hierarchy building
       const revenueAccounts = chartAccounts.filter((a: any) => a.type === 'receita');
       const expenseAccounts = chartAccounts.filter((a: any) => a.type === 'despesa');
-      
-      // Calculate totals for root level percentages
-      const totalRevenues = Array.from(accountTotals.entries())
-        .filter(([id]) => revenueAccounts.some(a => a.id === id))
-        .reduce((sum, [, amount]) => sum + amount, 0);
-      
-      const totalExpenses = Array.from(accountTotals.entries())
-        .filter(([id]) => expenseAccounts.some(a => a.id === id))
-        .reduce((sum, [, amount]) => sum + amount, 0);
       
       // Build hierarchies (starting from root accounts)
       const revenues = buildHierarchy(revenueAccounts, null, 0, totalRevenues);
@@ -2648,11 +2649,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Get yearly evolution (12 months)
   app.get("/api/analytics/yearly-evolution", isAuthenticated, async (req, res) => {
-    // Disable cache temporarily for debugging
-    res.setHeader('Cache-Control', 'no-store');
-    
-    console.log('[DEBUG] yearly-evolution called with params:', req.query);
-    
     try {
       const tenantId = getTenantId((req as any).user);
       const { companyId, year, regime = 'caixa' } = req.query;
@@ -2683,16 +2679,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return issueDate >= startDate && issueDate <= endDate && t.status !== 'cancelled';
         });
         
-        // Debug: log transaction data for November
-        if (month === 11) {
-          console.log(`[DEBUG Nov] Total transactions: ${monthTransactions.length}`);
-          console.log(`[DEBUG Nov] Sample:`, monthTransactions.slice(0, 3).map((t: any) => ({ 
-            type: t.type, 
-            amount: t.amount, 
-            paidAmount: t.paidAmount 
-          })));
-        }
-        
         const revenues = monthTransactions
           .filter((t: any) => t.type === 'revenue')
           .reduce((sum: number, t: any) => sum + parseFloat(useCaixa ? (t.paidAmount || t.amount || '0') : (t.amount || '0')), 0);
@@ -2700,12 +2686,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const expenses = monthTransactions
           .filter((t: any) => t.type === 'expense')
           .reduce((sum: number, t: any) => sum + parseFloat(useCaixa ? (t.paidAmount || t.amount || '0') : (t.amount || '0')), 0);
-        
-        if (month === 11) {
-          console.log(`[DEBUG Nov] Revenue count: ${monthTransactions.filter((t: any) => t.type === 'revenue').length}`);
-          console.log(`[DEBUG Nov] Expense count: ${monthTransactions.filter((t: any) => t.type === 'expense').length}`);
-          console.log(`[DEBUG Nov] Revenues: ${revenues}, Expenses: ${expenses}, Profit: ${revenues - expenses}`);
-        }
         
         monthlyData.push({
           month,
@@ -2716,16 +2696,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Add debug info
-      const novData = monthlyData.find((m: any) => m.month === 11);
-      res.json({ 
-        data: monthlyData,
-        debug: {
-          november: novData,
-          regime,
-          year: yearNum
-        }
-      });
+      res.json({ data: monthlyData });
     } catch (error: any) {
       console.error("Error getting yearly evolution:", error);
       res.status(500).json({ message: error.message || "Erro ao buscar evolução anual" });
