@@ -120,13 +120,14 @@ export default function AnalisesFinanceiras() {
   // AI Insights mutation
   const generateInsightsMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest('POST', '/api/analytics/ai-insights', {
+      const res = await apiRequest('POST', '/api/analytics/ai-insights', {
         companyId: activeCompanyId,
         month: selectedMonth,
         year: selectedYear,
       });
+      return await res.json();
     },
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       setAIInsights(data.insights || []);
       toast({
         title: "Insights gerados com sucesso",
