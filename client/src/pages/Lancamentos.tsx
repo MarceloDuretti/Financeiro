@@ -1571,9 +1571,9 @@ export default function Lancamentos() {
                 transactions={generatedTransactions}
                 clonePeriod={aiCommandResult?.clonePeriod}
                 isSubmitting={createBatchMutation.isPending}
-                onConfirm={() => {
-                  console.log("[AI Preview] Confirmed - creating transactions:", generatedTransactions);
-                  createBatchMutation.mutate(generatedTransactions);
+                onConfirm={(updatedTransactions) => {
+                  console.log("[AI Preview] Confirmed - creating transactions:", updatedTransactions);
+                  createBatchMutation.mutate(updatedTransactions);
                 }}
                 onEdit={() => {
                   setShowAiPreview(false);
