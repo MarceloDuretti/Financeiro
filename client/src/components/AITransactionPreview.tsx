@@ -210,7 +210,7 @@ export function AITransactionPreview({
   const missingFields = getMissingFields();
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {/* Company Header */}
       {selectedCompany && (
         <div className="flex items-center gap-2 p-3 rounded-md bg-primary/5 border border-primary/20">
@@ -223,21 +223,27 @@ export function AITransactionPreview({
 
       {/* Header */}
       <div>
-        <h3 className="text-lg font-semibold">Revisão Final</h3>
-        <p className="text-sm text-muted-foreground">
+        <h3 className="text-base font-semibold">Revisão Final</h3>
+        <p className="text-xs text-muted-foreground">
           Confira todos os dados antes de criar os lançamentos
         </p>
       </div>
 
-      {/* Summary - Compact */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="p-2.5 rounded-md bg-muted/50">
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Lançamentos</p>
-          <p className="text-xl font-semibold">{transactions.length}</p>
+      {/* Summary - 3 Cards in Same Row */}
+      <div className="grid grid-cols-3 gap-2">
+        <div className="p-2 rounded-md bg-muted/50">
+          <p className="text-[9px] text-muted-foreground uppercase tracking-wide">Fornecedor</p>
+          <p className="text-xs font-semibold truncate" title={personDetails?.name || transactions[0]?.personName || "Não informado"}>
+            {personDetails?.name || transactions[0]?.personName || "Não informado"}
+          </p>
         </div>
-        <div className="p-2.5 rounded-md bg-muted/50">
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Valor Total</p>
-          <p className="text-xl font-semibold">
+        <div className="p-2 rounded-md bg-muted/50">
+          <p className="text-[9px] text-muted-foreground uppercase tracking-wide">Lançamentos</p>
+          <p className="text-xs font-semibold">{transactions.length}</p>
+        </div>
+        <div className="p-2 rounded-md bg-muted/50">
+          <p className="text-[9px] text-muted-foreground uppercase tracking-wide">Valor Total</p>
+          <p className="text-xs font-semibold">
             {formatCurrency(totalAmount.toString())}
           </p>
         </div>
@@ -245,9 +251,9 @@ export function AITransactionPreview({
 
       {/* Clone Period Info - Compact */}
       {clonePeriod && (
-        <div className="flex items-center gap-2 p-2.5 rounded-md bg-blue-500/10 border border-blue-500/20">
-          <Calendar className="w-4 h-4 text-blue-600 dark:text-blue-500" />
-          <p className="text-xs font-medium text-blue-900 dark:text-blue-100">
+        <div className="flex items-center gap-2 p-2 rounded-md bg-blue-500/10 border border-blue-500/20">
+          <Calendar className="w-3.5 h-3.5 text-blue-600 dark:text-blue-500" />
+          <p className="text-[11px] font-medium text-blue-900 dark:text-blue-100">
             {clonePeriod.type === "year" && "Lançamento mensal - ano todo"}
             {clonePeriod.type === "semester" && "Lançamento mensal - semestre"}
             {clonePeriod.type === "month" && `${clonePeriod.count || 1} meses`}
@@ -258,10 +264,10 @@ export function AITransactionPreview({
 
       {/* Missing Fields Warning */}
       {missingFields.length > 0 && (
-        <div className="flex items-start gap-2 p-2.5 rounded-md bg-yellow-500/10 border border-yellow-500/20">
-          <AlertCircle className="w-4 h-4 text-yellow-600 dark:text-yellow-500 mt-0.5 flex-shrink-0" />
+        <div className="flex items-start gap-2 p-2 rounded-md bg-yellow-500/10 border border-yellow-500/20">
+          <AlertCircle className="w-3.5 h-3.5 text-yellow-600 dark:text-yellow-500 mt-0.5 flex-shrink-0" />
           <div className="flex-1">
-            <p className="text-xs font-medium text-yellow-900 dark:text-yellow-100">
+            <p className="text-[11px] font-medium text-yellow-900 dark:text-yellow-100">
               {missingFields.join(", ")}
             </p>
           </div>
@@ -269,17 +275,17 @@ export function AITransactionPreview({
       )}
 
       {/* Editable Fields - Compact */}
-      <div className="space-y-3 p-3 rounded-md border bg-card">
+      <div className="space-y-1 p-2.5 rounded-md border bg-card">
         <div className="flex items-center justify-between">
-          <h4 className="text-sm font-semibold">Campos Obrigatórios</h4>
+          <h4 className="text-xs font-semibold">Campos Obrigatórios</h4>
           <Badge variant="outline" className="text-[9px] h-4 px-1.5">
-            Para todos os {transactions.length} lançamentos
+            {transactions.length}x
           </Badge>
         </div>
 
         {/* Transaction Type */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium flex items-center gap-1.5">
+        <div className="space-y-1">
+          <label className="text-xs font-medium flex items-center gap-1">
             Tipo de Lançamento
             <Badge variant="outline" className="text-[9px] h-4 px-1.5 bg-blue-500/10 border-blue-500/20 text-blue-700">
               {transactionType === "revenue" ? "Receita" : "Despesa"}
@@ -306,8 +312,8 @@ export function AITransactionPreview({
         </div>
 
         {/* Chart Account */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium flex items-center gap-1.5">
+        <div className="space-y-1">
+          <label className="text-xs font-medium flex items-center gap-1">
             Plano de Contas
             {!chartAccountId && (
               <Badge variant="outline" className="text-[9px] h-4 px-1.5 bg-yellow-500/10 border-yellow-500/20 text-yellow-700">
@@ -330,8 +336,8 @@ export function AITransactionPreview({
         </div>
 
         {/* Cost Center */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium flex items-center gap-1.5">
+        <div className="space-y-1">
+          <label className="text-xs font-medium flex items-center gap-1">
             Centro de Custo (Rateio)
             {costCenterDistributions.length === 0 && (
               <Badge variant="outline" className="text-[9px] h-4 px-1.5 bg-yellow-500/10 border-yellow-500/20 text-yellow-700">
@@ -358,10 +364,10 @@ export function AITransactionPreview({
         </div>
       </div>
 
-      {/* Transactions List - Compact, No Scroll */}
-      <div className="space-y-2">
-        <p className="text-xs font-medium text-muted-foreground">Lançamentos que serão criados:</p>
-        <div className="space-y-1.5 max-h-[180px] overflow-y-auto">
+      {/* Transactions List - Compact */}
+      <div className="space-y-1.5">
+        <p className="text-xs font-medium text-muted-foreground">Lançamentos ({transactions.length}):</p>
+        <div className="space-y-1 max-h-[100px] overflow-y-auto">
           {transactions.map((transaction, index) => (
             <div
               key={index}
@@ -381,7 +387,7 @@ export function AITransactionPreview({
                       {transaction.title}
                     </p>
                   </div>
-                  <div className="flex items-center gap-2 mt-1 text-[10px] text-muted-foreground">
+                  <div className="flex items-center gap-1.5 mt-0.5 text-[10px] text-muted-foreground">
                     <span>{formatDate(transaction.dueDate)}</span>
                     {transaction.personName && (
                       <>
@@ -393,7 +399,7 @@ export function AITransactionPreview({
                 </div>
                 <div className="text-right">
                   <p
-                    className={`text-sm font-semibold ${
+                    className={`text-xs font-semibold ${
                       transactionType === "revenue"
                         ? "text-blue-600 dark:text-blue-400"
                         : "text-red-600 dark:text-red-400"
@@ -409,7 +415,7 @@ export function AITransactionPreview({
       </div>
 
       {/* Actions */}
-      <div className="flex justify-end gap-2 pt-2">
+      <div className="flex justify-end gap-2 pt-1">
         <Button
           type="button"
           variant="outline"
