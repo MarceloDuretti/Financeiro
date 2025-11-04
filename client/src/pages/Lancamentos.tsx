@@ -176,10 +176,36 @@ export default function Lancamentos() {
     onSuccess: (data) => {
       console.log("[AI Command] Analysis result:", data);
       setAiCommandResult(data);
-      setShowAiForm(true);
+      
+      // Generate transaction(s) directly from command result
+      const baseTransaction = {
+        type: data.type || "expense",
+        amount: data.amount || "",
+        title: data.title || "",
+        description: data.description || "",
+        personName: data.personName || "",
+        issueDate: data.dueDate || format(new Date(), "yyyy-MM-dd"),
+        dueDate: data.dueDate || "",
+        personId: data.suggestions?.personId || "",
+        chartAccountId: data.suggestions?.chartAccountId || "",
+        costCenterId: data.suggestions?.costCenterId || "",
+        paymentMethodId: data.suggestions?.paymentMethodId || "",
+      };
+      
+      let transactions: any[];
+      if (data.clonePeriod) {
+        transactions = generateClonedTransactions(baseTransaction, data.clonePeriod);
+      } else {
+        transactions = [baseTransaction];
+      }
+      
+      console.log("[AI Command] Generated transactions for inline preview:", transactions);
+      setGeneratedTransactions(transactions);
+      setShowAiPreview(true); // Show preview inline, not in sheet
+      
       toast({
-        title: "Comando analisado",
-        description: `Operação: ${data.operation}, Confiança: ${(data.confidence * 100).toFixed(0)}%`,
+        title: "Análise concluída",
+        description: `${transactions.length} lançamento(s) pronto(s) para revisão`,
       });
     },
     onError: (error: Error) => {
@@ -745,7 +771,10 @@ export default function Lancamentos() {
           <Button 
             size="sm"
             variant="outline"
-            onClick={() => setAiAssistOpen(true)}
+            onClick={() => {
+              setShowAiPreview(false);
+              setAiAssistOpen(!aiAssistOpen);
+            }}
             data-testid="button-ai-assist"
           >
             <Sparkles className="w-4 h-4" />
@@ -764,6 +793,44 @@ export default function Lancamentos() {
           </Button>
         </div>
       </div>
+
+      {/* AI Assistant - Inline */}
+      {aiAssistOpen && (
+        <div className="px-4 pb-4 space-y-4 animate-in slide-in-from-top-2 duration-300">
+          {/* AI Input */}
+          <div className="bg-card border rounded-lg p-4">
+            <AITransactionInput
+              onProcess={(input) => analyzeCommandMutation.mutate(input)}
+              isProcessing={analyzeCommandMutation.isPending}
+              placeholder="Descreva o lançamento que deseja criar..."
+            />
+          </div>
+
+          {/* AI Preview - Shows inline below input */}
+          {showAiPreview && generatedTransactions.length > 0 && (
+            <div className="bg-card border rounded-lg p-4 animate-in slide-in-from-top-2 duration-200">
+              <AITransactionPreview
+                transactions={generatedTransactions}
+                clonePeriod={aiCommandResult?.clonePeriod}
+                isSubmitting={createBatchMutation.isPending}
+                onConfirm={(updatedTransactions) => {
+                  console.log("[AI Preview] Confirmed - creating transactions:", updatedTransactions);
+                  createBatchMutation.mutate(updatedTransactions);
+                }}
+                onEdit={() => {
+                  setShowAiPreview(false);
+                  setGeneratedTransactions([]);
+                }}
+                onCancel={() => {
+                  setShowAiPreview(false);
+                  setGeneratedTransactions([]);
+                  setAiCommandResult(null);
+                }}
+              />
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Main Content Area */}
       <div className="flex flex-1 overflow-hidden">
