@@ -794,11 +794,11 @@ export default function Lancamentos() {
         </div>
       </div>
 
-      {/* AI Assistant - Inline */}
+      {/* AI Assistant - Inline - Ultra Compact */}
       {aiAssistOpen && (
-        <div className="px-4 pb-4 space-y-4 animate-in slide-in-from-top-2 duration-300">
+        <div className="px-4 pb-2 space-y-2 animate-in slide-in-from-top-2 duration-300">
           {/* AI Input */}
-          <div className="bg-card border rounded-lg p-4">
+          <div className="bg-card/50 border rounded-md p-2">
             <AITransactionInput
               onProcess={(input) => analyzeCommandMutation.mutate(input)}
               isProcessing={analyzeCommandMutation.isPending}
@@ -808,7 +808,7 @@ export default function Lancamentos() {
 
           {/* AI Preview - Shows inline below input */}
           {showAiPreview && generatedTransactions.length > 0 && (
-            <div className="bg-card border rounded-lg p-4 animate-in slide-in-from-top-2 duration-200">
+            <div className="bg-card/50 border rounded-md p-2 animate-in slide-in-from-top-2 duration-200">
               <AITransactionPreview
                 transactions={generatedTransactions}
                 clonePeriod={aiCommandResult?.clonePeriod}
