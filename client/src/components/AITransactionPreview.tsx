@@ -7,6 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ChartAccountPicker } from "@/components/ChartAccountPicker";
 import { TransactionCostCenterPicker, type CostCenterDistribution } from "@/components/TransactionCostCenterPicker";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const SELECTED_COMPANY_KEY = "fincontrol_selected_company_id";
 
@@ -48,11 +55,24 @@ export function AITransactionPreview({
   const selectedCompanyId = localStorage.getItem(SELECTED_COMPANY_KEY);
   
   // State for editable fields
+  const [transactionType, setTransactionType] = useState<"revenue" | "expense">("revenue");
   const [chartAccountId, setChartAccountId] = useState<string>("");
   const [costCenterDistributions, setCostCenterDistributions] = useState<CostCenterDistribution[]>([]);
+  const [typeManuallyChanged, setTypeManuallyChanged] = useState(false);
 
   // Get personId from first transaction (they should all have the same person in batch)
   const personId = transactions[0]?.personId;
+  
+  // Initialize transaction type from first transaction and reset manual change flag
+  useEffect(() => {
+    if (transactions.length > 0 && transactions[0]?.type) {
+      setTransactionType(transactions[0].type);
+      // Reset manual change flag for new batch
+      setTypeManuallyChanged(false);
+      // Reset chart account to allow fresh suggestion
+      setChartAccountId("");
+    }
+  }, [transactions]);
 
   // Load company data
   const { data: companies = [] } = useQuery<any[]>({
@@ -82,21 +102,23 @@ export function AITransactionPreview({
   useEffect(() => {
     if (chartAccountId || chartAccounts.length === 0) return;
     
-    // First, check if AI already suggested a chartAccountId
-    const aiSuggestedId = transactions[0]?.chartAccountId;
-    if (aiSuggestedId) {
-      setChartAccountId(aiSuggestedId);
-      return;
+    // If type was manually changed, skip AI suggestion and go directly to type-based lookup
+    if (!typeManuallyChanged) {
+      // First, check if AI already suggested a chartAccountId
+      const aiSuggestedId = transactions[0]?.chartAccountId;
+      if (aiSuggestedId) {
+        setChartAccountId(aiSuggestedId);
+        return;
+      }
+      
+      // Second, check if the customer/supplier has a default chart account
+      if (personDetails?.defaultChartAccountId) {
+        setChartAccountId(personDetails.defaultChartAccountId);
+        return;
+      }
     }
     
-    // Second, check if the customer/supplier has a default chart account
-    if (personDetails?.defaultChartAccountId) {
-      setChartAccountId(personDetails.defaultChartAccountId);
-      return;
-    }
-    
-    // Otherwise, find account based on transaction type
-    const transactionType = transactions[0]?.type; // "revenue" or "expense"
+    // Otherwise, find account based on current transaction type state
     if (transactionType) {
       const accountType = transactionType === "revenue" ? "receita" : "despesa";
       // Find first analytical account of the matching type
@@ -108,7 +130,7 @@ export function AITransactionPreview({
         setChartAccountId(matchingAccount.id);
       }
     }
-  }, [chartAccounts, chartAccountId, transactions, personDetails]);
+  }, [chartAccounts, chartAccountId, transactionType, personDetails, typeManuallyChanged]);
 
   // Pre-fill cost center distributions based on person's cost centers
   useEffect(() => {
@@ -149,10 +171,11 @@ export function AITransactionPreview({
   }, 0);
 
   const handleConfirm = () => {
-    // Apply edited fields to all transactions, including cost center distributions
+    // Apply edited fields to all transactions, including type, cost center distributions
     const updatedTransactions = transactions.map(t => {
       const transaction: any = {
         ...t,
+        type: transactionType, // Apply the edited type to all transactions
         chartAccountId: chartAccountId || t.chartAccountId,
         // Include the full cost center distributions array with percentages
         costCenterDistributions: costCenterDistributions.length > 0 
@@ -254,6 +277,34 @@ export function AITransactionPreview({
           </Badge>
         </div>
 
+        {/* Transaction Type */}
+        <div className="space-y-1.5">
+          <label className="text-xs font-medium flex items-center gap-1.5">
+            Tipo de Lançamento
+            <Badge variant="outline" className="text-[9px] h-4 px-1.5 bg-blue-500/10 border-blue-500/20 text-blue-700">
+              {transactionType === "revenue" ? "Receita" : "Despesa"}
+            </Badge>
+          </label>
+          <Select
+            value={transactionType}
+            onValueChange={(value) => {
+              setTransactionType(value as "revenue" | "expense");
+              // Mark that type was manually changed by user
+              setTypeManuallyChanged(true);
+              // Reset chart account when type changes to find appropriate account
+              setChartAccountId("");
+            }}
+          >
+            <SelectTrigger data-testid="select-transaction-type">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="revenue">Receita</SelectItem>
+              <SelectItem value="expense">Despesa</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
         {/* Chart Account */}
         <div className="space-y-1.5">
           <label className="text-xs font-medium flex items-center gap-1.5">
@@ -321,10 +372,10 @@ export function AITransactionPreview({
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5">
                     <Badge
-                      variant={transaction.type === "revenue" ? "default" : "destructive"}
+                      variant={transactionType === "revenue" ? "default" : "destructive"}
                       className="text-[9px] h-4 px-1"
                     >
-                      {transaction.type === "revenue" ? "Receita" : "Despesa"}
+                      {transactionType === "revenue" ? "Receita" : "Despesa"}
                     </Badge>
                     <p className="text-xs font-medium truncate">
                       {transaction.title}
@@ -343,7 +394,7 @@ export function AITransactionPreview({
                 <div className="text-right">
                   <p
                     className={`text-sm font-semibold ${
-                      transaction.type === "revenue"
+                      transactionType === "revenue"
                         ? "text-blue-600 dark:text-blue-400"
                         : "text-red-600 dark:text-red-400"
                     }`}
