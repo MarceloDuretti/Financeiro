@@ -302,8 +302,8 @@ export default function Lancamentos() {
 
   // Update transaction date mutation (for drag-and-drop)
   const updateTransactionDateMutation = useMutation({
-    mutationFn: async ({ transactionId, newDate }: { transactionId: string, newDate: string }) => {
-      const res = await apiRequest("PATCH", `/api/transactions/${transactionId}`, {
+    mutationFn: async ({ transactionId, companyId, newDate }: { transactionId: string, companyId: string, newDate: string }) => {
+      const res = await apiRequest("PATCH", `/api/transactions/${transactionId}?companyId=${companyId}`, {
         dueDate: convertDateToISO(newDate),
         issueDate: convertDateToISO(newDate),
       });
@@ -343,6 +343,7 @@ export default function Lancamentos() {
     // Update the transaction date
     updateTransactionDateMutation.mutate({
       transactionId: transactionData.id,
+      companyId: transactionData.companyId,
       newDate: newDate,
     });
   };
