@@ -1253,14 +1253,14 @@ export default function Lancamentos() {
                                   <div className="flex items-center justify-between gap-1">
                                     <Badge 
                                       variant="outline" 
-                                      className="text-[8px] h-3.5 px-1 font-mono bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600"
+                                      className="text-[9px] h-4 px-1.5 font-mono bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600"
                                       data-testid={`badge-code-week-${transaction.id}`}
                                     >
                                       {formatTransactionCode(transaction)}
                                     </Badge>
                                     <Badge 
                                       variant="outline" 
-                                      className={`text-[8px] h-3.5 px-1 ${
+                                      className={`text-[9px] h-4 px-1.5 ${
                                         isPaid ? 'border-blue-600/50 text-blue-600' : 
                                         isOverdue ? 'border-orange-600/50 text-orange-600' : 
                                         'border-border/50 text-muted-foreground'
