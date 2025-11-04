@@ -47,6 +47,9 @@ export function AITransactionInput({
       
       if (finalTranscript) {
         const transcript = finalTranscript.trim();
+        console.log("========================================");
+        console.log("[VOZ] Texto transcrito:", transcript);
+        console.log("========================================");
         setInput(prev => prev ? `${prev} ${transcript}` : transcript);
         
         toast({
@@ -120,6 +123,9 @@ export function AITransactionInput({
       return;
     }
 
+    console.log("========================================");
+    console.log("[FRONTEND] Enviando para API:", input.trim());
+    console.log("========================================");
     onProcess(input.trim());
   };
 
