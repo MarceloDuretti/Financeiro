@@ -1589,14 +1589,15 @@ export default function Lancamentos() {
                   console.log("[AI Form] Submitted data:", data);
                   
                   // Apply edited data from form to all AI-generated transactions
+                  // IMPORTANT: Preserve AI-specific dates for each transaction
                   const transactions = (aiCommandResult.transactions || []).map((aiTx: any, index: number) => ({
                     type: data.type,
                     amount: data.amount,
                     title: data.title,
                     description: data.description,
                     personName: data.personName,
-                    issueDate: data.issueDate || data.dueDate,
-                    dueDate: aiTx.dueDate || data.dueDate, // Keep AI-generated date if available
+                    issueDate: aiTx.issueDate || aiTx.dueDate || data.issueDate || data.dueDate, // Use AI's dueDate if issueDate not specified
+                    dueDate: aiTx.dueDate || data.dueDate, // Preserve AI-specific due date
                     personId: aiTx.personId || data.personId,
                     chartAccountId: aiTx.chartAccountId || data.chartAccountId,
                     costCenterId: aiTx.costCenterId || data.costCenterId,
