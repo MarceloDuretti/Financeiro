@@ -167,10 +167,11 @@ export default function Lancamentos() {
     mutationFn: async (command: string) => {
       if (!selectedCompanyId) throw new Error("Nenhuma empresa selecionada");
       
-      return apiRequest<any>("/api/transactions/analyze-command", {
-        method: "POST",
-        body: JSON.stringify({ command, companyId: selectedCompanyId }),
+      const res = await apiRequest("POST", "/api/transactions/analyze-command", { 
+        command, 
+        companyId: selectedCompanyId 
       });
+      return res.json();
     },
     onSuccess: (data) => {
       console.log("[AI Command] Analysis result:", data);
@@ -201,10 +202,10 @@ export default function Lancamentos() {
         companyId: selectedCompanyId,
       }));
       
-      return apiRequest<any>("/api/transactions/batch", {
-        method: "POST",
-        body: JSON.stringify({ transactions: transactionsWithCompany }),
+      const res = await apiRequest("POST", "/api/transactions/batch", { 
+        transactions: transactionsWithCompany 
       });
+      return res.json();
     },
     onSuccess: (data) => {
       console.log("[Batch Transaction] Created:", data);
