@@ -51,7 +51,14 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import jsPDF from "jspdf";
-import "jspdf-autotable";
+import autoTable from "jspdf-autotable";
+
+// Extend jsPDF type to include autoTable
+declare module 'jspdf' {
+  interface jsPDF {
+    autoTable: (options: any) => jsPDF;
+  }
+}
 
 // Hierarchical account node interface
 interface AccountNode {
@@ -249,7 +256,7 @@ export default function AnalisesFinanceiras() {
         insight.description
       ]);
       
-      (doc as any).autoTable({
+      autoTable(doc, {
         startY: yPos,
         head: [['Tipo', 'Insight', 'Descrição']],
         body: tableData,
