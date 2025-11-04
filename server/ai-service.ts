@@ -1111,6 +1111,23 @@ RETORNE APENAS O JSON, SEM EXPLICAÇÕES.`;
       }
     }
     
+    // Suggest appropriate chart account based on transaction type
+    if (command.type && availableAccounts.length > 0) {
+      const accountType = command.type === "revenue" ? "receita" : "despesa";
+      
+      // Find a suitable analytical account of the matching type
+      // Prioritize accounts that might match the context
+      const matchedAccount = availableAccounts.find((acc: any) => 
+        acc.type === accountType && acc.isAnalytical === true
+      );
+      
+      if (matchedAccount) {
+        command.suggestions = command.suggestions || {};
+        command.suggestions.chartAccountId = matchedAccount.id;
+        console.log(`[AI Transaction] Suggested chart account: ${matchedAccount.name} (${matchedAccount.id})`);
+      }
+    }
+    
     console.log(`[AI Transaction] Processed command:`, command);
     
     return command;

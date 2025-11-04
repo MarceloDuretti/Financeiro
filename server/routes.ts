@@ -1180,6 +1180,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get customer/supplier cost centers
+  app.get("/api/customers-suppliers/:id/cost-centers", isAuthenticated, async (req, res) => {
+    try {
+      const tenantId = getTenantId((req as any).user);
+      const { id } = req.params;
+      
+      const costCenters = await storage.listCostCentersByCustomerSupplier(tenantId, id);
+      res.json(costCenters);
+    } catch (error) {
+      console.error("Error getting customer/supplier cost centers:", error);
+      res.status(500).json({ error: "Erro ao buscar centros de custo" });
+    }
+  });
+
   // Create new customer/supplier
   app.post("/api/customers-suppliers", isAuthenticated, async (req, res) => {
     try {
@@ -2047,7 +2061,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Fetch available entities for matching
       const persons = await storage.listCustomersSuppliers(tenantId);
       const accounts = await storage.listChartOfAccounts(tenantId);
-      const costCenters = await storage.listCostCenters(tenantId, companyId);
+      const costCenters = await storage.listCostCenters(tenantId);
 
       // Analyze command using AI
       const result = await analyzeTransactionCommand(

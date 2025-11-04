@@ -51,6 +51,9 @@ export function AITransactionPreview({
   const [chartAccountId, setChartAccountId] = useState<string>("");
   const [costCenterDistributions, setCostCenterDistributions] = useState<CostCenterDistribution[]>([]);
 
+  // Get personId from first transaction (they should all have the same person in batch)
+  const personId = transactions[0]?.personId;
+
   // Load company data
   const { data: companies = [] } = useQuery<any[]>({
     queryKey: ['/api/companies'],
@@ -63,13 +66,53 @@ export function AITransactionPreview({
     queryKey: ['/api/chart-of-accounts'],
   });
 
-  // Find default chart account and pre-fill
+  // Load cost centers for the selected person (customer/supplier)
+  const { data: personCostCenters = [] } = useQuery<Array<{ id: string; code: number; name: string }>>({
+    queryKey: [`/api/customers-suppliers/${personId}/cost-centers`],
+    enabled: !!personId,
+  });
+
+  // Find appropriate chart account and pre-fill
   useEffect(() => {
-    const defaultAccount = chartAccounts.find((acc: any) => acc.isDefault === true);
-    if (defaultAccount && !chartAccountId) {
-      setChartAccountId(defaultAccount.id);
+    if (chartAccountId || chartAccounts.length === 0) return;
+    
+    // First, check if AI already suggested a chartAccountId
+    const aiSuggestedId = transactions[0]?.chartAccountId;
+    if (aiSuggestedId) {
+      setChartAccountId(aiSuggestedId);
+      return;
     }
-  }, [chartAccounts, chartAccountId]);
+    
+    // Otherwise, find account based on transaction type
+    const transactionType = transactions[0]?.type; // "revenue" or "expense"
+    if (transactionType) {
+      const accountType = transactionType === "revenue" ? "receita" : "despesa";
+      // Find first analytical account of the matching type
+      const matchingAccount = chartAccounts.find((acc: any) => 
+        acc.type === accountType && acc.isAnalytical === true
+      );
+      
+      if (matchingAccount) {
+        setChartAccountId(matchingAccount.id);
+      }
+    }
+  }, [chartAccounts, chartAccountId, transactions]);
+
+  // Pre-fill cost center distributions based on person's cost centers
+  useEffect(() => {
+    if (personCostCenters.length > 0 && costCenterDistributions.length === 0) {
+      // Distribute equally among all cost centers
+      const percentage = Math.floor(100 / personCostCenters.length);
+      const remainder = 100 - (percentage * personCostCenters.length);
+      
+      const distributions = personCostCenters.map((cc, index) => ({
+        costCenterId: cc.id,
+        percentage: index === 0 ? percentage + remainder : percentage, // Add remainder to first
+      }));
+      
+      setCostCenterDistributions(distributions);
+    }
+  }, [personCostCenters, costCenterDistributions.length]);
 
   const formatCurrency = (value: string) => {
     const num = parseFloat(value.replace(",", "."));
@@ -94,13 +137,19 @@ export function AITransactionPreview({
   }, 0);
 
   const handleConfirm = () => {
-    // Apply edited fields to all transactions, removing empty strings
+    // Apply edited fields to all transactions, including cost center distributions
     const updatedTransactions = transactions.map(t => {
       const transaction: any = {
         ...t,
         chartAccountId: chartAccountId || t.chartAccountId,
-        costCenterId: costCenterDistributions[0]?.costCenterId || t.costCenterId,
+        // Include the full cost center distributions array with percentages
+        costCenterDistributions: costCenterDistributions.length > 0 
+          ? costCenterDistributions 
+          : (t.costCenterId ? [{ costCenterId: t.costCenterId, percentage: 100 }] : []),
       };
+      
+      // Remove costCenterId field as we're using costCenterDistributions now
+      delete transaction.costCenterId;
       
       // Remove empty string fields to avoid foreign key violations
       if (transaction.paymentMethodId === "") delete transaction.paymentMethodId;
