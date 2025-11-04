@@ -91,6 +91,8 @@ export function AITransactionInput({
       setIsListening(false);
     } else {
       try {
+        // Limpa o campo de texto quando começar a gravar
+        setInput("");
         recognitionRef.current.start();
         setIsListening(true);
         toast({
