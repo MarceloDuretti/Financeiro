@@ -64,7 +64,7 @@ export default function AnalisesFinanceiras() {
   const [expandedAccounts, setExpandedAccounts] = useState<Set<string>>(new Set());
   const [activeTab, setActiveTab] = useState("mensal");
 
-  const activeCompanyId = localStorage.getItem('activeCompanyId') || '';
+  const activeCompanyId = localStorage.getItem('fincontrol_selected_company_id') || '';
 
   // Auto-collapse sidebar on mount (like Lancamentos)
   useEffect(() => {
