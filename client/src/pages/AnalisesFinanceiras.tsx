@@ -63,6 +63,7 @@ export default function AnalisesFinanceiras() {
   const [aiInsights, setAIInsights] = useState<any[]>([]);
   const [expandedAccounts, setExpandedAccounts] = useState<Set<string>>(new Set());
   const [activeTab, setActiveTab] = useState("mensal");
+  const [regime, setRegime] = useState<'caixa' | 'competencia'>('caixa');
 
   const activeCompanyId = localStorage.getItem('fincontrol_selected_company_id') || '';
 
@@ -83,10 +84,10 @@ export default function AnalisesFinanceiras() {
 
   // Fetch hierarchical DRE
   const { data: dreHierarchical, isLoading: isLoadingDRE } = useQuery({
-    queryKey: ['/api/analytics/dre-hierarchical', activeCompanyId, selectedMonth, selectedYear],
+    queryKey: ['/api/analytics/dre-hierarchical', activeCompanyId, selectedMonth, selectedYear, regime],
     queryFn: async () => {
       const response = await fetch(
-        `/api/analytics/dre-hierarchical?companyId=${activeCompanyId}&month=${selectedMonth}&year=${selectedYear}`
+        `/api/analytics/dre-hierarchical?companyId=${activeCompanyId}&month=${selectedMonth}&year=${selectedYear}&regime=${regime}`
       );
       if (!response.ok) throw new Error('Failed to fetch hierarchical DRE');
       return response.json();
@@ -96,10 +97,10 @@ export default function AnalisesFinanceiras() {
 
   // Fetch yearly evolution
   const { data: yearlyEvolution, isLoading: isLoadingYearly } = useQuery({
-    queryKey: ['/api/analytics/yearly-evolution', activeCompanyId, selectedYear],
+    queryKey: ['/api/analytics/yearly-evolution', activeCompanyId, selectedYear, regime],
     queryFn: async () => {
       const response = await fetch(
-        `/api/analytics/yearly-evolution?companyId=${activeCompanyId}&year=${selectedYear}`
+        `/api/analytics/yearly-evolution?companyId=${activeCompanyId}&year=${selectedYear}&regime=${regime}`
       );
       if (!response.ok) throw new Error('Failed to fetch yearly evolution');
       return response.json();
@@ -268,30 +269,44 @@ export default function AnalisesFinanceiras() {
               DRE hierárquico, evolução anual e insights inteligentes
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-            <Select value={selectedMonth.toString()} onValueChange={(v) => setSelectedMonth(parseInt(v))}>
-              <SelectTrigger className="w-[130px]" data-testid="select-month">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <Select value={selectedMonth.toString()} onValueChange={(v) => setSelectedMonth(parseInt(v))}>
+                <SelectTrigger className="w-[130px]" data-testid="select-month">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {months.map((month) => (
+                    <SelectItem key={month.value} value={month.value.toString()}>
+                      {month.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={selectedYear.toString()} onValueChange={(v) => setSelectedYear(parseInt(v))}>
+                <SelectTrigger className="w-[90px]" data-testid="select-year">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {years.map((year) => (
+                    <SelectItem key={year} value={year.toString()}>
+                      {year}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="h-6 w-px bg-border" />
+            
+            <Select value={regime} onValueChange={(v: 'caixa' | 'competencia') => setRegime(v)}>
+              <SelectTrigger className="w-[140px]" data-testid="select-regime">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {months.map((month) => (
-                  <SelectItem key={month.value} value={month.value.toString()}>
-                    {month.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={selectedYear.toString()} onValueChange={(v) => setSelectedYear(parseInt(v))}>
-              <SelectTrigger className="w-[90px]" data-testid="select-year">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {years.map((year) => (
-                  <SelectItem key={year} value={year.toString()}>
-                    {year}
-                  </SelectItem>
-                ))}
+                <SelectItem value="caixa">Regime de Caixa</SelectItem>
+                <SelectItem value="competencia">Competência</SelectItem>
               </SelectContent>
             </Select>
           </div>
