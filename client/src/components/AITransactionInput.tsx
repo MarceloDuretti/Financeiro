@@ -46,10 +46,25 @@ export function AITransactionInput({
       }
       
       if (finalTranscript) {
-        const transcript = finalTranscript.trim();
+        let transcript = finalTranscript.trim();
         console.log("========================================");
-        console.log("[VOZ] Texto transcrito:", transcript);
+        console.log("[VOZ] Texto transcrito (original):", transcript);
+        
+        // Pós-processar transcrição: corrigir anos 2015-2024 para 2025 APENAS em contextos de data
+        // O Chrome Web Speech API transcreve "de dois mil e vinte e cinco" como "2015"
+        // Só corrige se o ano estiver no formato de data: DD/MM/YYYY, DD-MM-YYYY, etc.
+        const currentYear = new Date().getFullYear();
+        
+        // Padrão que detecta datas com separadores (/, -, espaço) e anos 2015-2024
+        const datePattern = /(\d{1,2}[\s\/\-]\d{1,2}[\s\/\-])(201[5-9]|202[0-4])\b/g;
+        const correctedTranscript = transcript.replace(datePattern, `$1${currentYear}`);
+        
+        if (correctedTranscript !== transcript) {
+          console.log("[VOZ] Texto corrigido (datas):", correctedTranscript);
+          transcript = correctedTranscript;
+        }
         console.log("========================================");
+        
         setInput(prev => prev ? `${prev} ${transcript}` : transcript);
         
         toast({
