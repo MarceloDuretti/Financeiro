@@ -187,49 +187,118 @@ export function AITransactionPreview({
   const missingFields = getMissingFields();
 
   return (
-    <div className="space-y-2">
-      {/* Ultra-compact summary */}
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <Badge variant="outline" className="text-[10px] h-5 px-1.5">
-            {transactions.length} lançamento{transactions.length > 1 ? 's' : ''}
-          </Badge>
-          <span className="text-sm font-semibold">
-            {formatCurrency(totalAmount.toString())}
-          </span>
-          {clonePeriod && (
-            <Badge variant="outline" className="text-[9px] h-5 px-1.5 bg-blue-500/10 border-blue-500/20 text-blue-700">
-              <Calendar className="w-2.5 h-2.5 mr-0.5" />
-              {clonePeriod.type === "year" && "Ano todo"}
-              {clonePeriod.type === "semester" && "Semestre"}
-              {clonePeriod.type === "month" && `${clonePeriod.count}m`}
-            </Badge>
-          )}
+    <div className="space-y-4">
+      {/* Company Header */}
+      {selectedCompany && (
+        <div className="flex items-center gap-2 p-3 rounded-md bg-primary/5 border border-primary/20">
+          <Building2 className="w-5 h-5 text-primary" />
+          <p className="text-sm font-semibold text-foreground">
+            {selectedCompany.name}
+          </p>
         </div>
-        
-        {/* Missing fields warning - inline */}
-        {missingFields.length > 0 && (
-          <Badge variant="outline" className="text-[9px] h-5 px-1.5 bg-yellow-500/10 border-yellow-500/20 text-yellow-700">
-            <AlertCircle className="w-2.5 h-2.5 mr-0.5" />
-            Preencha campos
-          </Badge>
-        )}
+      )}
+
+      {/* Header */}
+      <div>
+        <h3 className="text-lg font-semibold">Revisão Final</h3>
+        <p className="text-sm text-muted-foreground">
+          Confira todos os dados antes de criar os lançamentos
+        </p>
       </div>
 
-      {/* Editable Fields - Ultra compact */}
-      <div className="grid grid-cols-2 gap-2">
-        <div className="space-y-1">
-          <label className="text-[10px] font-medium text-muted-foreground">Plano de Contas</label>
+      {/* Summary - Compact */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="p-2.5 rounded-md bg-muted/50">
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Lançamentos</p>
+          <p className="text-xl font-semibold">{transactions.length}</p>
+        </div>
+        <div className="p-2.5 rounded-md bg-muted/50">
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Valor Total</p>
+          <p className="text-xl font-semibold">
+            {formatCurrency(totalAmount.toString())}
+          </p>
+        </div>
+      </div>
+
+      {/* Clone Period Info - Compact */}
+      {clonePeriod && (
+        <div className="flex items-center gap-2 p-2.5 rounded-md bg-blue-500/10 border border-blue-500/20">
+          <Calendar className="w-4 h-4 text-blue-600 dark:text-blue-500" />
+          <p className="text-xs font-medium text-blue-900 dark:text-blue-100">
+            {clonePeriod.type === "year" && "Lançamento mensal - ano todo"}
+            {clonePeriod.type === "semester" && "Lançamento mensal - semestre"}
+            {clonePeriod.type === "month" && `${clonePeriod.count || 1} meses`}
+            {clonePeriod.type === "custom" && `${clonePeriod.count || 1} lançamentos`}
+          </p>
+        </div>
+      )}
+
+      {/* Missing Fields Warning */}
+      {missingFields.length > 0 && (
+        <div className="flex items-start gap-2 p-2.5 rounded-md bg-yellow-500/10 border border-yellow-500/20">
+          <AlertCircle className="w-4 h-4 text-yellow-600 dark:text-yellow-500 mt-0.5 flex-shrink-0" />
+          <div className="flex-1">
+            <p className="text-xs font-medium text-yellow-900 dark:text-yellow-100">
+              {missingFields.join(", ")}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Editable Fields - Compact */}
+      <div className="space-y-3 p-3 rounded-md border bg-card">
+        <div className="flex items-center justify-between">
+          <h4 className="text-sm font-semibold">Campos Obrigatórios</h4>
+          <Badge variant="outline" className="text-[9px] h-4 px-1.5">
+            Para todos os {transactions.length} lançamentos
+          </Badge>
+        </div>
+
+        {/* Chart Account */}
+        <div className="space-y-1.5">
+          <label className="text-xs font-medium flex items-center gap-1.5">
+            Plano de Contas
+            {!chartAccountId && (
+              <Badge variant="outline" className="text-[9px] h-4 px-1.5 bg-yellow-500/10 border-yellow-500/20 text-yellow-700">
+                Obrigatório
+              </Badge>
+            )}
+            {chartAccountId && (
+              <Badge variant="outline" className="text-[9px] h-4 px-1.5 bg-green-500/10 border-green-500/20 text-green-700">
+                <Check className="w-2.5 h-2.5 mr-0.5" />
+                OK
+              </Badge>
+            )}
+          </label>
           <ChartAccountPicker
             accounts={chartAccounts}
             value={chartAccountId || null}
             onChange={(id) => setChartAccountId(id || "")}
-            placeholder="Selecione..."
+            placeholder="Selecione uma conta contábil"
           />
         </div>
 
-        <div className="space-y-1">
-          <label className="text-[10px] font-medium text-muted-foreground">Centro de Custo</label>
+        {/* Cost Center */}
+        <div className="space-y-1.5">
+          <label className="text-xs font-medium flex items-center gap-1.5">
+            Centro de Custo (Rateio)
+            {costCenterDistributions.length === 0 && (
+              <Badge variant="outline" className="text-[9px] h-4 px-1.5 bg-yellow-500/10 border-yellow-500/20 text-yellow-700">
+                Obrigatório
+              </Badge>
+            )}
+            {costCenterDistributions.length > 0 && totalPercentage === 100 && (
+              <Badge variant="outline" className="text-[9px] h-4 px-1.5 bg-green-500/10 border-green-500/20 text-green-700">
+                <Check className="w-2.5 h-2.5 mr-0.5" />
+                100%
+              </Badge>
+            )}
+            {costCenterDistributions.length > 0 && totalPercentage !== 100 && (
+              <Badge variant="outline" className="text-[9px] h-4 px-1.5 bg-yellow-500/10 border-yellow-500/20 text-yellow-700">
+                {totalPercentage}%
+              </Badge>
+            )}
+          </label>
           <TransactionCostCenterPicker
             value={costCenterDistributions}
             onChange={setCostCenterDistributions}
@@ -238,41 +307,60 @@ export function AITransactionPreview({
         </div>
       </div>
 
-      {/* Transactions List - Ultra compact */}
-      <div className="space-y-1 max-h-[120px] overflow-y-auto">
-        {transactions.map((transaction, index) => (
-          <div
-            key={index}
-            className="flex items-center justify-between gap-2 px-2 py-1 rounded border bg-muted/30 text-[11px]"
-            data-testid={`preview-transaction-${index}`}
-          >
-            <div className="flex items-center gap-1.5 flex-1 min-w-0">
-              <Badge
-                variant={transaction.type === "revenue" ? "default" : "destructive"}
-                className="text-[8px] h-4 px-1 flex-shrink-0"
-              >
-                {transaction.type === "revenue" ? "R" : "D"}
-              </Badge>
-              <span className="truncate font-medium">{transaction.title}</span>
-              <span className="text-muted-foreground">•</span>
-              <span className="text-muted-foreground flex-shrink-0">{formatDate(transaction.dueDate)}</span>
-            </div>
-            <span
-              className={`font-semibold flex-shrink-0 ${
-                transaction.type === "revenue" ? "text-blue-600" : "text-red-600"
-              }`}
+      {/* Transactions List - Compact, No Scroll */}
+      <div className="space-y-2">
+        <p className="text-xs font-medium text-muted-foreground">Lançamentos que serão criados:</p>
+        <div className="space-y-1.5 max-h-[180px] overflow-y-auto">
+          {transactions.map((transaction, index) => (
+            <div
+              key={index}
+              className="p-2 rounded border bg-card/50 hover-elevate"
+              data-testid={`preview-transaction-${index}`}
             >
-              {formatCurrency(transaction.amount)}
-            </span>
-          </div>
-        ))}
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <Badge
+                      variant={transaction.type === "revenue" ? "default" : "destructive"}
+                      className="text-[9px] h-4 px-1"
+                    >
+                      {transaction.type === "revenue" ? "Receita" : "Despesa"}
+                    </Badge>
+                    <p className="text-xs font-medium truncate">
+                      {transaction.title}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 mt-1 text-[10px] text-muted-foreground">
+                    <span>{formatDate(transaction.dueDate)}</span>
+                    {transaction.personName && (
+                      <>
+                        <span>•</span>
+                        <span className="truncate">{transaction.personName}</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p
+                    className={`text-sm font-semibold ${
+                      transaction.type === "revenue"
+                        ? "text-blue-600 dark:text-blue-400"
+                        : "text-red-600 dark:text-red-400"
+                    }`}
+                  >
+                    {formatCurrency(transaction.amount)}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* Actions - Ultra compact */}
-      <div className="flex justify-end gap-1.5">
+      {/* Actions */}
+      <div className="flex justify-end gap-2 pt-2">
         <Button
           type="button"
-          size="sm"
           variant="outline"
           onClick={onCancel}
           disabled={isSubmitting}
@@ -282,12 +370,20 @@ export function AITransactionPreview({
         </Button>
         <Button
           type="button"
-          size="sm"
+          variant="secondary"
+          onClick={onEdit}
+          disabled={isSubmitting}
+          data-testid="button-edit"
+        >
+          Editar
+        </Button>
+        <Button
+          type="button"
           onClick={handleConfirm}
           disabled={isSubmitting || transactions.length === 0 || !isValid}
           data-testid="button-confirm"
         >
-          {isSubmitting ? "Criando..." : `Confirmar`}
+          {isSubmitting ? "Criando..." : `Confirmar ${transactions.length}`}
         </Button>
       </div>
     </div>

@@ -771,10 +771,7 @@ export default function Lancamentos() {
           <Button 
             size="sm"
             variant="outline"
-            onClick={() => {
-              setShowAiPreview(false);
-              setAiAssistOpen(!aiAssistOpen);
-            }}
+            onClick={() => setAiAssistOpen(true)}
             data-testid="button-ai-assist"
           >
             <Sparkles className="w-4 h-4" />
@@ -793,44 +790,6 @@ export default function Lancamentos() {
           </Button>
         </div>
       </div>
-
-      {/* AI Assistant - Inline - Ultra Compact */}
-      {aiAssistOpen && (
-        <div className="px-4 pb-2 space-y-2 animate-in slide-in-from-top-2 duration-300">
-          {/* AI Input */}
-          <div className="bg-card/50 border rounded-md p-2">
-            <AITransactionInput
-              onProcess={(input) => analyzeCommandMutation.mutate(input)}
-              isProcessing={analyzeCommandMutation.isPending}
-              placeholder="Descreva o lançamento que deseja criar..."
-            />
-          </div>
-
-          {/* AI Preview - Shows inline below input */}
-          {showAiPreview && generatedTransactions.length > 0 && (
-            <div className="bg-card/50 border rounded-md p-2 animate-in slide-in-from-top-2 duration-200">
-              <AITransactionPreview
-                transactions={generatedTransactions}
-                clonePeriod={aiCommandResult?.clonePeriod}
-                isSubmitting={createBatchMutation.isPending}
-                onConfirm={(updatedTransactions) => {
-                  console.log("[AI Preview] Confirmed - creating transactions:", updatedTransactions);
-                  createBatchMutation.mutate(updatedTransactions);
-                }}
-                onEdit={() => {
-                  setShowAiPreview(false);
-                  setGeneratedTransactions([]);
-                }}
-                onCancel={() => {
-                  setShowAiPreview(false);
-                  setGeneratedTransactions([]);
-                  setAiCommandResult(null);
-                }}
-              />
-            </div>
-          )}
-        </div>
-      )}
 
       {/* Main Content Area */}
       <div className="flex flex-1 overflow-hidden">
