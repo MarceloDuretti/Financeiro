@@ -1249,6 +1249,17 @@ export default function Lancamentos() {
                                 data-testid={`week-transaction-${transaction.id}`}
                               >
                                 <div className="space-y-0.5">
+                                  {/* Code - Para IA reconhecer */}
+                                  <div>
+                                    <Badge 
+                                      variant="outline" 
+                                      className="text-[8px] h-3.5 px-1 font-mono bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600"
+                                      data-testid={`badge-code-week-${transaction.id}`}
+                                    >
+                                      {formatTransactionCode(transaction)}
+                                    </Badge>
+                                  </div>
+                                  
                                   {/* Person - PRIORIDADE */}
                                   {person && (
                                     <div className="font-medium text-[11px] truncate tracking-tight">
