@@ -83,54 +83,38 @@ function DraggableTransactionCard({ transaction, children, onClick }: { transact
   const enhancedListeners = {
     ...listeners,
     onPointerDown: (e: React.PointerEvent) => {
-      // Call original listener first
       listeners?.onPointerDown?.(e as any);
-      // Then track position for click detection
       setStartPos({ x: e.clientX, y: e.clientY });
       setHasMoved(false);
     },
     onPointerMove: (e: React.PointerEvent) => {
-      // Call original listener first
       listeners?.onPointerMove?.(e as any);
-      // Then check for movement
       if (startPos) {
         const dx = Math.abs(e.clientX - startPos.x);
         const dy = Math.abs(e.clientY - startPos.y);
-        // If moved more than 5px, it's a drag
         if (dx > 5 || dy > 5) {
           setHasMoved(true);
         }
       }
     },
     onPointerUp: (e: React.PointerEvent) => {
-      // Call original listener first
       listeners?.onPointerUp?.(e as any);
-      // Reset both state variables
+      
+      // CRITICAL: Detect click here (not in onClick which never fires due to DnD listeners)
+      // If pointer went down and up without significant movement, it's a click
+      if (!hasMoved && startPos) {
+        console.log('🎯 Click detectado via onPointerUp:', transaction.id);
+        onClick();
+      }
+      
       setStartPos(null);
       setHasMoved(false);
     },
     onPointerCancel: (e: React.PointerEvent) => {
-      // Call original listener first
       listeners?.onPointerCancel?.(e as any);
-      // Reset both state variables
       setStartPos(null);
       setHasMoved(false);
     },
-  };
-
-  const handleClick = (e: React.MouseEvent) => {
-    console.log('🔍 DraggableCard Click Debug:', {
-      hasMoved,
-      isDragging,
-      willTriggerOnClick: !hasMoved && !isDragging,
-      transactionId: transaction.id
-    });
-    
-    // Only trigger onClick if there was no significant movement (not a drag)
-    if (!hasMoved && !isDragging) {
-      onClick();
-    }
-    setHasMoved(false);
   };
 
   return (
@@ -139,7 +123,6 @@ function DraggableTransactionCard({ transaction, children, onClick }: { transact
       style={style}
       {...attributes}
       {...enhancedListeners}
-      onClick={handleClick}
     >
       {children}
     </div>
