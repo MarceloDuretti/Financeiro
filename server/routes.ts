@@ -2517,6 +2517,188 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get hierarchical DRE structure
+  app.get("/api/analytics/dre-hierarchical", isAuthenticated, async (req, res) => {
+    try {
+      const tenantId = getTenantId((req as any).user);
+      const { companyId, month, year } = req.query;
+      
+      if (!companyId) {
+        return res.status(400).json({ error: "companyId é obrigatório" });
+      }
+      
+      const monthNum = parseInt(month as string);
+      const yearNum = parseInt(year as string);
+      
+      // Get month boundaries
+      const startDate = new Date(yearNum, monthNum - 1, 1);
+      const endDate = new Date(yearNum, monthNum, 0, 23, 59, 59);
+      
+      // Fetch data
+      const transactions = await storage.listTransactions(tenantId, companyId as string);
+      const chartAccounts = await storage.listChartOfAccounts(tenantId);
+      
+      // Filter transactions for the month (issueDate)
+      const monthTransactions = transactions.filter((t: any) => {
+        const issueDate = new Date(t.issueDate);
+        return issueDate >= startDate && issueDate <= endDate && t.status !== 'cancelled';
+      });
+      
+      // Build account totals map
+      const accountTotals = new Map<string, number>();
+      monthTransactions.forEach((t: any) => {
+        if (t.chartAccountId) {
+          const amount = parseFloat(t.amount || '0');
+          accountTotals.set(
+            t.chartAccountId,
+            (accountTotals.get(t.chartAccountId) || 0) + amount
+          );
+        }
+      });
+      
+      // Helper to build hierarchy recursively
+      interface AccountNode {
+        id: string;
+        code: string;
+        name: string;
+        depth: number;
+        total: number;
+        percentOfParent: number;
+        percentOfRoot: number;
+        hasChildren: boolean;
+        children?: AccountNode[];
+      }
+      
+      const buildHierarchy = (
+        accounts: any[],
+        parentPath: string | null,
+        depth: number,
+        rootTotal: number
+      ): AccountNode[] => {
+        const children = accounts.filter(acc => acc.parentPath === parentPath);
+        
+        return children.map(account => {
+          // Get direct transaction total for this account
+          const directTotal = accountTotals.get(account.id) || 0;
+          
+          // Recursively get children
+          const childrenNodes = buildHierarchy(accounts, account.path, depth + 1, rootTotal);
+          
+          // Calculate total: direct + all children
+          const childrenTotal = childrenNodes.reduce((sum, child) => sum + child.total, 0);
+          const total = directTotal + childrenTotal;
+          
+          // Calculate percentages
+          const percentOfRoot = rootTotal > 0 ? (total / rootTotal) * 100 : 0;
+          
+          const node: AccountNode = {
+            id: account.id,
+            code: account.code,
+            name: account.name,
+            depth,
+            total,
+            percentOfParent: 100, // Will be calculated by parent
+            percentOfRoot,
+            hasChildren: childrenNodes.length > 0,
+          };
+          
+          if (childrenNodes.length > 0) {
+            // Calculate each child's percent of this parent
+            childrenNodes.forEach(child => {
+              child.percentOfParent = total > 0 ? (child.total / total) * 100 : 0;
+            });
+            node.children = childrenNodes;
+          }
+          
+          return node;
+        });
+      };
+      
+      // Separate revenues and expenses
+      const revenueAccounts = chartAccounts.filter((a: any) => a.type === 'receita');
+      const expenseAccounts = chartAccounts.filter((a: any) => a.type === 'despesa');
+      
+      // Calculate totals for root level percentages
+      const totalRevenues = Array.from(accountTotals.entries())
+        .filter(([id]) => revenueAccounts.some(a => a.id === id))
+        .reduce((sum, [, amount]) => sum + amount, 0);
+      
+      const totalExpenses = Array.from(accountTotals.entries())
+        .filter(([id]) => expenseAccounts.some(a => a.id === id))
+        .reduce((sum, [, amount]) => sum + amount, 0);
+      
+      // Build hierarchies (starting from root accounts)
+      const revenues = buildHierarchy(revenueAccounts, null, 0, totalRevenues);
+      const expenses = buildHierarchy(expenseAccounts, null, 0, totalExpenses);
+      
+      res.json({
+        revenues,
+        expenses,
+        totalRevenues,
+        totalExpenses,
+        netResult: totalRevenues - totalExpenses,
+      });
+    } catch (error: any) {
+      console.error("Error getting hierarchical DRE:", error);
+      res.status(500).json({ message: error.message || "Erro ao buscar DRE hierárquico" });
+    }
+  });
+
+  // Get yearly evolution (12 months)
+  app.get("/api/analytics/yearly-evolution", isAuthenticated, async (req, res) => {
+    try {
+      const tenantId = getTenantId((req as any).user);
+      const { companyId, year } = req.query;
+      
+      if (!companyId) {
+        return res.status(400).json({ error: "companyId é obrigatório" });
+      }
+      
+      const yearNum = parseInt(year as string);
+      
+      // Fetch all transactions for the year
+      const transactions = await storage.listTransactions(tenantId, companyId as string);
+      
+      // Build monthly data
+      const monthlyData = [];
+      const monthNames = [
+        'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
+        'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'
+      ];
+      
+      for (let month = 1; month <= 12; month++) {
+        const startDate = new Date(yearNum, month - 1, 1);
+        const endDate = new Date(yearNum, month, 0, 23, 59, 59);
+        
+        const monthTransactions = transactions.filter((t: any) => {
+          const issueDate = new Date(t.issueDate);
+          return issueDate >= startDate && issueDate <= endDate && t.status !== 'cancelled';
+        });
+        
+        const revenues = monthTransactions
+          .filter((t: any) => t.type === 'revenue')
+          .reduce((sum: number, t: any) => sum + parseFloat(t.amount || '0'), 0);
+        
+        const expenses = monthTransactions
+          .filter((t: any) => t.type === 'expense')
+          .reduce((sum: number, t: any) => sum + parseFloat(t.amount || '0'), 0);
+        
+        monthlyData.push({
+          month,
+          monthName: monthNames[month - 1],
+          revenues,
+          expenses,
+          profit: revenues - expenses,
+        });
+      }
+      
+      res.json({ data: monthlyData });
+    } catch (error: any) {
+      console.error("Error getting yearly evolution:", error);
+      res.status(500).json({ message: error.message || "Erro ao buscar evolução anual" });
+    }
+  });
+
   // Generate AI insights
   app.post("/api/analytics/ai-insights", isAuthenticated, async (req, res) => {
     try {
