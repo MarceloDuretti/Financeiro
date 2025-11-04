@@ -119,6 +119,13 @@ function DraggableTransactionCard({ transaction, children, onClick }: { transact
   };
 
   const handleClick = (e: React.MouseEvent) => {
+    console.log('🔍 DraggableCard Click Debug:', {
+      hasMoved,
+      isDragging,
+      willTriggerOnClick: !hasMoved && !isDragging,
+      transactionId: transaction.id
+    });
+    
     // Only trigger onClick if there was no significant movement (not a drag)
     if (!hasMoved && !isDragging) {
       onClick();
