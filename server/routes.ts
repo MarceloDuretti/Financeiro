@@ -2679,11 +2679,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
         
         const revenues = monthTransactions
-          .filter((t: any) => t.type === 'revenue')
+          .filter((t: any) => t.transactionType === 'Receita')
           .reduce((sum: number, t: any) => sum + parseFloat(useCaixa ? (t.paidAmount || t.amount || '0') : (t.amount || '0')), 0);
         
         const expenses = monthTransactions
-          .filter((t: any) => t.type === 'expense')
+          .filter((t: any) => t.transactionType === 'Despesa')
           .reduce((sum: number, t: any) => sum + parseFloat(useCaixa ? (t.paidAmount || t.amount || '0') : (t.amount || '0')), 0);
         
         monthlyData.push({
