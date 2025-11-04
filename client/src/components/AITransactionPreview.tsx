@@ -1,15 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { format, parse } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Check, AlertCircle, Calendar, DollarSign, Edit2 } from "lucide-react";
+import { Check, AlertCircle, Calendar, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ChartAccountPicker } from "@/components/ChartAccountPicker";
 import { TransactionCostCenterPicker, type CostCenterDistribution } from "@/components/TransactionCostCenterPicker";
+
+const SELECTED_COMPANY_KEY = "fincontrol_selected_company_id";
 
 interface TransactionPreviewData {
   type: "revenue" | "expense";
@@ -46,30 +45,31 @@ export function AITransactionPreview({
   onCancel,
   isSubmitting = false,
 }: AITransactionPreviewProps) {
-  // State for editable fields - we'll edit the FIRST transaction and apply to all
-  const [editedTransaction, setEditedTransaction] = useState<TransactionPreviewData>(
-    transactions[0] || {}
-  );
+  const selectedCompanyId = localStorage.getItem(SELECTED_COMPANY_KEY);
+  
+  // State for editable fields
+  const [chartAccountId, setChartAccountId] = useState<string>("");
+  const [costCenterDistributions, setCostCenterDistributions] = useState<CostCenterDistribution[]>([]);
 
-  // Load options data
+  // Load company data
+  const { data: companies = [] } = useQuery<any[]>({
+    queryKey: ['/api/companies'],
+  });
+
+  const selectedCompany = companies.find((c: any) => c.id === selectedCompanyId);
+
+  // Load chart accounts
   const { data: chartAccounts = [] } = useQuery<any[]>({
     queryKey: ['/api/chart-of-accounts'],
   });
 
-  const { data: costCenters = [] } = useQuery<any[]>({
-    queryKey: ['/api/cost-centers'],
-  });
-
-  const { data: bankAccounts = [] } = useQuery<any[]>({
-    queryKey: ['/api/bank-accounts'],
-  });
-
-  const { data: paymentMethods = [] } = useQuery<any[]>({
-    queryKey: ['/api/payment-methods'],
-  });
-
-  const activeBankAccounts = bankAccounts.filter((acc: any) => acc.status === 'active');
-  const activePaymentMethods = paymentMethods.filter((pm: any) => pm.isActive);
+  // Find default chart account and pre-fill
+  useEffect(() => {
+    const defaultAccount = chartAccounts.find((acc: any) => acc.isDefault === true);
+    if (defaultAccount && !chartAccountId) {
+      setChartAccountId(defaultAccount.id);
+    }
+  }, [chartAccounts, chartAccountId]);
 
   const formatCurrency = (value: string) => {
     const num = parseFloat(value.replace(",", "."));
@@ -93,288 +93,210 @@ export function AITransactionPreview({
     return sum + num;
   }, 0);
 
-  const handleCostCenterChange = (distributions: CostCenterDistribution[]) => {
-    // For now, just use the first one if exists
-    const firstDistribution = distributions[0];
-    setEditedTransaction({
-      ...editedTransaction,
-      costCenterId: firstDistribution?.costCenterId || "",
-    });
-  };
-
-  const handleChartAccountChange = (accountId: string | null) => {
-    setEditedTransaction({
-      ...editedTransaction,
-      chartAccountId: accountId || "",
-    });
-  };
-
   const handleConfirm = () => {
     // Apply edited fields to all transactions
     const updatedTransactions = transactions.map(t => ({
       ...t,
-      chartAccountId: editedTransaction.chartAccountId || t.chartAccountId,
-      costCenterId: editedTransaction.costCenterId || t.costCenterId,
-      paymentMethodId: editedTransaction.paymentMethodId || t.paymentMethodId,
-      bankAccountId: editedTransaction.bankAccountId || t.bankAccountId,
+      chartAccountId: chartAccountId || t.chartAccountId,
+      // For cost center, we'll send the distributions and backend will handle it
+      // For now, just use the first one if single selection
+      costCenterId: costCenterDistributions[0]?.costCenterId || t.costCenterId,
     }));
     onConfirm(updatedTransactions);
   };
 
-  // Validation: check if all required fields are filled
-  const isValid = !!(
-    editedTransaction.chartAccountId &&
-    editedTransaction.costCenterId &&
-    editedTransaction.paymentMethodId &&
-    editedTransaction.bankAccountId
-  );
+  // Validation
+  const totalPercentage = costCenterDistributions.reduce((sum, d) => sum + d.percentage, 0);
+  const isValid = !!(chartAccountId && costCenterDistributions.length > 0 && totalPercentage === 100);
 
   const getMissingFields = () => {
     const missing: string[] = [];
-    if (!editedTransaction.chartAccountId) missing.push("Plano de Contas");
-    if (!editedTransaction.costCenterId) missing.push("Centro de Custo");
-    if (!editedTransaction.paymentMethodId) missing.push("Forma de Pagamento");
-    if (!editedTransaction.bankAccountId) missing.push("Conta Bancária");
+    if (!chartAccountId) missing.push("Plano de Contas");
+    if (costCenterDistributions.length === 0) missing.push("Centro de Custo");
+    else if (totalPercentage !== 100) missing.push("Distribuição de 100%");
     return missing;
   };
 
   const missingFields = getMissingFields();
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
+      {/* Company Header */}
+      {selectedCompany && (
+        <div className="flex items-center gap-2 p-3 rounded-md bg-primary/5 border border-primary/20">
+          <Building2 className="w-5 h-5 text-primary" />
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-foreground">
+              {selectedCompany.name}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Empresa selecionada
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div>
         <h3 className="text-lg font-semibold">Revisão Final</h3>
         <p className="text-sm text-muted-foreground">
-          Revise os lançamentos e preencha os campos obrigatórios
+          Confira todos os dados antes de criar os lançamentos
         </p>
       </div>
 
-      {/* Summary */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="p-3 rounded-md bg-muted/50">
-          <p className="text-xs text-muted-foreground">Total de lançamentos</p>
-          <p className="text-2xl font-semibold">{transactions.length}</p>
+      {/* Summary - Compact */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="p-2.5 rounded-md bg-muted/50">
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Lançamentos</p>
+          <p className="text-xl font-semibold">{transactions.length}</p>
         </div>
-        <div className="p-3 rounded-md bg-muted/50">
-          <p className="text-xs text-muted-foreground">Valor total</p>
-          <p className="text-2xl font-semibold">
+        <div className="p-2.5 rounded-md bg-muted/50">
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Valor Total</p>
+          <p className="text-xl font-semibold">
             {formatCurrency(totalAmount.toString())}
           </p>
         </div>
       </div>
 
-      {/* Clone Period Info */}
+      {/* Clone Period Info - Compact */}
       {clonePeriod && (
-        <div className="flex items-start gap-2 p-3 rounded-md bg-blue-500/10 border border-blue-500/20">
-          <Calendar className="w-5 h-5 text-blue-600 dark:text-blue-500 mt-0.5" />
-          <div className="flex-1">
-            <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
-              Lançamentos recorrentes
-            </p>
-            <p className="text-xs text-blue-800 dark:text-blue-200 mt-1">
-              {clonePeriod.type === "year" && "Lançamento mensal para o ano todo"}
-              {clonePeriod.type === "semester" && "Lançamento mensal para o semestre"}
-              {clonePeriod.type === "month" && `Lançamento mensal por ${clonePeriod.count || 1} meses`}
-              {clonePeriod.type === "custom" && `${clonePeriod.count || 1} lançamentos`}
-            </p>
-          </div>
+        <div className="flex items-center gap-2 p-2.5 rounded-md bg-blue-500/10 border border-blue-500/20">
+          <Calendar className="w-4 h-4 text-blue-600 dark:text-blue-500" />
+          <p className="text-xs font-medium text-blue-900 dark:text-blue-100">
+            {clonePeriod.type === "year" && "Lançamento mensal - ano todo"}
+            {clonePeriod.type === "semester" && "Lançamento mensal - semestre"}
+            {clonePeriod.type === "month" && `${clonePeriod.count || 1} meses`}
+            {clonePeriod.type === "custom" && `${clonePeriod.count || 1} lançamentos`}
+          </p>
         </div>
       )}
 
       {/* Missing Fields Warning */}
       {missingFields.length > 0 && (
-        <div className="flex items-start gap-2 p-3 rounded-md bg-yellow-500/10 border border-yellow-500/20">
-          <AlertCircle className="w-5 h-5 text-yellow-600 dark:text-yellow-500 mt-0.5 flex-shrink-0" />
+        <div className="flex items-start gap-2 p-2.5 rounded-md bg-yellow-500/10 border border-yellow-500/20">
+          <AlertCircle className="w-4 h-4 text-yellow-600 dark:text-yellow-500 mt-0.5 flex-shrink-0" />
           <div className="flex-1">
-            <p className="text-sm font-medium text-yellow-900 dark:text-yellow-100">
-              Campos obrigatórios não preenchidos
-            </p>
-            <p className="text-xs text-yellow-800 dark:text-yellow-200 mt-1">
-              Preencha os seguintes campos antes de confirmar: {missingFields.join(", ")}
+            <p className="text-xs font-medium text-yellow-900 dark:text-yellow-100">
+              {missingFields.join(", ")}
             </p>
           </div>
         </div>
       )}
 
-      {/* Editable Fields Section */}
-      <div className="space-y-4 p-4 rounded-md border bg-card">
-        <div className="flex items-center gap-2 mb-4">
-          <Edit2 className="w-4 h-4" />
+      {/* Editable Fields - Compact */}
+      <div className="space-y-3 p-3 rounded-md border bg-card">
+        <div className="flex items-center justify-between">
           <h4 className="text-sm font-semibold">Campos Obrigatórios</h4>
-          <Badge variant="outline" className="text-[10px] h-5 px-1.5 ml-auto">
-            Aplicado a todos os {transactions.length} lançamentos
+          <Badge variant="outline" className="text-[9px] h-4 px-1.5">
+            Para todos os {transactions.length} lançamentos
           </Badge>
         </div>
 
-        <div className="space-y-4">
-          {/* Chart Account */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium">
-              Plano de Contas *
-              {!editedTransaction.chartAccountId && (
-                <Badge variant="outline" className="ml-2 text-[10px] h-5 px-1.5 bg-yellow-500/10 border-yellow-500/20 text-yellow-700">
-                  Obrigatório
-                </Badge>
-              )}
-            </label>
-            <ChartAccountPicker
-              accounts={chartAccounts}
-              value={editedTransaction.chartAccountId || null}
-              onChange={handleChartAccountChange}
-              placeholder="Selecione uma conta contábil"
-            />
-          </div>
+        {/* Chart Account */}
+        <div className="space-y-1.5">
+          <label className="text-xs font-medium flex items-center gap-1.5">
+            Plano de Contas
+            {!chartAccountId && (
+              <Badge variant="outline" className="text-[9px] h-4 px-1.5 bg-yellow-500/10 border-yellow-500/20 text-yellow-700">
+                Obrigatório
+              </Badge>
+            )}
+            {chartAccountId && (
+              <Badge variant="outline" className="text-[9px] h-4 px-1.5 bg-green-500/10 border-green-500/20 text-green-700">
+                <Check className="w-2.5 h-2.5 mr-0.5" />
+                OK
+              </Badge>
+            )}
+          </label>
+          <ChartAccountPicker
+            accounts={chartAccounts}
+            value={chartAccountId || null}
+            onChange={(id) => setChartAccountId(id || "")}
+            placeholder="Selecione uma conta contábil"
+          />
+        </div>
 
-          {/* Cost Center */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium">
-              Centro de Custo *
-              {!editedTransaction.costCenterId && (
-                <Badge variant="outline" className="ml-2 text-[10px] h-5 px-1.5 bg-yellow-500/10 border-yellow-500/20 text-yellow-700">
-                  Obrigatório
-                </Badge>
-              )}
-            </label>
-            <TransactionCostCenterPicker
-              value={editedTransaction.costCenterId ? [{ costCenterId: editedTransaction.costCenterId, percentage: 100 }] : []}
-              onChange={handleCostCenterChange}
-            />
-          </div>
-
-          {/* Payment Method */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium">
-              Forma de Pagamento *
-              {!editedTransaction.paymentMethodId && (
-                <Badge variant="outline" className="ml-2 text-[10px] h-5 px-1.5 bg-yellow-500/10 border-yellow-500/20 text-yellow-700">
-                  Obrigatório
-                </Badge>
-              )}
-            </label>
-            <Select
-              value={editedTransaction.paymentMethodId || ""}
-              onValueChange={(value) => setEditedTransaction({ ...editedTransaction, paymentMethodId: value })}
-            >
-              <SelectTrigger data-testid="select-payment-method">
-                <SelectValue placeholder="Selecione uma forma de pagamento" />
-              </SelectTrigger>
-              <SelectContent>
-                {activePaymentMethods.map((pm: any) => (
-                  <SelectItem key={pm.id} value={pm.id}>
-                    {pm.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Bank Account */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium">
-              Conta Bancária *
-              {!editedTransaction.bankAccountId && (
-                <Badge variant="outline" className="ml-2 text-[10px] h-5 px-1.5 bg-yellow-500/10 border-yellow-500/20 text-yellow-700">
-                  Obrigatório
-                </Badge>
-              )}
-            </label>
-            <Select
-              value={editedTransaction.bankAccountId || ""}
-              onValueChange={(value) => setEditedTransaction({ ...editedTransaction, bankAccountId: value })}
-            >
-              <SelectTrigger data-testid="select-bank-account">
-                <SelectValue placeholder="Selecione uma conta bancária" />
-              </SelectTrigger>
-              <SelectContent>
-                {activeBankAccounts.map((acc: any) => (
-                  <SelectItem key={acc.id} value={acc.id}>
-                    {acc.bankName} - {acc.accountNumber}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+        {/* Cost Center */}
+        <div className="space-y-1.5">
+          <label className="text-xs font-medium flex items-center gap-1.5">
+            Centro de Custo (Rateio)
+            {costCenterDistributions.length === 0 && (
+              <Badge variant="outline" className="text-[9px] h-4 px-1.5 bg-yellow-500/10 border-yellow-500/20 text-yellow-700">
+                Obrigatório
+              </Badge>
+            )}
+            {costCenterDistributions.length > 0 && totalPercentage === 100 && (
+              <Badge variant="outline" className="text-[9px] h-4 px-1.5 bg-green-500/10 border-green-500/20 text-green-700">
+                <Check className="w-2.5 h-2.5 mr-0.5" />
+                100%
+              </Badge>
+            )}
+            {costCenterDistributions.length > 0 && totalPercentage !== 100 && (
+              <Badge variant="outline" className="text-[9px] h-4 px-1.5 bg-yellow-500/10 border-yellow-500/20 text-yellow-700">
+                {totalPercentage}%
+              </Badge>
+            )}
+          </label>
+          <TransactionCostCenterPicker
+            value={costCenterDistributions}
+            onChange={setCostCenterDistributions}
+            companyId={selectedCompanyId || undefined}
+          />
         </div>
       </div>
 
-      {/* Transactions List */}
+      {/* Transactions List - Compact, No Scroll */}
       <div className="space-y-2">
-        <p className="text-sm font-medium">Lançamentos a serem criados:</p>
-        <ScrollArea className="h-[250px] rounded-md border">
-          <div className="p-4 space-y-3">
-            {transactions.map((transaction, index) => (
-              <div
-                key={index}
-                className="p-3 rounded-md border bg-card hover-elevate"
-                data-testid={`preview-transaction-${index}`}
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <Badge
-                        variant={transaction.type === "revenue" ? "default" : "destructive"}
-                        className="text-[10px] h-5 px-1.5"
-                      >
-                        {transaction.type === "revenue" ? "Receita" : "Despesa"}
-                      </Badge>
-                      <p className="text-sm font-medium truncate">
-                        {transaction.title}
-                      </p>
-                    </div>
-                    {transaction.description && (
-                      <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                        {transaction.description}
-                      </p>
-                    )}
-                    <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <Calendar className="w-3 h-3" />
-                        {formatDate(transaction.dueDate)}
-                      </span>
-                      {transaction.personName && (
-                        <span className="flex items-center gap-1">
-                          •
-                          {transaction.personName}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p
-                      className={`text-base font-semibold ${
-                        transaction.type === "revenue"
-                          ? "text-blue-600 dark:text-blue-400"
-                          : "text-red-600 dark:text-red-400"
-                      }`}
+        <p className="text-xs font-medium text-muted-foreground">Lançamentos que serão criados:</p>
+        <div className="space-y-1.5 max-h-[180px] overflow-y-auto">
+          {transactions.map((transaction, index) => (
+            <div
+              key={index}
+              className="p-2 rounded border bg-card/50 hover-elevate"
+              data-testid={`preview-transaction-${index}`}
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <Badge
+                      variant={transaction.type === "revenue" ? "default" : "destructive"}
+                      className="text-[9px] h-4 px-1"
                     >
-                      {formatCurrency(transaction.amount)}
+                      {transaction.type === "revenue" ? "Receita" : "Despesa"}
+                    </Badge>
+                    <p className="text-xs font-medium truncate">
+                      {transaction.title}
                     </p>
                   </div>
+                  <div className="flex items-center gap-2 mt-1 text-[10px] text-muted-foreground">
+                    <span>{formatDate(transaction.dueDate)}</span>
+                    {transaction.personName && (
+                      <>
+                        <span>•</span>
+                        <span className="truncate">{transaction.personName}</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p
+                    className={`text-sm font-semibold ${
+                      transaction.type === "revenue"
+                        ? "text-blue-600 dark:text-blue-400"
+                        : "text-red-600 dark:text-red-400"
+                    }`}
+                  >
+                    {formatCurrency(transaction.amount)}
+                  </p>
                 </div>
               </div>
-            ))}
-          </div>
-        </ScrollArea>
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* Warning if no transactions */}
-      {transactions.length === 0 && (
-        <div className="flex items-start gap-2 p-3 rounded-md bg-yellow-500/10 border border-yellow-500/20">
-          <AlertCircle className="w-5 h-5 text-yellow-600 dark:text-yellow-500 mt-0.5" />
-          <div className="flex-1">
-            <p className="text-sm font-medium text-yellow-900 dark:text-yellow-100">
-              Nenhum lançamento para criar
-            </p>
-            <p className="text-xs text-yellow-800 dark:text-yellow-200 mt-1">
-              Verifique as informações fornecidas
-            </p>
-          </div>
-        </div>
-      )}
-
       {/* Actions */}
-      <div className="flex justify-end gap-2 pt-4">
+      <div className="flex justify-end gap-2 pt-2">
         <Button
           type="button"
           variant="outline"
@@ -399,7 +321,7 @@ export function AITransactionPreview({
           disabled={isSubmitting || transactions.length === 0 || !isValid}
           data-testid="button-confirm"
         >
-          {isSubmitting ? "Criando..." : `Confirmar ${transactions.length} lançamento${transactions.length !== 1 ? 's' : ''}`}
+          {isSubmitting ? "Criando..." : `Confirmar ${transactions.length}`}
         </Button>
       </div>
     </div>
