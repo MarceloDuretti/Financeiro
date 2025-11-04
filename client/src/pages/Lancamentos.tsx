@@ -1249,14 +1249,24 @@ export default function Lancamentos() {
                                 data-testid={`week-transaction-${transaction.id}`}
                               >
                                 <div className="space-y-0.5">
-                                  {/* Code - Para IA reconhecer */}
-                                  <div>
+                                  {/* Code e Status na mesma linha */}
+                                  <div className="flex items-center justify-between gap-1">
                                     <Badge 
                                       variant="outline" 
                                       className="text-[8px] h-3.5 px-1 font-mono bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600"
                                       data-testid={`badge-code-week-${transaction.id}`}
                                     >
                                       {formatTransactionCode(transaction)}
+                                    </Badge>
+                                    <Badge 
+                                      variant="outline" 
+                                      className={`text-[8px] h-3.5 px-1 ${
+                                        isPaid ? 'border-blue-600/50 text-blue-600' : 
+                                        isOverdue ? 'border-orange-600/50 text-orange-600' : 
+                                        'border-border/50 text-muted-foreground'
+                                      }`}
+                                    >
+                                      {isPaid ? 'Pago' : isOverdue ? 'Atraso' : 'Pend'}
                                     </Badge>
                                   </div>
                                   
@@ -1272,20 +1282,6 @@ export default function Lancamentos() {
                                     transaction.type === 'expense' ? 'text-destructive' : 'text-blue-600'
                                   }`}>
                                     {transaction.type === 'expense' ? '-' : '+'} R$ {amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                                  </div>
-                                  
-                                  {/* Status - COMPACTO */}
-                                  <div className="flex items-center gap-1">
-                                    <Badge 
-                                      variant="outline" 
-                                      className={`text-[8px] h-3.5 px-1 ${
-                                        isPaid ? 'border-blue-600/50 text-blue-600' : 
-                                        isOverdue ? 'border-orange-600/50 text-orange-600' : 
-                                        'border-border/50 text-muted-foreground'
-                                      }`}
-                                    >
-                                      {isPaid ? 'Pago' : isOverdue ? 'Atraso' : 'Pend'}
-                                    </Badge>
                                   </div>
                                 </div>
                               </div>
