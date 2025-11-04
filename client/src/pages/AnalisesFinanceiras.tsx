@@ -310,13 +310,16 @@ export default function AnalisesFinanceiras() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {/* LEFT COLUMN: Charts & Cards */}
               <div className="space-y-4">
-                {/* Compact Cards */}
+                {/* Compact Cards with Month Indicator */}
                 <div className="grid grid-cols-3 gap-3">
                   <Card className="p-3 border-t-2 border-t-green-500">
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="flex items-center justify-between mb-1">
                       <div className="p-1.5 rounded bg-green-100 dark:bg-green-950">
                         <TrendingUp className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
                       </div>
+                      <Badge variant="outline" className="text-[10px] h-5 px-1.5">
+                        {months.find(m => m.value === selectedMonth)?.label.slice(0, 3)}/{selectedYear}
+                      </Badge>
                     </div>
                     <p className="text-xs text-muted-foreground mb-0.5">Receitas</p>
                     <p className="text-lg font-bold text-green-700 dark:text-green-300">
@@ -325,10 +328,13 @@ export default function AnalisesFinanceiras() {
                   </Card>
 
                   <Card className="p-3 border-t-2 border-t-red-500">
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="flex items-center justify-between mb-1">
                       <div className="p-1.5 rounded bg-red-100 dark:bg-red-950">
                         <TrendingDown className="h-3.5 w-3.5 text-red-600 dark:text-red-400" />
                       </div>
+                      <Badge variant="outline" className="text-[10px] h-5 px-1.5">
+                        {months.find(m => m.value === selectedMonth)?.label.slice(0, 3)}/{selectedYear}
+                      </Badge>
                     </div>
                     <p className="text-xs text-muted-foreground mb-0.5">Despesas</p>
                     <p className="text-lg font-bold text-red-700 dark:text-red-300">
@@ -337,10 +343,13 @@ export default function AnalisesFinanceiras() {
                   </Card>
 
                   <Card className="p-3 border-t-2 border-t-blue-500">
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="flex items-center justify-between mb-1">
                       <div className="p-1.5 rounded bg-blue-100 dark:bg-blue-950">
                         <DollarSign className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
                       </div>
+                      <Badge variant="outline" className="text-[10px] h-5 px-1.5">
+                        {months.find(m => m.value === selectedMonth)?.label.slice(0, 3)}/{selectedYear}
+                      </Badge>
                     </div>
                     <p className="text-xs text-muted-foreground mb-0.5">Lucro</p>
                     <p className={`text-lg font-bold ${(dreHierarchical?.netResult || 0) >= 0 ? 'text-blue-700 dark:text-blue-300' : 'text-red-700 dark:text-red-300'}`}>
