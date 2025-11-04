@@ -68,7 +68,7 @@ export default function AnalisesFinanceiras() {
   const currentDate = new Date();
   const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
-  const [aiInsights, setAIInsights] = useState<any[]>([]);
+  const [aiAnalysis, setAIAnalysis] = useState<any>(null);
   const [expandedAccounts, setExpandedAccounts] = useState<Set<string>>(new Set());
   const [activeTab, setActiveTab] = useState("mensal");
   const [regime, setRegime] = useState<'caixa' | 'competencia'>('caixa');
@@ -88,7 +88,7 @@ export default function AnalisesFinanceiras() {
   }, []);
 
   useEffect(() => {
-    setAIInsights([]);
+    setAIAnalysis(null);
   }, [selectedMonth, selectedYear, activeCompanyId]);
 
   // Fetch hierarchical DRE
@@ -117,7 +117,7 @@ export default function AnalisesFinanceiras() {
     enabled: !!activeCompanyId,
   });
 
-  // AI Insights mutation
+  // AI Insights mutation - Professional consultative analysis
   const generateInsightsMutation = useMutation({
     mutationFn: async () => {
       const res = await apiRequest('POST', '/api/analytics/ai-insights', {
@@ -128,15 +128,15 @@ export default function AnalisesFinanceiras() {
       return await res.json();
     },
     onSuccess: (data: any) => {
-      setAIInsights(data.insights || []);
+      setAIAnalysis(data);
       toast({
-        title: "Insights gerados com sucesso",
-        description: "A análise foi concluída.",
+        title: "Análise gerada com sucesso",
+        description: "Relatório consultivo completo disponível.",
       });
     },
     onError: (err) => {
       toast({
-        title: "Erro ao gerar insights",
+        title: "Erro ao gerar análise",
         description: (err as Error).message || "Tente novamente mais tarde.",
         variant: "destructive",
       });
@@ -549,28 +549,28 @@ export default function AnalisesFinanceiras() {
         </Tabs>
       </div>
 
-      {/* AI Insights Dialog */}
+      {/* AI Analysis Dialog - Professional Consultative Report */}
       <Dialog open={isAIDialogOpen} onOpenChange={setIsAIDialogOpen}>
-        <DialogContent className="sm:max-w-2xl">
+        <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-primary" />
-              Análise IA - {months.find(m => m.value === selectedMonth)?.label} {selectedYear}
+              Relatório Consultivo - {months.find(m => m.value === selectedMonth)?.label} {selectedYear}
             </DialogTitle>
             <DialogDescription>
-              Insights inteligentes gerados por IA com base nos seus dados financeiros
+              Análise financeira completa gerada por IA com insights estratégicos
             </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-4">
-            {/* Generate Button */}
-            <div className="flex justify-end">
+            {/* Action Buttons */}
+            <div className="flex justify-end gap-2">
               <Button 
                 variant="default" 
                 size="sm" 
                 onClick={() => generateInsightsMutation.mutate()}
                 disabled={generateInsightsMutation.isPending}
-                data-testid="button-generate-insights"
+                data-testid="button-generate-analysis"
               >
                 {generateInsightsMutation.isPending ? (
                   <>
@@ -580,50 +580,123 @@ export default function AnalisesFinanceiras() {
                 ) : (
                   <>
                     <Sparkles className="h-4 w-4 mr-2" />
-                    Gerar Insights
+                    Gerar Análise
                   </>
                 )}
               </Button>
             </div>
 
-            {/* Insights Display */}
-            {aiInsights.length > 0 ? (
-              <div className="space-y-3 max-h-96 overflow-y-auto">
-                {aiInsights.map((insight: any, index: number) => {
-                  const Icon = insight.type === 'warning' ? AlertCircle
-                    : insight.type === 'success' ? CheckCircle
-                    : insight.type === 'tip' ? Lightbulb
-                    : Info;
-                  
-                  const colorClass = insight.type === 'warning' ? 'text-red-600 dark:text-red-400'
-                    : insight.type === 'success' ? 'text-green-600 dark:text-green-400'
-                    : insight.type === 'tip' ? 'text-amber-600 dark:text-amber-400'
-                    : 'text-blue-600 dark:text-blue-400';
-                  
-                  const bgClass = insight.type === 'warning' ? 'bg-red-50 dark:bg-red-950/20'
-                    : insight.type === 'success' ? 'bg-green-50 dark:bg-green-950/20'
-                    : insight.type === 'tip' ? 'bg-amber-50 dark:bg-amber-950/20'
-                    : 'bg-blue-50 dark:bg-blue-950/20';
-                  
-                  return (
-                    <div key={index} className={`p-3 rounded-lg ${bgClass}`}>
-                      <div className="flex items-start gap-3">
-                        <Icon className={`h-5 w-5 ${colorClass} mt-0.5 flex-shrink-0`} />
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-semibold text-sm mb-1">{insight.title}</h4>
-                          <p className="text-sm text-muted-foreground">{insight.description}</p>
-                        </div>
-                      </div>
+            {/* Analysis Display */}
+            {aiAnalysis ? (
+              <div className="space-y-6">
+                {/* Executive Summary */}
+                {aiAnalysis.executiveSummary && (
+                  <div className="space-y-2">
+                    <h3 className="text-base font-bold text-primary">Resumo Executivo</h3>
+                    <p className="text-sm leading-relaxed whitespace-pre-line">{aiAnalysis.executiveSummary}</p>
+                  </div>
+                )}
+
+                {/* Revenue Analysis */}
+                {aiAnalysis.revenueAnalysis && (
+                  <div className="space-y-2">
+                    <h3 className="text-base font-bold text-green-700 dark:text-green-400">Análise de Receitas</h3>
+                    <p className="text-sm leading-relaxed whitespace-pre-line">{aiAnalysis.revenueAnalysis}</p>
+                  </div>
+                )}
+
+                {/* Expense Analysis */}
+                {aiAnalysis.expenseAnalysis && (
+                  <div className="space-y-2">
+                    <h3 className="text-base font-bold text-red-700 dark:text-red-400">Análise de Despesas</h3>
+                    <p className="text-sm leading-relaxed whitespace-pre-line">{aiAnalysis.expenseAnalysis}</p>
+                  </div>
+                )}
+
+                {/* Financial Indicators */}
+                {aiAnalysis.indicators && (
+                  <div className="space-y-2">
+                    <h3 className="text-base font-bold text-blue-700 dark:text-blue-400">Indicadores Financeiros</h3>
+                    <p className="text-sm leading-relaxed whitespace-pre-line">{aiAnalysis.indicators}</p>
+                  </div>
+                )}
+
+                {/* Trends */}
+                {aiAnalysis.trends && (
+                  <div className="space-y-2">
+                    <h3 className="text-base font-bold text-purple-700 dark:text-purple-400">Tendências</h3>
+                    <p className="text-sm leading-relaxed whitespace-pre-line">{aiAnalysis.trends}</p>
+                  </div>
+                )}
+
+                {/* Alerts */}
+                {aiAnalysis.alerts && (
+                  <div className="space-y-2">
+                    <h3 className="text-base font-bold text-amber-700 dark:text-amber-400">Alertas e Riscos</h3>
+                    <p className="text-sm leading-relaxed whitespace-pre-line">{aiAnalysis.alerts}</p>
+                  </div>
+                )}
+
+                {/* Recommendations */}
+                {aiAnalysis.recommendations && (
+                  <div className="space-y-2">
+                    <h3 className="text-base font-bold text-cyan-700 dark:text-cyan-400">Recomendações Estratégicas</h3>
+                    <p className="text-sm leading-relaxed whitespace-pre-line">{aiAnalysis.recommendations}</p>
+                  </div>
+                )}
+
+                {/* Quick Insights Cards */}
+                {aiAnalysis.insights && aiAnalysis.insights.length > 0 && (
+                  <div className="space-y-2">
+                    <h3 className="text-base font-bold">Insights Rápidos</h3>
+                    <div className="space-y-2">
+                      {aiAnalysis.insights.map((insight: any, index: number) => {
+                        const Icon = insight.type === 'warning' ? AlertCircle
+                          : insight.type === 'success' ? CheckCircle
+                          : insight.type === 'tip' ? Lightbulb
+                          : Info;
+                        
+                        const colorClass = insight.type === 'warning' ? 'text-red-600 dark:text-red-400'
+                          : insight.type === 'success' ? 'text-green-600 dark:text-green-400'
+                          : insight.type === 'tip' ? 'text-amber-600 dark:text-amber-400'
+                          : 'text-blue-600 dark:text-blue-400';
+                        
+                        const bgClass = insight.type === 'warning' ? 'bg-red-50 dark:bg-red-950/20'
+                          : insight.type === 'success' ? 'bg-green-50 dark:bg-green-950/20'
+                          : insight.type === 'tip' ? 'bg-amber-50 dark:bg-amber-950/20'
+                          : 'bg-blue-50 dark:bg-blue-950/20';
+                        
+                        return (
+                          <div key={index} className={`p-2.5 rounded-md ${bgClass}`}>
+                            <div className="flex items-start gap-2">
+                              <Icon className={`h-4 w-4 ${colorClass} mt-0.5 flex-shrink-0`} />
+                              <div className="flex-1 min-w-0">
+                                <h4 className="font-semibold text-xs mb-0.5">{insight.title}</h4>
+                                <p className="text-xs text-muted-foreground">{insight.description}</p>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
-                  );
-                })}
+                  </div>
+                )}
               </div>
             ) : (
-              <div className="text-center py-12 text-muted-foreground">
-                <Sparkles className="h-12 w-12 mx-auto mb-3 opacity-30" />
-                <p className="text-sm">
-                  Clique em "Gerar Insights" para obter uma análise inteligente dos seus dados
+              <div className="text-center py-16 text-muted-foreground">
+                <Sparkles className="h-16 w-16 mx-auto mb-4 opacity-20" />
+                <h3 className="font-semibold text-lg mb-2">Relatório Consultivo Profissional</h3>
+                <p className="text-sm max-w-md mx-auto mb-1">
+                  Clique em "Gerar Análise" para criar um relatório completo com:
                 </p>
+                <ul className="text-xs text-left max-w-md mx-auto mt-3 space-y-1">
+                  <li>• Resumo executivo da situação financeira</li>
+                  <li>• Análise detalhada de receitas e despesas</li>
+                  <li>• Indicadores financeiros calculados</li>
+                  <li>• Tendências e comparações históricas</li>
+                  <li>• Alertas e pontos de atenção</li>
+                  <li>• Recomendações estratégicas acionáveis</li>
+                </ul>
               </div>
             )}
           </div>

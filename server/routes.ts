@@ -2731,7 +2731,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get company info for report
       const companies = await storage.listCompanies(tenantId);
       const company = companies.find(c => c.id === companyId);
-      const companyName = company?.tradingName || company?.legalName || "Empresa";
+      const companyName = company?.tradeName || company?.legalName || "Empresa";
       
       // Get DRE and indicators data
       const monthNum = parseInt(month);
