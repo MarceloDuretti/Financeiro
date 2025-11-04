@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { format, parse } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Calendar as CalendarIcon, Check, AlertCircle } from "lucide-react";
+import { Calendar as CalendarIcon, Check, AlertCircle, ChevronDown, ChevronUp, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,6 +12,8 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   Form,
   FormControl,
@@ -34,35 +36,41 @@ const formSchema = z.object({
   chartAccountId: z.string().optional(),
   costCenterId: z.string().optional(),
   paymentMethodId: z.string().optional(),
+  count: z.coerce.number().min(1, "Mínimo 1").max(50, "Máximo 50").optional(), // Coerce string to number
 });
 
 type FormData = z.infer<typeof formSchema>;
 
-interface TransactionCommand {
-  operation: "create" | "clone" | "pay" | "unknown";
+interface SingleTransaction {
   type?: "revenue" | "expense";
   amount?: string;
   title?: string;
   description?: string;
   personName?: string;
   dueDate?: string;
-  clonePeriod?: {
-    type: "month" | "semester" | "year" | "custom";
+  personId?: string;
+  chartAccountId?: string;
+  costCenterId?: string;
+  paymentMethodId?: string;
+}
+
+interface BatchTransactionCommand {
+  operation: "create_multiple" | "clone_by_code" | "clone_period" | "unknown";
+  transactions: SingleTransaction[];
+  cloneConfig?: {
+    sourceCode?: string;
+    periodType?: "daily" | "weekly" | "monthly" | "yearly";
     count?: number;
   };
   missingFields: string[];
-  suggestions?: {
-    personId?: string;
-    chartAccountId?: string;
-    costCenterId?: string;
-    paymentMethodId?: string;
-  };
+  needsCountInput: boolean;
+  validationIssues: string[];
   confidence: number;
 }
 
 interface AITransactionFormProps {
-  command: TransactionCommand;
-  onSubmit: (data: FormData) => void;
+  command: BatchTransactionCommand;
+  onSubmit: (data: FormData & { transactionCount: number }) => void;
   onCancel: () => void;
   isSubmitting?: boolean;
 }
@@ -73,22 +81,25 @@ export function AITransactionForm({
   onCancel,
   isSubmitting = false,
 }: AITransactionFormProps) {
-  const [showSuggestions, setShowSuggestions] = useState(true);
+  const [showTransactionList, setShowTransactionList] = useState(false);
+  const transactionCount = command.transactions.length;
+  const firstTransaction = command.transactions[0] || {};
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      type: command.type || "expense",
-      amount: command.amount || "",
-      title: command.title || "",
-      description: command.description || "",
-      personName: command.personName || "",
-      issueDate: command.dueDate || format(new Date(), "yyyy-MM-dd"),
-      dueDate: command.dueDate || "",
-      personId: command.suggestions?.personId || "",
-      chartAccountId: command.suggestions?.chartAccountId || "",
-      costCenterId: command.suggestions?.costCenterId || "",
-      paymentMethodId: command.suggestions?.paymentMethodId || "",
+      type: firstTransaction.type || "expense",
+      amount: firstTransaction.amount || "",
+      title: firstTransaction.title || "",
+      description: firstTransaction.description || "",
+      personName: firstTransaction.personName || "",
+      issueDate: firstTransaction.dueDate || format(new Date(), "yyyy-MM-dd"),
+      dueDate: firstTransaction.dueDate || "",
+      personId: firstTransaction.personId || "",
+      chartAccountId: firstTransaction.chartAccountId || "",
+      costCenterId: firstTransaction.costCenterId || "",
+      paymentMethodId: firstTransaction.paymentMethodId || "",
+      count: command.needsCountInput ? undefined : transactionCount,
     },
   });
 
@@ -102,10 +113,9 @@ export function AITransactionForm({
   };
 
   const wasFilledByAI = (field: keyof FormData): boolean => {
-    // Check if this field was filled by the AI in the command
     const aiFilledFields = ['type', 'amount', 'title', 'description', 'personName', 'issueDate', 'dueDate'] as const;
     if (aiFilledFields.includes(field as any)) {
-      const commandValue = command[field as keyof typeof command];
+      const commandValue = firstTransaction[field as keyof typeof firstTransaction];
       return commandValue !== undefined && commandValue !== "";
     }
     return false;
@@ -114,45 +124,68 @@ export function AITransactionForm({
   const getFieldStatus = (field: keyof FormData): "filled" | "missing" | "suggested" | null => {
     const currentHasValue = hasValue(field);
     
-    // If field is missing (required but not filled by AI)
     if (isMissing(field)) {
       return "missing";
     }
     
-    // If field has a value
     if (currentHasValue) {
-      // Check if it's a suggestion field
-      if (command.suggestions && field in command.suggestions) {
-        return "suggested";
-      }
-      // Check if it was filled by AI
       if (wasFilledByAI(field)) {
         return "filled";
       }
     }
     
-    // Field is optional and empty, or user-filled (no special status)
     return null;
   };
 
   const handleSubmit = (data: FormData) => {
-    onSubmit(data);
+    const finalCount = command.needsCountInput 
+      ? (data.count || transactionCount) 
+      : transactionCount;
+    
+    onSubmit({
+      ...data,
+      transactionCount: finalCount,
+    });
   };
 
   return (
     <div className="space-y-6">
-      {/* Header with confidence */}
+      {/* Header with confidence and transaction count */}
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-semibold">Complementar Informações</h3>
           <p className="text-sm text-muted-foreground">
-            Preencha os campos faltantes e revise as informações
+            {transactionCount === 1 
+              ? "Preencha os campos faltantes e revise as informações"
+              : `${transactionCount} lançamentos detectados - revise e complete`}
           </p>
         </div>
-        <Badge variant={command.confidence > 0.7 ? "default" : "secondary"}>
-          Confiança: {(command.confidence * 100).toFixed(0)}%
-        </Badge>
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="font-mono">
+            {transactionCount} {transactionCount === 1 ? 'lançamento' : 'lançamentos'}
+          </Badge>
+          <Badge variant={command.confidence > 0.7 ? "default" : "secondary"}>
+            Confiança: {(command.confidence * 100).toFixed(0)}%
+          </Badge>
+        </div>
       </div>
+
+      {/* Validation issues alert */}
+      {command.validationIssues && command.validationIssues.length > 0 && (
+        <div className="flex items-start gap-2 p-3 rounded-md bg-red-500/10 border border-red-500/20">
+          <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-500 mt-0.5" />
+          <div className="flex-1">
+            <p className="text-sm font-medium text-red-900 dark:text-red-100">
+              Problemas de validação detectados
+            </p>
+            <ul className="text-xs text-red-800 dark:text-red-200 mt-1 list-disc list-inside">
+              {command.validationIssues.map((issue, i) => (
+                <li key={i}>{issue}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
 
       {/* Missing fields alert */}
       {command.missingFields.length > 0 && (
@@ -169,9 +202,93 @@ export function AITransactionForm({
         </div>
       )}
 
-      {/* Form */}
+      {/* Clone config info */}
+      {command.cloneConfig && (
+        <div className="p-3 rounded-md bg-blue-500/10 border border-blue-500/20">
+          <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
+            {command.operation === 'clone_by_code' && command.cloneConfig.sourceCode && (
+              <>Clonando a partir de: <span className="font-mono">{command.cloneConfig.sourceCode}</span></>
+            )}
+            {command.operation === 'clone_period' && (
+              <>Clonagem {command.cloneConfig.periodType === 'monthly' ? 'mensal' : 
+                         command.cloneConfig.periodType === 'weekly' ? 'semanal' :
+                         command.cloneConfig.periodType === 'yearly' ? 'anual' : 'diária'}</>
+            )}
+          </p>
+          {command.cloneConfig.count && (
+            <p className="text-xs text-blue-800 dark:text-blue-200 mt-1">
+              {command.cloneConfig.count} ocorrências
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* Transaction list preview (collapsible) */}
+      {transactionCount > 1 && (
+        <Collapsible open={showTransactionList} onOpenChange={setShowTransactionList}>
+          <CollapsibleTrigger asChild>
+            <Button
+              variant="outline"
+              className="w-full justify-between"
+              data-testid="button-toggle-transaction-list"
+            >
+              <span>Ver lista de lançamentos ({transactionCount})</span>
+              {showTransactionList ? (
+                <ChevronUp className="w-4 h-4" />
+              ) : (
+                <ChevronDown className="w-4 h-4" />
+              )}
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="mt-2">
+            <ScrollArea className="h-[200px] rounded-md border p-3">
+              <div className="space-y-2">
+                {command.transactions.map((transaction, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between gap-2 p-2 rounded-md bg-muted/30 text-xs"
+                    data-testid={`transaction-preview-${index}`}
+                  >
+                    <Badge
+                      variant={transaction.type === 'expense' ? 'destructive' : 'default'}
+                      className={`text-[10px] h-5 px-1.5 ${
+                        transaction.type === 'revenue' ? 'bg-blue-600 hover:bg-blue-700' : ''
+                      }`}
+                    >
+                      {transaction.type === 'expense' ? 'DES' : 'REC'}
+                    </Badge>
+                    <span className="flex-1 truncate font-medium">
+                      {transaction.title || 'Sem título'}
+                    </span>
+                    <span className="text-muted-foreground">
+                      {transaction.dueDate ? format(parse(transaction.dueDate, 'yyyy-MM-dd', new Date()), 'dd/MM/yy') : '-'}
+                    </span>
+                    <span className={cn(
+                      "font-semibold",
+                      transaction.type === 'expense' ? 'text-destructive' : 'text-blue-600'
+                    )}>
+                      R$ {transaction.amount || '0,00'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
+          </CollapsibleContent>
+        </Collapsible>
+      )}
+
+      {/* Form - Editing first transaction as template */}
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          {transactionCount > 1 && (
+            <div className="flex items-center gap-2 p-3 rounded-md bg-blue-500/10 border border-blue-500/20">
+              <Copy className="w-4 h-4 text-blue-600" />
+              <p className="text-xs text-blue-800 dark:text-blue-200">
+                Editando lançamento de referência. As alterações serão aplicadas a todos os {transactionCount} lançamentos.
+              </p>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Type */}
             <FormField
@@ -336,14 +453,14 @@ export function AITransactionForm({
               )}
             />
 
-            {/* Due Date */}
+            {/* Due Date - Only show first transaction date */}
             <FormField
               control={form.control}
               name="dueDate"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="flex items-center gap-2">
-                    Data de Vencimento
+                    {transactionCount > 1 ? 'Data Inicial' : 'Data de Vencimento'}
                     {getFieldStatus("dueDate") === "filled" && (
                       <Check className="w-4 h-4 text-green-600" />
                     )}
@@ -398,20 +515,37 @@ export function AITransactionForm({
             />
           </div>
 
-          {/* Clone Period Info */}
-          {command.clonePeriod && (
-            <div className="p-3 rounded-md bg-blue-500/10 border border-blue-500/20">
-              <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
-                Clonagem detectada
-              </p>
-              <p className="text-xs text-blue-800 dark:text-blue-200 mt-1">
-                Este lançamento será clonado para:{" "}
-                {command.clonePeriod.type === "year" && "o ano todo"}
-                {command.clonePeriod.type === "semester" && "o semestre"}
-                {command.clonePeriod.type === "month" && "os próximos meses"}
-                {command.clonePeriod.count && ` (${command.clonePeriod.count} vezes)`}
-              </p>
-            </div>
+          {/* Count input (when needsCountInput is true) */}
+          {command.needsCountInput && (
+            <FormField
+              control={form.control}
+              name="count"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center gap-2">
+                    Quantidade de Lançamentos
+                    <AlertCircle className="w-4 h-4 text-yellow-600" />
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      type="number"
+                      min="1"
+                      max="50"
+                      data-testid="input-count"
+                      placeholder="Ex: 12 (máximo 50)"
+                      className="border-yellow-500 bg-yellow-500/5"
+                      onChange={(e) => field.onChange(parseInt(e.target.value) || undefined)}
+                      value={field.value || ''}
+                    />
+                  </FormControl>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Especifique quantos lançamentos devem ser criados (limite: 50)
+                  </p>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           )}
 
           {/* Actions */}
@@ -430,7 +564,7 @@ export function AITransactionForm({
               disabled={isSubmitting}
               data-testid="button-submit"
             >
-              {isSubmitting ? "Processando..." : "Continuar"}
+              {isSubmitting ? "Processando..." : "Continuar para Preview"}
             </Button>
           </div>
         </form>

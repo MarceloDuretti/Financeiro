@@ -169,25 +169,28 @@ export default function Lancamentos() {
     return transactions;
   };
 
-  // AI command analysis mutation
+  // AI command analysis mutation (batch version - supports multiple transactions)
   const analyzeCommandMutation = useMutation({
     mutationFn: async (command: string) => {
       if (!selectedCompanyId) throw new Error("Nenhuma empresa selecionada");
       
-      const res = await apiRequest("POST", "/api/transactions/analyze-command", { 
+      const res = await apiRequest("POST", "/api/transactions/analyze-batch-command", { 
         command, 
         companyId: selectedCompanyId 
       });
       return res.json();
     },
     onSuccess: (data) => {
-      console.log("[AI Command] Analysis result:", data);
+      console.log("[AI Batch Command] Analysis result:", data);
       setAiCommandResult(data);
       setShowAiForm(true); // Show form first to review AI interpretation
       
+      const count = data.transactions?.length || 0;
       toast({
         title: "Comando analisado",
-        description: "Revise os dados antes de continuar",
+        description: count > 1 
+          ? `${count} lançamentos detectados. Revise os dados antes de continuar.`
+          : "Revise os dados antes de continuar",
       });
     },
     onError: (error: Error) => {
@@ -1585,15 +1588,22 @@ export default function Lancamentos() {
                 onSubmit={(data) => {
                   console.log("[AI Form] Submitted data:", data);
                   
-                  // Generate transactions (single or cloned)
-                  let transactions: any[];
-                  if (aiCommandResult.clonePeriod) {
-                    transactions = generateClonedTransactions(data, aiCommandResult.clonePeriod);
-                  } else {
-                    transactions = [data];
-                  }
+                  // Apply edited data from form to all AI-generated transactions
+                  const transactions = (aiCommandResult.transactions || []).map((aiTx: any, index: number) => ({
+                    type: data.type,
+                    amount: data.amount,
+                    title: data.title,
+                    description: data.description,
+                    personName: data.personName,
+                    issueDate: data.issueDate || data.dueDate,
+                    dueDate: aiTx.dueDate || data.dueDate, // Keep AI-generated date if available
+                    personId: aiTx.personId || data.personId,
+                    chartAccountId: aiTx.chartAccountId || data.chartAccountId,
+                    costCenterId: aiTx.costCenterId || data.costCenterId,
+                    paymentMethodId: data.paymentMethodId,
+                  }));
                   
-                  console.log("[AI Form] Generated transactions:", transactions);
+                  console.log("[AI Form] Prepared transactions for preview:", transactions);
                   setGeneratedTransactions(transactions);
                   setShowAiForm(false);
                   setShowAiPreview(true);
