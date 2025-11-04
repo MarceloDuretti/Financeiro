@@ -332,9 +332,14 @@ export default function AnalisesFinanceiras() {
                       <div className="p-1.5 rounded bg-green-100 dark:bg-green-950">
                         <TrendingUp className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
                       </div>
-                      <Badge variant="outline" className="text-[10px] h-5 px-1.5">
-                        {months.find(m => m.value === selectedMonth)?.label.slice(0, 3)}/{selectedYear}
-                      </Badge>
+                      <div className="flex flex-col gap-0.5">
+                        <Badge variant="outline" className="text-[10px] h-5 px-1.5">
+                          {months.find(m => m.value === selectedMonth)?.label.slice(0, 3)}/{selectedYear}
+                        </Badge>
+                        <Badge variant="secondary" className="text-[9px] h-4 px-1">
+                          {regime === 'caixa' ? 'Caixa' : 'Comp.'}
+                        </Badge>
+                      </div>
                     </div>
                     <p className="text-xs text-muted-foreground mb-0.5">Receitas</p>
                     <p className="text-lg font-bold text-green-700 dark:text-green-300">
@@ -347,9 +352,14 @@ export default function AnalisesFinanceiras() {
                       <div className="p-1.5 rounded bg-red-100 dark:bg-red-950">
                         <TrendingDown className="h-3.5 w-3.5 text-red-600 dark:text-red-400" />
                       </div>
-                      <Badge variant="outline" className="text-[10px] h-5 px-1.5">
-                        {months.find(m => m.value === selectedMonth)?.label.slice(0, 3)}/{selectedYear}
-                      </Badge>
+                      <div className="flex flex-col gap-0.5">
+                        <Badge variant="outline" className="text-[10px] h-5 px-1.5">
+                          {months.find(m => m.value === selectedMonth)?.label.slice(0, 3)}/{selectedYear}
+                        </Badge>
+                        <Badge variant="secondary" className="text-[9px] h-4 px-1">
+                          {regime === 'caixa' ? 'Caixa' : 'Comp.'}
+                        </Badge>
+                      </div>
                     </div>
                     <p className="text-xs text-muted-foreground mb-0.5">Despesas</p>
                     <p className="text-lg font-bold text-red-700 dark:text-red-300">
@@ -362,9 +372,14 @@ export default function AnalisesFinanceiras() {
                       <div className="p-1.5 rounded bg-blue-100 dark:bg-blue-950">
                         <DollarSign className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
                       </div>
-                      <Badge variant="outline" className="text-[10px] h-5 px-1.5">
-                        {months.find(m => m.value === selectedMonth)?.label.slice(0, 3)}/{selectedYear}
-                      </Badge>
+                      <div className="flex flex-col gap-0.5">
+                        <Badge variant="outline" className="text-[10px] h-5 px-1.5">
+                          {months.find(m => m.value === selectedMonth)?.label.slice(0, 3)}/{selectedYear}
+                        </Badge>
+                        <Badge variant="secondary" className="text-[9px] h-4 px-1">
+                          {regime === 'caixa' ? 'Caixa' : 'Comp.'}
+                        </Badge>
+                      </div>
                     </div>
                     <p className="text-xs text-muted-foreground mb-0.5">Lucro</p>
                     <p className={`text-lg font-bold ${(dreHierarchical?.netResult || 0) >= 0 ? 'text-blue-700 dark:text-blue-300' : 'text-red-700 dark:text-red-300'}`}>
