@@ -299,6 +299,285 @@ export default function AnalisesFinanceiras() {
     });
   };
 
+  // Helper: flatten hierarchical DRE into table rows
+  const flattenDRE = (
+    nodes: AccountNode[],
+    rows: any[] = [],
+    type: 'revenue' | 'expense' = 'revenue',
+    totalRevenueForPctRevenue: number = 0
+  ) => {
+    nodes.forEach((n) => {
+      const pctParent = isFinite(n.percentOfParent) ? n.percentOfParent : 0;
+      const pctRoot = isFinite(n.percentOfRoot) ? n.percentOfRoot : 0;
+      const pctRevenue = type === 'expense' && totalRevenueForPctRevenue > 0
+        ? (n.total / totalRevenueForPctRevenue) * 100
+        : undefined;
+
+      rows.push({
+        code: n.code,
+        name: `${' '.repeat(Math.max(0, n.depth) * 2)}${n.name}`,
+        total: n.total,
+        pctParent,
+        pctRoot,
+        pctRevenue,
+        depth: n.depth,
+      });
+
+      if (n.children && n.children.length > 0) {
+        flattenDRE(n.children as AccountNode[], rows, type, totalRevenueForPctRevenue);
+      }
+    });
+    return rows;
+  };
+
+  // Helper: simple bar chart (revenues vs expenses) drawn directly on jsPDF
+  const drawBarChart = (
+    doc: jsPDF,
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    monthsData: any[]
+  ) => {
+    const padding = 10;
+    const chartX = x + padding;
+    const chartY = y + padding;
+    const chartW = width - padding * 2;
+    const chartH = height - padding * 2;
+
+    const dataRevenues = monthsData.map((m) => m.revenues || 0);
+    const dataExpenses = monthsData.map((m) => m.expenses || 0);
+    const maxVal = Math.max(1, ...dataRevenues, ...dataExpenses);
+
+    const barGroupW = chartW / Math.max(1, monthsData.length || 12);
+    const barW = Math.max(2, (barGroupW - 6) / 2);
+
+    // Axes
+    doc.setDrawColor(200);
+    doc.line(chartX, chartY + chartH, chartX + chartW, chartY + chartH);
+    doc.line(chartX, chartY, chartX, chartY + chartH);
+
+    // Bars
+    monthsData.forEach((m, i) => {
+      const rx = chartX + i * barGroupW + 2;
+      const ex = rx + barW + 2;
+      const rH = (dataRevenues[i] / maxVal) * chartH;
+      const eH = (dataExpenses[i] / maxVal) * chartH;
+
+      // Revenues (green)
+      doc.setFillColor(34, 197, 94);
+      doc.rect(rx, chartY + chartH - rH, barW, rH, 'F');
+      // Expenses (red)
+      doc.setFillColor(239, 68, 68);
+      doc.rect(ex, chartY + chartH - eH, barW, eH, 'F');
+    });
+
+    // Legend
+    doc.setFontSize(8);
+    doc.setTextColor(0);
+    doc.setFillColor(34, 197, 94);
+    doc.rect(chartX, chartY - 2, 3, 3, 'F');
+    doc.text('Receitas', chartX + 5, chartY + 1);
+    doc.setFillColor(239, 68, 68);
+    doc.rect(chartX + 40, chartY - 2, 3, 3, 'F');
+    doc.text('Despesas', chartX + 45, chartY + 1);
+  };
+
+  // Export Analytical PDF (consultative and detailed)
+  const exportToPDFAnalitico = () => {
+    if (!aiAnalysis) return;
+
+    const doc = new jsPDF();
+    const monthName = months.find(m => m.value === selectedMonth)?.label || '';
+
+    // Header
+    doc.setFontSize(20);
+    doc.setTextColor(59, 130, 246);
+    doc.text('Relatório Consultivo Financeiro (Analítico)', 105, 18, { align: 'center' });
+    doc.setFontSize(12);
+    doc.setTextColor(100);
+    const companyName = aiAnalysis.metadata?.companyName || '';
+    const regimeLabel = regime === 'caixa' ? 'Regime de Caixa' : 'Regime de Competência';
+    doc.text(`${companyName} • ${monthName} ${selectedYear} • ${regimeLabel}`, 105, 26, { align: 'center' });
+
+    let yPos = 36;
+    const margin = 14;
+    const pageWidth = doc.internal.pageSize.getWidth();
+
+    // KPIs block
+    const kpis = [
+      { label: 'Receitas', value: currentMonthData.revenues || 0, color: [34,197,94] as [number,number,number] },
+      { label: 'Despesas', value: currentMonthData.expenses || 0, color: [239,68,68] as [number,number,number] },
+      { label: 'Lucro', value: currentMonthData.profit || 0, color: [59,130,246] as [number,number,number] },
+      { label: 'Margem Líquida', value: (currentMonthData.revenues ? (currentMonthData.profit/currentMonthData.revenues)*100 : 0), color: [99,102,241] as [number,number,number], isPercent: true },
+    ];
+    const boxW = (pageWidth - margin * 2 - 9) / 4;
+    kpis.forEach((k, i) => {
+      const x = margin + i * (boxW + 3);
+      doc.setDrawColor(k.color[0], k.color[1], k.color[2]);
+      doc.setLineWidth(0.6);
+      doc.rect(x, yPos, boxW, 16);
+      doc.setFontSize(9);
+      doc.setTextColor(90);
+      doc.text(k.label, x + 2, yPos + 6);
+      doc.setFontSize(11);
+      doc.setTextColor(k.color[0], k.color[1], k.color[2]);
+      const text = (k as any).isPercent ? `${(k.value as number).toFixed(1)}%`
+        : `R$ ${(k.value as number).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      doc.text(text, x + 2, yPos + 13);
+    });
+    yPos += 22;
+
+    // Narrative sections (keep current AI texts)
+    const writeSection = (title: string, content?: string, color: [number,number,number] = [0,0,0]) => {
+      if (!content) return;
+      if (yPos > 270) { doc.addPage(); yPos = 16; }
+      doc.setFontSize(12); doc.setTextColor(color[0], color[1], color[2]); doc.setFont('helvetica','bold');
+      doc.text(title, margin, yPos); yPos += 6;
+      doc.setFontSize(10); doc.setTextColor(40); doc.setFont('helvetica','normal');
+      const lines = doc.splitTextToSize(content, pageWidth - margin*2);
+      doc.text(lines, margin, yPos); yPos += lines.length * 5 + 6;
+    };
+
+    writeSection('Resumo Executivo', aiAnalysis.executiveSummary, [59,130,246]);
+    writeSection('Análise de Receitas', aiAnalysis.revenueAnalysis, [34,197,94]);
+    writeSection('Análise de Despesas', aiAnalysis.expenseAnalysis, [239,68,68]);
+    writeSection('Indicadores Financeiros', aiAnalysis.indicators, [59,130,246]);
+    writeSection('Tendências', aiAnalysis.trends, [168,85,247]);
+    writeSection('Alertas e Riscos', aiAnalysis.alerts, [245,158,11]);
+    writeSection('Recomendações Estratégicas', aiAnalysis.recommendations, [6,182,212]);
+
+    // DRE - Receitas
+    if (dreHierarchical?.revenues?.length) {
+      if (yPos > 240) { doc.addPage(); yPos = 16; }
+      doc.setFontSize(12); doc.setTextColor(34,197,94); doc.setFont('helvetica','bold');
+      doc.text('DRE - Receitas (hierárquico)', margin, yPos); yPos += 4;
+      const revenueRows = flattenDRE(dreHierarchical.revenues as AccountNode[], [], 'revenue', currentMonthData.revenues);
+      autoTable(doc, {
+        startY: yPos,
+        head: [["Código", "Conta", "Valor (R$)", "% Pai", "% Total"]],
+        body: revenueRows.map(r => [
+          r.code,
+          r.name,
+          (r.total as number).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+          `${(r.pctParent as number).toFixed(1)}%`,
+          `${(r.pctRoot as number).toFixed(1)}%`,
+        ]),
+        styles: { fontSize: 9, cellPadding: 2 },
+        headStyles: { fillColor: [34,197,94], textColor: 255 },
+        columnStyles: { 0: { cellWidth: 22 }, 1: { cellWidth: 78 }, 2: { cellWidth: 28, halign: 'right' }, 3: { cellWidth: 16, halign: 'right' }, 4: { cellWidth: 16, halign: 'right' } },
+      });
+      yPos = (doc as any).lastAutoTable.finalY + 8;
+    }
+
+    // DRE - Despesas
+    if (dreHierarchical?.expenses?.length) {
+      if (yPos > 240) { doc.addPage(); yPos = 16; }
+      doc.setFontSize(12); doc.setTextColor(239,68,68); doc.setFont('helvetica','bold');
+      doc.text('DRE - Despesas (hierárquico)', margin, yPos); yPos += 4;
+      const expenseRows = flattenDRE(dreHierarchical.expenses as AccountNode[], [], 'expense', currentMonthData.revenues);
+      autoTable(doc, {
+        startY: yPos,
+        head: [["Código", "Conta", "Valor (R$)", "% Pai", "% Total", "% Receita"]],
+        body: expenseRows.map(r => [
+          r.code,
+          r.name,
+          (r.total as number).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+          `${(r.pctParent as number).toFixed(1)}%`,
+          `${(r.pctRoot as number).toFixed(1)}%`,
+          `${(r.pctRevenue ?? 0).toFixed(1)}%`,
+        ]),
+        styles: { fontSize: 9, cellPadding: 2 },
+        headStyles: { fillColor: [239,68,68], textColor: 255 },
+        columnStyles: { 0: { cellWidth: 22 }, 1: { cellWidth: 70 }, 2: { cellWidth: 28, halign: 'right' }, 3: { cellWidth: 16, halign: 'right' }, 4: { cellWidth: 16, halign: 'right' }, 5: { cellWidth: 18, halign: 'right' } },
+      });
+      yPos = (doc as any).lastAutoTable.finalY + 8;
+    }
+
+    // Top 5 tables
+    const getTop = (nodes: AccountNode[]) => {
+      const rows: { name: string, total: number }[] = [];
+      const add = (n: AccountNode) => {
+        if (n.children && n.children.length > 0) {
+          (n.children as AccountNode[]).forEach((c) => rows.push({ name: c.name, total: c.total }));
+        } else {
+          rows.push({ name: n.name, total: n.total });
+        }
+      };
+      nodes.forEach(add);
+      return rows.sort((a,b) => b.total - a.total).slice(0,5);
+    };
+
+    const topRevenues = dreHierarchical?.revenues ? getTop(dreHierarchical.revenues as AccountNode[]) : [];
+    const topExpenses = dreHierarchical?.expenses ? getTop(dreHierarchical.expenses as AccountNode[]) : [];
+
+    if (topRevenues.length || topExpenses.length) {
+      if (yPos > 230) { doc.addPage(); yPos = 16; }
+      const colW = (pageWidth - margin * 2 - 6) / 2;
+      // Revenues
+      doc.setFontSize(11); doc.setTextColor(34,197,94); doc.setFont('helvetica','bold');
+      doc.text('Top 5 Receitas', margin, yPos); doc.setTextColor(0);
+      autoTable(doc, {
+        startY: yPos + 3,
+        head: [["Conta", "Valor (R$)"]],
+        body: topRevenues.map(r => [r.name, r.total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })]),
+        styles: { fontSize: 9, cellPadding: 2 },
+        headStyles: { fillColor: [34,197,94], textColor: 255 },
+        tableWidth: colW,
+        columnStyles: { 0: { cellWidth: colW - 28 }, 1: { cellWidth: 28, halign: 'right' } },
+        margin: { left: margin },
+      });
+      // Expenses
+      doc.setFontSize(11); doc.setTextColor(239,68,68); doc.setFont('helvetica','bold');
+      doc.text('Top 5 Despesas', margin + colW + 6, yPos);
+      autoTable(doc, {
+        startY: yPos + 3,
+        head: [["Conta", "Valor (R$)"]],
+        body: topExpenses.map(r => [r.name, r.total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })]),
+        styles: { fontSize: 9, cellPadding: 2 },
+        headStyles: { fillColor: [239,68,68], textColor: 255 },
+        tableWidth: colW,
+        columnStyles: { 0: { cellWidth: colW - 28 }, 1: { cellWidth: 28, halign: 'right' } },
+        margin: { left: margin + colW + 6 },
+      });
+      yPos = Math.max((doc as any).lastAutoTable.finalY, yPos + 40) + 8;
+    }
+
+    // Evolution chart (drawn bars)
+    if (yearlyEvolution?.data?.length) {
+      if (yPos > 210) { doc.addPage(); yPos = 16; }
+      doc.setFontSize(12); doc.setTextColor(59,130,246); doc.setFont('helvetica','bold');
+      doc.text('Evolução Anual (Receitas x Despesas)', margin, yPos); yPos += 4;
+      drawBarChart(doc, margin, yPos, pageWidth - margin * 2, 60, yearlyEvolution.data);
+      yPos += 68;
+    }
+
+    // Footer
+    const pageCount = (doc as any).internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setTextColor(120);
+      doc.text(
+        `Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`,
+        margin,
+        doc.internal.pageSize.getHeight() - 8
+      );
+      doc.text(
+        `Página ${i} de ${pageCount}`,
+        pageWidth - margin,
+        doc.internal.pageSize.getHeight() - 8,
+        { align: 'right' }
+      );
+    }
+
+    doc.save(`Relatorio_Consultivo_Analitico_${monthName}_${selectedYear}.pdf`);
+    toast({
+      title: 'PDF analítico exportado',
+      description: 'Relatório consultivo analítico salvo com sucesso.',
+    });
+  };
+
   const months = [
     { value: 1, label: "Janeiro" }, { value: 2, label: "Fevereiro" },
     { value: 3, label: "Março" }, { value: 4, label: "Abril" },
@@ -327,6 +606,10 @@ export default function AnalisesFinanceiras() {
     const hasChildren = account.hasChildren;
     const indent = account.depth * 24;
     const colorClass = type === 'revenue' ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300';
+    // Calculate display percentages using the section root totals to avoid mismatches
+    const rootTotal = type === 'revenue' ? (currentMonthData.revenues || 0) : (currentMonthData.expenses || 0);
+    const displayPercentOfRoot = rootTotal > 0 ? (account.total / rootTotal) * 100 : 0;
+    const displayPercentOfParent = isFinite(account.percentOfParent) ? account.percentOfParent : 0;
 
     return (
       <div key={account.id} className="border-b border-border/40 last:border-0">
@@ -357,10 +640,10 @@ export default function AnalisesFinanceiras() {
               R$ {account.total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
             <span className="text-xs text-muted-foreground w-16 text-right">
-              {account.percentOfRoot.toFixed(1)}%
+              {displayPercentOfRoot.toFixed(1)}%
             </span>
             <span className="text-xs text-muted-foreground w-16 text-right">
-              {account.percentOfParent.toFixed(1)}%
+              {displayPercentOfParent.toFixed(1)}%
             </span>
           </div>
         </div>
@@ -725,6 +1008,17 @@ export default function AnalisesFinanceiras() {
                 >
                   <FileDown className="h-4 w-4 mr-2" />
                   Exportar PDF
+                </Button>
+              )}
+              {aiAnalysis && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={exportToPDFAnalitico}
+                  data-testid="button-export-pdf-analytic"
+                >
+                  <FileDown className="h-4 w-4 mr-2" />
+                  Exportar PDF (Analítico)
                 </Button>
               )}
               <Button 
