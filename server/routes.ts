@@ -2540,10 +2540,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const transactions = await storage.listTransactions(tenantId, companyId as string);
       const chartAccounts = await storage.listChartOfAccounts(tenantId);
       
-      // Filter transactions for the month (issueDate)
+      // Filter transactions for the month by regime
+      // - caixa: use paidDate (only transactions actually paid/received in the period)
+      // - competencia: use issueDate (competence date)
       const monthTransactions = transactions.filter((t: any) => {
-        const issueDate = new Date(t.issueDate);
-        return issueDate >= startDate && issueDate <= endDate && t.status !== 'cancelled';
+        const baseDate = useCaixa
+          ? (t.paidDate ? new Date(t.paidDate) : null)
+          : (t.issueDate ? new Date(t.issueDate) : null);
+        if (!baseDate) return false;
+        return baseDate >= startDate && baseDate <= endDate && t.status !== 'cancelled';
       });
       
       // Build SEPARATE account totals maps for revenues and expenses
@@ -2659,11 +2664,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get yearly evolution (12 months)
-  app.get("/api/analytics/yearly-evolution", isAuthenticated, async (req, res) => {
-    try {
-      const tenantId = getTenantId((req as any).user);
-      const { companyId, year, regime = 'caixa' } = req.query;
+      // Get yearly evolution (12 months)
+      app.get("/api/analytics/yearly-evolution", isAuthenticated, async (req, res) => {
+        try {
+          const tenantId = getTenantId((req as any).user);
+          const { companyId, year, regime = 'caixa' } = req.query;
       
       if (!companyId) {
         return res.status(400).json({ error: "companyId é obrigatório" });
@@ -2687,8 +2692,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const endDate = new Date(yearNum, month, 0, 23, 59, 59);
         
         const monthTransactions = transactions.filter((t: any) => {
-          const issueDate = new Date(t.issueDate);
-          return issueDate >= startDate && issueDate <= endDate && t.status !== 'cancelled';
+          const baseDate = useCaixa
+            ? (t.paidDate ? new Date(t.paidDate) : null)
+            : (t.issueDate ? new Date(t.issueDate) : null);
+          if (!baseDate) return false;
+          return baseDate >= startDate && baseDate <= endDate && t.status !== 'cancelled';
         });
         
         const revenues = monthTransactions
