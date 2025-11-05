@@ -102,41 +102,6 @@ export default function AnalisesFinanceiras() {
     setAIAnalysis(null);
   }, [selectedMonth, selectedYear, activeCompanyId]);
 
-  // Auto-expand root accounts (depth 0 and depth 1) when DRE data loads
-  useEffect(() => {
-    if (dreHierarchical) {
-      const accountsToExpand = new Set<string>();
-      
-      // Expand all revenue accounts (depth 0 and 1)
-      dreHierarchical.revenues?.forEach((account: AccountNode) => {
-        if (account.hasChildren) {
-          accountsToExpand.add(account.id);
-          // Also expand first-level children
-          account.children?.forEach((child: AccountNode) => {
-            if (child.hasChildren) {
-              accountsToExpand.add(child.id);
-            }
-          });
-        }
-      });
-      
-      // Expand all expense accounts (depth 0 and 1)
-      dreHierarchical.expenses?.forEach((account: AccountNode) => {
-        if (account.hasChildren) {
-          accountsToExpand.add(account.id);
-          // Also expand first-level children
-          account.children?.forEach((child: AccountNode) => {
-            if (child.hasChildren) {
-              accountsToExpand.add(child.id);
-            }
-          });
-        }
-      });
-      
-      setExpandedAccounts(accountsToExpand);
-    }
-  }, [dreHierarchical]);
-
   // Fetch hierarchical DRE
   const { data: dreHierarchical, isLoading: isLoadingDRE } = useRealtimeQuery({
     queryKey: ['/api/analytics/dre-hierarchical', activeCompanyId, selectedMonth, selectedYear, regime],
@@ -190,6 +155,41 @@ export default function AnalisesFinanceiras() {
       });
     },
   });
+
+  // Auto-expand root accounts (depth 0 and depth 1) when DRE data loads
+  useEffect(() => {
+    if (dreHierarchical) {
+      const accountsToExpand = new Set<string>();
+      
+      // Expand all revenue accounts (depth 0 and 1)
+      dreHierarchical.revenues?.forEach((account: AccountNode) => {
+        if (account.hasChildren) {
+          accountsToExpand.add(account.id);
+          // Also expand first-level children
+          account.children?.forEach((child: AccountNode) => {
+            if (child.hasChildren) {
+              accountsToExpand.add(child.id);
+            }
+          });
+        }
+      });
+      
+      // Expand all expense accounts (depth 0 and 1)
+      dreHierarchical.expenses?.forEach((account: AccountNode) => {
+        if (account.hasChildren) {
+          accountsToExpand.add(account.id);
+          // Also expand first-level children
+          account.children?.forEach((child: AccountNode) => {
+            if (child.hasChildren) {
+              accountsToExpand.add(child.id);
+            }
+          });
+        }
+      });
+      
+      setExpandedAccounts(accountsToExpand);
+    }
+  }, [dreHierarchical]);
 
   const isLoading = isLoadingDRE || isLoadingYearly;
 
