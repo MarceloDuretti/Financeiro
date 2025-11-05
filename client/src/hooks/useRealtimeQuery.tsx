@@ -52,7 +52,8 @@ export function useRealtimeQuery<TData = unknown>(
       console.log(`[useRealtimeQuery] Unsubscribing from resource: ${resource}`);
       unsubscribe();
     };
-  }, [resource, subscribe]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resource]);
 
   // Use standard TanStack Query
   return useQuery(queryOptions);
