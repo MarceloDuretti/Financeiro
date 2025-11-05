@@ -31,7 +31,11 @@ export function useRealtimeQuery<TData = unknown>(
 
   // Subscribe to WebSocket messages
   useEffect(() => {
+    console.log(`[useRealtimeQuery] Subscribing to resource: ${resource}`);
+    
     const unsubscribe = subscribe((message: WebSocketMessage) => {
+      console.log(`[useRealtimeQuery] Message received for resource ${resource}:`, message);
+      
       // Only handle data change events for this resource
       if (message.type === "data:change" && message.resource === resource) {
         console.log(`[Realtime] ${resource} ${message.action}`, message.data);
@@ -44,7 +48,10 @@ export function useRealtimeQuery<TData = unknown>(
     });
 
     // Cleanup subscription on unmount
-    return unsubscribe;
+    return () => {
+      console.log(`[useRealtimeQuery] Unsubscribing from resource: ${resource}`);
+      unsubscribe();
+    };
   }, [resource, subscribe]);
 
   // Use standard TanStack Query
