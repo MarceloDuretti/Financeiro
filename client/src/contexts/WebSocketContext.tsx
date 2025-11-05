@@ -141,10 +141,12 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const subscribe = useCallback((listener: MessageListener) => {
+    console.log("[WebSocketContext] Adding listener, total listeners:", listenersRef.current.size + 1);
     listenersRef.current.add(listener);
     
     // Return unsubscribe function
     return () => {
+      console.log("[WebSocketContext] Removing listener, remaining:", listenersRef.current.size - 1);
       listenersRef.current.delete(listener);
     };
   }, []);

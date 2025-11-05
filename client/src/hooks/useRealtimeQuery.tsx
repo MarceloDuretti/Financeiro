@@ -25,23 +25,26 @@ export function useRealtimeQuery<TData = unknown>(
   const { resource, ...queryOptions } = options;
   const { subscribe } = useWebSocketContext();
   const queryKeyRef = useRef(queryOptions.queryKey);
+  const resourceRef = useRef(resource);
   
-  // Update ref when queryKey changes
+  // Update refs when values change
   queryKeyRef.current = queryOptions.queryKey;
+  resourceRef.current = resource;
 
-  // Subscribe to WebSocket messages
+  // Subscribe to WebSocket messages - only once!
   useEffect(() => {
-    console.log(`[useRealtimeQuery] Subscribing to resource: ${resource}`);
+    console.log(`[useRealtimeQuery] Subscribing to resource: ${resourceRef.current}`);
     
     const unsubscribe = subscribe((message: WebSocketMessage) => {
-      console.log(`[useRealtimeQuery] Message received for resource ${resource}:`, message);
+      console.log(`[useRealtimeQuery] Message received, checking resource ${resourceRef.current}:`, message);
       
       // Only handle data change events for this resource
-      if (message.type === "data:change" && message.resource === resource) {
-        console.log(`[Realtime] ${resource} ${message.action}`, message.data);
+      if (message.type === "data:change" && message.resource === resourceRef.current) {
+        console.log(`[Realtime] ${resourceRef.current} ${message.action}`, message.data);
 
         // Invalidate and refetch the query
         if (queryKeyRef.current) {
+          console.log(`[Realtime] Invalidating query:`, queryKeyRef.current);
           queryClient.invalidateQueries({ queryKey: queryKeyRef.current });
         }
       }
@@ -49,11 +52,12 @@ export function useRealtimeQuery<TData = unknown>(
 
     // Cleanup subscription on unmount
     return () => {
-      console.log(`[useRealtimeQuery] Unsubscribing from resource: ${resource}`);
+      console.log(`[useRealtimeQuery] Unsubscribing from resource: ${resourceRef.current}`);
       unsubscribe();
     };
+    // Subscribe only depends on subscribe function (stable)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [resource]);
+  }, [subscribe]);
 
   // Use standard TanStack Query
   return useQuery(queryOptions);
