@@ -2262,7 +2262,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get DRE with hierarchical structure and percentages
-  app.get("/api/analytics/dre-hierarchical", isAuthenticated, async (req, res) => {
+  // Legacy implementation kept for reference; route path changed to avoid collision
+  app.get("/api/analytics/dre-hierarchical-legacy", isAuthenticated, async (req, res) => {
     try {
       const tenantId = getTenantId((req as any).user);
       const { companyId, month, year } = req.query;

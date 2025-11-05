@@ -606,9 +606,8 @@ export default function AnalisesFinanceiras() {
     const hasChildren = account.hasChildren;
     const indent = account.depth * 24;
     const colorClass = type === 'revenue' ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300';
-    // Calculate display percentages using the section root totals to avoid mismatches
-    const rootTotal = type === 'revenue' ? (currentMonthData.revenues || 0) : (currentMonthData.expenses || 0);
-    const displayPercentOfRoot = rootTotal > 0 ? (account.total / rootTotal) * 100 : 0;
+    // Use server-calculated percentages to ensure consistency with DRE totals
+    const displayPercentOfRoot = isFinite(account.percentOfRoot) ? account.percentOfRoot : 0;
     const displayPercentOfParent = isFinite(account.percentOfParent) ? account.percentOfParent : 0;
 
     return (
