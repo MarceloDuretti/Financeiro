@@ -313,15 +313,18 @@ export default function AnalisesFinanceiras() {
         ? (n.total / totalRevenueForPctRevenue) * 100
         : undefined;
 
-      rows.push({
-        code: n.code,
-        name: `${' '.repeat(Math.max(0, n.depth) * 2)}${n.name}`,
-        total: n.total,
-        pctParent,
-        pctRoot,
-        pctRevenue,
-        depth: n.depth,
-      });
+      // Skip zero-total nodes for analytical PDF
+      if (n.total && Math.abs(n.total) > 0.000001) {
+        rows.push({
+          code: n.code,
+          name: `${' '.repeat(Math.max(0, n.depth) * 2)}${n.name}`,
+          total: n.total,
+          pctParent,
+          pctRoot,
+          pctRevenue,
+          depth: n.depth,
+        });
+      }
 
       if (n.children && n.children.length > 0) {
         flattenDRE(n.children as AccountNode[], rows, type, totalRevenueForPctRevenue);
@@ -605,7 +608,10 @@ export default function AnalisesFinanceiras() {
     const isExpanded = expandedAccounts.has(account.id);
     const hasChildren = account.hasChildren;
     const indent = account.depth * 24;
-    const colorClass = type === 'revenue' ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300';
+    const isZero = !account.total || Math.abs(account.total) < 0.000001;
+    const colorClass = isZero
+      ? 'text-muted-foreground'
+      : (type === 'revenue' ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300');
     // Use server-calculated percentages to ensure consistency with DRE totals
     const displayPercentOfRoot = isFinite(account.percentOfRoot) ? account.percentOfRoot : 0;
     const displayPercentOfParent = isFinite(account.percentOfParent) ? account.percentOfParent : 0;
