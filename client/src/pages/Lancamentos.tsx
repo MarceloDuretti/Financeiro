@@ -326,8 +326,10 @@ export default function Lancamentos() {
       setShowAiForm(false);
       setAiCommandResult(null);
       setGeneratedTransactions([]);
-      // Invalidate queries to refresh the list
+      // Invalidate queries to refresh the list and analytics
       queryClient.invalidateQueries({ queryKey: ['/api/transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/analytics/dre-hierarchical'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/analytics/yearly-evolution'] });
     },
     onError: (error: Error) => {
       toast({
@@ -349,6 +351,8 @@ export default function Lancamentos() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/analytics/dre-hierarchical'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/analytics/yearly-evolution'] });
       toast({
         title: "Data atualizada",
         description: "A transação foi movida com sucesso!",

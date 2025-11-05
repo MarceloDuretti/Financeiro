@@ -235,8 +235,10 @@ export function TransactionDetailSheet({
 
       setIsEditing(false);
       
-      // Invalidate queries to refresh the list
+      // Invalidate queries to refresh the list and analytics
       await queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/analytics/dre-hierarchical"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/analytics/yearly-evolution"] });
       
       // Force a small delay to ensure queries have updated
       await new Promise(resolve => setTimeout(resolve, 100));
@@ -265,6 +267,8 @@ export function TransactionDetailSheet({
 
       onOpenChange(false);
       queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/analytics/dre-hierarchical"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/analytics/yearly-evolution"] });
     } catch (error: any) {
       toast({
         title: "Erro",

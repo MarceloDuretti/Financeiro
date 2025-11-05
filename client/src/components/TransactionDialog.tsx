@@ -1298,6 +1298,8 @@ export function TransactionDialog({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/analytics/dre-hierarchical"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/analytics/yearly-evolution"] });
       toast({
         title: "Sucesso!",
         description: "Lançamento criado com sucesso.",
@@ -1356,6 +1358,8 @@ export function TransactionDialog({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/analytics/dre-hierarchical"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/analytics/yearly-evolution"] });
       toast({
         title: "Sucesso!",
         description: "Lançamento atualizado com sucesso.",

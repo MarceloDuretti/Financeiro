@@ -33,28 +33,20 @@ export function useRealtimeQuery<TData = unknown>(
 
   // Subscribe to WebSocket messages - only once!
   useEffect(() => {
-    console.log(`[useRealtimeQuery] Subscribing to resource: ${resourceRef.current}`);
-    
     const unsubscribe = subscribe((message: WebSocketMessage) => {
-      console.log(`[useRealtimeQuery] Message received, checking resource ${resourceRef.current}:`, message);
-      
       // Only handle data change events for this resource
       if (message.type === "data:change" && message.resource === resourceRef.current) {
         console.log(`[Realtime] ${resourceRef.current} ${message.action}`, message.data);
 
         // Invalidate and refetch the query
         if (queryKeyRef.current) {
-          console.log(`[Realtime] Invalidating query:`, queryKeyRef.current);
           queryClient.invalidateQueries({ queryKey: queryKeyRef.current });
         }
       }
     });
 
     // Cleanup subscription on unmount
-    return () => {
-      console.log(`[useRealtimeQuery] Unsubscribing from resource: ${resourceRef.current}`);
-      unsubscribe();
-    };
+    return unsubscribe;
     // Subscribe only depends on subscribe function (stable)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [subscribe]);
