@@ -2540,24 +2540,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const transactions = await storage.listTransactions(tenantId, companyId as string);
       const chartAccounts = await storage.listChartOfAccounts(tenantId);
       
-      console.log(`[DRE Debug] Total transactions: ${transactions.length}`);
-      console.log(`[DRE Debug] Month: ${monthNum}, Year: ${yearNum}, Regime: ${regime}`);
-      console.log(`[DRE Debug] Date range: ${startDate.toISOString()} to ${endDate.toISOString()}`);
-      
-      // Sample first transaction to understand data structure
-      if (transactions.length > 0) {
-        const sample = transactions[0];
-        console.log(`[DRE Debug] Sample transaction:`, {
-          status: sample.status,
-          type: sample.type,
-          issueDate: sample.issueDate,
-          dueDate: sample.dueDate,
-          paidDate: sample.paidDate,
-          amount: sample.amount,
-          paidAmount: sample.paidAmount,
-        });
-      }
-      
       // Filter transactions for the month by regime
       // - caixa: use paidDate (only transactions actually paid/received in the period)
       // - competencia: use issueDate (competence date)
@@ -2568,8 +2550,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (!baseDate) return false;
         return baseDate >= startDate && baseDate <= endDate && t.status !== 'cancelled';
       });
-      
-      console.log(`[DRE Debug] Filtered transactions: ${monthTransactions.length}`);
       
       // Build SEPARATE account totals maps for revenues and expenses
       // This handles cases where revenue transactions are in expense accounts (or vice-versa)
@@ -2594,9 +2574,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
       });
-      
-      console.log(`[DRE Debug] Revenue accounts with values: ${revenueAccountTotals.size}`);
-      console.log(`[DRE Debug] Expense accounts with values: ${expenseAccountTotals.size}`);
       
       // Helper to build hierarchy recursively
       interface AccountNode {

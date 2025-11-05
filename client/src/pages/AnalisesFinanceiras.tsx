@@ -82,7 +82,7 @@ export default function AnalisesFinanceiras() {
   const [aiAnalysis, setAIAnalysis] = useState<any>(null);
   const [expandedAccounts, setExpandedAccounts] = useState<Set<string>>(new Set());
   const [activeTab, setActiveTab] = useState("mensal");
-  const [regime, setRegime] = useState<'caixa' | 'competencia'>('caixa');
+  const [regime, setRegime] = useState<'caixa' | 'competencia'>('competencia');
   const [isAIDialogOpen, setIsAIDialogOpen] = useState(false);
 
   const activeCompanyId = localStorage.getItem('fincontrol_selected_company_id') || '';
