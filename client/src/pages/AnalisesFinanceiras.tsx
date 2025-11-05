@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { useRealtimeQuery } from "@/hooks/useRealtimeQuery";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -102,7 +103,7 @@ export default function AnalisesFinanceiras() {
   }, [selectedMonth, selectedYear, activeCompanyId]);
 
   // Fetch hierarchical DRE
-  const { data: dreHierarchical, isLoading: isLoadingDRE } = useQuery({
+  const { data: dreHierarchical, isLoading: isLoadingDRE } = useRealtimeQuery({
     queryKey: ['/api/analytics/dre-hierarchical', activeCompanyId, selectedMonth, selectedYear, regime],
     queryFn: async () => {
       const response = await fetch(
@@ -112,10 +113,11 @@ export default function AnalisesFinanceiras() {
       return response.json();
     },
     enabled: !!activeCompanyId,
+    resource: 'transactions',
   });
 
   // Fetch yearly evolution
-  const { data: yearlyEvolution, isLoading: isLoadingYearly } = useQuery({
+  const { data: yearlyEvolution, isLoading: isLoadingYearly } = useRealtimeQuery({
     queryKey: ['/api/analytics/yearly-evolution', activeCompanyId, selectedYear, regime],
     queryFn: async () => {
       const response = await fetch(
@@ -125,6 +127,7 @@ export default function AnalisesFinanceiras() {
       return response.json();
     },
     enabled: !!activeCompanyId,
+    resource: 'transactions',
   });
 
   // AI Insights mutation - Professional consultative analysis
