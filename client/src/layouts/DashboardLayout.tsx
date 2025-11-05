@@ -82,7 +82,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 className="text-muted-foreground"
                 data-testid="badge-environment-trae"
               >
-                Replit 31 10 2025 16h 50m
+                Replit 05 11 2025 12h00m
               </Badge>
             </div>
             <div className="flex items-center gap-3">
