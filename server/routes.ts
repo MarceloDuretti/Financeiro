@@ -2590,19 +2590,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const buildHierarchy = (
         accounts: any[],
-        parentPath: string | null,
+        parentId: string | null,
         depth: number,
         rootTotal: number,
         accountTotalsMap: Map<string, number>
       ): AccountNode[] => {
-        const children = accounts.filter(acc => acc.parentPath === parentPath);
+        const children = accounts.filter(acc => acc.parentId === parentId);
         
         return children.map(account => {
           // Get direct transaction total for this account
           const directTotal = accountTotalsMap.get(account.id) || 0;
           
           // Recursively get children
-          const childrenNodes = buildHierarchy(accounts, account.path, depth + 1, rootTotal, accountTotalsMap);
+          const childrenNodes = buildHierarchy(accounts, account.id, depth + 1, rootTotal, accountTotalsMap);
           
           // Calculate total: direct + all children
           const childrenTotal = childrenNodes.reduce((sum, child) => sum + child.total, 0);
