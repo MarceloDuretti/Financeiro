@@ -210,40 +210,40 @@ export function AITransactionPreview({
   const missingFields = getMissingFields();
 
   return (
-    <div className="space-y-3">
-      {/* Company Header */}
+    <div className="space-y-1.5">
+      {/* Company Header - Compact */}
       {selectedCompany && (
-        <div className="flex items-center gap-2 p-3 rounded-md bg-primary/5 border border-primary/20">
-          <Building2 className="w-5 h-5 text-primary" />
-          <p className="text-sm font-semibold text-foreground">
+        <div className="flex items-center gap-1.5 p-1.5 rounded-md bg-primary/5 border border-primary/20">
+          <Building2 className="w-3.5 h-3.5 text-primary" />
+          <p className="text-xs font-semibold text-foreground">
             {selectedCompany.name}
           </p>
         </div>
       )}
 
-      {/* Header */}
+      {/* Header - Compact */}
       <div>
-        <h3 className="text-base font-semibold">Revisão Final</h3>
-        <p className="text-xs text-muted-foreground">
-          Confira todos os dados antes de criar os lançamentos
+        <h3 className="text-sm font-semibold">Revisão Final</h3>
+        <p className="text-[10px] text-muted-foreground">
+          Confira os dados antes de criar
         </p>
       </div>
 
-      {/* Summary - 3 Cards in Same Row */}
-      <div className="grid grid-cols-3 gap-2">
-        <div className="p-2 rounded-md bg-muted/50">
-          <p className="text-[9px] text-muted-foreground uppercase tracking-wide">Fornecedor</p>
-          <p className="text-xs font-semibold truncate" title={personDetails?.name || transactions[0]?.personName || "Não informado"}>
+      {/* Summary - 3 Cards in Same Row - Compact */}
+      <div className="grid grid-cols-3 gap-1.5">
+        <div className="p-1.5 rounded-md bg-muted/50">
+          <p className="text-[8px] text-muted-foreground uppercase tracking-wide">Fornecedor</p>
+          <p className="text-[10px] font-semibold truncate" title={personDetails?.name || transactions[0]?.personName || "Não informado"}>
             {personDetails?.name || transactions[0]?.personName || "Não informado"}
           </p>
         </div>
-        <div className="p-2 rounded-md bg-muted/50">
-          <p className="text-[9px] text-muted-foreground uppercase tracking-wide">Lançamentos</p>
-          <p className="text-xs font-semibold">{transactions.length}</p>
+        <div className="p-1.5 rounded-md bg-muted/50">
+          <p className="text-[8px] text-muted-foreground uppercase tracking-wide">Lançamentos</p>
+          <p className="text-[10px] font-semibold">{transactions.length}</p>
         </div>
-        <div className="p-2 rounded-md bg-muted/50">
-          <p className="text-[9px] text-muted-foreground uppercase tracking-wide">Valor Total</p>
-          <p className="text-xs font-semibold">
+        <div className="p-1.5 rounded-md bg-muted/50">
+          <p className="text-[8px] text-muted-foreground uppercase tracking-wide">Total</p>
+          <p className="text-[10px] font-semibold">
             {formatCurrency(totalAmount.toString())}
           </p>
         </div>
@@ -251,23 +251,23 @@ export function AITransactionPreview({
 
       {/* Clone Period Info - Compact */}
       {clonePeriod && (
-        <div className="flex items-center gap-2 p-2 rounded-md bg-blue-500/10 border border-blue-500/20">
-          <Calendar className="w-3.5 h-3.5 text-blue-600 dark:text-blue-500" />
-          <p className="text-[11px] font-medium text-blue-900 dark:text-blue-100">
-            {clonePeriod.type === "year" && "Lançamento mensal - ano todo"}
-            {clonePeriod.type === "semester" && "Lançamento mensal - semestre"}
+        <div className="flex items-center gap-1.5 p-1 rounded-md bg-blue-500/10 border border-blue-500/20">
+          <Calendar className="w-3 h-3 text-blue-600 dark:text-blue-500" />
+          <p className="text-[10px] font-medium text-blue-900 dark:text-blue-100">
+            {clonePeriod.type === "year" && "Mensal - ano todo"}
+            {clonePeriod.type === "semester" && "Mensal - semestre"}
             {clonePeriod.type === "month" && `${clonePeriod.count || 1} meses`}
             {clonePeriod.type === "custom" && `${clonePeriod.count || 1} lançamentos`}
           </p>
         </div>
       )}
 
-      {/* Missing Fields Warning */}
+      {/* Missing Fields Warning - Compact */}
       {missingFields.length > 0 && (
-        <div className="flex items-start gap-2 p-2 rounded-md bg-yellow-500/10 border border-yellow-500/20">
-          <AlertCircle className="w-3.5 h-3.5 text-yellow-600 dark:text-yellow-500 mt-0.5 flex-shrink-0" />
+        <div className="flex items-start gap-1.5 p-1 rounded-md bg-yellow-500/10 border border-yellow-500/20">
+          <AlertCircle className="w-3 h-3 text-yellow-600 dark:text-yellow-500 mt-0.5 flex-shrink-0" />
           <div className="flex-1">
-            <p className="text-[11px] font-medium text-yellow-900 dark:text-yellow-100">
+            <p className="text-[10px] font-medium text-yellow-900 dark:text-yellow-100">
               {missingFields.join(", ")}
             </p>
           </div>
@@ -275,19 +275,19 @@ export function AITransactionPreview({
       )}
 
       {/* Editable Fields - Compact */}
-      <div className="space-y-1 p-2.5 rounded-md border bg-card">
+      <div className="space-y-1 p-2 rounded-md border bg-card">
         <div className="flex items-center justify-between">
-          <h4 className="text-xs font-semibold">Campos Obrigatórios</h4>
-          <Badge variant="outline" className="text-[9px] h-4 px-1.5">
+          <h4 className="text-[10px] font-semibold">Campos Obrigatórios</h4>
+          <Badge variant="outline" className="text-[8px] h-3.5 px-1">
             {transactions.length}x
           </Badge>
         </div>
 
-        {/* Transaction Type */}
-        <div className="space-y-1">
-          <label className="text-xs font-medium flex items-center gap-1">
-            Tipo de Lançamento
-            <Badge variant="outline" className="text-[9px] h-4 px-1.5 bg-blue-500/10 border-blue-500/20 text-blue-700">
+        {/* Transaction Type - Compact */}
+        <div className="space-y-0.5">
+          <label className="text-[10px] font-medium flex items-center gap-1">
+            Tipo
+            <Badge variant="outline" className="text-[8px] h-3 px-1 bg-blue-500/10 border-blue-500/20 text-blue-700">
               {transactionType === "revenue" ? "Receita" : "Despesa"}
             </Badge>
           </label>
@@ -295,13 +295,11 @@ export function AITransactionPreview({
             value={transactionType}
             onValueChange={(value) => {
               setTransactionType(value as "revenue" | "expense");
-              // Mark that type was manually changed by user
               setTypeManuallyChanged(true);
-              // Reset chart account when type changes to find appropriate account
               setChartAccountId("");
             }}
           >
-            <SelectTrigger data-testid="select-transaction-type">
+            <SelectTrigger data-testid="select-transaction-type" className="h-8">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -311,18 +309,18 @@ export function AITransactionPreview({
           </Select>
         </div>
 
-        {/* Chart Account */}
-        <div className="space-y-1">
-          <label className="text-xs font-medium flex items-center gap-1">
+        {/* Chart Account - Compact */}
+        <div className="space-y-0.5">
+          <label className="text-[10px] font-medium flex items-center gap-1">
             Plano de Contas
             {!chartAccountId && (
-              <Badge variant="outline" className="text-[9px] h-4 px-1.5 bg-yellow-500/10 border-yellow-500/20 text-yellow-700">
+              <Badge variant="outline" className="text-[8px] h-3 px-1 bg-yellow-500/10 border-yellow-500/20 text-yellow-700">
                 Obrigatório
               </Badge>
             )}
             {chartAccountId && (
-              <Badge variant="outline" className="text-[9px] h-4 px-1.5 bg-green-500/10 border-green-500/20 text-green-700">
-                <Check className="w-2.5 h-2.5 mr-0.5" />
+              <Badge variant="outline" className="text-[8px] h-3 px-1 bg-green-500/10 border-green-500/20 text-green-700">
+                <Check className="w-2 h-2 mr-0.5" />
                 OK
               </Badge>
             )}
@@ -331,27 +329,27 @@ export function AITransactionPreview({
             accounts={chartAccounts}
             value={chartAccountId || null}
             onChange={(id) => setChartAccountId(id || "")}
-            placeholder="Selecione uma conta contábil"
+            placeholder="Selecione uma conta"
           />
         </div>
 
-        {/* Cost Center */}
-        <div className="space-y-1">
-          <label className="text-xs font-medium flex items-center gap-1">
-            Centro de Custo (Rateio)
+        {/* Cost Center - Compact */}
+        <div className="space-y-0.5">
+          <label className="text-[10px] font-medium flex items-center gap-1">
+            Centro de Custo
             {costCenterDistributions.length === 0 && (
-              <Badge variant="outline" className="text-[9px] h-4 px-1.5 bg-yellow-500/10 border-yellow-500/20 text-yellow-700">
+              <Badge variant="outline" className="text-[8px] h-3 px-1 bg-yellow-500/10 border-yellow-500/20 text-yellow-700">
                 Obrigatório
               </Badge>
             )}
             {costCenterDistributions.length > 0 && totalPercentage === 100 && (
-              <Badge variant="outline" className="text-[9px] h-4 px-1.5 bg-green-500/10 border-green-500/20 text-green-700">
-                <Check className="w-2.5 h-2.5 mr-0.5" />
+              <Badge variant="outline" className="text-[8px] h-3 px-1 bg-green-500/10 border-green-500/20 text-green-700">
+                <Check className="w-2 h-2 mr-0.5" />
                 100%
               </Badge>
             )}
             {costCenterDistributions.length > 0 && totalPercentage !== 100 && (
-              <Badge variant="outline" className="text-[9px] h-4 px-1.5 bg-yellow-500/10 border-yellow-500/20 text-yellow-700">
+              <Badge variant="outline" className="text-[8px] h-3 px-1 bg-yellow-500/10 border-yellow-500/20 text-yellow-700">
                 {totalPercentage}%
               </Badge>
             )}
@@ -364,30 +362,30 @@ export function AITransactionPreview({
         </div>
       </div>
 
-      {/* Transactions List - Compact */}
-      <div className="space-y-1.5">
-        <p className="text-xs font-medium text-muted-foreground">Lançamentos ({transactions.length}):</p>
-        <div className="space-y-1 max-h-[100px] overflow-y-auto">
+      {/* Transactions List - Very Compact */}
+      <div className="space-y-1">
+        <p className="text-[10px] font-medium text-muted-foreground">Lançamentos ({transactions.length}):</p>
+        <div className="space-y-0.5 max-h-[60px] overflow-y-auto">
           {transactions.map((transaction, index) => (
             <div
               key={index}
-              className="p-2 rounded border bg-card/50 hover-elevate"
+              className="p-1.5 rounded border bg-card/50 hover-elevate"
               data-testid={`preview-transaction-${index}`}
             >
-              <div className="flex items-start justify-between gap-2">
+              <div className="flex items-start justify-between gap-1.5">
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1">
                     <Badge
                       variant={transactionType === "revenue" ? "default" : "destructive"}
-                      className="text-[9px] h-4 px-1"
+                      className="text-[8px] h-3 px-0.5"
                     >
-                      {transactionType === "revenue" ? "Receita" : "Despesa"}
+                      {transactionType === "revenue" ? "R" : "D"}
                     </Badge>
-                    <p className="text-xs font-medium truncate">
+                    <p className="text-[10px] font-medium truncate">
                       {transaction.title}
                     </p>
                   </div>
-                  <div className="flex items-center gap-1.5 mt-0.5 text-[10px] text-muted-foreground">
+                  <div className="flex items-center gap-1 mt-0.5 text-[9px] text-muted-foreground">
                     <span>{formatDate(transaction.dueDate)}</span>
                     {transaction.personName && (
                       <>
@@ -399,7 +397,7 @@ export function AITransactionPreview({
                 </div>
                 <div className="text-right">
                   <p
-                    className={`text-xs font-semibold ${
+                    className={`text-[10px] font-semibold ${
                       transactionType === "revenue"
                         ? "text-blue-600 dark:text-blue-400"
                         : "text-red-600 dark:text-red-400"
@@ -414,14 +412,15 @@ export function AITransactionPreview({
         </div>
       </div>
 
-      {/* Actions */}
-      <div className="flex justify-end gap-2 pt-1">
+      {/* Actions - Compact */}
+      <div className="flex justify-end gap-1.5 pt-0.5">
         <Button
           type="button"
           variant="outline"
           onClick={onCancel}
           disabled={isSubmitting}
           data-testid="button-cancel"
+          size="sm"
         >
           Cancelar
         </Button>
@@ -431,6 +430,7 @@ export function AITransactionPreview({
           onClick={onEdit}
           disabled={isSubmitting}
           data-testid="button-edit"
+          size="sm"
         >
           Editar
         </Button>
@@ -439,6 +439,7 @@ export function AITransactionPreview({
           onClick={handleConfirm}
           disabled={isSubmitting || transactions.length === 0 || !isValid}
           data-testid="button-confirm"
+          size="sm"
         >
           {isSubmitting ? "Criando..." : `Confirmar ${transactions.length}`}
         </Button>
