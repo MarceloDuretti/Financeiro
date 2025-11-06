@@ -364,6 +364,10 @@ export default function Dashboard() {
                         <stop offset="0%" stopColor="#ef4444" />
                         <stop offset="100%" stopColor="#f87171" />
                       </linearGradient>
+                      <linearGradient id="lineGradientLucro" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%" stopColor="#3b82f6" />
+                        <stop offset="100%" stopColor="#60a5fa" />
+                      </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" className="stroke-muted/30" vertical={false} />
                     <XAxis 
@@ -400,91 +404,6 @@ export default function Dashboard() {
                       dot={{ fill: "#ef4444", r: 5, strokeWidth: 2, stroke: "#fff" }}
                       activeDot={{ r: 7, strokeWidth: 2 }}
                     />
-                  </LineChart>
-                </ResponsiveContainer>
-                
-                {/* Compact Legend Below */}
-                <div className="mt-1 flex items-center justify-center gap-3 text-[10px]">
-                  <div className="flex items-center gap-1">
-                    <div className="h-2 w-2 rounded-full bg-emerald-500" />
-                    <span className="text-muted-foreground">Receitas</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <div className="h-2 w-2 rounded-full bg-red-500" />
-                    <span className="text-muted-foreground">Despesas</span>
-                  </div>
-                </div>
-              </>
-            ) : (
-              <div className="flex flex-col items-center justify-center h-[170px] text-center">
-                <BarChart4 className="h-12 w-12 text-muted-foreground/30 mb-2" />
-                <p className="text-sm text-muted-foreground">Sem dados para exibir</p>
-                <p className="text-xs text-muted-foreground/70">Adicione transações para ver a evolução</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Resultado Financeiro (Receitas vs Despesas vs Lucro) */}
-        <Card className="border-0 bg-gradient-to-br from-card to-muted/20 shadow-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg font-bold">Resultado Financeiro</CardTitle>
-            <CardDescription className="text-xs">Evolução de receitas, despesas e lucro nos últimos 6 meses</CardDescription>
-          </CardHeader>
-          <CardContent className="pb-2">
-            {monthlyData.length > 0 ? (
-              <>
-                <ResponsiveContainer width="100%" height={200}>
-                  <LineChart data={monthlyData} margin={{ top: 5, right: 10, left: -15, bottom: 5 }}>
-                    <defs>
-                      <linearGradient id="lineGradientReceitas2" x1="0" y1="0" x2="1" y2="0">
-                        <stop offset="0%" stopColor="#10b981" />
-                        <stop offset="100%" stopColor="#34d399" />
-                      </linearGradient>
-                      <linearGradient id="lineGradientDespesas2" x1="0" y1="0" x2="1" y2="0">
-                        <stop offset="0%" stopColor="#ef4444" />
-                        <stop offset="100%" stopColor="#f87171" />
-                      </linearGradient>
-                      <linearGradient id="lineGradientLucro" x1="0" y1="0" x2="1" y2="0">
-                        <stop offset="0%" stopColor="#3b82f6" />
-                        <stop offset="100%" stopColor="#60a5fa" />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted/30" vertical={false} />
-                    <XAxis 
-                      dataKey="month" 
-                      className="text-xs" 
-                      stroke="hsl(var(--muted-foreground))" 
-                      axisLine={false}
-                      tickLine={false}
-                      dy={3}
-                    />
-                    <YAxis 
-                      className="text-xs" 
-                      stroke="hsl(var(--muted-foreground))" 
-                      axisLine={false}
-                      tickLine={false}
-                      dx={0}
-                    />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Line
-                      type="monotone"
-                      dataKey="receitas"
-                      name="Receitas"
-                      stroke="url(#lineGradientReceitas2)"
-                      strokeWidth={3}
-                      dot={{ fill: "#10b981", r: 5, strokeWidth: 2, stroke: "#fff" }}
-                      activeDot={{ r: 7, strokeWidth: 2 }}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="despesas"
-                      name="Despesas"
-                      stroke="url(#lineGradientDespesas2)"
-                      strokeWidth={3}
-                      dot={{ fill: "#ef4444", r: 5, strokeWidth: 2, stroke: "#fff" }}
-                      activeDot={{ r: 7, strokeWidth: 2 }}
-                    />
                     <Line
                       type="monotone"
                       dataKey="lucro"
@@ -514,12 +433,27 @@ export default function Dashboard() {
                 </div>
               </>
             ) : (
-              <div className="flex flex-col items-center justify-center h-[200px] text-center">
+              <div className="flex flex-col items-center justify-center h-[170px] text-center">
                 <BarChart4 className="h-12 w-12 text-muted-foreground/30 mb-2" />
                 <p className="text-sm text-muted-foreground">Sem dados para exibir</p>
-                <p className="text-xs text-muted-foreground/70">Adicione transações para ver o resultado financeiro</p>
+                <p className="text-xs text-muted-foreground/70">Adicione transações para ver a evolução</p>
               </div>
             )}
+          </CardContent>
+        </Card>
+
+        {/* Performance por Centro de Custo - Restaurado */}
+        <Card className="border-0 bg-gradient-to-br from-card to-muted/20 shadow-lg">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg font-bold">Performance por Centro de Custo</CardTitle>
+            <CardDescription className="text-xs">Despesas rateadas por centro nos últimos 6 meses</CardDescription>
+          </CardHeader>
+          <CardContent className="pb-2">
+            <div className="flex flex-col items-center justify-center h-[200px] text-center px-4">
+              <BarChart4 className="h-12 w-12 text-muted-foreground/30 mb-2" />
+              <p className="text-sm text-muted-foreground">Análise por centro de custo</p>
+              <p className="text-xs text-muted-foreground/70">Visualização em desenvolvimento</p>
+            </div>
           </CardContent>
         </Card>
       </div>
