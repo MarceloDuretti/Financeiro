@@ -1887,10 +1887,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           amount: cloneConfig.overrides?.amount || originalTransaction.amount,
           personId: originalTransaction.personId, // Keep original for now
           chartAccountId: originalTransaction.chartAccountId,
-          costCenterId: originalTransaction.costCenterId,
-          paymentMethodId: originalTransaction.paymentMethodId,
-          bankAccountId: originalTransaction.bankAccountId,
-          cashRegisterId: originalTransaction.cashRegisterId,
+          costCenterId: originalTransaction.costCenterId || "",
+          paymentMethodId: originalTransaction.paymentMethodId || "",
+          bankAccountId: originalTransaction.bankAccountId || "",
+          cashRegisterId: originalTransaction.cashRegisterId || "",
           status: originalTransaction.status,
           discount: originalTransaction.discount || "0",
           interest: originalTransaction.interest || "0",
@@ -1898,7 +1898,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           tags: originalTransaction.tags || [],
           issueDate: originalTransaction.issueDate,
           dueDate: originalTransaction.dueDate,
-          paidDate: originalTransaction.paidDate,
+          paidDate: originalTransaction.paidDate || null,
         };
         
         // If personName override is provided, we'll need to match it to a person
