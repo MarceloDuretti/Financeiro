@@ -1748,34 +1748,44 @@ export default function Lancamentos() {
                   
                   // Check if this is a clone_by_code operation
                   if (aiCommandResult.operation === 'clone_by_code' && aiCommandResult.cloneConfig?.sourceCode) {
-                    // For clone_by_code, store form data to apply as overrides
-                    // Backend will fetch original transaction and apply these overrides
-                    const overrides: any = {};
+                    // For clone_by_code, create transaction from form data for preview
+                    const transaction = {
+                      type: data.type,
+                      amount: data.amount,
+                      title: data.title,
+                      description: data.description,
+                      personName: data.personName,
+                      personId: data.personId,
+                      chartAccountId: data.chartAccountId,
+                      costCenterId: data.costCenterId,
+                      paymentMethodId: data.paymentMethodId,
+                      issueDate: data.issueDate || data.dueDate,
+                      dueDate: data.dueDate,
+                    };
                     
-                    // Only add fields that were filled/modified in the form
+                    console.log("[AI Form] Clone transaction for preview:", transaction);
+                    
+                    // Store cloneConfig for backend processing
+                    const overrides: any = {};
                     if (data.type) overrides.type = data.type;
                     if (data.amount) overrides.amount = data.amount;
                     if (data.title) overrides.title = data.title;
                     if (data.description) overrides.description = data.description;
                     if (data.personName) overrides.personName = data.personName;
                     
-                    // Merge with AI-detected overrides
-                    const finalOverrides = {
-                      ...aiCommandResult.cloneConfig.overrides,
-                      ...overrides
-                    };
-                    
-                    // Store cloneConfig with overrides - backend will process it
                     const cloneConfigWithOverrides = {
                       ...aiCommandResult.cloneConfig,
-                      overrides: finalOverrides
+                      overrides: {
+                        ...aiCommandResult.cloneConfig.overrides,
+                        ...overrides
+                      }
                     };
                     
                     console.log("[AI Form] Clone config with overrides:", cloneConfigWithOverrides);
                     
-                    // Set empty transactions array but with cloneConfig for backend processing
-                    setGeneratedTransactions([]);
-                    // Store cloneConfig in aiCommandResult for later use
+                    // Pass transaction to preview
+                    setGeneratedTransactions([transaction]);
+                    // Store cloneConfig in aiCommandResult for backend use
                     setAiCommandResult({
                       ...aiCommandResult,
                       cloneConfig: cloneConfigWithOverrides
