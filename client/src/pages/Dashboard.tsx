@@ -303,7 +303,7 @@ export default function Dashboard() {
   ];
 
   return (
-    <div className="flex flex-col gap-4 p-3 md:p-4 lg:p-6 bg-gradient-to-br from-background via-muted/10 to-background">
+    <div className="flex flex-col gap-4 p-3 md:p-4 lg:p-6 bg-background">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-light tracking-tight bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
@@ -334,14 +334,11 @@ export default function Dashboard() {
           const cardContent = (
             <Card
               key={index}
-              className={`group/kpi relative overflow-hidden border-0 bg-gradient-to-br from-card via-card to-muted/20 shadow-lg transition-all duration-300 ${
+              className={`group/kpi transition-all duration-300 ${
                 isDisabled ? 'opacity-50 cursor-not-allowed' : 'hover-elevate'
               }`}
               data-testid={`card-kpi-${index}`}
             >
-              <div
-                className={`absolute -right-8 -top-8 h-32 w-32 rounded-full bg-gradient-to-br ${kpi.gradient} opacity-10 blur-3xl`}
-              />
               <CardHeader className="pb-1.5">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex flex-col gap-0.5 flex-1 min-w-0">
@@ -355,8 +352,8 @@ export default function Dashboard() {
                     </div>
                     <CardTitle className="text-lg font-semibold tracking-tight tabular-nums truncate">{kpi.value}</CardTitle>
                   </div>
-                  <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${kpi.gradient} shadow-lg transition-all duration-300 ${!isDisabled && 'group-hover/kpi:scale-110 group-hover/kpi:shadow-2xl'}`}>
-                    <Icon className={`h-3.5 w-3.5 text-white transition-transform duration-300 ${!isDisabled && 'group-hover/kpi:scale-110'}`} strokeWidth={2.5} />
+                  <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-primary transition-all duration-300 ${!isDisabled && 'group-hover/kpi:scale-110'}`}>
+                    <Icon className={`h-3.5 w-3.5 text-primary-foreground transition-transform duration-300 ${!isDisabled && 'group-hover/kpi:scale-110'}`} strokeWidth={2.5} />
                   </div>
                 </div>
               </CardHeader>
@@ -388,7 +385,7 @@ export default function Dashboard() {
       {/* Receitas x Despesas e Performance por Departamento */}
       <div className="grid gap-4 lg:grid-cols-2">
         {/* Modern Line Chart - Revenue & Expenses */}
-        <Card className="border-0 bg-gradient-to-br from-card to-muted/20 shadow-lg">
+        <Card>
           <CardHeader className="pb-2">
             <div className="flex items-start justify-between flex-wrap gap-2">
               <div>
@@ -444,7 +441,7 @@ export default function Dashboard() {
         </Card>
 
         {/* Performance por Centro de Custo */}
-        <Card className="border-0 bg-gradient-to-br from-card to-muted/20 shadow-lg">
+        <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-lg font-bold">Performance por Centro de Custo</CardTitle>
             <CardDescription className="text-xs">Despesas rateadas por centro nos últimos 6 meses (em milhares R$)</CardDescription>
@@ -551,7 +548,7 @@ export default function Dashboard() {
       {/* Distribuição de Despesas e Alertas & Insights */}
       <div className="grid gap-4 lg:grid-cols-2">
         {/* Category Breakdown */}
-        <Card className="border-0 bg-gradient-to-br from-card to-muted/20 shadow-lg">
+        <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-lg font-bold">Distribuição de Despesas</CardTitle>
             <CardDescription className="text-xs">Análise por categoria operacional</CardDescription>
@@ -602,7 +599,7 @@ export default function Dashboard() {
         {/* Alerts Feed */}
         <UITooltip>
           <TooltipTrigger asChild>
-            <Card className="border-0 bg-gradient-to-br from-card to-muted/20 shadow-lg opacity-50 cursor-not-allowed">
+            <Card className="opacity-50 cursor-not-allowed">
               <CardHeader className="pb-2">
                 <div className="flex items-center gap-1.5">
                   <CardTitle className="text-lg font-bold">Alertas & Insights</CardTitle>
@@ -654,7 +651,7 @@ export default function Dashboard() {
       </div>
 
       {/* Últimas Transações */}
-      <Card className="border-0 bg-gradient-to-br from-card to-muted/20 shadow-lg">
+      <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-lg font-bold">Últimas Transações</CardTitle>
             <CardDescription className="text-xs">Movimentações recentes com status de confirmação</CardDescription>

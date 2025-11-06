@@ -824,7 +824,7 @@ export default function Lancamentos() {
       {/* Header with inline KPIs */}
       <div className="grid grid-cols-[auto_1fr_auto] items-center gap-6 p-3 border-b">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-primary/10">
+          <div className="p-2 rounded-lg border">
             <TrendingUp className="w-5 h-5 text-primary" />
           </div>
           <div>
@@ -838,7 +838,7 @@ export default function Lancamentos() {
         {/* Inline KPI Cards - Centered */}
         <div className="flex items-center justify-center gap-4 overflow-x-auto px-4">
           {/* Open Expenses */}
-          <div className="flex items-center gap-2 px-3 py-2 rounded-md border border-l-2 border-l-destructive bg-muted/30 flex-shrink-0 min-w-[140px]">
+          <div className="flex items-center gap-2 px-3 py-2 rounded-md border border-l-2 border-l-destructive flex-shrink-0 min-w-[140px]">
             <TrendingDown className="w-4 h-4 text-destructive" />
             <div className="flex flex-col">
               <span className="text-[9px] text-muted-foreground uppercase tracking-wide">Desp. Abertas</span>
@@ -849,7 +849,7 @@ export default function Lancamentos() {
           </div>
 
           {/* Open Revenues */}
-          <div className="flex items-center gap-2 px-3 py-2 rounded-md border border-l-2 border-l-blue-600 bg-muted/30 flex-shrink-0 min-w-[140px]">
+          <div className="flex items-center gap-2 px-3 py-2 rounded-md border border-l-2 border-l-blue-600 flex-shrink-0 min-w-[140px]">
             <TrendingUp className="w-4 h-4 text-blue-600" />
             <div className="flex flex-col">
               <span className="text-[9px] text-muted-foreground uppercase tracking-wide">Rec. Abertas</span>
@@ -860,7 +860,7 @@ export default function Lancamentos() {
           </div>
 
           {/* Overdue */}
-          <div className="flex items-center gap-2 px-3 py-2 rounded-md border border-l-2 border-l-orange-600 bg-muted/30 flex-shrink-0 min-w-[140px]">
+          <div className="flex items-center gap-2 px-3 py-2 rounded-md border border-l-2 border-l-orange-600 flex-shrink-0 min-w-[140px]">
             <AlertCircle className="w-4 h-4 text-orange-600" />
             <div className="flex flex-col">
               <span className="text-[9px] text-muted-foreground uppercase tracking-wide">Em Atraso</span>
@@ -871,7 +871,7 @@ export default function Lancamentos() {
           </div>
 
           {/* Result */}
-          <div className="flex items-center gap-2 px-3 py-2 rounded-md border border-l-2 border-l-primary bg-muted/30 flex-shrink-0 min-w-[140px]">
+          <div className="flex items-center gap-2 px-3 py-2 rounded-md border border-l-2 border-l-primary flex-shrink-0 min-w-[140px]">
             <Calendar className="w-4 h-4 text-primary" />
             <div className="flex flex-col">
               <span className="text-[9px] text-muted-foreground uppercase tracking-wide">Resultado</span>
@@ -925,7 +925,7 @@ export default function Lancamentos() {
         {/* Month Navigation Sidebar - Desktop Only */}
         <div className="hidden lg:flex flex-col w-32 border-r bg-background">
           {/* Year selector - compact */}
-          <div className="p-2 border-b bg-muted/10">
+          <div className="p-2 border-b">
             <Select value={selectedYear.toString()} onValueChange={(val) => setSelectedYear(parseInt(val))}>
               <SelectTrigger className="h-8 text-xs" data-testid="select-year">
                 <SelectValue />
@@ -1039,7 +1039,7 @@ export default function Lancamentos() {
         {/* Right Content Area */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Mobile Month Navigation - Horizontal Scroll */}
-          <div className="lg:hidden border-b bg-muted/20">
+          <div className="lg:hidden border-b">
             <div className="p-2 flex items-center gap-2 overflow-x-auto">
               <Select value={selectedYear.toString()} onValueChange={(val) => setSelectedYear(parseInt(val))}>
                 <SelectTrigger className="h-8 w-20 text-xs" data-testid="select-year-mobile">
@@ -1133,7 +1133,7 @@ export default function Lancamentos() {
           </div>
 
           {/* Compact Filters */}
-          <div className="p-2 border-b bg-muted/10">
+          <div className="p-2 border-b">
             <div className="flex flex-wrap items-center gap-2">
               <div className="flex items-center gap-2 flex-1 min-w-[150px]">
                 <Search className="w-3 h-3 text-muted-foreground" />
@@ -1324,7 +1324,7 @@ export default function Lancamentos() {
                         data-testid={`week-day-${format(day, 'yyyy-MM-dd')}`}
                       >
                         {/* Day Header - FIXO */}
-                        <div className="flex-shrink-0 p-2 border-b bg-muted/20">
+                        <div className="flex-shrink-0 p-2 border-b">
                           <div className="flex items-center justify-between mb-1">
                             <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
                               {format(day, 'EEE', { locale: ptBR })}
