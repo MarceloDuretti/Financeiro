@@ -238,11 +238,11 @@ export default function Dashboard() {
     });
   }
 
-  // Recent transactions
+  // Recent transactions (last 5)
   const recentTransactions = transactions
     .slice()
     .sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime())
-    .slice(0, 10)
+    .slice(0, 5)
     .map(t => {
       const account = chartAccounts.find(a => a.id === t.chartAccountId);
       return {
