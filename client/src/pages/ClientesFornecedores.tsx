@@ -135,6 +135,9 @@ export default function ClientesFornecedores() {
   // AI Report Dialog state
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
   
+  // CEP loading state
+  const [isLoadingCep, setIsLoadingCep] = useState(false);
+  
   // View mode and search
   const [viewMode, setViewMode] = useState<'cards' | 'list'>(() => {
     const saved = localStorage.getItem('fincontrol_customers_view_mode');
@@ -229,6 +232,58 @@ export default function ClientesFornecedores() {
   const handleViewModeChange = (mode: 'cards' | 'list') => {
     setViewMode(mode);
     localStorage.setItem('fincontrol_customers_view_mode', mode);
+  };
+
+  // Format CEP as user types (XXXXX-XXX)
+  const formatCep = (value: string) => {
+    const digits = value.replace(/\D/g, '');
+    if (digits.length <= 5) return digits;
+    return `${digits.slice(0, 5)}-${digits.slice(5, 8)}`;
+  };
+
+  // Fetch address from ViaCEP API
+  const handleCepChange = async (cep: string) => {
+    const formatted = formatCep(cep);
+    form.setValue('zipCode', formatted);
+
+    // Only search if we have a complete CEP (8 digits)
+    const digits = cep.replace(/\D/g, '');
+    if (digits.length !== 8) return;
+
+    setIsLoadingCep(true);
+    try {
+      const response = await fetch(`https://viacep.com.br/ws/${digits}/json/`);
+      const data = await response.json();
+
+      if (data.erro) {
+        toast({
+          title: "CEP não encontrado",
+          description: "Verifique se o CEP está correto.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Auto-fill address fields
+      if (data.logradouro) form.setValue('street', data.logradouro);
+      if (data.bairro) form.setValue('neighborhood', data.bairro);
+      if (data.localidade) form.setValue('city', data.localidade);
+      if (data.uf) form.setValue('state', data.uf);
+
+      toast({
+        title: "Endereço encontrado",
+        description: "Os campos foram preenchidos automaticamente.",
+      });
+    } catch (error) {
+      console.error('Error fetching CEP:', error);
+      toast({
+        title: "Erro ao buscar CEP",
+        description: "Não foi possível consultar o CEP. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingCep(false);
+    }
   };
 
   // Form setup
@@ -1319,7 +1374,21 @@ export default function ClientesFornecedores() {
                               <FormItem className="space-y-1">
                                 <FormLabel className="text-xs text-muted-foreground">CEP</FormLabel>
                                 <FormControl>
-                                  <Input {...field} value={field.value || ""} placeholder="00000-000" className="bg-muted/20 rounded-sm border-muted/40" data-testid="input-zipcode" />
+                                  <div className="relative">
+                                    <Input 
+                                      {...field} 
+                                      value={field.value || ""} 
+                                      onChange={(e) => handleCepChange(e.target.value)}
+                                      placeholder="00000-000" 
+                                      maxLength={9}
+                                      className="bg-muted/20 rounded-sm border-muted/40" 
+                                      data-testid="input-zipcode"
+                                      disabled={isLoadingCep}
+                                    />
+                                    {isLoadingCep && (
+                                      <Loader2 className="h-3 w-3 animate-spin absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                                    )}
+                                  </div>
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -2222,7 +2291,20 @@ export default function ClientesFornecedores() {
                       <FormItem>
                         <FormLabel>CEP</FormLabel>
                         <FormControl>
-                          <Input {...field} value={field.value || ""} placeholder="00000-000" data-testid="input-zipcode" />
+                          <div className="relative">
+                            <Input 
+                              {...field} 
+                              value={field.value || ""} 
+                              onChange={(e) => handleCepChange(e.target.value)}
+                              placeholder="00000-000" 
+                              maxLength={9}
+                              data-testid="input-zipcode"
+                              disabled={isLoadingCep}
+                            />
+                            {isLoadingCep && (
+                              <Loader2 className="h-4 w-4 animate-spin absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                            )}
+                          </div>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
