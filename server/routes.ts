@@ -2269,6 +2269,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
         costCenters.map(c => ({ id: c.id, code: c.code.toString(), name: c.name }))
       );
 
+      // If operation is clone_by_code, fetch the original transaction and populate form data
+      if (result.operation === 'clone_by_code' && result.cloneConfig?.sourceCode) {
+        const cloneConfig = result.cloneConfig;
+        const sourceCode = cloneConfig.sourceCode;
+        
+        if (!sourceCode) {
+          console.log(`[Clone Analysis] Source code missing`);
+          res.json(result);
+          return;
+        }
+        
+        console.log(`[Clone Analysis] Fetching original transaction: ${sourceCode}`);
+        
+        const allTransactions = await storage.listTransactions(tenantId, companyId);
+        const sourceCodeFormatted = sourceCode.toUpperCase();
+        
+        // Try to find by formatted code (e.g., DES001, REC045) or raw numeric code
+        const originalTransaction = allTransactions.find((t: any) => {
+          const formattedCode = t.type === 'revenue' ? `REC${String(t.code).padStart(3, '0')}` : `DES${String(t.code).padStart(3, '0')}`;
+          return formattedCode === sourceCodeFormatted || String(t.code) === sourceCode;
+        });
+        
+        if (originalTransaction) {
+          console.log(`[Clone Analysis] Found original transaction: ${originalTransaction.title} (${originalTransaction.id})`);
+          
+          // Build transaction object with original data + overrides
+          const clonedData: any = {
+            type: cloneConfig.overrides?.type || originalTransaction.type,
+            title: cloneConfig.overrides?.title || originalTransaction.title,
+            description: cloneConfig.overrides?.description || originalTransaction.description,
+            amount: cloneConfig.overrides?.amount || originalTransaction.amount,
+            personId: originalTransaction.personId,
+            personName: originalTransaction.personId ? persons.find(p => p.id === originalTransaction.personId)?.name : '',
+            chartAccountId: originalTransaction.chartAccountId,
+            costCenterId: originalTransaction.costCenterId,
+            paymentMethodId: originalTransaction.paymentMethodId,
+            dueDate: new Date().toISOString().split('T')[0], // Default to today
+          };
+          
+          // Apply personName override if provided
+          const personNameOverride = cloneConfig.overrides?.personName;
+          if (personNameOverride) {
+            const matchedPerson = persons.find((p: any) => 
+              p.name.toLowerCase().includes(personNameOverride.toLowerCase()) ||
+              personNameOverride.toLowerCase().includes(p.name.toLowerCase())
+            );
+            
+            if (matchedPerson) {
+              clonedData.personId = matchedPerson.id;
+              clonedData.personName = matchedPerson.name;
+              console.log(`[Clone Analysis] Applied person override: ${matchedPerson.name}`);
+            }
+          }
+          
+          // Add the cloned transaction to the result
+          result.transactions = [clonedData];
+          
+          console.log(`[Clone Analysis] Populated form with cloned data`);
+        } else {
+          console.log(`[Clone Analysis] Original transaction ${cloneConfig.sourceCode} not found`);
+        }
+      }
+
       res.json(result);
     } catch (error: any) {
       console.error("Error analyzing batch transaction command:", error);
