@@ -13,6 +13,7 @@ import {
   Target as TargetIcon,
   Activity,
   BarChart4,
+  HelpCircle,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -38,96 +39,17 @@ import {
   RadialBar,
 } from "recharts";
 import { Separator } from "@/components/ui/separator";
+import { Tooltip as UITooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { useQuery } from "@tanstack/react-query";
+import type { Transaction, CostCenter, ChartAccount } from "@shared/schema";
+import { format, startOfMonth, endOfMonth, subMonths, differenceInDays } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
-const kpis = [
-  {
-    title: "Receita Recorrente Mensal",
-    description: "Receitas mensais fixas",
-    value: "R$ 45.231",
-    change: "+20.1%",
-    trend: "up",
-    icon: DollarSign,
-    gradient: "from-blue-500 to-blue-600",
-    sparklineData: [32, 35, 38, 36, 40, 45],
-    target: 50000,
-    current: 45231,
-  },
-  {
-    title: "Margem de Lucro",
-    description: "Lucratividade operacional",
-    value: "28.2%",
-    change: "+3.5%",
-    trend: "up",
-    icon: BarChart4,
-    gradient: "from-blue-500 to-indigo-600",
-    sparklineData: [22, 24, 26, 25, 27, 28],
-    target: 30,
-    current: 28.2,
-  },
-  {
-    title: "Tempo de Caixa",
-    description: "Meses de reserva financeira",
-    value: "18 meses",
-    change: "+2 meses",
-    trend: "up",
-    icon: Clock,
-    gradient: "from-purple-500 to-violet-600",
-    sparklineData: [14, 15, 15, 16, 17, 18],
-    target: 24,
-    current: 18,
-  },
-  {
-    title: "Prazo Médio de Recebimento",
-    description: "Dias para receber vendas",
-    value: "32 dias",
-    change: "-5 dias",
-    trend: "down",
-    icon: Activity,
-    gradient: "from-cyan-500 to-teal-600",
-    sparklineData: [42, 40, 38, 35, 34, 32],
-    target: 30,
-    current: 32,
-  },
-];
-
-const monthlyData = [
-  { month: "Jan", receitas: 35000, despesas: 28000, forecast: 36000, margem: 20 },
-  { month: "Fev", receitas: 38000, despesas: 30000, forecast: 39000, margem: 21 },
-  { month: "Mar", receitas: 42000, despesas: 31000, forecast: 43000, margem: 26 },
-  { month: "Abr", receitas: 39000, despesas: 29000, forecast: 41000, margem: 26 },
-  { month: "Mai", receitas: 44000, despesas: 32000, forecast: 45000, margem: 27 },
-  { month: "Jun", receitas: 45231, despesas: 32450, forecast: 47000, margem: 28 },
-  { month: "Jul", receitas: null, despesas: null, forecast: 48000, margem: null },
-  { month: "Ago", receitas: null, despesas: null, forecast: 50000, margem: null },
-];
-
-const categoryData = [
-  { name: "Pessoal", value: 15000, color: "#3b82f6", percentage: 46 },
-  { name: "Operacional", value: 8500, color: "#8b5cf6", percentage: 26 },
-  { name: "Marketing", value: 5200, color: "#06b6d4", percentage: 16 },
-  { name: "Tecnologia", value: 2500, color: "#10b981", percentage: 8 },
-  { name: "Outros", value: 1250, color: "#f59e0b", percentage: 4 },
-];
-
-const departmentHeatmap = [
-  { dept: "Vendas", jan: 12, fev: 15, mar: 18, abr: 16, mai: 20, jun: 22 },
-  { dept: "Marketing", jan: 8, fev: 9, mar: 11, abr: 10, mai: 12, jun: 14 },
-  { dept: "Operações", jan: 20, fev: 22, mar: 24, abr: 23, mai: 26, jun: 28 },
-  { dept: "TI", jan: 6, fev: 7, mar: 8, abr: 7, mai: 9, jun: 10 },
-];
-
+// Alertas mockados (em desenvolvimento)
 const alerts = [
   { type: "warning", message: "Despesa com Marketing 15% acima da meta", time: "Há 2h" },
   { type: "success", message: "Meta de receita do mês atingida", time: "Há 5h" },
   { type: "info", message: "Novo cliente premium adicionado", time: "Há 1 dia" },
-];
-
-const recentTransactions = [
-  { id: 1, description: "Pagamento Cliente A", category: "Receita", date: "15/06/2025", amount: 8500, type: "receita", status: "confirmed" },
-  { id: 2, description: "Folha de Pagamento", category: "Pessoal", date: "10/06/2025", amount: -15000, type: "despesa", status: "confirmed" },
-  { id: 3, description: "Campanha Google Ads", category: "Marketing", date: "08/06/2025", amount: -2450, type: "despesa", status: "pending" },
-  { id: 4, description: "Serviços Consultoria", category: "Receita", date: "05/06/2025", amount: 12000, type: "receita", status: "confirmed" },
-  { id: 5, description: "Infraestrutura Cloud", category: "Tecnologia", date: "03/06/2025", amount: -890, type: "despesa", status: "confirmed" },
 ];
 
 const CustomTooltip = ({ active, payload, label }: any) => {
@@ -153,6 +75,197 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 export default function Dashboard() {
+  const selectedCompanyId = localStorage.getItem('fincontrol_selected_company_id');
+
+  // Fetch data
+  const { data: transactions = [], isLoading: loadingTransactions } = useQuery<Transaction[]>({
+    queryKey: ['/api/transactions', selectedCompanyId],
+    enabled: !!selectedCompanyId,
+  });
+
+  const { data: costCenters = [], isLoading: loadingCostCenters } = useQuery<CostCenter[]>({
+    queryKey: ['/api/cost-centers'],
+  });
+
+  const { data: chartAccounts = [], isLoading: loadingChartAccounts } = useQuery<ChartAccount[]>({
+    queryKey: ['/api/chart-of-accounts'],
+  });
+
+  const isLoading = loadingTransactions || loadingCostCenters || loadingChartAccounts;
+
+  // Process data
+  const currentMonth = new Date();
+  const currentMonthStart = startOfMonth(currentMonth);
+  const currentMonthEnd = endOfMonth(currentMonth);
+
+  // Filter current month transactions
+  const currentMonthTransactions = transactions.filter(t => {
+    const dueDate = new Date(t.dueDate);
+    return dueDate >= currentMonthStart && dueDate <= currentMonthEnd;
+  });
+
+  // Calculate KPIs
+  const totalRevenues = currentMonthTransactions
+    .filter(t => t.type === 'revenue')
+    .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+
+  const totalExpenses = currentMonthTransactions
+    .filter(t => t.type === 'expense')
+    .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+
+  const profitMargin = totalRevenues > 0 ? ((totalRevenues - totalExpenses) / totalRevenues) * 100 : 0;
+
+  // Calculate average receivable days (issueDate to paidDate for paid transactions)
+  const paidRevenues = transactions.filter(t => t.type === 'revenue' && t.status === 'paid' && t.paidDate && t.issueDate);
+  const averageReceivableDays = paidRevenues.length > 0
+    ? paidRevenues.reduce((sum, t) => {
+        const days = differenceInDays(new Date(t.paidDate!), new Date(t.issueDate!));
+        return sum + days;
+      }, 0) / paidRevenues.length
+    : 0;
+
+  // Generate monthly data (last 6 months)
+  const monthlyData = [];
+  for (let i = 5; i >= 0; i--) {
+    const monthDate = subMonths(currentMonth, i);
+    const monthStart = startOfMonth(monthDate);
+    const monthEnd = endOfMonth(monthDate);
+    
+    const monthTransactions = transactions.filter(t => {
+      const dueDate = new Date(t.dueDate);
+      return dueDate >= monthStart && dueDate <= monthEnd;
+    });
+
+    const receitas = monthTransactions
+      .filter(t => t.type === 'revenue')
+      .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+
+    const despesas = monthTransactions
+      .filter(t => t.type === 'expense')
+      .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+
+    monthlyData.push({
+      month: format(monthDate, 'MMM', { locale: ptBR }),
+      receitas,
+      despesas,
+    });
+  }
+
+  // Category distribution (expenses by chart account)
+  const categoryMap = new Map<string, number>();
+  currentMonthTransactions
+    .filter(t => t.type === 'expense')
+    .forEach(t => {
+      const account = chartAccounts.find(a => a.id === t.chartAccountId);
+      if (account) {
+        const current = categoryMap.get(account.name) || 0;
+        categoryMap.set(account.name, current + parseFloat(t.amount));
+      }
+    });
+
+  const categoryData = Array.from(categoryMap.entries())
+    .map(([name, value]) => ({ name, value }))
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 5) // Top 5
+    .map((item, index) => ({
+      name: item.name,
+      value: item.value,
+      percentage: totalExpenses > 0 ? Math.round((item.value / totalExpenses) * 100) : 0,
+      color: ['#3b82f6', '#8b5cf6', '#06b6d4', '#10b981', '#f59e0b'][index],
+    }));
+
+  // Department heatmap (expenses by cost center per month)
+  const departmentHeatmap: any[] = [];
+  costCenters.slice(0, 4).forEach(cc => {
+    const deptData: any = { dept: cc.name };
+    const monthNames = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun'];
+    
+    for (let i = 5; i >= 0; i--) {
+      const monthDate = subMonths(currentMonth, i);
+      const monthStart = startOfMonth(monthDate);
+      const monthEnd = endOfMonth(monthDate);
+      const monthKey = monthNames[5 - i];
+      
+      const monthExpenses = transactions
+        .filter(t => {
+          const dueDate = new Date(t.dueDate);
+          return t.type === 'expense' && 
+                 t.costCenterId === cc.id && 
+                 dueDate >= monthStart && 
+                 dueDate <= monthEnd;
+        })
+        .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+      
+      deptData[monthKey] = Math.round(monthExpenses / 1000); // In thousands
+    }
+    
+    departmentHeatmap.push(deptData);
+  });
+
+  // Recent transactions
+  const recentTransactions = transactions
+    .slice()
+    .sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime())
+    .slice(0, 10)
+    .map(t => {
+      const account = chartAccounts.find(a => a.id === t.chartAccountId);
+      return {
+        id: t.id,
+        description: t.title,
+        category: account?.name || 'Sem categoria',
+        date: format(new Date(t.dueDate), 'dd/MM/yyyy'),
+        amount: parseFloat(t.amount) * (t.type === 'expense' ? -1 : 1),
+        type: t.type === 'revenue' ? 'receita' : 'despesa',
+        status: t.status === 'paid' ? 'confirmed' : 'pending',
+      };
+    });
+
+  // KPIs data
+  const kpis = [
+    {
+      title: "Receita Recorrente Mensal",
+      description: "Receitas mensais fixas",
+      value: "R$ 0,00",
+      change: "+0%",
+      trend: "up" as const,
+      icon: DollarSign,
+      gradient: "from-blue-500 to-blue-600",
+      disabled: true, // Em desenvolvimento
+      tooltipMessage: "Em desenvolvimento - Requer identificação de receitas recorrentes",
+    },
+    {
+      title: "Margem de Lucro",
+      description: "Lucratividade operacional",
+      value: `${profitMargin.toFixed(1)}%`,
+      change: profitMargin > 25 ? "+positivo" : "neutro",
+      trend: profitMargin > 25 ? "up" as const : "down" as const,
+      icon: BarChart4,
+      gradient: "from-blue-500 to-indigo-600",
+      disabled: false,
+    },
+    {
+      title: "Tempo de Caixa",
+      description: "Meses de reserva financeira",
+      value: "0 meses",
+      change: "+0 meses",
+      trend: "up" as const,
+      icon: Clock,
+      gradient: "from-purple-500 to-violet-600",
+      disabled: true, // Em desenvolvimento
+      tooltipMessage: "Em desenvolvimento - Requer saldo de contas e projeção de queima",
+    },
+    {
+      title: "Prazo Médio de Recebimento",
+      description: "Dias para receber vendas",
+      value: averageReceivableDays > 0 ? `${Math.round(averageReceivableDays)} dias` : "0 dias",
+      change: averageReceivableDays < 30 ? "bom" : "médio",
+      trend: averageReceivableDays < 30 ? "up" as const : "down" as const,
+      icon: Activity,
+      gradient: "from-cyan-500 to-teal-600",
+      disabled: false,
+    },
+  ];
+
   return (
     <div className="flex flex-col gap-4 p-3 md:p-4 lg:p-6 bg-gradient-to-br from-background via-muted/10 to-background">
       <div className="flex items-center justify-between flex-wrap gap-3">
@@ -167,7 +280,7 @@ export default function Dashboard() {
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" data-testid="button-filter">
             <Calendar className="h-4 w-4 mr-2" />
-            Junho 2025
+            {format(currentMonth, 'MMMM yyyy', { locale: ptBR })}
           </Button>
           <Button size="sm" data-testid="button-export">
             <BarChart4 className="h-4 w-4 mr-2" />
@@ -180,12 +293,14 @@ export default function Dashboard() {
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {kpis.map((kpi, index) => {
           const Icon = kpi.icon;
-          const progressPercent = (kpi.current / kpi.target) * 100;
+          const isDisabled = 'disabled' in kpi && kpi.disabled;
           
-          return (
+          const cardContent = (
             <Card
               key={index}
-              className="group/kpi relative overflow-hidden border-0 bg-gradient-to-br from-card via-card to-muted/20 shadow-lg hover-elevate transition-all duration-300"
+              className={`group/kpi relative overflow-hidden border-0 bg-gradient-to-br from-card via-card to-muted/20 shadow-lg transition-all duration-300 ${
+                isDisabled ? 'opacity-50 cursor-not-allowed' : 'hover-elevate'
+              }`}
               data-testid={`card-kpi-${index}`}
             >
               <div
@@ -194,52 +309,43 @@ export default function Dashboard() {
               <CardHeader className="pb-1.5">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex flex-col gap-0.5 flex-1 min-w-0">
-                    <CardDescription className="text-xs font-medium">
-                      {kpi.title}
-                    </CardDescription>
+                    <div className="flex items-center gap-1">
+                      <CardDescription className="text-xs font-medium">
+                        {kpi.title}
+                      </CardDescription>
+                      {isDisabled && (
+                        <HelpCircle className="h-3 w-3 text-muted-foreground" />
+                      )}
+                    </div>
                     <CardTitle className="text-lg font-semibold tracking-tight tabular-nums truncate">{kpi.value}</CardTitle>
                   </div>
-                  <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${kpi.gradient} shadow-lg transition-all duration-300 group-hover/kpi:scale-110 group-hover/kpi:shadow-2xl`}>
-                    <Icon className="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover/kpi:scale-110" strokeWidth={2.5} />
+                  <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${kpi.gradient} shadow-lg transition-all duration-300 ${!isDisabled && 'group-hover/kpi:scale-110 group-hover/kpi:shadow-2xl'}`}>
+                    <Icon className={`h-3.5 w-3.5 text-white transition-transform duration-300 ${!isDisabled && 'group-hover/kpi:scale-110'}`} strokeWidth={2.5} />
                   </div>
                 </div>
               </CardHeader>
               <CardContent className="pb-2">
-                <div className="flex items-center gap-1.5 mb-1.5">
-                  {kpi.trend === "up" ? (
-                    <TrendingUp className="h-3 w-3 text-green-500" />
-                  ) : (
-                    <TrendingDown className="h-3 w-3 text-red-500" />
-                  )}
-                  <span className={`text-xs font-semibold tabular-nums ${kpi.trend === "up" ? "text-green-500" : "text-red-500"}`}>
-                    {kpi.change}
-                  </span>
-                  <span className="text-xs text-muted-foreground">vs meta</span>
-                </div>
-                
-                {/* Mini Sparkline */}
-                <div className="h-5 w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={kpi.sparklineData.map((v, i) => ({ value: v }))}>
-                      <defs>
-                        <linearGradient id={`gradient-${index}`} x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor={kpi.gradient.includes('green') ? '#10b981' : kpi.gradient.includes('blue') ? '#3b82f6' : kpi.gradient.includes('orange') ? '#f59e0b' : kpi.gradient.includes('purple') ? '#8b5cf6' : kpi.gradient.includes('cyan') ? '#06b6d4' : '#ec4899'} stopOpacity={0.3} />
-                          <stop offset="95%" stopColor={kpi.gradient.includes('green') ? '#10b981' : kpi.gradient.includes('blue') ? '#3b82f6' : kpi.gradient.includes('orange') ? '#f59e0b' : kpi.gradient.includes('purple') ? '#8b5cf6' : kpi.gradient.includes('cyan') ? '#06b6d4' : '#ec4899'} stopOpacity={0} />
-                        </linearGradient>
-                      </defs>
-                      <Area
-                        type="monotone"
-                        dataKey="value"
-                        stroke={kpi.gradient.includes('green') ? '#10b981' : kpi.gradient.includes('blue') ? '#3b82f6' : kpi.gradient.includes('orange') ? '#f59e0b' : kpi.gradient.includes('purple') ? '#8b5cf6' : kpi.gradient.includes('cyan') ? '#06b6d4' : '#ec4899'}
-                        fill={`url(#gradient-${index})`}
-                        strokeWidth={2}
-                      />
-                    </AreaChart>
-                  </ResponsiveContainer>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs text-muted-foreground">{kpi.change}</span>
                 </div>
               </CardContent>
             </Card>
           );
+
+          if (isDisabled && 'tooltipMessage' in kpi) {
+            return (
+              <UITooltip key={index}>
+                <TooltipTrigger asChild>
+                  {cardContent}
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-xs">{kpi.tooltipMessage}</p>
+                </TooltipContent>
+              </UITooltip>
+            );
+          }
+
+          return cardContent;
         })}
       </div>
 
@@ -465,47 +571,57 @@ export default function Dashboard() {
         </Card>
 
         {/* Alerts Feed */}
-        <Card className="border-0 bg-gradient-to-br from-card to-muted/20 shadow-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg font-bold">Alertas & Insights</CardTitle>
-            <CardDescription className="text-xs">Notificações importantes do sistema</CardDescription>
-          </CardHeader>
-          <CardContent className="pb-2">
-            <div className="flex flex-col gap-2">
-              {alerts.map((alert, idx) => (
-                <div
-                  key={idx}
-                  className={`flex items-start gap-2 p-2 rounded-lg border ${
-                    alert.type === "warning"
-                      ? "bg-orange-500/5 border-orange-500/20"
-                      : alert.type === "success"
-                      ? "bg-green-500/5 border-green-500/20"
-                      : "bg-blue-500/5 border-blue-500/20"
-                  }`}
-                  data-testid={`alert-${idx}`}
-                >
-                  {alert.type === "warning" ? (
-                    <AlertCircle className="h-3.5 w-3.5 text-orange-500 shrink-0 mt-0.5" />
-                  ) : alert.type === "success" ? (
-                    <CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0 mt-0.5" />
-                  ) : (
-                    <Activity className="h-3.5 w-3.5 text-blue-500 shrink-0 mt-0.5" />
-                  )}
-                  <div className="flex flex-col gap-0.5 flex-1 min-w-0">
-                    <p className="text-xs font-medium leading-tight">{alert.message}</p>
-                    <span className="text-xs text-muted-foreground">{alert.time}</span>
-                  </div>
+        <UITooltip>
+          <TooltipTrigger asChild>
+            <Card className="border-0 bg-gradient-to-br from-card to-muted/20 shadow-lg opacity-50 cursor-not-allowed">
+              <CardHeader className="pb-2">
+                <div className="flex items-center gap-1.5">
+                  <CardTitle className="text-lg font-bold">Alertas & Insights</CardTitle>
+                  <HelpCircle className="h-4 w-4 text-muted-foreground" />
                 </div>
-              ))}
-              
-              <Separator className="my-1.5" />
-              
-              <Button variant="outline" size="sm" className="w-full">
-                Ver Todos os Alertas
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+                <CardDescription className="text-xs">Notificações importantes do sistema</CardDescription>
+              </CardHeader>
+              <CardContent className="pb-2">
+                <div className="flex flex-col gap-2">
+                  {alerts.map((alert, idx) => (
+                    <div
+                      key={idx}
+                      className={`flex items-start gap-2 p-2 rounded-lg border ${
+                        alert.type === "warning"
+                          ? "bg-orange-500/5 border-orange-500/20"
+                          : alert.type === "success"
+                          ? "bg-green-500/5 border-green-500/20"
+                          : "bg-blue-500/5 border-blue-500/20"
+                      }`}
+                      data-testid={`alert-${idx}`}
+                    >
+                      {alert.type === "warning" ? (
+                        <AlertCircle className="h-3.5 w-3.5 text-orange-500 shrink-0 mt-0.5" />
+                      ) : alert.type === "success" ? (
+                        <CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0 mt-0.5" />
+                      ) : (
+                        <Activity className="h-3.5 w-3.5 text-blue-500 shrink-0 mt-0.5" />
+                      )}
+                      <div className="flex flex-col gap-0.5 flex-1 min-w-0">
+                        <p className="text-xs font-medium leading-tight">{alert.message}</p>
+                        <span className="text-xs text-muted-foreground">{alert.time}</span>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  <Separator className="my-1.5" />
+                  
+                  <Button variant="outline" size="sm" className="w-full" disabled>
+                    Ver Todos os Alertas
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p className="text-xs">Em desenvolvimento - Requer regras de negócio para alertas automáticos</p>
+          </TooltipContent>
+        </UITooltip>
       </div>
 
       {/* Últimas Transações */}
