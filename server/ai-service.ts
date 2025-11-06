@@ -1179,6 +1179,16 @@ export interface BatchTransactionCommand {
     sourceCode?: string; // e.g., "REC001"
     periodType?: "daily" | "weekly" | "monthly" | "yearly";
     count?: number; // number of occurrences
+    overrides?: {
+      personName?: string;
+      amount?: string;
+      title?: string;
+      description?: string;
+      type?: "revenue" | "expense";
+      chartAccountId?: string;
+      costCenterId?: string;
+      paymentMethodId?: string;
+    };
   };
   missingFields: string[];
   needsCountInput: boolean; // true if user didn't specify how many
@@ -1259,7 +1269,14 @@ Analise o comando e retorne JSON:
   "cloneConfig": {
     "sourceCode": "código da transação (ex: REC001, DES045)",
     "periodType": "daily | weekly | monthly | yearly",
-    "count": número de ocorrências
+    "count": número de ocorrências,
+    "overrides": {
+      "personName": "novo fornecedor/cliente (se mencionar)",
+      "amount": "novo valor (se mencionar)",
+      "title": "novo título (se mencionar)",
+      "description": "nova descrição (se mencionar)",
+      "type": "revenue ou expense (se mencionar)"
+    }
   },
   "missingFields": ["campos faltantes"],
   "needsCountInput": true/false,
@@ -1278,9 +1295,23 @@ DETECÇÃO DE CENÁRIOS:
 2. CLONAGEM POR CÓDIGO (operation: "clone_by_code"):
    - Input: "clone REC001 para próximos 6 meses"
    - Input: "copie DES045 mensalmente por 12 meses"
-   - Detectar código (padrão: 3 letras + 3 dígitos)
+   - Detectar código (padrão: 3 letras + 3 dígitos ou numérico como 10001)
    - Em cloneConfig: sourceCode, periodType, count
    - transactions[] fica vazio (será preenchido pelo backend após buscar original)
+
+2.1. CLONAGEM COM MODIFICADORES (operation: "clone_by_code" + overrides):
+   - Input: "clone DES001 mas para fornecedor Tiago Silva Ferreira"
+   - Input: "clone REC045 mas com valor R$ 500"
+   - Input: "copie código 10001 mas trocar cliente para XYZ"
+   - Detectar modificadores após "mas", "porém", "trocar", "alterar", "mudar"
+   - IMPORTANTE: Capturar modificações em cloneConfig.overrides:
+     * "mas para fornecedor X" → overrides.personName = "X"
+     * "mas para cliente Y" → overrides.personName = "Y"
+     * "mas com valor Z" → overrides.amount = "Z"
+     * "mas trocar título" → overrides.title = "novo título"
+     * "mas alterar descrição" → overrides.description = "nova descrição"
+   - transactions[] ainda fica vazio
+   - Backend aplicará overrides após buscar original
 
 3. CLONAGEM COM PADRÃO (operation: "clone_period"):
    - Input: "conta da Cemig mensalmente por 12 meses começando dia 15"
@@ -1344,6 +1375,41 @@ Input: "clone REC001 para próximos 6 meses"
   "missingFields": [],
   "needsCountInput": false,
   "confidence": 0.95
+}
+
+Input: "clone DES001 mas para fornecedor Tiago Silva Ferreira"
+{
+  "operation": "clone_by_code",
+  "transactions": [],
+  "cloneConfig": {
+    "sourceCode": "DES001",
+    "periodType": "daily",
+    "count": 1,
+    "overrides": {
+      "personName": "Tiago Silva Ferreira"
+    }
+  },
+  "missingFields": [],
+  "needsCountInput": false,
+  "confidence": 0.95
+}
+
+Input: "clone código 10001 mas com valor R$ 500 e para cliente XYZ"
+{
+  "operation": "clone_by_code",
+  "transactions": [],
+  "cloneConfig": {
+    "sourceCode": "10001",
+    "periodType": "daily",
+    "count": 1,
+    "overrides": {
+      "amount": "500.00",
+      "personName": "XYZ"
+    }
+  },
+  "missingFields": [],
+  "needsCountInput": false,
+  "confidence": 0.9
 }
 
 Input: "Cemig mensalmente por 12 meses valor 250 começando dia 15"
