@@ -1965,7 +1965,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // This minimizes (but doesn't eliminate) risk of partial batch creation
       const validatedTransactions = transactions.map(transactionData => {
         const { costCenterDistributions, ...data } = transactionData;
-        const validatedData = insertTransactionSchema.parse(data);
+        
+        // Convert empty strings to undefined for optional foreign key fields
+        // Zod schema uses .optional() (not .nullable()), so undefined is correct
+        const cleanedData = {
+          ...data,
+          costCenterId: data.costCenterId === "" ? undefined : data.costCenterId,
+          paymentMethodId: data.paymentMethodId === "" ? undefined : data.paymentMethodId,
+          bankAccountId: data.bankAccountId === "" ? undefined : data.bankAccountId,
+          cashRegisterId: data.cashRegisterId === "" ? undefined : data.cashRegisterId,
+        };
+        
+        const validatedData = insertTransactionSchema.parse(cleanedData);
         return { validatedData, costCenterDistributions };
       });
       
