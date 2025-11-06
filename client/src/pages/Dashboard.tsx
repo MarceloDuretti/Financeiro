@@ -10,7 +10,6 @@ import {
   AlertCircle,
   CheckCircle,
   Clock,
-  Target as TargetIcon,
   Activity,
   BarChart4,
   HelpCircle,
@@ -185,52 +184,6 @@ export default function Dashboard() {
         }))
     : [];
 
-  // Cost Center Performance heatmap (expenses by cost center per month with distributions)
-  const departmentHeatmap: any[] = [];
-  
-  // Check if any transaction has cost center distributions
-  const transactionsWithCostCenter = transactions.filter(t => 
-    (t as any).costCenterDistributions?.length > 0 || t.costCenterId
-  );
-  
-  // Only show heatmap if there are transactions with cost centers
-  if (transactionsWithCostCenter.length > 0 && costCenters.length > 0) {
-    costCenters.slice(0, 4).forEach(cc => {
-      const deptData: any = { dept: cc.name, months: [] };
-      
-      last6Months.forEach(({ date }) => {
-        const monthStart = startOfMonth(date);
-        const monthEnd = endOfMonth(date);
-        
-        const monthExpenses = transactions
-          .filter(t => {
-            const dueDate = new Date(t.dueDate);
-            return t.type === 'expense' && dueDate >= monthStart && dueDate <= monthEnd;
-          })
-          .reduce((sum, t) => {
-            const amount = parseFloat(t.amount);
-            const distributions = (t as any).costCenterDistributions;
-            
-            // Check if transaction has cost center distributions
-            if (distributions && distributions.length > 0) {
-              const distribution = distributions.find((d: any) => d.costCenterId === cc.id);
-              if (distribution) {
-                return sum + (amount * distribution.percentage / 100);
-              }
-            } else if (t.costCenterId === cc.id) {
-              // Fallback to single cost center (100%)
-              return sum + amount;
-            }
-            
-            return sum;
-          }, 0);
-        
-        deptData.months.push(Math.round(monthExpenses / 1000)); // In thousands
-      });
-      
-      departmentHeatmap.push(deptData);
-    });
-  }
 
   // Recent transactions
   const recentTransactions = transactions
@@ -472,105 +425,99 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Cost Center Performance Heatmap */}
+        {/* Resultado Financeiro (Receitas vs Despesas vs Lucro) */}
         <Card className="border-0 bg-gradient-to-br from-card to-muted/20 shadow-lg">
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg font-bold">Performance por Centro de Custo</CardTitle>
-            <CardDescription className="text-xs">Gastos mensais em milhares (R$)</CardDescription>
+            <CardTitle className="text-lg font-bold">Resultado Financeiro</CardTitle>
+            <CardDescription className="text-xs">Evolução de receitas, despesas e lucro nos últimos 6 meses</CardDescription>
           </CardHeader>
           <CardContent className="pb-2">
-            {departmentHeatmap.length > 0 ? (
+            {monthlyData.length > 0 ? (
               <>
-                <div className="overflow-x-auto">
-                  <table className="w-full border-collapse">
-                    <thead>
-                      <tr>
-                        <th className="px-1 py-1.5 text-left text-xs font-semibold text-muted-foreground border-b border-muted/30">
-                          Departamento
-                        </th>
-                        {last6Months.map(({ shortName }) => (
-                          <th
-                            key={shortName}
-                            className="px-1 py-1.5 text-center text-xs font-semibold text-muted-foreground border-b border-muted/30"
-                          >
-                            {shortName}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {(() => {
-                        // Precompute min/max once for all cells
-                        const allValues = departmentHeatmap.flatMap(d => d.months);
-                        const minValue = Math.min(...allValues);
-                        const maxValue = Math.max(...allValues);
-                        const range = maxValue - minValue;
-                        
-                        const getHeatColor = (value: number) => {
-                          // Handle case where all values are equal (max === min)
-                          if (range === 0 || value === 0) {
-                            return { bg: "bg-blue-500/50", text: "text-white" };
-                          }
-                          
-                          const normalized = (value - minValue) / range;
-                          
-                          if (normalized >= 0.8) return { bg: "bg-red-500/90", text: "text-white" };
-                          if (normalized >= 0.6) return { bg: "bg-orange-500/80", text: "text-white" };
-                          if (normalized >= 0.4) return { bg: "bg-amber-500/70", text: "text-white" };
-                          if (normalized >= 0.2) return { bg: "bg-emerald-500/60", text: "text-white" };
-                          return { bg: "bg-blue-500/50", text: "text-white" };
-                        };
-
-                        return departmentHeatmap.map((dept, deptIdx) => {
-                          return (
-                            <tr key={deptIdx} className="border-b border-muted/20 last:border-0">
-                              <td className="px-1 py-0.5 text-xs font-medium">{dept.dept}</td>
-                              {dept.months.map((value: number, idx: number) => {
-                                const colors = getHeatColor(value);
-                                return (
-                                  <td
-                                    key={idx}
-                                    className="p-0"
-                                    data-testid={`heatmap-${dept.dept}-${idx}`}
-                                  >
-                                    <div
-                                      className={`${colors.bg} ${colors.text} rounded-md m-0.5 p-1.5 text-center text-xs font-bold transition-all hover:scale-105 hover:shadow-md cursor-default`}
-                                      title={`${dept.dept} - ${last6Months[idx].fullName}: R$ ${value}k`}
-                                    >
-                                      {value}k
-                                    </div>
-                                  </td>
-                                );
-                              })}
-                            </tr>
-                          );
-                        });
-                      })()}
-                    </tbody>
-                  </table>
-                </div>
+                <ResponsiveContainer width="100%" height={200}>
+                  <LineChart data={monthlyData} margin={{ top: 5, right: 10, left: -15, bottom: 5 }}>
+                    <defs>
+                      <linearGradient id="lineGradientReceitas2" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%" stopColor="#10b981" />
+                        <stop offset="100%" stopColor="#34d399" />
+                      </linearGradient>
+                      <linearGradient id="lineGradientDespesas2" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%" stopColor="#ef4444" />
+                        <stop offset="100%" stopColor="#f87171" />
+                      </linearGradient>
+                      <linearGradient id="lineGradientLucro" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%" stopColor="#3b82f6" />
+                        <stop offset="100%" stopColor="#60a5fa" />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted/30" vertical={false} />
+                    <XAxis 
+                      dataKey="month" 
+                      className="text-xs" 
+                      stroke="hsl(var(--muted-foreground))" 
+                      axisLine={false}
+                      tickLine={false}
+                      dy={3}
+                    />
+                    <YAxis 
+                      className="text-xs" 
+                      stroke="hsl(var(--muted-foreground))" 
+                      axisLine={false}
+                      tickLine={false}
+                      dx={0}
+                    />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Line
+                      type="monotone"
+                      dataKey="receitas"
+                      name="Receitas"
+                      stroke="url(#lineGradientReceitas2)"
+                      strokeWidth={3}
+                      dot={{ fill: "#10b981", r: 5, strokeWidth: 2, stroke: "#fff" }}
+                      activeDot={{ r: 7, strokeWidth: 2 }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="despesas"
+                      name="Despesas"
+                      stroke="url(#lineGradientDespesas2)"
+                      strokeWidth={3}
+                      dot={{ fill: "#ef4444", r: 5, strokeWidth: 2, stroke: "#fff" }}
+                      activeDot={{ r: 7, strokeWidth: 2 }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="lucro"
+                      name="Lucro"
+                      stroke="url(#lineGradientLucro)"
+                      strokeWidth={3}
+                      dot={{ fill: "#3b82f6", r: 5, strokeWidth: 2, stroke: "#fff" }}
+                      activeDot={{ r: 7, strokeWidth: 2 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
                 
-                {/* Compact Color Legend */}
-                <div className="mt-2 flex items-center justify-center gap-2 text-[10px]">
+                {/* Compact Legend Below */}
+                <div className="mt-1 flex items-center justify-center gap-3 text-[10px]">
                   <div className="flex items-center gap-1">
-                    <div className="h-2 w-2 rounded-sm bg-blue-500/50" />
-                    <span className="text-muted-foreground">Baixo</span>
+                    <div className="h-2 w-2 rounded-full bg-emerald-500" />
+                    <span className="text-muted-foreground">Receitas</span>
                   </div>
                   <div className="flex items-center gap-1">
-                    <div className="h-2 w-2 rounded-sm bg-amber-500/70" />
-                    <span className="text-muted-foreground">Médio</span>
+                    <div className="h-2 w-2 rounded-full bg-red-500" />
+                    <span className="text-muted-foreground">Despesas</span>
                   </div>
                   <div className="flex items-center gap-1">
-                    <div className="h-2 w-2 rounded-sm bg-red-500/90" />
-                    <span className="text-muted-foreground">Alto</span>
+                    <div className="h-2 w-2 rounded-full bg-blue-500" />
+                    <span className="text-muted-foreground">Lucro</span>
                   </div>
                 </div>
               </>
             ) : (
-              <div className="flex flex-col items-center justify-center h-[200px] text-center px-4">
-                <TargetIcon className="h-12 w-12 text-muted-foreground/30 mb-2" />
-                <p className="text-sm text-muted-foreground">Nenhuma transação com centro de custo</p>
-                <p className="text-xs text-muted-foreground/70">Edite suas transações e associe centros de custo para visualizar a performance por departamento</p>
+              <div className="flex flex-col items-center justify-center h-[200px] text-center">
+                <BarChart4 className="h-12 w-12 text-muted-foreground/30 mb-2" />
+                <p className="text-sm text-muted-foreground">Sem dados para exibir</p>
+                <p className="text-xs text-muted-foreground/70">Adicione transações para ver o resultado financeiro</p>
               </div>
             )}
           </CardContent>
