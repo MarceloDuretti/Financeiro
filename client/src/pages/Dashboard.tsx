@@ -398,88 +398,36 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent className="pb-2">
             {monthlyData.length > 0 ? (
-              <>
-                <ResponsiveContainer width="100%" height={170}>
-                  <LineChart data={monthlyData} margin={{ top: 5, right: 10, left: -15, bottom: 5 }}>
-                    <defs>
-                      <linearGradient id="lineGradientReceitas" x1="0" y1="0" x2="1" y2="0">
-                        <stop offset="0%" stopColor="#10b981" />
-                        <stop offset="100%" stopColor="#34d399" />
-                      </linearGradient>
-                      <linearGradient id="lineGradientDespesas" x1="0" y1="0" x2="1" y2="0">
-                        <stop offset="0%" stopColor="#ef4444" />
-                        <stop offset="100%" stopColor="#f87171" />
-                      </linearGradient>
-                      <linearGradient id="lineGradientLucro" x1="0" y1="0" x2="1" y2="0">
-                        <stop offset="0%" stopColor="#3b82f6" />
-                        <stop offset="100%" stopColor="#60a5fa" />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted/30" vertical={false} />
-                    <XAxis 
-                      dataKey="month" 
-                      className="text-xs" 
-                      stroke="hsl(var(--muted-foreground))" 
-                      axisLine={false}
-                      tickLine={false}
-                      dy={3}
-                    />
-                    <YAxis 
-                      className="text-xs" 
-                      stroke="hsl(var(--muted-foreground))" 
-                      axisLine={false}
-                      tickLine={false}
-                      dx={0}
-                    />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Line
-                      type="monotone"
-                      dataKey="receitas"
-                      name="Receitas"
-                      stroke="url(#lineGradientReceitas)"
-                      strokeWidth={3}
-                      dot={{ fill: "#10b981", r: 5, strokeWidth: 2, stroke: "#fff" }}
-                      activeDot={{ r: 7, strokeWidth: 2 }}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="despesas"
-                      name="Despesas"
-                      stroke="url(#lineGradientDespesas)"
-                      strokeWidth={3}
-                      dot={{ fill: "#ef4444", r: 5, strokeWidth: 2, stroke: "#fff" }}
-                      activeDot={{ r: 7, strokeWidth: 2 }}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="lucro"
-                      name="Lucro"
-                      stroke="url(#lineGradientLucro)"
-                      strokeWidth={3}
-                      dot={{ fill: "#3b82f6", r: 5, strokeWidth: 2, stroke: "#fff" }}
-                      activeDot={{ r: 7, strokeWidth: 2 }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-                
-                {/* Compact Legend Below */}
-                <div className="mt-1 flex items-center justify-center gap-3 text-[10px]">
-                  <div className="flex items-center gap-1">
-                    <div className="h-2 w-2 rounded-full bg-emerald-500" />
-                    <span className="text-muted-foreground">Receitas</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <div className="h-2 w-2 rounded-full bg-red-500" />
-                    <span className="text-muted-foreground">Despesas</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <div className="h-2 w-2 rounded-full bg-blue-500" />
-                    <span className="text-muted-foreground">Lucro</span>
-                  </div>
-                </div>
-              </>
+              <ResponsiveContainer width="100%" height={220}>
+                <LineChart data={monthlyData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis
+                    dataKey="month"
+                    tick={{ fontSize: 11 }}
+                    stroke="hsl(var(--muted-foreground))"
+                  />
+                  <YAxis
+                    tick={{ fontSize: 11 }}
+                    stroke="hsl(var(--muted-foreground))"
+                    tickFormatter={(value) => `R$ ${(value / 1000).toFixed(0)}k`}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'hsl(var(--popover))',
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '6px',
+                      fontSize: '12px',
+                    }}
+                    formatter={(value: any) => `R$ ${parseFloat(value).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+                  />
+                  <Legend wrapperStyle={{ fontSize: '11px' }} />
+                  <Line type="monotone" dataKey="receitas" stroke="#22c55e" name="Receitas" strokeWidth={2} />
+                  <Line type="monotone" dataKey="despesas" stroke="#ef4444" name="Despesas" strokeWidth={2} />
+                  <Line type="monotone" dataKey="lucro" stroke="#3b82f6" name="Lucro" strokeWidth={2} />
+                </LineChart>
+              </ResponsiveContainer>
             ) : (
-              <div className="flex flex-col items-center justify-center h-[170px] text-center">
+              <div className="flex flex-col items-center justify-center h-[220px] text-center">
                 <BarChart4 className="h-12 w-12 text-muted-foreground/30 mb-2" />
                 <p className="text-sm text-muted-foreground">Sem dados para exibir</p>
                 <p className="text-xs text-muted-foreground/70">Adicione transações para ver a evolução</p>
