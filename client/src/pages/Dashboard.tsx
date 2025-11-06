@@ -455,10 +455,10 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Department Performance Heatmap */}
+        {/* Cost Center Performance Heatmap */}
         <Card className="border-0 bg-gradient-to-br from-card to-muted/20 shadow-lg">
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg font-bold">Performance por Departamento</CardTitle>
+            <CardTitle className="text-lg font-bold">Performance por Centro de Custo</CardTitle>
             <CardDescription className="text-xs">Gastos mensais em milhares (R$)</CardDescription>
           </CardHeader>
           <CardContent className="pb-2">
