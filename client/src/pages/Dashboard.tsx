@@ -79,7 +79,7 @@ export default function Dashboard() {
 
   // Fetch data
   const { data: transactions = [], isLoading: loadingTransactions } = useQuery<Transaction[]>({
-    queryKey: ['/api/transactions', selectedCompanyId],
+    queryKey: ['/api/transactions', { companyId: selectedCompanyId }],
     enabled: !!selectedCompanyId,
   });
 
@@ -370,67 +370,77 @@ export default function Dashboard() {
             </div>
           </CardHeader>
           <CardContent className="pb-2">
-            <ResponsiveContainer width="100%" height={170}>
-              <LineChart data={monthlyData} margin={{ top: 5, right: 10, left: -15, bottom: 5 }}>
-                <defs>
-                  <linearGradient id="lineGradientReceitas" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stopColor="#10b981" />
-                    <stop offset="100%" stopColor="#34d399" />
-                  </linearGradient>
-                  <linearGradient id="lineGradientDespesas" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stopColor="#ef4444" />
-                    <stop offset="100%" stopColor="#f87171" />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-muted/30" vertical={false} />
-                <XAxis 
-                  dataKey="month" 
-                  className="text-xs" 
-                  stroke="hsl(var(--muted-foreground))" 
-                  axisLine={false}
-                  tickLine={false}
-                  dy={3}
-                />
-                <YAxis 
-                  className="text-xs" 
-                  stroke="hsl(var(--muted-foreground))" 
-                  axisLine={false}
-                  tickLine={false}
-                  dx={0}
-                />
-                <Tooltip content={<CustomTooltip />} />
-                <Line
-                  type="monotone"
-                  dataKey="receitas"
-                  name="Receitas"
-                  stroke="url(#lineGradientReceitas)"
-                  strokeWidth={3}
-                  dot={{ fill: "#10b981", r: 5, strokeWidth: 2, stroke: "#fff" }}
-                  activeDot={{ r: 7, strokeWidth: 2 }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="despesas"
-                  name="Despesas"
-                  stroke="url(#lineGradientDespesas)"
-                  strokeWidth={3}
-                  dot={{ fill: "#ef4444", r: 5, strokeWidth: 2, stroke: "#fff" }}
-                  activeDot={{ r: 7, strokeWidth: 2 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-            
-            {/* Compact Legend Below */}
-            <div className="mt-1 flex items-center justify-center gap-3 text-[10px]">
-              <div className="flex items-center gap-1">
-                <div className="h-2 w-2 rounded-full bg-emerald-500" />
-                <span className="text-muted-foreground">Receitas</span>
+            {monthlyData.length > 0 ? (
+              <>
+                <ResponsiveContainer width="100%" height={170}>
+                  <LineChart data={monthlyData} margin={{ top: 5, right: 10, left: -15, bottom: 5 }}>
+                    <defs>
+                      <linearGradient id="lineGradientReceitas" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%" stopColor="#10b981" />
+                        <stop offset="100%" stopColor="#34d399" />
+                      </linearGradient>
+                      <linearGradient id="lineGradientDespesas" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%" stopColor="#ef4444" />
+                        <stop offset="100%" stopColor="#f87171" />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted/30" vertical={false} />
+                    <XAxis 
+                      dataKey="month" 
+                      className="text-xs" 
+                      stroke="hsl(var(--muted-foreground))" 
+                      axisLine={false}
+                      tickLine={false}
+                      dy={3}
+                    />
+                    <YAxis 
+                      className="text-xs" 
+                      stroke="hsl(var(--muted-foreground))" 
+                      axisLine={false}
+                      tickLine={false}
+                      dx={0}
+                    />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Line
+                      type="monotone"
+                      dataKey="receitas"
+                      name="Receitas"
+                      stroke="url(#lineGradientReceitas)"
+                      strokeWidth={3}
+                      dot={{ fill: "#10b981", r: 5, strokeWidth: 2, stroke: "#fff" }}
+                      activeDot={{ r: 7, strokeWidth: 2 }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="despesas"
+                      name="Despesas"
+                      stroke="url(#lineGradientDespesas)"
+                      strokeWidth={3}
+                      dot={{ fill: "#ef4444", r: 5, strokeWidth: 2, stroke: "#fff" }}
+                      activeDot={{ r: 7, strokeWidth: 2 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+                
+                {/* Compact Legend Below */}
+                <div className="mt-1 flex items-center justify-center gap-3 text-[10px]">
+                  <div className="flex items-center gap-1">
+                    <div className="h-2 w-2 rounded-full bg-emerald-500" />
+                    <span className="text-muted-foreground">Receitas</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className="h-2 w-2 rounded-full bg-red-500" />
+                    <span className="text-muted-foreground">Despesas</span>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-[170px] text-center">
+                <BarChart4 className="h-12 w-12 text-muted-foreground/30 mb-2" />
+                <p className="text-sm text-muted-foreground">Sem dados para exibir</p>
+                <p className="text-xs text-muted-foreground/70">Adicione transações para ver a evolução</p>
               </div>
-              <div className="flex items-center gap-1">
-                <div className="h-2 w-2 rounded-full bg-red-500" />
-                <span className="text-muted-foreground">Despesas</span>
-              </div>
-            </div>
+            )}
           </CardContent>
         </Card>
 
@@ -441,92 +451,102 @@ export default function Dashboard() {
             <CardDescription className="text-xs">Gastos mensais em milhares (R$)</CardDescription>
           </CardHeader>
           <CardContent className="pb-2">
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr>
-                    <th className="px-1 py-1.5 text-left text-xs font-semibold text-muted-foreground border-b border-muted/30">
-                      Departamento
-                    </th>
-                    {["Jan", "Fev", "Mar", "Abr", "Mai", "Jun"].map((month) => (
-                      <th
-                        key={month}
-                        className="px-1 py-1.5 text-center text-xs font-semibold text-muted-foreground border-b border-muted/30"
-                      >
-                        {month}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {(() => {
-                    // Precompute min/max once for all cells
-                    const allValues = departmentHeatmap.flatMap(d => [d.jan, d.fev, d.mar, d.abr, d.mai, d.jun]);
-                    const minValue = Math.min(...allValues);
-                    const maxValue = Math.max(...allValues);
-                    const range = maxValue - minValue;
-                    
-                    const getHeatColor = (value: number) => {
-                      // Handle case where all values are equal (max === min)
-                      if (range === 0) {
-                        return { bg: "bg-amber-500/70", text: "text-white" };
-                      }
-                      
-                      const normalized = (value - minValue) / range;
-                      
-                      if (normalized >= 0.8) return { bg: "bg-red-500/90", text: "text-white" };
-                      if (normalized >= 0.6) return { bg: "bg-orange-500/80", text: "text-white" };
-                      if (normalized >= 0.4) return { bg: "bg-amber-500/70", text: "text-white" };
-                      if (normalized >= 0.2) return { bg: "bg-emerald-500/60", text: "text-white" };
-                      return { bg: "bg-blue-500/50", text: "text-white" };
-                    };
+            {departmentHeatmap.length > 0 ? (
+              <>
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr>
+                        <th className="px-1 py-1.5 text-left text-xs font-semibold text-muted-foreground border-b border-muted/30">
+                          Departamento
+                        </th>
+                        {["Jan", "Fev", "Mar", "Abr", "Mai", "Jun"].map((month) => (
+                          <th
+                            key={month}
+                            className="px-1 py-1.5 text-center text-xs font-semibold text-muted-foreground border-b border-muted/30"
+                          >
+                            {month}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(() => {
+                        // Precompute min/max once for all cells
+                        const allValues = departmentHeatmap.flatMap(d => [d.jan, d.fev, d.mar, d.abr, d.mai, d.jun]);
+                        const minValue = Math.min(...allValues);
+                        const maxValue = Math.max(...allValues);
+                        const range = maxValue - minValue;
+                        
+                        const getHeatColor = (value: number) => {
+                          // Handle case where all values are equal (max === min)
+                          if (range === 0) {
+                            return { bg: "bg-amber-500/70", text: "text-white" };
+                          }
+                          
+                          const normalized = (value - minValue) / range;
+                          
+                          if (normalized >= 0.8) return { bg: "bg-red-500/90", text: "text-white" };
+                          if (normalized >= 0.6) return { bg: "bg-orange-500/80", text: "text-white" };
+                          if (normalized >= 0.4) return { bg: "bg-amber-500/70", text: "text-white" };
+                          if (normalized >= 0.2) return { bg: "bg-emerald-500/60", text: "text-white" };
+                          return { bg: "bg-blue-500/50", text: "text-white" };
+                        };
 
-                    return departmentHeatmap.map((dept, deptIdx) => {
-                      const months = [dept.jan, dept.fev, dept.mar, dept.abr, dept.mai, dept.jun];
-                      
-                      return (
-                        <tr key={deptIdx} className="border-b border-muted/20 last:border-0">
-                          <td className="px-1 py-0.5 text-xs font-medium">{dept.dept}</td>
-                          {months.map((value, idx) => {
-                            const colors = getHeatColor(value);
-                            return (
-                              <td
-                                key={idx}
-                                className="p-0"
-                                data-testid={`heatmap-${dept.dept}-${idx}`}
-                              >
-                                <div
-                                  className={`${colors.bg} ${colors.text} rounded-md m-0.5 p-1.5 text-center text-xs font-bold transition-all hover:scale-105 hover:shadow-md cursor-default`}
-                                  title={`${dept.dept} - ${["Jan", "Fev", "Mar", "Abr", "Mai", "Jun"][idx]}: R$ ${value}k`}
-                                >
-                                  {value}k
-                                </div>
-                              </td>
-                            );
-                          })}
-                        </tr>
-                      );
-                    });
-                  })()}
-                </tbody>
-              </table>
-            </div>
-            
-            {/* Compact Color Legend */}
-            <div className="mt-2 flex items-center justify-center gap-2 text-[10px]">
-              <div className="flex items-center gap-1">
-                <div className="h-2 w-2 rounded-sm bg-blue-500/50" />
-                <span className="text-muted-foreground">Baixo</span>
+                        return departmentHeatmap.map((dept, deptIdx) => {
+                          const months = [dept.jan, dept.fev, dept.mar, dept.abr, dept.mai, dept.jun];
+                          
+                          return (
+                            <tr key={deptIdx} className="border-b border-muted/20 last:border-0">
+                              <td className="px-1 py-0.5 text-xs font-medium">{dept.dept}</td>
+                              {months.map((value, idx) => {
+                                const colors = getHeatColor(value);
+                                return (
+                                  <td
+                                    key={idx}
+                                    className="p-0"
+                                    data-testid={`heatmap-${dept.dept}-${idx}`}
+                                  >
+                                    <div
+                                      className={`${colors.bg} ${colors.text} rounded-md m-0.5 p-1.5 text-center text-xs font-bold transition-all hover:scale-105 hover:shadow-md cursor-default`}
+                                      title={`${dept.dept} - ${["Jan", "Fev", "Mar", "Abr", "Mai", "Jun"][idx]}: R$ ${value}k`}
+                                    >
+                                      {value}k
+                                    </div>
+                                  </td>
+                                );
+                              })}
+                            </tr>
+                          );
+                        });
+                      })()}
+                    </tbody>
+                  </table>
+                </div>
+                
+                {/* Compact Color Legend */}
+                <div className="mt-2 flex items-center justify-center gap-2 text-[10px]">
+                  <div className="flex items-center gap-1">
+                    <div className="h-2 w-2 rounded-sm bg-blue-500/50" />
+                    <span className="text-muted-foreground">Baixo</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className="h-2 w-2 rounded-sm bg-amber-500/70" />
+                    <span className="text-muted-foreground">Médio</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className="h-2 w-2 rounded-sm bg-red-500/90" />
+                    <span className="text-muted-foreground">Alto</span>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-[200px] text-center">
+                <TargetIcon className="h-12 w-12 text-muted-foreground/30 mb-2" />
+                <p className="text-sm text-muted-foreground">Nenhum centro de custo com despesas</p>
+                <p className="text-xs text-muted-foreground/70">Adicione centros de custo e transações</p>
               </div>
-              <div className="flex items-center gap-1">
-                <div className="h-2 w-2 rounded-sm bg-amber-500/70" />
-                <span className="text-muted-foreground">Médio</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <div className="h-2 w-2 rounded-sm bg-red-500/90" />
-                <span className="text-muted-foreground">Alto</span>
-              </div>
-            </div>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -540,35 +560,45 @@ export default function Dashboard() {
             <CardDescription className="text-xs">Análise por categoria operacional</CardDescription>
           </CardHeader>
           <CardContent className="pb-2">
-            <ResponsiveContainer width="100%" height={180}>
-              <PieChart>
-                <Pie
-                  data={categoryData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={55}
-                  outerRadius={85}
-                  paddingAngle={2}
-                  dataKey="value"
-                >
-                  {categoryData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
+            {categoryData.length > 0 ? (
+              <>
+                <ResponsiveContainer width="100%" height={180}>
+                  <PieChart>
+                    <Pie
+                      data={categoryData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={55}
+                      outerRadius={85}
+                      paddingAngle={2}
+                      dataKey="value"
+                    >
+                      {categoryData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip content={<CustomTooltip />} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="mt-1.5 grid grid-cols-3 gap-1.5">
+                  {categoryData.map((cat, idx) => (
+                    <div key={idx} className="flex items-center gap-1">
+                      <div className="h-2 w-2 rounded-sm shrink-0" style={{ backgroundColor: cat.color }} />
+                      <div className="flex items-baseline gap-1 min-w-0">
+                        <span className="text-[10px] font-medium truncate">{cat.name}</span>
+                        <span className="text-[10px] text-muted-foreground">{cat.percentage}%</span>
+                      </div>
+                    </div>
                   ))}
-                </Pie>
-                <Tooltip content={<CustomTooltip />} />
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="mt-1.5 grid grid-cols-3 gap-1.5">
-              {categoryData.map((cat, idx) => (
-                <div key={idx} className="flex items-center gap-1">
-                  <div className="h-2 w-2 rounded-sm shrink-0" style={{ backgroundColor: cat.color }} />
-                  <div className="flex items-baseline gap-1 min-w-0">
-                    <span className="text-[10px] font-medium truncate">{cat.name}</span>
-                    <span className="text-[10px] text-muted-foreground">{cat.percentage}%</span>
-                  </div>
                 </div>
-              ))}
-            </div>
+              </>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-[180px] text-center">
+                <PiggyBank className="h-12 w-12 text-muted-foreground/30 mb-2" />
+                <p className="text-sm text-muted-foreground">Nenhuma despesa registrada</p>
+                <p className="text-xs text-muted-foreground/70">Adicione transações para visualizar a distribuição</p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -633,65 +663,73 @@ export default function Dashboard() {
             <CardDescription className="text-xs">Movimentações recentes com status de confirmação</CardDescription>
           </CardHeader>
           <CardContent className="pb-2">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-muted/30">
-                    <th className="pb-2 text-left text-xs font-medium text-muted-foreground">Descrição</th>
-                    <th className="pb-2 text-left text-xs font-medium text-muted-foreground">Categoria</th>
-                    <th className="pb-2 text-left text-xs font-medium text-muted-foreground">Data</th>
-                    <th className="pb-2 text-right text-xs font-medium text-muted-foreground">Valor</th>
-                    <th className="pb-2 text-center text-xs font-medium text-muted-foreground">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recentTransactions.map((transaction) => (
-                    <tr
-                      key={transaction.id}
-                      className="border-b border-muted/20 last:border-0 hover-elevate transition-colors"
-                      data-testid={`row-transaction-${transaction.id}`}
-                    >
-                      <td className="py-2.5 text-sm font-medium">{transaction.description}</td>
-                      <td className="py-2.5">
-                        <Badge variant="secondary" className="text-xs">
-                          {transaction.category}
-                        </Badge>
-                      </td>
-                      <td className="py-2.5 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-2">
-                          <Calendar className="h-3 w-3" />
-                          {transaction.date}
-                        </div>
-                      </td>
-                      <td
-                        className={`py-2.5 text-right text-sm font-bold ${
-                          transaction.type === "receita" ? "text-blue-600" : "text-red-600"
-                        }`}
-                      >
-                        {transaction.type === "receita" ? "+" : ""}
-                        {transaction.amount.toLocaleString("pt-BR", {
-                          style: "currency",
-                          currency: "BRL",
-                        })}
-                      </td>
-                      <td className="py-2.5 text-center">
-                        {transaction.status === "confirmed" ? (
-                          <Badge className="bg-green-500/10 text-green-600 border-green-500/20">
-                            <CheckCircle className="h-3 w-3 mr-1" />
-                            Confirmado
-                          </Badge>
-                        ) : (
-                          <Badge variant="secondary">
-                            <Clock className="h-3 w-3 mr-1" />
-                            Pendente
-                          </Badge>
-                        )}
-                      </td>
+            {recentTransactions.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-muted/30">
+                      <th className="pb-2 text-left text-xs font-medium text-muted-foreground">Descrição</th>
+                      <th className="pb-2 text-left text-xs font-medium text-muted-foreground">Categoria</th>
+                      <th className="pb-2 text-left text-xs font-medium text-muted-foreground">Data</th>
+                      <th className="pb-2 text-right text-xs font-medium text-muted-foreground">Valor</th>
+                      <th className="pb-2 text-center text-xs font-medium text-muted-foreground">Status</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {recentTransactions.map((transaction) => (
+                      <tr
+                        key={transaction.id}
+                        className="border-b border-muted/20 last:border-0 hover-elevate transition-colors"
+                        data-testid={`row-transaction-${transaction.id}`}
+                      >
+                        <td className="py-2.5 text-sm font-medium">{transaction.description}</td>
+                        <td className="py-2.5">
+                          <Badge variant="secondary" className="text-xs">
+                            {transaction.category}
+                          </Badge>
+                        </td>
+                        <td className="py-2.5 text-sm text-muted-foreground">
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-3 w-3" />
+                            {transaction.date}
+                          </div>
+                        </td>
+                        <td
+                          className={`py-2.5 text-right text-sm font-bold ${
+                            transaction.type === "receita" ? "text-blue-600" : "text-red-600"
+                          }`}
+                        >
+                          {transaction.type === "receita" ? "+" : ""}
+                          {transaction.amount.toLocaleString("pt-BR", {
+                            style: "currency",
+                            currency: "BRL",
+                          })}
+                        </td>
+                        <td className="py-2.5 text-center">
+                          {transaction.status === "confirmed" ? (
+                            <Badge className="bg-green-500/10 text-green-600 border-green-500/20">
+                              <CheckCircle className="h-3 w-3 mr-1" />
+                              Confirmado
+                            </Badge>
+                          ) : (
+                            <Badge variant="secondary">
+                              <Clock className="h-3 w-3 mr-1" />
+                              Pendente
+                            </Badge>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-[200px] text-center">
+                <Wallet className="h-12 w-12 text-muted-foreground/30 mb-2" />
+                <p className="text-sm text-muted-foreground">Nenhuma transação encontrada</p>
+                <p className="text-xs text-muted-foreground/70">Adicione suas primeiras transações para começar</p>
+              </div>
+            )}
           </CardContent>
         </Card>
     </div>
