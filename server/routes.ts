@@ -1853,7 +1853,106 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const tenantId = getTenantId((req as any).user);
       const userId = (req as any).user.id;
-      const { transactions } = req.body;
+      let { transactions, cloneConfig } = req.body;
+      
+      console.log(`[Batch Transaction] Request:`, { transactions: transactions?.length || 0, cloneConfig });
+      
+      // Process cloneConfig if present (for clone_by_code operations)
+      if (cloneConfig && cloneConfig.sourceCode && cloneConfig.companyId) {
+        console.log(`[Clone] Processing clone_by_code: ${cloneConfig.sourceCode}`);
+        
+        // Fetch original transaction by code
+        const allTransactions = await storage.listTransactions(tenantId, cloneConfig.companyId);
+        const sourceCodeFormatted = cloneConfig.sourceCode.toUpperCase();
+        
+        // Try to find by formatted code (e.g., DES001, REC045) or raw numeric code
+        let originalTransaction = allTransactions.find((t: any) => {
+          const formattedCode = t.type === 'revenue' ? `REC${String(t.code).padStart(3, '0')}` : `DES${String(t.code).padStart(3, '0')}`;
+          return formattedCode === sourceCodeFormatted || String(t.code) === cloneConfig.sourceCode;
+        });
+        
+        if (!originalTransaction) {
+          return res.status(404).json({ message: `Transação com código ${cloneConfig.sourceCode} não encontrada` });
+        }
+        
+        console.log(`[Clone] Found original transaction:`, originalTransaction.id);
+        
+        // Apply overrides from cloneConfig
+        const clonedTransaction: any = {
+          companyId: cloneConfig.companyId,
+          type: cloneConfig.overrides?.type || originalTransaction.type,
+          title: cloneConfig.overrides?.title || originalTransaction.title,
+          description: cloneConfig.overrides?.description || originalTransaction.description,
+          amount: cloneConfig.overrides?.amount || originalTransaction.amount,
+          personId: originalTransaction.personId, // Keep original for now
+          chartAccountId: originalTransaction.chartAccountId,
+          costCenterId: originalTransaction.costCenterId,
+          paymentMethodId: originalTransaction.paymentMethodId,
+          bankAccountId: originalTransaction.bankAccountId,
+          cashRegisterId: originalTransaction.cashRegisterId,
+          status: originalTransaction.status,
+          discount: originalTransaction.discount || "0",
+          interest: originalTransaction.interest || "0",
+          fees: originalTransaction.fees || "0",
+          tags: originalTransaction.tags || [],
+          issueDate: originalTransaction.issueDate,
+          dueDate: originalTransaction.dueDate,
+          paidDate: originalTransaction.paidDate,
+        };
+        
+        // If personName override is provided, we'll need to match it to a person
+        if (cloneConfig.overrides?.personName) {
+          const persons = await storage.listCustomersSuppliers(tenantId);
+          const matchedPerson = persons.find((p: any) => 
+            p.name.toLowerCase().includes(cloneConfig.overrides.personName.toLowerCase()) ||
+            cloneConfig.overrides.personName.toLowerCase().includes(p.name.toLowerCase())
+          );
+          
+          if (matchedPerson) {
+            clonedTransaction.personId = matchedPerson.id;
+            console.log(`[Clone] Matched person override: ${matchedPerson.name} (${matchedPerson.id})`);
+          } else {
+            console.log(`[Clone] Person override "${cloneConfig.overrides.personName}" not matched, keeping original`);
+          }
+        }
+        
+        // Generate cloned transactions based on periodType and count
+        const count = cloneConfig.count || 1;
+        const periodType = cloneConfig.periodType || 'daily';
+        
+        console.log(`[Clone] Generating ${count} clones with period: ${periodType}`);
+        
+        transactions = [];
+        const baseDate = new Date(clonedTransaction.dueDate);
+        
+        for (let i = 0; i < count; i++) {
+          let newDate: Date;
+          
+          if (periodType === 'daily') {
+            newDate = new Date(baseDate);
+            newDate.setDate(baseDate.getDate() + i);
+          } else if (periodType === 'weekly') {
+            newDate = new Date(baseDate);
+            newDate.setDate(baseDate.getDate() + (i * 7));
+          } else if (periodType === 'monthly') {
+            newDate = new Date(baseDate);
+            newDate.setMonth(baseDate.getMonth() + i);
+          } else if (periodType === 'yearly') {
+            newDate = new Date(baseDate);
+            newDate.setFullYear(baseDate.getFullYear() + i);
+          } else {
+            newDate = new Date(baseDate);
+          }
+          
+          transactions.push({
+            ...clonedTransaction,
+            issueDate: newDate.toISOString(),
+            dueDate: newDate.toISOString(),
+          });
+        }
+        
+        console.log(`[Clone] Generated ${transactions.length} transactions`);
+      }
       
       if (!Array.isArray(transactions) || transactions.length === 0) {
         return res.status(400).json({ message: "transactions deve ser um array não vazio" });

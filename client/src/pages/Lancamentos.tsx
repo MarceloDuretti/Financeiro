@@ -297,8 +297,10 @@ export default function Lancamentos() {
 
   // Batch transaction creation mutation
   const createBatchMutation = useMutation({
-    mutationFn: async (transactions: any[]) => {
+    mutationFn: async (params: { transactions: any[], cloneConfig?: any }) => {
       if (!selectedCompanyId) throw new Error("Nenhuma empresa selecionada");
+      
+      const { transactions, cloneConfig } = params;
       
       // Add companyId and convert dates to ISO strings
       const transactionsWithCompany = transactions.map(t => ({
@@ -309,9 +311,21 @@ export default function Lancamentos() {
         paidDate: t.paidDate ? convertDateToISO(t.paidDate) : undefined,
       }));
       
-      const res = await apiRequest("POST", "/api/transactions/batch", { 
-        transactions: transactionsWithCompany 
-      });
+      const requestBody: any = { 
+        transactions: transactionsWithCompany
+      };
+      
+      // Add cloneConfig if present
+      if (cloneConfig) {
+        requestBody.cloneConfig = {
+          ...cloneConfig,
+          companyId: selectedCompanyId
+        };
+      }
+      
+      console.log("[Batch Transaction] Request body:", requestBody);
+      
+      const res = await apiRequest("POST", "/api/transactions/batch", requestBody);
       return res.json();
     },
     onSuccess: (data) => {
@@ -1730,25 +1744,63 @@ export default function Lancamentos() {
                 command={aiCommandResult}
                 onSubmit={(data) => {
                   console.log("[AI Form] Submitted data:", data);
+                  console.log("[AI Form] aiCommandResult:", aiCommandResult);
                   
-                  // Apply edited data from form to all AI-generated transactions
-                  // IMPORTANT: Preserve AI-specific dates for each transaction
-                  const transactions = (aiCommandResult.transactions || []).map((aiTx: any, index: number) => ({
-                    type: data.type,
-                    amount: data.amount,
-                    title: data.title,
-                    description: data.description,
-                    personName: data.personName,
-                    issueDate: aiTx.issueDate || aiTx.dueDate || data.issueDate || data.dueDate, // Use AI's dueDate if issueDate not specified
-                    dueDate: aiTx.dueDate || data.dueDate, // Preserve AI-specific due date
-                    personId: aiTx.personId || data.personId,
-                    chartAccountId: aiTx.chartAccountId || data.chartAccountId,
-                    costCenterId: aiTx.costCenterId || data.costCenterId,
-                    paymentMethodId: data.paymentMethodId,
-                  }));
+                  // Check if this is a clone_by_code operation
+                  if (aiCommandResult.operation === 'clone_by_code' && aiCommandResult.cloneConfig?.sourceCode) {
+                    // For clone_by_code, store form data to apply as overrides
+                    // Backend will fetch original transaction and apply these overrides
+                    const overrides: any = {};
+                    
+                    // Only add fields that were filled/modified in the form
+                    if (data.type) overrides.type = data.type;
+                    if (data.amount) overrides.amount = data.amount;
+                    if (data.title) overrides.title = data.title;
+                    if (data.description) overrides.description = data.description;
+                    if (data.personName) overrides.personName = data.personName;
+                    
+                    // Merge with AI-detected overrides
+                    const finalOverrides = {
+                      ...aiCommandResult.cloneConfig.overrides,
+                      ...overrides
+                    };
+                    
+                    // Store cloneConfig with overrides - backend will process it
+                    const cloneConfigWithOverrides = {
+                      ...aiCommandResult.cloneConfig,
+                      overrides: finalOverrides
+                    };
+                    
+                    console.log("[AI Form] Clone config with overrides:", cloneConfigWithOverrides);
+                    
+                    // Set empty transactions array but with cloneConfig for backend processing
+                    setGeneratedTransactions([]);
+                    // Store cloneConfig in aiCommandResult for later use
+                    setAiCommandResult({
+                      ...aiCommandResult,
+                      cloneConfig: cloneConfigWithOverrides
+                    });
+                  } else {
+                    // Apply edited data from form to all AI-generated transactions
+                    // IMPORTANT: Preserve AI-specific dates for each transaction
+                    const transactions = (aiCommandResult.transactions || []).map((aiTx: any, index: number) => ({
+                      type: data.type,
+                      amount: data.amount,
+                      title: data.title,
+                      description: data.description,
+                      personName: data.personName,
+                      issueDate: aiTx.issueDate || aiTx.dueDate || data.issueDate || data.dueDate, // Use AI's dueDate if issueDate not specified
+                      dueDate: aiTx.dueDate || data.dueDate, // Preserve AI-specific due date
+                      personId: aiTx.personId || data.personId,
+                      chartAccountId: aiTx.chartAccountId || data.chartAccountId,
+                      costCenterId: aiTx.costCenterId || data.costCenterId,
+                      paymentMethodId: data.paymentMethodId,
+                    }));
+                    
+                    console.log("[AI Form] Prepared transactions for preview:", transactions);
+                    setGeneratedTransactions(transactions);
+                  }
                   
-                  console.log("[AI Form] Prepared transactions for preview:", transactions);
-                  setGeneratedTransactions(transactions);
                   setShowAiForm(false);
                   setShowAiPreview(true);
                 }}
@@ -1764,7 +1816,13 @@ export default function Lancamentos() {
                 isSubmitting={createBatchMutation.isPending}
                 onConfirm={(updatedTransactions) => {
                   console.log("[AI Preview] Confirmed - creating transactions:", updatedTransactions);
-                  createBatchMutation.mutate(updatedTransactions);
+                  console.log("[AI Preview] aiCommandResult:", aiCommandResult);
+                  
+                  // Pass cloneConfig if present (for clone_by_code operations)
+                  createBatchMutation.mutate({
+                    transactions: updatedTransactions,
+                    cloneConfig: aiCommandResult?.cloneConfig
+                  });
                 }}
                 onEdit={() => {
                   setShowAiPreview(false);

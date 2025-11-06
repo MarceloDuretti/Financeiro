@@ -61,6 +61,13 @@ interface BatchTransactionCommand {
     sourceCode?: string;
     periodType?: "daily" | "weekly" | "monthly" | "yearly";
     count?: number;
+    overrides?: {
+      personName?: string;
+      amount?: string;
+      title?: string;
+      description?: string;
+      type?: "revenue" | "expense";
+    };
   };
   missingFields: string[];
   needsCountInput: boolean;
