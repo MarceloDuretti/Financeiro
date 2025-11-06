@@ -163,16 +163,18 @@ export default function Dashboard() {
       }
     });
 
-  const categoryData = Array.from(categoryMap.entries())
-    .map(([name, value]) => ({ name, value }))
-    .sort((a, b) => b.value - a.value)
-    .slice(0, 5) // Top 5
-    .map((item, index) => ({
-      name: item.name,
-      value: item.value,
-      percentage: totalExpenses > 0 ? Math.round((item.value / totalExpenses) * 100) : 0,
-      color: ['#3b82f6', '#8b5cf6', '#06b6d4', '#10b981', '#f59e0b'][index],
-    }));
+  const categoryData = Array.from(categoryMap.entries()).length > 0
+    ? Array.from(categoryMap.entries())
+        .map(([name, value]) => ({ name, value }))
+        .sort((a, b) => b.value - a.value)
+        .slice(0, 5) // Top 5
+        .map((item, index) => ({
+          name: item.name,
+          value: item.value,
+          percentage: totalExpenses > 0 ? Math.round((item.value / totalExpenses) * 100) : 0,
+          color: ['#3b82f6', '#8b5cf6', '#06b6d4', '#10b981', '#f59e0b'][index],
+        }))
+    : [];
 
   // Department heatmap (expenses by cost center per month)
   const departmentHeatmap: any[] = [];
