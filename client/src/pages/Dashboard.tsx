@@ -123,10 +123,16 @@ export default function Dashboard() {
       }, 0) / paidRevenues.length
     : 0;
 
-  // Generate last 6 months data (including current month)
+  // Generate semester data based on current month
+  // If month is 1-6 (first semester): show Jan-Jun
+  // If month is 7-12 (second semester): show Jul-Dec
+  const currentMonthNumber = currentMonth.getMonth() + 1; // 1-12
+  const isSecondSemester = currentMonthNumber >= 7;
+  const startMonth = isSecondSemester ? 6 : 0; // July (6) or January (0)
+  
   const last6Months: Array<{ date: Date; shortName: string; fullName: string }> = [];
-  for (let i = 5; i >= 0; i--) {
-    const monthDate = subMonths(currentMonth, i);
+  for (let i = 0; i < 6; i++) {
+    const monthDate = new Date(currentMonth.getFullYear(), startMonth + i, 1);
     last6Months.push({
       date: monthDate,
       shortName: format(monthDate, 'MMM', { locale: ptBR }),
