@@ -24,6 +24,7 @@ import { initializeEmailService, sendInviteEmail } from "./emailService";
 import { getTenantId } from "./tenantUtils";
 import { broadcastDataChange } from "./websocket";
 import { db } from "./db";
+import { sql } from "drizzle-orm";
 import passport from "passport";
 import { nanoid } from "nanoid";
 
