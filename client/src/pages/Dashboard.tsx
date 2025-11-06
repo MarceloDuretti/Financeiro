@@ -185,9 +185,13 @@ export default function Dashboard() {
         }))
     : [];
 
-  // Department heatmap (expenses by cost center per month)
+  // Cost Center Performance heatmap (expenses by cost center per month with distributions)
   const departmentHeatmap: any[] = [];
-  const transactionsWithCostCenter = transactions.filter(t => t.costCenterId);
+  
+  // Check if any transaction has cost center distributions
+  const transactionsWithCostCenter = transactions.filter(t => 
+    (t as any).costCenterDistributions?.length > 0 || t.costCenterId
+  );
   
   // Only show heatmap if there are transactions with cost centers
   if (transactionsWithCostCenter.length > 0 && costCenters.length > 0) {
@@ -201,12 +205,25 @@ export default function Dashboard() {
         const monthExpenses = transactions
           .filter(t => {
             const dueDate = new Date(t.dueDate);
-            return t.type === 'expense' && 
-                   t.costCenterId === cc.id && 
-                   dueDate >= monthStart && 
-                   dueDate <= monthEnd;
+            return t.type === 'expense' && dueDate >= monthStart && dueDate <= monthEnd;
           })
-          .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+          .reduce((sum, t) => {
+            const amount = parseFloat(t.amount);
+            const distributions = (t as any).costCenterDistributions;
+            
+            // Check if transaction has cost center distributions
+            if (distributions && distributions.length > 0) {
+              const distribution = distributions.find((d: any) => d.costCenterId === cc.id);
+              if (distribution) {
+                return sum + (amount * distribution.percentage / 100);
+              }
+            } else if (t.costCenterId === cc.id) {
+              // Fallback to single cost center (100%)
+              return sum + amount;
+            }
+            
+            return sum;
+          }, 0);
         
         deptData.months.push(Math.round(monthExpenses / 1000)); // In thousands
       });
