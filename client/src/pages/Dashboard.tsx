@@ -124,12 +124,21 @@ export default function Dashboard() {
       }, 0) / paidRevenues.length
     : 0;
 
-  // Generate monthly data (last 6 months)
-  const monthlyData = [];
+  // Generate last 6 months data (including current month)
+  const last6Months: Array<{ date: Date; shortName: string; fullName: string }> = [];
   for (let i = 5; i >= 0; i--) {
     const monthDate = subMonths(currentMonth, i);
-    const monthStart = startOfMonth(monthDate);
-    const monthEnd = endOfMonth(monthDate);
+    last6Months.push({
+      date: monthDate,
+      shortName: format(monthDate, 'MMM', { locale: ptBR }),
+      fullName: format(monthDate, 'MMMM', { locale: ptBR }),
+    });
+  }
+
+  // Generate monthly data (last 6 months)
+  const monthlyData = last6Months.map(({ date, shortName }) => {
+    const monthStart = startOfMonth(date);
+    const monthEnd = endOfMonth(date);
     
     const monthTransactions = transactions.filter(t => {
       const dueDate = new Date(t.dueDate);
@@ -144,12 +153,12 @@ export default function Dashboard() {
       .filter(t => t.type === 'expense')
       .reduce((sum, t) => sum + parseFloat(t.amount), 0);
 
-    monthlyData.push({
-      month: format(monthDate, 'MMM', { locale: ptBR }),
+    return {
+      month: shortName,
       receitas,
       despesas,
-    });
-  }
+    };
+  });
 
   // Category distribution (expenses by chart account)
   const categoryMap = new Map<string, number>();
@@ -179,14 +188,11 @@ export default function Dashboard() {
   // Department heatmap (expenses by cost center per month)
   const departmentHeatmap: any[] = [];
   costCenters.slice(0, 4).forEach(cc => {
-    const deptData: any = { dept: cc.name };
-    const monthNames = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun'];
+    const deptData: any = { dept: cc.name, months: [] };
     
-    for (let i = 5; i >= 0; i--) {
-      const monthDate = subMonths(currentMonth, i);
-      const monthStart = startOfMonth(monthDate);
-      const monthEnd = endOfMonth(monthDate);
-      const monthKey = monthNames[5 - i];
+    last6Months.forEach(({ date }) => {
+      const monthStart = startOfMonth(date);
+      const monthEnd = endOfMonth(date);
       
       const monthExpenses = transactions
         .filter(t => {
@@ -198,8 +204,8 @@ export default function Dashboard() {
         })
         .reduce((sum, t) => sum + parseFloat(t.amount), 0);
       
-      deptData[monthKey] = Math.round(monthExpenses / 1000); // In thousands
-    }
+      deptData.months.push(Math.round(monthExpenses / 1000)); // In thousands
+    });
     
     departmentHeatmap.push(deptData);
   });
@@ -460,12 +466,12 @@ export default function Dashboard() {
                         <th className="px-1 py-1.5 text-left text-xs font-semibold text-muted-foreground border-b border-muted/30">
                           Departamento
                         </th>
-                        {["Jan", "Fev", "Mar", "Abr", "Mai", "Jun"].map((month) => (
+                        {last6Months.map(({ shortName }) => (
                           <th
-                            key={month}
+                            key={shortName}
                             className="px-1 py-1.5 text-center text-xs font-semibold text-muted-foreground border-b border-muted/30"
                           >
-                            {month}
+                            {shortName}
                           </th>
                         ))}
                       </tr>
@@ -473,15 +479,15 @@ export default function Dashboard() {
                     <tbody>
                       {(() => {
                         // Precompute min/max once for all cells
-                        const allValues = departmentHeatmap.flatMap(d => [d.jan, d.fev, d.mar, d.abr, d.mai, d.jun]);
+                        const allValues = departmentHeatmap.flatMap(d => d.months);
                         const minValue = Math.min(...allValues);
                         const maxValue = Math.max(...allValues);
                         const range = maxValue - minValue;
                         
                         const getHeatColor = (value: number) => {
                           // Handle case where all values are equal (max === min)
-                          if (range === 0) {
-                            return { bg: "bg-amber-500/70", text: "text-white" };
+                          if (range === 0 || value === 0) {
+                            return { bg: "bg-blue-500/50", text: "text-white" };
                           }
                           
                           const normalized = (value - minValue) / range;
@@ -494,12 +500,10 @@ export default function Dashboard() {
                         };
 
                         return departmentHeatmap.map((dept, deptIdx) => {
-                          const months = [dept.jan, dept.fev, dept.mar, dept.abr, dept.mai, dept.jun];
-                          
                           return (
                             <tr key={deptIdx} className="border-b border-muted/20 last:border-0">
                               <td className="px-1 py-0.5 text-xs font-medium">{dept.dept}</td>
-                              {months.map((value, idx) => {
+                              {dept.months.map((value: number, idx: number) => {
                                 const colors = getHeatColor(value);
                                 return (
                                   <td
@@ -509,7 +513,7 @@ export default function Dashboard() {
                                   >
                                     <div
                                       className={`${colors.bg} ${colors.text} rounded-md m-0.5 p-1.5 text-center text-xs font-bold transition-all hover:scale-105 hover:shadow-md cursor-default`}
-                                      title={`${dept.dept} - ${["Jan", "Fev", "Mar", "Abr", "Mai", "Jun"][idx]}: R$ ${value}k`}
+                                      title={`${dept.dept} - ${last6Months[idx].fullName}: R$ ${value}k`}
                                     >
                                       {value}k
                                     </div>
