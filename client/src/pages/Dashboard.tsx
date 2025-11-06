@@ -187,28 +187,33 @@ export default function Dashboard() {
 
   // Department heatmap (expenses by cost center per month)
   const departmentHeatmap: any[] = [];
-  costCenters.slice(0, 4).forEach(cc => {
-    const deptData: any = { dept: cc.name, months: [] };
-    
-    last6Months.forEach(({ date }) => {
-      const monthStart = startOfMonth(date);
-      const monthEnd = endOfMonth(date);
+  const transactionsWithCostCenter = transactions.filter(t => t.costCenterId);
+  
+  // Only show heatmap if there are transactions with cost centers
+  if (transactionsWithCostCenter.length > 0 && costCenters.length > 0) {
+    costCenters.slice(0, 4).forEach(cc => {
+      const deptData: any = { dept: cc.name, months: [] };
       
-      const monthExpenses = transactions
-        .filter(t => {
-          const dueDate = new Date(t.dueDate);
-          return t.type === 'expense' && 
-                 t.costCenterId === cc.id && 
-                 dueDate >= monthStart && 
-                 dueDate <= monthEnd;
-        })
-        .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+      last6Months.forEach(({ date }) => {
+        const monthStart = startOfMonth(date);
+        const monthEnd = endOfMonth(date);
+        
+        const monthExpenses = transactions
+          .filter(t => {
+            const dueDate = new Date(t.dueDate);
+            return t.type === 'expense' && 
+                   t.costCenterId === cc.id && 
+                   dueDate >= monthStart && 
+                   dueDate <= monthEnd;
+          })
+          .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+        
+        deptData.months.push(Math.round(monthExpenses / 1000)); // In thousands
+      });
       
-      deptData.months.push(Math.round(monthExpenses / 1000)); // In thousands
+      departmentHeatmap.push(deptData);
     });
-    
-    departmentHeatmap.push(deptData);
-  });
+  }
 
   // Recent transactions
   const recentTransactions = transactions
@@ -545,10 +550,10 @@ export default function Dashboard() {
                 </div>
               </>
             ) : (
-              <div className="flex flex-col items-center justify-center h-[200px] text-center">
+              <div className="flex flex-col items-center justify-center h-[200px] text-center px-4">
                 <TargetIcon className="h-12 w-12 text-muted-foreground/30 mb-2" />
-                <p className="text-sm text-muted-foreground">Nenhum centro de custo com despesas</p>
-                <p className="text-xs text-muted-foreground/70">Adicione centros de custo e transações</p>
+                <p className="text-sm text-muted-foreground">Nenhuma transação com centro de custo</p>
+                <p className="text-xs text-muted-foreground/70">Edite suas transações e associe centros de custo para visualizar a performance por departamento</p>
               </div>
             )}
           </CardContent>
