@@ -839,11 +839,11 @@ export default function Lancamentos() {
           </div>
         </div>
         
-        {/* Inline KPI Cards - Discretos e centralizados */}
-        <div className="flex items-center justify-center flex-wrap px-4 divide-x divide-border/40">
+        {/* Inline KPI Cards - Centered */}
+        <div className="flex items-center justify-center gap-4 overflow-x-auto px-4">
           {/* Open Expenses */}
-          <div className="flex items-center gap-2 px-3 py-2 bg-transparent flex-shrink-0">
-            <TrendingDown className="w-3.5 h-3.5 text-destructive" />
+          <div className="flex items-center gap-2 px-3 py-2 rounded-md border border-l-2 border-l-destructive flex-shrink-0 min-w-[140px]">
+            <TrendingDown className="w-4 h-4 text-destructive" />
             <div className="flex flex-col">
               <span className="text-[9px] text-muted-foreground uppercase tracking-wide">Desp. Abertas</span>
               <span className="text-sm font-medium text-destructive">
@@ -853,8 +853,8 @@ export default function Lancamentos() {
           </div>
 
           {/* Open Revenues */}
-          <div className="flex items-center gap-2 px-3 py-2 bg-transparent flex-shrink-0">
-            <TrendingUp className="w-3.5 h-3.5 text-blue-600" />
+          <div className="flex items-center gap-2 px-3 py-2 rounded-md border border-l-2 border-l-blue-600 flex-shrink-0 min-w-[140px]">
+            <TrendingUp className="w-4 h-4 text-blue-600" />
             <div className="flex flex-col">
               <span className="text-[9px] text-muted-foreground uppercase tracking-wide">Rec. Abertas</span>
               <span className="text-sm font-medium text-blue-600">
@@ -864,8 +864,8 @@ export default function Lancamentos() {
           </div>
 
           {/* Overdue */}
-          <div className="flex items-center gap-2 px-3 py-2 bg-transparent flex-shrink-0">
-            <AlertCircle className="w-3.5 h-3.5 text-orange-600" />
+          <div className="flex items-center gap-2 px-3 py-2 rounded-md border border-l-2 border-l-orange-600 flex-shrink-0 min-w-[140px]">
+            <AlertCircle className="w-4 h-4 text-orange-600" />
             <div className="flex flex-col">
               <span className="text-[9px] text-muted-foreground uppercase tracking-wide">Em Atraso</span>
               <span className="text-sm font-medium text-orange-600">
@@ -875,14 +875,26 @@ export default function Lancamentos() {
           </div>
 
           {/* Result */}
-          <div className="flex items-center gap-2 px-3 py-2 bg-transparent flex-shrink-0">
-            <Calendar className="w-3.5 h-3.5 text-primary" />
+          <div className="flex items-center gap-2 px-3 py-2 rounded-md border border-l-2 border-l-primary flex-shrink-0 min-w-[140px]">
+            <Calendar className="w-4 h-4 text-primary" />
             <div className="flex flex-col">
               <span className="text-[9px] text-muted-foreground uppercase tracking-wide">Resultado</span>
               <div className="flex items-center gap-1">
                 <span className={`text-sm font-medium ${kpis.result >= 0 ? 'text-blue-600' : 'text-destructive'}`}>
                   R$ {kpis.result.toLocaleString('pt-BR', { minimumFractionDigits: 2, signDisplay: 'always' })}
                 </span>
+                {resultChange !== 0 && (
+                  <div className={`flex items-center gap-0.5 text-[9px] font-medium ${
+                    resultChange > 0 ? 'text-blue-600' : 'text-destructive'
+                  }`}>
+                    {resultChange > 0 ? (
+                      <TrendingUp className="w-2.5 h-2.5" />
+                    ) : (
+                      <TrendingDown className="w-2.5 h-2.5" />
+                    )}
+                    <span>{Math.abs(resultChange).toFixed(1)}%</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -1304,13 +1316,21 @@ export default function Lancamentos() {
                     return (
                       <div 
                         key={day.toISOString()} 
-                        className={`flex flex-col min-h-0 rounded-2xl shadow-md ring-1 ring-black/5 bg-white dark:bg-neutral-900 transition-all duration-200 ${isCurrentDay ? 'ring-2 ring-primary/30' : ''}`}
+                        className={`flex flex-col min-h-0 rounded-lg border transition-all duration-200 ${
+                          isCurrentDay 
+                            ? 'border-primary/50 bg-primary/5' 
+                            : accumulatedBalance > 0 
+                              ? 'bg-blue-50/30 dark:bg-blue-950/10 border-blue-200/50 dark:border-blue-800/30' 
+                              : accumulatedBalance < 0 
+                                ? 'bg-red-50/30 dark:bg-red-950/10 border-red-200/50 dark:border-red-800/30'
+                                : 'bg-background'
+                        }`}
                         data-testid={`week-day-${format(day, 'yyyy-MM-dd')}`}
                       >
                         {/* Day Header - FIXO */}
-                        <div className="flex-shrink-0 p-3 rounded-t-2xl bg-gradient-to-br from-muted/30 to-muted/10">
+                        <div className="flex-shrink-0 p-2 border-b">
                           <div className="flex items-center justify-between mb-1">
-                            <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+                            <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
                               {format(day, 'EEE', { locale: ptBR })}
                             </span>
                             {isCurrentDay && (
@@ -1342,7 +1362,7 @@ export default function Lancamentos() {
                           </div>
                           
                           {/* Saldos */}
-                          <div className="space-y-0.5 pt-2">
+                          <div className="space-y-0.5 pt-1.5 border-t">
                             <div className="flex items-center justify-between text-[11px]">
                               <span className="text-muted-foreground">Dia:</span>
                               <span className={`font-medium ${
@@ -1370,15 +1390,6 @@ export default function Lancamentos() {
                             const isFuture = transaction.status !== 'paid' && transaction.dueDate && new Date(transaction.dueDate) > new Date();
                             const amount = parseFloat(transaction.amount || '0');
                             const person = customersSuppliers.find(p => p.id === transaction.personId);
-                            const statusLabel = isPaid
-                              ? (transaction.type === 'revenue' ? 'Recebido' : 'Pago')
-                              : (transaction.status === 'cancelled' ? 'Cancelado' : (isOverdue ? 'Vencido' : 'Pendente'));
-                            const statusBarClass = isPaid
-                              ? ''
-                              : (transaction.status === 'cancelled' 
-                                  ? 'text-red-700 dark:text-red-500'
-                                  : (isOverdue ? 'text-orange-600 dark:text-orange-400' : ''));
-                            const showStatusBar = (transaction.status === 'cancelled' || isOverdue);
                             
                             return (
                               <DraggableTransactionCard
@@ -1387,74 +1398,49 @@ export default function Lancamentos() {
                                 onClick={() => handleCardClick(transaction)}
                               >
                                 <div
-                                  className={`group p-2 rounded-2xl cursor-pointer transition-all duration-150 bg-gradient-to-br ${
-                                    isPaid ? 'shadow-none ring-0 hover:shadow-none' : 'shadow-md ring-1 ring-black/5 hover:shadow-lg'
-                                  } ${
+                                  className={`p-1.5 rounded-md hover-elevate cursor-pointer transition-all duration-150 ${
                                     isPaid
                                       ? (transaction.type === 'revenue' 
-                                          ? 'from-emerald-600 to-emerald-500 dark:from-emerald-700 dark:to-emerald-600' 
-                                           : 'from-rose-100 to-rose-50 dark:from-rose-900/40 dark:to-neutral-950')
-                                      : (isOverdue 
-                                          ? 'from-orange-50 to-white dark:from-orange-950/20 dark:to-neutral-950' 
-                                          : (transaction.type === 'expense' 
-                                              ? 'from-rose-50 to-white dark:from-rose-950/20 dark:to-neutral-950'
-                                              : 'from-blue-50 to-white dark:from-blue-950/20 dark:to-neutral-950'))
+                                          ? 'bg-blue-100 dark:bg-blue-950/50' 
+                                          : 'bg-red-50 dark:bg-red-950/30')
+                                      : 'bg-muted'
                                   }`}
                                   data-testid={`week-transaction-${transaction.id}`}
                                 >
-                                  <div className={`space-y-1 ${isPaid && transaction.type === 'revenue' ? 'text-white' : ''}`}>
-                                    <div className="flex items-center gap-1.5">
-                                      {isPaid ? (
-                                        <CheckCircle className="w-4 h-4 text-black" strokeWidth={1.5} />
-                                      ) : (
-                                        <div className={`w-5 h-5 rounded-full flex items-center justify-center text-white shadow ${
-                                          isOverdue 
-                                            ? 'bg-gradient-to-br from-orange-500 to-red-600' 
-                                            : (transaction.type === 'expense' 
-                                                ? 'bg-gradient-to-br from-rose-500 to-rose-600'
-                                                : 'bg-gradient-to-br from-blue-600 to-blue-700')
-                                        }`}>
-                                          {isOverdue ? (
-                                            <AlertTriangle className="w-3 h-3" />
-                                          ) : (
-                                            <Clock className="w-3 h-3" />
-                                          )}
-                                        </div>
-                                      )}
+                                  <div className="space-y-0.5">
+                                    {/* Code e Status na mesma linha */}
+                                    <div className="flex items-center justify-between gap-1">
                                       <Badge 
                                         variant="outline" 
-                                        className={`text-[11px] h-5 px-1.5 ${isPaid && transaction.type === 'revenue' ? 'font-sans tracking-tight bg-transparent text-black font-medium border-0' : 'font-mono bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600'}`}
+                                        className="text-[9px] h-4 px-1.5 font-mono bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600"
                                         data-testid={`badge-code-week-${transaction.id}`}
                                       >
                                         {formatTransactionCode(transaction)}
                                       </Badge>
+                                      <Badge 
+                                        variant="outline" 
+                                        className={`text-[9px] h-4 px-1.5 ${
+                                          isPaid ? 'border-blue-600/50 text-blue-600' : 
+                                          isOverdue ? 'border-orange-600/50 text-orange-600' : 
+                                          'border-border/50 text-muted-foreground'
+                                        }`}
+                                      >
+                                        {isPaid ? 'Pago' : (transaction.status === 'cancelled' ? 'Cancelado' : (isOverdue ? 'Em atraso' : 'Pendente'))}
+                                      </Badge>
                                     </div>
-                                    {/* Status (apenas Vencido/Cancelado) sem fundo, texto forte */}
-                                    {showStatusBar && (
-                                      <div className={`mt-1 text-[11px] font-semibold ${statusBarClass}`}>
-                                        {statusLabel}
-                                      </div>
-                                    )}
-                                    
                                     
                                     {/* Person - PRIORIDADE */}
                                     {person && (
-                                      <>
-                                        {/* Linha suave separadora entre "Cliente" e ícone+código */}
-                                        <Separator className={`${isPaid && transaction.type === 'revenue' ? 'bg-black/20' : 'bg-border/40 dark:bg-white/15'} my-1`} />
-                                        <div className="space-y-[2px]">
-                                          <div className={`text-[10px] font-normal tracking-tight text-gray-700 dark:text-gray-300`}>{transaction.type === 'revenue' ? 'Cliente' : 'Fornecedor'}</div>
-                                          <div className="text-black dark:text-white font-medium text-[11px] tracking-tight leading-tight whitespace-normal break-words max-h-[2.6em] overflow-hidden">
-                                            {person.name}
-                                          </div>
-                                        </div>
-                                        {/* Removido separador abaixo do cliente para aproximar do valor */}
-                                      </>
+                                      <div className="font-medium text-[11px] truncate tracking-tight">
+                                        {person.name}
+                                      </div>
                                     )}
                                     
-                                    {/* Amount - Estilo Apple (tabular-nums), normal e preto */}
-                                    <div className={`text-[14px] font-normal tracking-tight font-sans tabular-nums ${
-                                      isPaid ? 'text-black' : 'text-muted-foreground'
+                                    {/* Amount - DESTAQUE */}
+                                    <div className={`text-[12px] font-medium tracking-tight ${
+                                      isPaid 
+                                        ? (transaction.type === 'expense' ? 'text-destructive' : 'text-blue-600') 
+                                        : 'text-muted-foreground'
                                     }`}>
                                       {isPaid ? (transaction.type === 'revenue' ? '+' : '−') : ''} R$ {amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                     </div>
@@ -1509,7 +1495,7 @@ export default function Lancamentos() {
                       </div>
 
                     {viewMode === 'cards' ? (
-                      <div className="grid gap-y-3 gap-x-2" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))' }}>
+                      <div className="grid gap-2" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))' }}>
                       {dayTransactions.map((transaction) => {
                         const isOverdue = transaction.status !== 'paid' && transaction.dueDate && new Date(transaction.dueDate) < new Date();
                         const isPaid = transaction.status === 'paid';
@@ -1517,82 +1503,42 @@ export default function Lancamentos() {
                         const total = transaction.type === 'revenue' ? monthlyTotals.totalRevenues : monthlyTotals.totalExpenses;
                         const percentage = total > 0 ? (amount / total) * 100 : 0;
                         const person = customersSuppliers.find(p => p.id === transaction.personId);
-                        const statusLabel = isPaid
-                          ? (transaction.type === 'revenue' ? 'Recebido' : 'Pago')
-                          : (transaction.status === 'cancelled' ? 'Cancelado' : (isOverdue ? 'Vencido' : 'Pendente'));
-                        const statusBarClass = isPaid
-                          ? ''
-                          : (transaction.status === 'cancelled' 
-                              ? 'text-red-700 dark:text-red-500' 
-                              : (isOverdue ? 'text-orange-600 dark:text-orange-400' : ''));
-                        const showStatusBar = (transaction.status === 'cancelled' || isOverdue);
 
                         return (
                           <Card
                             key={transaction.id}
-                            className={`cursor-pointer rounded-2xl bg-gradient-to-br ${
-                              isPaid ? 'shadow-none ring-0 hover:shadow-none' : 'shadow-md ring-1 ring-black/5 hover:shadow-lg'
-                            } ${
-                              isPaid
-                                ? (transaction.type === 'expense' 
-                                    ? 'from-rose-100 to-rose-50 dark:from-rose-900/40 dark:to-neutral-950' 
-                                    : 'from-emerald-600 to-emerald-500 dark:from-emerald-700 dark:to-emerald-600')
-                                : (isOverdue 
-                                    ? 'from-orange-50 to-white dark:from-orange-950/20 dark:to-neutral-950' 
-                                    : (transaction.type === 'expense'
-                                        ? 'from-rose-50 to-white dark:from-rose-950/20 dark:to-neutral-950'
-                                        : 'from-blue-50 to-white dark:from-blue-950/20 dark:to-neutral-950'))
-                            }`}
+                            className={`hover-elevate cursor-pointer bg-white/75 dark:bg-gray-900/75`}
                             onClick={() => handleCardClick(transaction)}
                             data-testid={`card-transaction-${transaction.id}`}
                           >
-                            <CardContent className={`p-2 space-y-1 ${isPaid && transaction.type === 'revenue' ? 'text-white' : ''}`}>
-                              <div className="flex items-center gap-1.5 mb-1">
-                                {isPaid ? (
-                                  <CheckCircle className="w-4 h-4 text-black" strokeWidth={1.5} />
-                                ) : (
-                                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white shadow ${
-                                    isOverdue 
-                                      ? 'bg-gradient-to-br from-orange-500 to-red-600' 
-                                      : (transaction.type === 'expense'
-                                          ? 'bg-gradient-to-br from-rose-500 to-rose-600'
-                                          : 'bg-gradient-to-br from-blue-600 to-blue-700')
-                                  }`}>
-                                    {isOverdue ? (
-                                      <AlertTriangle className="w-3.5 h-3.5" />
-                                    ) : (
-                                      <Clock className="w-3.5 h-3.5" />
-                                    )}
-                                  </div>
+                            <CardContent className="p-2 space-y-1">
+                              {/* Code, Type Badge and Overdue */}
+                              <div className="flex items-center gap-1 flex-wrap">
+                                <Badge 
+                                  variant="outline" 
+                                  className="text-[10px] h-5 px-1.5 font-mono bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600"
+                                  data-testid={`badge-code-${transaction.id}`}
+                                >
+                                  {formatTransactionCode(transaction)}
+                                </Badge>
+                                <Badge 
+                                  variant={transaction.type === 'expense' ? 'destructive' : 'default'}
+                                  className={`text-[10px] h-5 px-1.5 ${transaction.type === 'revenue' ? 'bg-blue-600 hover:bg-blue-700' : ''}`}
+                                >
+                                  {transaction.type === 'expense' ? 'Despesa' : 'Receita'}
+                                </Badge>
+                                {isOverdue && (
+                                  <Badge variant="outline" className="text-[10px] h-5 px-1.5 border-orange-600 text-orange-600">
+                                    Atraso
+                                  </Badge>
                                 )}
-                              <Badge 
-                                variant="outline" 
-                                className={`text-[12px] h-5 px-1.5 ${isPaid && transaction.type === 'revenue' ? 'font-sans tracking-tight bg-transparent text-black font-medium border-0' : 'font-mono bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600'}`}
-                                data-testid={`badge-code-${transaction.id}`}
-                              >
-                                {formatTransactionCode(transaction)}
-                              </Badge>
-                            </div>
-
-                            {/* Status Bar - full width (apenas Vencido/Cancelado) */}
-                                {showStatusBar && (
-                                  <div className={`mt-1 text-[11px] font-semibold ${statusBarClass}`}>
-                                    {statusLabel}
-                                  </div>
-                                )}
-
-                               
+                              </div>
 
                               {/* Person */}
                               {person && (
-                                <div className="space-y-[2px]">
-                                  {/* Linha suave separadora entre "Cliente" e ícone+código */}
-                                  <Separator className={`${isPaid && transaction.type === 'revenue' ? 'bg-black/20' : 'bg-border/40 dark:bg-white/15'} my-1`} />
-                                  <div className={`text-[10px] font-normal tracking-tight text-gray-700 dark:text-gray-300`}>{transaction.type === 'revenue' ? 'Cliente' : 'Fornecedor'}</div>
-                                  <div className={`flex items-start gap-1 text-[10px] text-black dark:text-white`}>
-                                    <User className="w-2.5 h-2.5 mt-0.5" />
-                                    <span className="whitespace-normal break-words leading-snug max-h-[2.6em] overflow-hidden">{person.name}</span>
-                                  </div>
+                                <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                                  <User className="w-2.5 h-2.5" />
+                                  <span className="truncate">{person.name}</span>
                                 </div>
                               )}
 
@@ -1608,12 +1554,23 @@ export default function Lancamentos() {
 
                               {/* Amount and Status */}
                               <div className="flex items-center justify-between gap-1">
-                                <div className={`text-[16px] font-normal font-sans tabular-nums tracking-tight ${
-                                  isPaid ? 'text-black' : 'text-muted-foreground'
-                                  }`}>
+                                <div className={`text-sm font-medium ${
+                                  isPaid 
+                                    ? (transaction.type === 'expense' ? 'text-destructive' : 'text-blue-600') 
+                                    : 'text-muted-foreground'
+                                }`}>
                                   {isPaid ? (transaction.type === 'revenue' ? '+' : '−') : ''} R$ {amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                 </div>
-                                <div className="hidden" />
+                                <Badge 
+                                  variant="outline" 
+                                  className={`text-[10px] h-5 px-1.5 flex-shrink-0 ${
+                                    isPaid ? 'border-blue-600/50 text-blue-600' : 
+                                    isOverdue ? 'border-orange-600/50 text-orange-600' : 
+                                    'border-border/50 text-muted-foreground'
+                                  }`}
+                                >
+                                  {isPaid ? 'Pago' : (transaction.status === 'cancelled' ? 'Cancelado' : (isOverdue ? 'Em atraso' : 'Pendente'))}
+                                </Badge>
                               </div>
 
                               {/* Progress Bar with Percentage */}
@@ -1639,7 +1596,7 @@ export default function Lancamentos() {
                       })}
                     </div>
                     ) : (
-                      <div className="space-y-3">
+                      <div className="space-y-2">
                         {dayTransactions.map((transaction) => {
                           const isOverdue = transaction.status !== 'paid' && transaction.dueDate && new Date(transaction.dueDate) < new Date();
                           const isPaid = transaction.status === 'paid';
@@ -1665,7 +1622,7 @@ export default function Lancamentos() {
                               <div className="w-[65px] flex-shrink-0">
                                 <Badge 
                                   variant="outline" 
-                                  className="text-[12px] h-6 px-2 font-mono bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600"
+                                  className="text-[11px] h-6 px-2 font-mono bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600"
                                   data-testid={`badge-code-list-${transaction.id}`}
                                 >
                                   {formatTransactionCode(transaction)}
