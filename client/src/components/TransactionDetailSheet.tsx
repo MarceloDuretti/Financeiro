@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
@@ -51,6 +51,8 @@ import {
   Copy,
   Repeat,
   Printer,
+  CheckCircle,
+  DollarSign,
 } from "lucide-react";
 import { LineChart, Line, ResponsiveContainer, XAxis, Tooltip } from "recharts";
 import type { Transaction, InsertTransaction, TransactionCostCenter } from "@shared/schema";
@@ -81,6 +83,8 @@ export function TransactionDetailSheet({
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [missingFields, setMissingFields] = useState<string[]>([]);
   const { toast } = useToast();
 
   // Fetch reference data
@@ -140,6 +144,44 @@ export function TransactionDetailSheet({
     },
   });
 
+  // Hydrate form with transaction data whenever transaction changes or sheet opens
+  // This ensures validation works correctly even when not in edit mode
+  useEffect(() => {
+    if (transaction && open) {
+      form.reset({
+        companyId: transaction.companyId,
+        type: transaction.type as "expense" | "revenue",
+        title: transaction.title,
+        description: transaction.description || "",
+        personId: transaction.personId || "",
+        costCenterId: transaction.costCenterId || "",
+        chartAccountId: transaction.chartAccountId || "",
+        costCenterDistributions: (transaction as any).costCenterDistributions || [],
+        issueDate: transaction.issueDate ? new Date(transaction.issueDate) : new Date(),
+        dueDate: transaction.dueDate ? new Date(transaction.dueDate) : new Date(),
+        paidDate: transaction.paidDate ? new Date(transaction.paidDate) : null,
+        amount: transaction.amount || "0",
+        paidAmount: transaction.paidAmount || "",
+        discount: transaction.discount || "0",
+        interest: transaction.interest || "0",
+        fees: transaction.fees || "0",
+        status: transaction.status as "pending" | "paid" | "overdue" | "cancelled",
+        bankAccountId: transaction.bankAccountId || "",
+        paymentMethodId: transaction.paymentMethodId || "",
+        cashRegisterId: transaction.cashRegisterId || "",
+        tags: transaction.tags || [],
+        attachmentsCount: transaction.attachmentsCount || 0,
+        isRecurring: transaction.isRecurring || false,
+        seriesId: transaction.seriesId || "",
+        recurrenceConfig: transaction.recurrenceConfig || null,
+        installmentNumber: transaction.installmentNumber || undefined,
+        installmentTotal: transaction.installmentTotal || undefined,
+        isReconciled: transaction.isReconciled || false,
+        reconciledAt: transaction.reconciledAt ? new Date(transaction.reconciledAt) : null,
+      });
+    }
+  }, [transaction, open, form]);
+
   // Handle edit mode
   const handleEdit = () => {
     if (!transaction) return;
@@ -190,7 +232,42 @@ export function TransactionDetailSheet({
 
   const handleCancelEdit = () => {
     setIsEditing(false);
-    form.reset();
+    setMissingFields([]); // Clear missing fields highlights
+    
+    // Re-hydrate form with transaction data to maintain state consistency
+    if (transaction) {
+      form.reset({
+        companyId: transaction.companyId,
+        type: transaction.type as "expense" | "revenue",
+        title: transaction.title,
+        description: transaction.description || "",
+        personId: transaction.personId || "",
+        costCenterId: transaction.costCenterId || "",
+        chartAccountId: transaction.chartAccountId || "",
+        costCenterDistributions: (transaction as any).costCenterDistributions || [],
+        issueDate: transaction.issueDate ? new Date(transaction.issueDate) : new Date(),
+        dueDate: transaction.dueDate ? new Date(transaction.dueDate) : new Date(),
+        paidDate: transaction.paidDate ? new Date(transaction.paidDate) : null,
+        amount: transaction.amount || "0",
+        paidAmount: transaction.paidAmount || "",
+        discount: transaction.discount || "0",
+        interest: transaction.interest || "0",
+        fees: transaction.fees || "0",
+        status: transaction.status as "pending" | "paid" | "overdue" | "cancelled",
+        bankAccountId: transaction.bankAccountId || "",
+        paymentMethodId: transaction.paymentMethodId || "",
+        cashRegisterId: transaction.cashRegisterId || "",
+        tags: transaction.tags || [],
+        attachmentsCount: transaction.attachmentsCount || 0,
+        isRecurring: transaction.isRecurring || false,
+        seriesId: transaction.seriesId || "",
+        recurrenceConfig: transaction.recurrenceConfig || null,
+        installmentNumber: transaction.installmentNumber || undefined,
+        installmentTotal: transaction.installmentTotal || undefined,
+        isReconciled: transaction.isReconciled || false,
+        reconciledAt: transaction.reconciledAt ? new Date(transaction.reconciledAt) : null,
+      });
+    }
   };
 
   const handleSaveEdit = async () => {
@@ -277,6 +354,106 @@ export function TransactionDetailSheet({
       });
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  // Validate required fields for payment processing
+  const validateRequiredFields = (): { isValid: boolean; missing: string[] } => {
+    if (!transaction) return { isValid: false, missing: [] };
+
+    const missing: string[] = [];
+    
+    // Get current form values (latest data)
+    const formValues = form.getValues();
+
+    // Forma de Pagamento é obrigatória
+    if (!formValues.paymentMethodId) {
+      missing.push("paymentMethodId");
+    }
+
+    // Plano de Contas é obrigatório
+    if (!formValues.chartAccountId) {
+      missing.push("chartAccountId");
+    }
+
+    // Centro de Custo é obrigatório (ou distribuição)
+    const distributions = formValues.costCenterDistributions || [];
+    if (!formValues.costCenterId && distributions.length === 0) {
+      missing.push("costCenterId");
+    }
+
+    // Conta Bancária é opcional - removida validação obrigatória
+    // Formas de pagamento como "Dinheiro" e "Espécie" não precisam de conta bancária
+
+    return { isValid: missing.length === 0, missing };
+  };
+
+  // Handle payment processing (dar baixa)
+  const handleProcessPayment = async () => {
+    if (!transaction) return;
+
+    // Validate required fields
+    const validation = validateRequiredFields();
+    
+    if (!validation.isValid) {
+      // Se faltam campos, entrar em modo edição e destacar campos pendentes
+      setMissingFields(validation.missing);
+      handleEdit();
+      
+      const fieldLabels: Record<string, string> = {
+        paymentMethodId: "Forma de Pagamento",
+        chartAccountId: "Plano de Contas",
+        costCenterId: "Centro de Custo",
+      };
+      
+      const missingLabels = validation.missing.map(f => fieldLabels[f]).join(", ");
+      
+      toast({
+        title: "Campos obrigatórios pendentes",
+        description: `Preencha os seguintes campos para dar baixa: ${missingLabels}`,
+        variant: "destructive",
+      });
+      
+      return;
+    }
+
+    // Se tudo OK, dar baixa direta
+    try {
+      setIsProcessingPayment(true);
+      
+      const updateData = {
+        status: "paid" as const,
+        paidDate: new Date(),
+        paidAmount: transaction.amount, // Usar o valor total como pago
+        version: transaction.version,
+      };
+
+      await apiRequest("PATCH", `/api/transactions/${transaction.id}?companyId=${transaction.companyId}`, updateData);
+
+      toast({
+        title: "Baixa realizada com sucesso",
+        description: transaction.type === "expense" 
+          ? "Despesa marcada como paga" 
+          : "Receita marcada como recebida",
+      });
+
+      // Clear missing fields highlights after successful payment
+      setMissingFields([]);
+
+      // Invalidate queries to refresh data
+      await queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/analytics/dre-hierarchical"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/analytics/yearly-evolution"] });
+      
+      await new Promise(resolve => setTimeout(resolve, 100));
+    } catch (error: any) {
+      toast({
+        title: "Erro ao processar baixa",
+        description: error.message || "Erro ao marcar como pago/recebido",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessingPayment(false);
     }
   };
 
@@ -673,7 +850,10 @@ export function TransactionDetailSheet({
                       name="costCenterDistributions"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-xs">Centros de Custo (Distribuição)</FormLabel>
+                          <FormLabel className={`text-xs ${missingFields.includes('costCenterId') ? 'text-destructive' : ''}`}>
+                            Centros de Custo (Distribuição)
+                            {missingFields.includes('costCenterId') && <span className="ml-1 text-xs font-normal">(obrigatório)</span>}
+                          </FormLabel>
                           <FormControl>
                             <TransactionCostCenterPicker
                               value={field.value || []}
@@ -705,10 +885,16 @@ export function TransactionDetailSheet({
                         name="paymentMethodId"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-xs">Forma de Pagamento</FormLabel>
+                            <FormLabel className={`text-xs ${missingFields.includes('paymentMethodId') ? 'text-destructive' : ''}`}>
+                              Forma de Pagamento
+                              {missingFields.includes('paymentMethodId') && <span className="ml-1 text-xs font-normal">(obrigatório)</span>}
+                            </FormLabel>
                             <Select onValueChange={field.onChange} value={field.value}>
                               <FormControl>
-                                <SelectTrigger data-testid="select-payment-method" className="h-8">
+                                <SelectTrigger 
+                                  data-testid="select-payment-method" 
+                                  className={`h-8 ${missingFields.includes('paymentMethodId') ? 'border-destructive' : ''}`}
+                                >
                                   <SelectValue placeholder="Selecione..." />
                                 </SelectTrigger>
                               </FormControl>
@@ -783,10 +969,16 @@ export function TransactionDetailSheet({
                       name="chartAccountId"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-xs">Conta Contábil</FormLabel>
+                          <FormLabel className={`text-xs ${missingFields.includes('chartAccountId') ? 'text-destructive' : ''}`}>
+                            Conta Contábil
+                            {missingFields.includes('chartAccountId') && <span className="ml-1 text-xs font-normal">(obrigatório)</span>}
+                          </FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
-                              <SelectTrigger data-testid="select-chart-account" className="h-8">
+                              <SelectTrigger 
+                                data-testid="select-chart-account" 
+                                className={`h-8 ${missingFields.includes('chartAccountId') ? 'border-destructive' : ''}`}
+                              >
                                 <SelectValue placeholder="Selecione..." />
                               </SelectTrigger>
                             </FormControl>
@@ -845,6 +1037,29 @@ export function TransactionDetailSheet({
             <div className={isEditing ? "pt-2 mt-2" : "pt-4 mt-4"}>
               {!isEditing ? (
                 <div className="flex flex-wrap gap-2">
+                  {/* Botão Pagar/Receber - só aparece se status não for paid */}
+                  {transaction.status !== "paid" && (
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={handleProcessPayment}
+                      disabled={isProcessingPayment}
+                      className={transaction.type === "expense" ? "bg-red-600 hover:bg-red-700" : "bg-blue-600 hover:bg-blue-700"}
+                      data-testid="button-process-payment"
+                    >
+                      {isProcessingPayment ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+                          Processando...
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle className="h-4 w-4 mr-1.5" />
+                          {transaction.type === "expense" ? "Pagar" : "Receber"}
+                        </>
+                      )}
+                    </Button>
+                  )}
                   <Button
                     variant="default"
                     size="sm"
