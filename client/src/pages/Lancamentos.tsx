@@ -1449,31 +1449,31 @@ export default function Lancamentos() {
                                 onClick={() => handleCardClick(transaction)}
                               >
                                 <div
-                                  className={`group p-3 rounded-3xl cursor-pointer transition-all duration-200 hover-elevate active-elevate-2 backdrop-blur-xl ${
+                                  className={`group p-2 rounded-3xl cursor-pointer transition-all duration-200 hover-elevate active-elevate-2 backdrop-blur-xl ${
                                     isOverdue 
                                       ? 'bg-[hsl(var(--ios-red)/0.08)] dark:bg-[hsl(var(--ios-red)/0.15)]' 
                                       : 'bg-[#F5F5F7]/80 dark:bg-white/10'
                                   }`}
                                   data-testid={`week-transaction-${transaction.id}`}
                                 >
-                                  <div className="space-y-2">
-                                    <div className="flex items-center gap-2">
+                                  <div className="space-y-1">
+                                    <div className="flex items-center gap-1.5">
                                       {isPaid ? (
-                                        <CheckCircle className="w-4 h-4 text-[hsl(var(--ios-green))]" strokeWidth={2} />
+                                        <CheckCircle className="w-3.5 h-3.5 text-[hsl(var(--ios-green))]" strokeWidth={2} />
                                       ) : isOverdue ? (
-                                        <AlertTriangle className="w-4 h-4 text-[hsl(var(--ios-yellow))]" strokeWidth={2} />
+                                        <AlertTriangle className="w-3.5 h-3.5 text-[hsl(var(--ios-yellow))]" strokeWidth={2} />
                                       ) : (
-                                        <Clock className="w-4 h-4 text-[hsl(var(--ios-gray))]" strokeWidth={2} />
+                                        <Clock className="w-3.5 h-3.5 text-[hsl(var(--ios-gray))]" strokeWidth={2} />
                                       )}
                                       <Badge 
                                         variant="outline" 
-                                        className="text-[11px] h-5 px-2 font-mono bg-transparent"
+                                        className="text-[10px] h-4 px-1.5 font-mono bg-transparent"
                                         data-testid={`badge-code-week-${transaction.id}`}
                                       >
                                         {formatTransactionCode(transaction)}
                                       </Badge>
                                       {isPaid && (
-                                        <Badge className="text-[10px] h-5 px-2 bg-[hsl(var(--ios-green)/0.15)] text-[hsl(var(--ios-green))] border-0">
+                                        <Badge className="text-[9px] h-4 px-1.5 bg-[hsl(var(--ios-green)/0.15)] text-[hsl(var(--ios-green))] border-0">
                                           Pago
                                         </Badge>
                                       )}
@@ -1481,13 +1481,13 @@ export default function Lancamentos() {
                                     
                                     {/* Person - direto sem label */}
                                     {person && (
-                                      <div className="text-sm font-semibold leading-tight text-foreground/90">
+                                      <div className="text-xs font-semibold leading-tight text-foreground/90">
                                         {person.name}
                                       </div>
                                     )}
                                     
                                     {/* Amount */}
-                                    <div className={`text-base font-semibold tabular-nums ${
+                                    <div className={`text-sm font-semibold tabular-nums ${
                                       isPaid 
                                         ? (transaction.type === 'revenue' ? 'text-[hsl(var(--ios-green))]' : 'text-[hsl(var(--ios-gray))]') 
                                         : isOverdue
@@ -1499,7 +1499,7 @@ export default function Lancamentos() {
                                     
                                     {/* Overdue indicator */}
                                     {isOverdue && !isPaid && transaction.dueDate && (
-                                      <div className="text-[11px] text-[hsl(var(--ios-red))] italic">
+                                      <div className="text-[10px] text-[hsl(var(--ios-red))] italic">
                                         Vencido há {Math.floor((new Date().getTime() - new Date(transaction.dueDate).getTime()) / (1000 * 60 * 60 * 24))} dias
                                       </div>
                                     )}
