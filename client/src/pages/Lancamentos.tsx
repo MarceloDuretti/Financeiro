@@ -441,11 +441,17 @@ export default function Lancamentos() {
 
   const endDate = useMemo(() => {
     if (viewMode === 'week') {
-      // For week view, fetch only the selected week
-      return format(endOfWeek(selectedWeekStart, { locale: ptBR }), 'yyyy-MM-dd');
+      // For week view, fetch only the selected week (add one day to include the last day completely)
+      const weekEnd = endOfWeek(selectedWeekStart, { locale: ptBR });
+      const nextDay = new Date(weekEnd);
+      nextDay.setDate(nextDay.getDate() + 1);
+      return format(nextDay, 'yyyy-MM-dd');
     } else {
-      // For cards/list views, fetch the entire month
-      return format(endOfMonth(new Date(selectedYear, selectedMonth, 1)), 'yyyy-MM-dd');
+      // For cards/list views, fetch the entire month (add one day to include the last day completely)
+      const monthEnd = endOfMonth(new Date(selectedYear, selectedMonth, 1));
+      const nextDay = new Date(monthEnd);
+      nextDay.setDate(nextDay.getDate() + 1);
+      return format(nextDay, 'yyyy-MM-dd');
     }
   }, [viewMode, selectedMonth, selectedYear, selectedWeekStart]);
 
@@ -553,20 +559,7 @@ export default function Lancamentos() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selectedMonth, selectedYear]);
 
-  // Debug logs
-  useEffect(() => {
-    console.log('📅 Query Params Debug:');
-    console.log('  viewMode:', viewMode);
-    console.log('  selectedMonth:', selectedMonth, '(', MONTHS[selectedMonth]?.full, ')');
-    console.log('  selectedYear:', selectedYear);
-    console.log('  startDate:', startDate);
-    console.log('  endDate:', endDate);
-    if (viewMode === 'week') {
-      console.log('  selectedWeekStart:', format(selectedWeekStart, 'dd/MM/yyyy (EEEE)', { locale: ptBR }));
-    }
-  }, [viewMode, selectedMonth, selectedYear, startDate, endDate, selectedWeekStart]);
-
-  // Fetch transactions for selected month (without filters - filters are applied in filteredTransactions)
+  // Fetch transactions for selected period
   const { data: transactions = [], isLoading } = useQuery<Transaction[]>({
     queryKey: ["/api/transactions", { 
       companyId: selectedCompanyId,
@@ -575,13 +568,6 @@ export default function Lancamentos() {
     }],
     enabled: !!selectedCompanyId,
   });
-  
-  useEffect(() => {
-    console.log('📊 Transactions fetched:', transactions.length);
-    if (transactions.length > 0) {
-      console.log('  Dates:', transactions.map(t => t.dueDate ? format(new Date(t.dueDate), 'dd/MM') : 'sem-data').join(', '));
-    }
-  }, [transactions]);
 
   // Fetch all transactions for the year to show counts per month
   const yearStart = useMemo(() => format(new Date(selectedYear, 0, 1), 'yyyy-MM-dd'), [selectedYear]);
