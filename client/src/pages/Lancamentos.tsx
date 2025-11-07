@@ -7,7 +7,6 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Progress } from "@/components/ui/progress";
@@ -1389,7 +1388,7 @@ export default function Lancamentos() {
                                 <div
                                   className={`group p-3.5 rounded-xl cursor-pointer transition-all duration-200 hover-elevate active-elevate-2 ${
                                     isOverdue 
-                                      ? 'bg-orange-50/80 dark:bg-orange-950/30 border-l-3 border-orange-500' 
+                                      ? 'bg-orange-50/80 dark:bg-orange-950/30 border-l-[3px] border-orange-500' 
                                       : isPaid
                                         ? (transaction.type === 'revenue' 
                                             ? 'bg-emerald-50 dark:bg-emerald-950/30' 
@@ -1508,95 +1507,60 @@ export default function Lancamentos() {
                         return (
                           <Card
                             key={transaction.id}
-                            className={`cursor-pointer rounded-2xl bg-gradient-to-br ${
-                              isPaid ? 'shadow-none ring-0 hover:shadow-none' : 'shadow-md ring-1 ring-black/5 hover:shadow-lg'
-                            } ${
-                              isPaid
-                                ? (transaction.type === 'expense' 
-                                    ? 'from-rose-100 to-rose-50 dark:from-rose-900/40 dark:to-neutral-950' 
-                                    : 'from-emerald-600 to-emerald-500 dark:from-emerald-700 dark:to-emerald-600')
-                                : (isOverdue 
-                                    ? 'from-orange-50 to-white dark:from-orange-950/20 dark:to-neutral-950' 
-                                    : (transaction.type === 'expense'
-                                        ? 'from-rose-50 to-white dark:from-rose-950/20 dark:to-neutral-950'
-                                        : 'from-blue-50 to-white dark:from-blue-950/20 dark:to-neutral-950'))
+                            className={`cursor-pointer rounded-xl hover-elevate active-elevate-2 transition-all duration-200 ${
+                              isOverdue 
+                                ? 'bg-orange-50/80 dark:bg-orange-950/30 border-l-[3px] border-orange-500' 
+                                : isPaid
+                                  ? (transaction.type === 'revenue' 
+                                      ? 'bg-emerald-50 dark:bg-emerald-950/30' 
+                                      : 'bg-card')
+                                  : 'bg-card'
                             }`}
                             onClick={() => handleCardClick(transaction)}
                             data-testid={`card-transaction-${transaction.id}`}
                           >
-                            <CardContent className={`p-2 space-y-1 ${isPaid && transaction.type === 'revenue' ? 'text-white' : ''}`}>
-                              <div className="flex items-center gap-1.5 mb-1">
+                            <CardContent className="p-3.5 space-y-2.5">
+                              <div className="flex items-center gap-2">
                                 {isPaid ? (
-                                  <CheckCircle className="w-4 h-4 text-black" strokeWidth={1.5} />
+                                  <CheckCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-500" strokeWidth={2} />
+                                ) : isOverdue ? (
+                                  <AlertTriangle className="w-4 h-4 text-orange-600 dark:text-orange-500" strokeWidth={2} />
                                 ) : (
-                                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white shadow ${
-                                    isOverdue 
-                                      ? 'bg-gradient-to-br from-orange-500 to-red-600' 
-                                      : (transaction.type === 'expense'
-                                          ? 'bg-gradient-to-br from-rose-500 to-rose-600'
-                                          : 'bg-gradient-to-br from-blue-600 to-blue-700')
-                                  }`}>
-                                    {isOverdue ? (
-                                      <AlertTriangle className="w-3.5 h-3.5" />
-                                    ) : (
-                                      <Clock className="w-3.5 h-3.5" />
-                                    )}
-                                  </div>
+                                  <Clock className="w-4 h-4 text-muted-foreground" strokeWidth={2} />
                                 )}
-                              <Badge 
-                                variant="outline" 
-                                className={`text-[12px] h-5 px-1.5 ${isPaid && transaction.type === 'revenue' ? 'font-sans tracking-tight bg-transparent text-black font-medium border-0' : 'font-mono bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600'}`}
-                                data-testid={`badge-code-${transaction.id}`}
-                              >
-                                {formatTransactionCode(transaction)}
-                              </Badge>
-                            </div>
-
-                            {/* Status Bar - full width (apenas Vencido/Cancelado) */}
-                                {showStatusBar && (
-                                  <div className={`mt-1 text-[11px] font-semibold ${statusBarClass}`}>
-                                    {statusLabel}
-                                  </div>
-                                )}
-
-                               
+                                <Badge 
+                                  variant="outline" 
+                                  className="text-xs h-5 px-2 font-mono"
+                                  data-testid={`badge-code-${transaction.id}`}
+                                >
+                                  {formatTransactionCode(transaction)}
+                                </Badge>
+                              </div>
 
                               {/* Person */}
                               {person && (
-                                <div className="space-y-[2px]">
-                                  {/* Linha suave separadora entre "Cliente" e ícone+código */}
-                                  <Separator className={`${isPaid && transaction.type === 'revenue' ? 'bg-black/20' : 'bg-border/40 dark:bg-white/15'} my-1`} />
-                                  <div className={`text-[10px] font-normal tracking-tight text-gray-700 dark:text-gray-300`}>{transaction.type === 'revenue' ? 'Cliente' : 'Fornecedor'}</div>
-                                  <div className={`flex items-start gap-1 text-[10px] text-black dark:text-white`}>
-                                    <User className="w-2.5 h-2.5 mt-0.5" />
-                                    <span className="whitespace-normal break-words leading-snug max-h-[2.6em] overflow-hidden">{person.name}</span>
+                                <div className="space-y-1">
+                                  <div className="text-xs text-muted-foreground">
+                                    {transaction.type === 'revenue' ? 'Cliente' : 'Fornecedor'}
+                                  </div>
+                                  <div className="text-sm font-medium leading-tight">
+                                    {person.name}
                                   </div>
                                 </div>
                               )}
 
-                              {/* Payment Date (only if paid) */}
-                              {isPaid && transaction.paidDate && (
-                                <div className={`flex items-center justify-between text-[10px] text-blue-600`}>
-                                  <span>Pago em:</span>
-                                  <span className="font-normal">
-                                    {format(new Date(transaction.paidDate), "dd/MM/yy")}
-                                  </span>
-                                </div>
-                              )}
-
-                              {/* Amount and Status */}
-                              <div className="flex items-center justify-between gap-1">
-                                <div className={`text-[16px] font-normal font-sans tabular-nums tracking-tight ${
-                                  isPaid ? 'text-black' : 'text-muted-foreground'
-                                  }`}>
-                                  {isPaid ? (transaction.type === 'revenue' ? '+' : '−') : ''} R$ {amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                                </div>
-                                <div className="hidden" />
+                              {/* Amount */}
+                              <div className={`text-base font-medium tabular-nums ${
+                                isPaid 
+                                  ? (transaction.type === 'revenue' ? 'text-emerald-600 dark:text-emerald-500' : 'text-destructive') 
+                                  : 'text-foreground'
+                              }`}>
+                                {isPaid ? (transaction.type === 'revenue' ? '+' : '−') : ''} R$ {amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                               </div>
 
                               {/* Progress Bar with Percentage */}
-                              <div className="space-y-0.5">
-                                <div className="flex items-center justify-between text-[10px]">
+                              <div className="space-y-1">
+                                <div className="flex items-center justify-between text-xs">
                                   <span className="text-muted-foreground">% do mês</span>
                                   <span className="font-medium">{percentage.toFixed(1)}%</span>
                                 </div>
