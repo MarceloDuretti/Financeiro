@@ -713,6 +713,17 @@ export default function Lancamentos() {
     // Cards/List views use month-only transactions to show only current month
     const baseTransactions = viewMode === 'week' ? transactions : monthOnlyTransactions;
     
+    // Debug logs
+    if (viewMode === 'week') {
+      console.log('🔍 Week View Debug:');
+      console.log('  selectedMonth:', selectedMonth, '(', MONTHS[selectedMonth]?.full, ')');
+      console.log('  selectedYear:', selectedYear);
+      console.log('  selectedWeekStart:', format(selectedWeekStart, 'dd/MM/yyyy (EEEE)', { locale: ptBR }));
+      console.log('  selectedWeekEnd:', format(endOfWeek(selectedWeekStart, { locale: ptBR }), 'dd/MM/yyyy (EEEE)', { locale: ptBR }));
+      console.log('  Total transactions in buffer:', transactions.length);
+      console.log('  Transactions dates:', transactions.map(t => t.dueDate ? format(new Date(t.dueDate), 'dd/MM') : 'sem-data').join(', '));
+    }
+    
     let filtered = baseTransactions.filter(transaction => {
       if (typeFilter !== 'all' && transaction.type !== typeFilter) return false;
       if (statusFilter !== 'all' && transaction.status !== statusFilter) return false;
@@ -735,10 +746,13 @@ export default function Lancamentos() {
         const dueDate = new Date(transaction.dueDate);
         return dueDate >= weekStart && dueDate <= weekEnd;
       });
+      
+      console.log('  Filtered to week:', filtered.length, 'transactions');
+      console.log('  Filtered dates:', filtered.map(t => t.dueDate ? format(new Date(t.dueDate), 'dd/MM') : 'sem-data').join(', '));
     }
 
     return filtered;
-  }, [transactions, monthOnlyTransactions, typeFilter, statusFilter, searchQuery, viewMode, selectedWeekStart]);
+  }, [transactions, monthOnlyTransactions, typeFilter, statusFilter, searchQuery, viewMode, selectedWeekStart, selectedMonth, selectedYear]);
 
   // Group transactions by full date (YYYY-MM-DD) to avoid collisions
   const transactionsByDay = useMemo(() => {
