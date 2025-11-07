@@ -1303,7 +1303,7 @@ export default function Lancamentos() {
                     return (
                       <div 
                         key={day.toISOString()} 
-                        className={`flex flex-col min-h-0 rounded-3xl shadow-md ring-1 ring-black/5 backdrop-blur-xl bg-[#F5F5F7]/80 dark:bg-white/10 transition-all duration-200 ${isCurrentDay ? 'ring-2 ring-[hsl(var(--ios-blue)/0.3)]' : ''}`}
+                        className={`flex flex-col min-h-0 rounded-3xl shadow-md ring-1 ring-black/5 backdrop-blur-xl bg-white/80 dark:bg-white/10 transition-all duration-200 ${isCurrentDay ? 'ring-2 ring-[hsl(var(--ios-blue)/0.3)]' : ''}`}
                         data-testid={`week-day-${format(day, 'yyyy-MM-dd')}`}
                       >
                         {/* Day Header - FIXO */}
