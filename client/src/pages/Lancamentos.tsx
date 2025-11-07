@@ -1303,11 +1303,11 @@ export default function Lancamentos() {
                     return (
                       <div 
                         key={day.toISOString()} 
-                        className={`flex flex-col min-h-0 rounded-2xl shadow-md ring-1 ring-black/5 bg-white dark:bg-neutral-900 transition-all duration-200 ${isCurrentDay ? 'ring-2 ring-primary/30' : ''}`}
+                        className={`flex flex-col min-h-0 rounded-3xl shadow-md ring-1 ring-black/5 backdrop-blur-xl bg-white/80 dark:bg-white/10 transition-all duration-200 ${isCurrentDay ? 'ring-2 ring-[hsl(var(--ios-blue)/0.3)]' : ''}`}
                         data-testid={`week-day-${format(day, 'yyyy-MM-dd')}`}
                       >
                         {/* Day Header - FIXO */}
-                        <div className="flex-shrink-0 p-4 rounded-t-2xl bg-muted/20">
+                        <div className="flex-shrink-0 p-4 rounded-t-3xl bg-muted/20">
                           <div className="flex items-center justify-between mb-2">
                             <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                               {format(day, 'EEE', { locale: ptBR })}
@@ -1386,7 +1386,7 @@ export default function Lancamentos() {
                                 onClick={() => handleCardClick(transaction)}
                               >
                                 <div
-                                  className={`group p-4 rounded-2xl cursor-pointer transition-all duration-200 hover-elevate active-elevate-2 backdrop-blur-xl ${
+                                  className={`group p-4 rounded-3xl cursor-pointer transition-all duration-200 hover-elevate active-elevate-2 backdrop-blur-xl ${
                                     isOverdue 
                                       ? 'bg-[hsl(var(--ios-red)/0.08)] dark:bg-[hsl(var(--ios-red)/0.15)]' 
                                       : 'bg-white/80 dark:bg-white/10'
@@ -1517,7 +1517,7 @@ export default function Lancamentos() {
                         return (
                           <Card
                             key={transaction.id}
-                            className={`cursor-pointer rounded-2xl hover-elevate active-elevate-2 transition-all duration-200 backdrop-blur-xl border-0 ${
+                            className={`cursor-pointer rounded-3xl hover-elevate active-elevate-2 transition-all duration-200 backdrop-blur-xl border-0 ${
                               isOverdue 
                                 ? 'bg-[hsl(var(--ios-red)/0.08)] dark:bg-[hsl(var(--ios-red)/0.15)]' 
                                 : 'bg-white/80 dark:bg-white/10'
@@ -1613,21 +1613,26 @@ export default function Lancamentos() {
                           return (
                             <div
                               key={transaction.id}
-                              className={`flex items-center gap-3 px-4 py-3 rounded-xl hover-elevate cursor-pointer transition-all duration-150 ${
-                                isPaid
-                                  ? (transaction.type === 'expense'
-                                    ? 'bg-red-50 dark:bg-red-950/30'
-                                    : 'bg-blue-100 dark:bg-blue-950/50')
-                                  : 'bg-muted opacity-90 hover:opacity-100'
+                              className={`flex items-center gap-3 px-4 py-3 rounded-3xl hover-elevate cursor-pointer transition-all duration-150 backdrop-blur-xl ${
+                                isOverdue
+                                  ? 'bg-[hsl(var(--ios-red)/0.08)] dark:bg-[hsl(var(--ios-red)/0.15)]'
+                                  : 'bg-white/80 dark:bg-white/10'
                               }`}
                               onClick={() => handleCardClick(transaction)}
                               data-testid={`row-transaction-${transaction.id}`}
                             >
-                              {/* Code */}
-                              <div className="w-[65px] flex-shrink-0">
+                              {/* Code & Status Icon */}
+                              <div className="w-[90px] flex-shrink-0 flex items-center gap-2">
+                                {isPaid ? (
+                                  <CheckCircle className="w-4 h-4 text-[hsl(var(--ios-green))]" strokeWidth={2} />
+                                ) : isOverdue ? (
+                                  <AlertTriangle className="w-4 h-4 text-[hsl(var(--ios-yellow))]" strokeWidth={2} />
+                                ) : (
+                                  <Clock className="w-4 h-4 text-[hsl(var(--ios-gray))]" strokeWidth={2} />
+                                )}
                                 <Badge 
                                   variant="outline" 
-                                  className="text-[12px] h-6 px-2 font-mono bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600"
+                                  className="text-[11px] h-5 px-2 font-mono bg-transparent"
                                   data-testid={`badge-code-list-${transaction.id}`}
                                 >
                                   {formatTransactionCode(transaction)}
@@ -1637,8 +1642,11 @@ export default function Lancamentos() {
                               {/* Type */}
                               <div className="w-[70px] flex-shrink-0">
                                 <Badge 
-                                  variant={transaction.type === 'expense' ? 'destructive' : 'default'}
-                                  className={`text-[11px] h-6 px-2 ${transaction.type === 'revenue' ? 'bg-blue-600 hover:bg-blue-700' : ''}`}
+                                  className={`text-[11px] h-6 px-2 border-0 ${
+                                    transaction.type === 'expense' 
+                                      ? 'bg-[hsl(var(--ios-red)/0.15)] text-[hsl(var(--ios-red))]' 
+                                      : 'bg-[hsl(var(--ios-blue)/0.15)] text-[hsl(var(--ios-blue))]'
+                                  }`}
                                 >
                                   {transaction.type === 'expense' ? 'Despesa' : 'Receita'}
                                 </Badge>
@@ -1662,11 +1670,11 @@ export default function Lancamentos() {
                               {/* Payment Date */}
                               <div className="w-24 flex-shrink-0 hidden lg:block">
                                 {isPaid && transaction.paidDate ? (
-                                  <span className={`${transaction.type === 'expense' ? 'text-red-600' : 'text-blue-600'} font-medium text-[11px]`}>
+                                  <span className={`${transaction.type === 'expense' ? 'text-[hsl(var(--ios-gray))]' : 'text-[hsl(var(--ios-green))]'} font-medium text-[11px]`}>
                                     {format(new Date(transaction.paidDate), "dd/MM/yy")}
                                   </span>
                                 ) : (
-                                  <span className="text-muted-foreground/50 text-[11px]">-</span>
+                                  <span className="text-[hsl(var(--ios-gray))] text-[11px]">-</span>
                                 )}
                               </div>
 
@@ -1676,12 +1684,12 @@ export default function Lancamentos() {
                                   <div className="flex items-center justify-between">
                                     <span className="font-medium text-[11px] tracking-tight">{percentage.toFixed(1)}%</span>
                                   </div>
-                                  <div className="h-1 bg-muted/50 rounded-full overflow-hidden">
+                                  <div className="h-1 bg-muted/30 rounded-full overflow-hidden">
                                     <div
                                       className={`h-full transition-all duration-300 ease-out ${
                                         transaction.type === 'expense' 
-                                          ? 'bg-gradient-to-r from-destructive to-destructive/90' 
-                                          : 'bg-gradient-to-r from-blue-600 to-blue-500'
+                                          ? 'bg-[hsl(var(--ios-red))]' 
+                                          : 'bg-[hsl(var(--ios-blue))]'
                                       }`}
                                       style={{ width: `${Math.min(percentage, 100)}%` }}
                                     />
@@ -1691,26 +1699,24 @@ export default function Lancamentos() {
 
                               {/* Amount */}
                               <div className="w-32 flex-shrink-0 text-right">
-                                <span
-                                  className={`inline-block w-1.5 h-1.5 rounded-full ${transaction.type === 'expense' ? 'bg-red-500' : 'bg-blue-600'}`}
-                                />
-                                <span className={`font-semibold text-[13px] tracking-tight ${
+                                <span className={`font-semibold text-[13px] tracking-tight tabular-nums ${
                                   isPaid
-                                    ? (transaction.type === 'expense' ? 'text-destructive' : 'text-blue-600')
-                                    : 'text-muted-foreground'
+                                    ? (transaction.type === 'expense' ? 'text-[hsl(var(--ios-gray))]' : 'text-[hsl(var(--ios-green))]')
+                                    : isOverdue
+                                      ? 'text-[hsl(var(--ios-red))]'
+                                      : 'text-foreground'
                                 }`}>
-                                  {transaction.type === 'expense' ? '-' : '+'} R$ {amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                  {transaction.type === 'expense' ? '−' : '+'} R$ {amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                 </span>
                               </div>
 
                               {/* Status */}
                               <div className="w-24 flex-shrink-0 hidden sm:block">
                                 <Badge 
-                                  variant="outline" 
-                                  className={`text-[11px] h-6 px-2 ${
-                                    isPaid ? 'border-blue-600/50 text-blue-600' : 
-                                    isOverdue ? 'border-orange-600/50 text-orange-600' : 
-                                    'border-border/50 text-muted-foreground'
+                                  className={`text-[10px] h-5 px-2 border-0 ${
+                                    isPaid ? 'bg-[hsl(var(--ios-green)/0.15)] text-[hsl(var(--ios-green))]' : 
+                                    isOverdue ? 'bg-[hsl(var(--ios-yellow)/0.15)] text-[hsl(var(--ios-yellow))]' : 
+                                    'bg-muted/30 text-[hsl(var(--ios-gray))]'
                                   }`}
                                 >
                                   {isPaid ? 'Pago' : transaction.status === 'cancelled' ? 'Cancelado' : 'Pendente'}
