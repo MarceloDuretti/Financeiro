@@ -67,6 +67,22 @@ function formatTransactionCode(transaction: Transaction): string {
   return `${prefix}${paddedCode}`;
 }
 
+// Format currency in compact form (e.g., R$ 15k, R$ 1,5M)
+function formatCompactCurrency(value: number, showSign: boolean = false): string {
+  const absValue = Math.abs(value);
+  const sign = showSign ? (value >= 0 ? '+' : '−') : '';
+  
+  if (absValue < 1000) {
+    return `${sign} R$ ${absValue.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+  } else if (absValue < 1000000) {
+    const kValue = absValue / 1000;
+    return `${sign}${kValue.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 1 })}k`;
+  } else {
+    const mValue = absValue / 1000000;
+    return `${sign}${mValue.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 2 })}M`;
+  }
+}
+
 // Draggable Transaction Card Component
 function DraggableTransactionCard({ transaction, children, onClick }: { transaction: Transaction, children: React.ReactNode, onClick: () => void }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
