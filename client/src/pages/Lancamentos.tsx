@@ -428,22 +428,26 @@ export default function Lancamentos() {
     localStorage.setItem('fincontrol_transactions_view_mode', viewMode);
   }, [viewMode]);
 
-  // Calculate date range from selected month/year (with buffer for week view)
+  // Calculate date range based on view mode
   const startDate = useMemo(() => {
-    const monthStart = new Date(selectedYear, selectedMonth, 1);
-    const weekStart = startOfWeek(monthStart, { locale: ptBR });
-    // Include one additional week before to allow week-over-week comparison
-    const extendedStart = subWeeks(weekStart, 1);
-    return format(extendedStart, 'yyyy-MM-dd');
-  }, [selectedMonth, selectedYear]);
+    if (viewMode === 'week') {
+      // For week view, fetch only the selected week
+      return format(selectedWeekStart, 'yyyy-MM-dd');
+    } else {
+      // For cards/list views, fetch the entire month
+      return format(startOfMonth(new Date(selectedYear, selectedMonth, 1)), 'yyyy-MM-dd');
+    }
+  }, [viewMode, selectedMonth, selectedYear, selectedWeekStart]);
 
   const endDate = useMemo(() => {
-    const monthEnd = endOfMonth(new Date(selectedYear, selectedMonth, 1));
-    const weekEnd = endOfWeek(monthEnd, { locale: ptBR });
-    // Include one additional week after to allow week-over-week comparison
-    const extendedEnd = addWeeks(weekEnd, 1);
-    return format(extendedEnd, 'yyyy-MM-dd');
-  }, [selectedMonth, selectedYear]);
+    if (viewMode === 'week') {
+      // For week view, fetch only the selected week
+      return format(endOfWeek(selectedWeekStart, { locale: ptBR }), 'yyyy-MM-dd');
+    } else {
+      // For cards/list views, fetch the entire month
+      return format(endOfMonth(new Date(selectedYear, selectedMonth, 1)), 'yyyy-MM-dd');
+    }
+  }, [viewMode, selectedMonth, selectedYear, selectedWeekStart]);
 
   // Sync week when month/year changes
   useEffect(() => {
@@ -707,24 +711,10 @@ export default function Lancamentos() {
     return { totalRevenues, totalExpenses };
   }, [monthOnlyTransactions]);
 
-  // Filter transactions
+  // Filter transactions (query already fetches the correct period)
   const filteredTransactions = useMemo(() => {
-    // Week view uses all transactions (with buffer) to show complete weeks that cross months
-    // Cards/List views use month-only transactions to show only current month
-    const baseTransactions = viewMode === 'week' ? transactions : monthOnlyTransactions;
-    
-    // Debug logs
-    if (viewMode === 'week') {
-      console.log('🔍 Week View Debug:');
-      console.log('  selectedMonth:', selectedMonth, '(', MONTHS[selectedMonth]?.full, ')');
-      console.log('  selectedYear:', selectedYear);
-      console.log('  selectedWeekStart:', format(selectedWeekStart, 'dd/MM/yyyy (EEEE)', { locale: ptBR }));
-      console.log('  selectedWeekEnd:', format(endOfWeek(selectedWeekStart, { locale: ptBR }), 'dd/MM/yyyy (EEEE)', { locale: ptBR }));
-      console.log('  Total transactions in buffer:', transactions.length);
-      console.log('  Transactions dates:', transactions.map(t => t.dueDate ? format(new Date(t.dueDate), 'dd/MM') : 'sem-data').join(', '));
-    }
-    
-    let filtered = baseTransactions.filter(transaction => {
+    // All views now use transactions directly - the query fetches exactly what we need
+    return transactions.filter(transaction => {
       if (typeFilter !== 'all' && transaction.type !== typeFilter) return false;
       if (statusFilter !== 'all' && transaction.status !== statusFilter) return false;
       if (searchQuery) {
@@ -735,24 +725,7 @@ export default function Lancamentos() {
       }
       return true;
     });
-
-    // For week view, filter to only show transactions within the selected week
-    if (viewMode === 'week') {
-      const weekStart = selectedWeekStart;
-      const weekEnd = endOfWeek(selectedWeekStart, { locale: ptBR });
-      
-      filtered = filtered.filter(transaction => {
-        if (!transaction.dueDate) return true; // Include no-date transactions
-        const dueDate = new Date(transaction.dueDate);
-        return dueDate >= weekStart && dueDate <= weekEnd;
-      });
-      
-      console.log('  Filtered to week:', filtered.length, 'transactions');
-      console.log('  Filtered dates:', filtered.map(t => t.dueDate ? format(new Date(t.dueDate), 'dd/MM') : 'sem-data').join(', '));
-    }
-
-    return filtered;
-  }, [transactions, monthOnlyTransactions, typeFilter, statusFilter, searchQuery, viewMode, selectedWeekStart, selectedMonth, selectedYear]);
+  }, [transactions, typeFilter, statusFilter, searchQuery]);
 
   // Group transactions by full date (YYYY-MM-DD) to avoid collisions
   const transactionsByDay = useMemo(() => {
