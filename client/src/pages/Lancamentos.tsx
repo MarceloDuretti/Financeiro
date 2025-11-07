@@ -73,7 +73,7 @@ function formatCompactCurrency(value: number, showSign: boolean = false): string
   const sign = showSign ? (value >= 0 ? '+' : '−') : '';
   
   if (absValue < 1000) {
-    return `${sign} R$ ${absValue.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+    return `${sign}R$ ${absValue.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
   } else if (absValue < 1000000) {
     const kValue = absValue / 1000;
     return `${sign}${kValue.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 1 })}k`;
@@ -431,14 +431,18 @@ export default function Lancamentos() {
   // Calculate date range from selected month/year (with buffer for week view)
   const startDate = useMemo(() => {
     const monthStart = new Date(selectedYear, selectedMonth, 1);
-    // Include buffer days for complete weeks
-    return format(startOfWeek(monthStart, { locale: ptBR }), 'yyyy-MM-dd');
+    const weekStart = startOfWeek(monthStart, { locale: ptBR });
+    // Include one additional week before to allow week-over-week comparison
+    const extendedStart = subWeeks(weekStart, 1);
+    return format(extendedStart, 'yyyy-MM-dd');
   }, [selectedMonth, selectedYear]);
 
   const endDate = useMemo(() => {
     const monthEnd = endOfMonth(new Date(selectedYear, selectedMonth, 1));
-    // Include buffer days for complete weeks
-    return format(endOfWeek(monthEnd, { locale: ptBR }), 'yyyy-MM-dd');
+    const weekEnd = endOfWeek(monthEnd, { locale: ptBR });
+    // Include one additional week after to allow week-over-week comparison
+    const extendedEnd = addWeeks(weekEnd, 1);
+    return format(extendedEnd, 'yyyy-MM-dd');
   }, [selectedMonth, selectedYear]);
 
   // Sync week when month/year changes
@@ -545,15 +549,12 @@ export default function Lancamentos() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selectedMonth, selectedYear]);
 
-  // Fetch transactions for selected month
+  // Fetch transactions for selected month (without filters - filters are applied in filteredTransactions)
   const { data: transactions = [], isLoading } = useQuery<Transaction[]>({
     queryKey: ["/api/transactions", { 
       companyId: selectedCompanyId,
       startDate, 
-      endDate, 
-      type: typeFilter === 'all' ? undefined : typeFilter,
-      status: statusFilter === 'all' ? undefined : statusFilter,
-      query: searchQuery
+      endDate,
     }],
     enabled: !!selectedCompanyId,
   });
@@ -1238,8 +1239,63 @@ export default function Lancamentos() {
                   </Button>
                   
                   <div className="text-center">
-                    <h3 className="text-base font-semibold tracking-tight">
-                      {format(selectedWeekStart, "d 'de' MMMM", { locale: ptBR })} - {format(endOfWeek(selectedWeekStart, { locale: ptBR }), "d 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                    <h3 className="text-base font-semibold tracking-tight flex items-center justify-center gap-2">
+                      {(() => {
+                        // Calculate current week balance using ALL transactions (not filtered)
+                        const currentWeekDays = eachDayOfInterval({
+                          start: selectedWeekStart,
+                          end: endOfWeek(selectedWeekStart, { locale: ptBR })
+                        });
+                        const currentWeekBalance = currentWeekDays.reduce((total, day) => {
+                          const dayTxs = transactions.filter(t => t.dueDate && isSameDay(new Date(t.dueDate), day));
+                          const revenues = dayTxs.filter(t => t.type === 'revenue').reduce((sum, t) => sum + parseFloat(t.amount || '0'), 0);
+                          const expenses = dayTxs.filter(t => t.type === 'expense').reduce((sum, t) => sum + parseFloat(t.amount || '0'), 0);
+                          return total + (revenues - expenses);
+                        }, 0);
+                        
+                        // Calculate previous week balance using ALL transactions (not filtered)
+                        const prevWeekStart = subWeeks(selectedWeekStart, 1);
+                        const prevWeekDays = eachDayOfInterval({
+                          start: prevWeekStart,
+                          end: endOfWeek(prevWeekStart, { locale: ptBR })
+                        });
+                        const prevWeekBalance = prevWeekDays.reduce((total, day) => {
+                          const dayTxs = transactions.filter(t => t.dueDate && isSameDay(new Date(t.dueDate), day));
+                          const revenues = dayTxs.filter(t => t.type === 'revenue').reduce((sum, t) => sum + parseFloat(t.amount || '0'), 0);
+                          const expenses = dayTxs.filter(t => t.type === 'expense').reduce((sum, t) => sum + parseFloat(t.amount || '0'), 0);
+                          return total + (revenues - expenses);
+                        }, 0);
+                        
+                        // Calculate percentage change
+                        let weekPercentChange: number | null = null;
+                        if (prevWeekBalance !== 0) {
+                          weekPercentChange = ((currentWeekBalance - prevWeekBalance) / Math.abs(prevWeekBalance)) * 100;
+                        } else if (currentWeekBalance !== 0) {
+                          weekPercentChange = currentWeekBalance > 0 ? 100 : -100;
+                        }
+                        
+                        return (
+                          <>
+                            {weekPercentChange !== null && (
+                              <span className={`flex items-center gap-1 text-sm ${
+                                weekPercentChange > 0 ? 'text-green-600 dark:text-green-500' : 
+                                weekPercentChange < 0 ? 'text-red-600 dark:text-red-500' : 
+                                'text-muted-foreground'
+                              }`}>
+                                {weekPercentChange > 0 ? (
+                                  <TrendingUp className="w-3.5 h-3.5" />
+                                ) : weekPercentChange < 0 ? (
+                                  <TrendingDown className="w-3.5 h-3.5" />
+                                ) : null}
+                                {weekPercentChange > 0 ? '+' : ''}{Math.abs(weekPercentChange).toFixed(0)}%
+                              </span>
+                            )}
+                            <span>
+                              {format(selectedWeekStart, "d 'de' MMMM", { locale: ptBR })} - {format(endOfWeek(selectedWeekStart, { locale: ptBR }), "d 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                            </span>
+                          </>
+                        );
+                      })()}
                     </h3>
                   </div>
                   
