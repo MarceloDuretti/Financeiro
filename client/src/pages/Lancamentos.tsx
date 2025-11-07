@@ -1308,31 +1308,31 @@ export default function Lancamentos() {
                         data-testid={`week-day-${format(day, 'yyyy-MM-dd')}`}
                       >
                         {/* Day Header - FIXO */}
-                        <div className="flex-shrink-0 p-3 rounded-t-2xl bg-gradient-to-br from-muted/30 to-muted/10">
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+                        <div className="flex-shrink-0 p-4 rounded-t-2xl bg-muted/20">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                               {format(day, 'EEE', { locale: ptBR })}
                             </span>
                             {isCurrentDay && (
-                              <Badge variant="default" className="h-4 text-[9px] px-1">
+                              <Badge variant="outline" className="h-5 text-[10px] px-2 border-primary/30 text-primary">
                                 Hoje
                               </Badge>
                             )}
                           </div>
-                          <div className="flex items-center justify-between mb-1.5">
-                            <div className="text-lg font-normal tracking-tight">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="text-2xl font-normal tracking-tight">
                               {format(day, 'd')}
                             </div>
                             {percentChange !== null && (
-                              <div className={`flex items-center gap-0.5 text-[10px] font-medium ${
+                              <div className={`flex items-center gap-1 text-xs font-medium ${
                                 percentChange > 0 ? 'text-green-600 dark:text-green-500' : 
                                 percentChange < 0 ? 'text-red-600 dark:text-red-500' : 
                                 'text-muted-foreground'
                               }`}>
                                 {percentChange > 0 ? (
-                                  <TrendingUp className="w-3 h-3" />
+                                  <TrendingUp className="w-3.5 h-3.5" />
                                 ) : percentChange < 0 ? (
-                                  <TrendingDown className="w-3 h-3" />
+                                  <TrendingDown className="w-3.5 h-3.5" />
                                 ) : null}
                                 <span>
                                   {percentChange > 0 ? '+' : ''}{Math.abs(percentChange).toFixed(0)}%
@@ -1342,18 +1342,18 @@ export default function Lancamentos() {
                           </div>
                           
                           {/* Saldos */}
-                          <div className="space-y-0.5 pt-2">
-                            <div className="flex items-center justify-between text-[11px]">
+                          <div className="space-y-1 pt-2">
+                            <div className="flex items-center justify-between text-xs">
                               <span className="text-muted-foreground">Dia:</span>
-                              <span className={`font-medium ${
+                              <span className={`font-medium tabular-nums ${
                                 dayBalance > 0 ? 'text-blue-600' : dayBalance < 0 ? 'text-destructive' : 'text-muted-foreground'
                               }`}>
                                 {dayBalance >= 0 ? '+' : '-'} R$ {Math.abs(dayBalance).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                               </span>
                             </div>
-                            <div className="flex items-center justify-between text-[11px]">
+                            <div className="flex items-center justify-between text-xs">
                               <span className="text-muted-foreground">Acum:</span>
-                              <span className={`font-medium ${
+                              <span className={`font-medium tabular-nums ${
                                 accumulatedBalance > 0 ? 'text-blue-600' : accumulatedBalance < 0 ? 'text-destructive' : 'text-muted-foreground'
                               }`}>
                                 {accumulatedBalance >= 0 ? '+' : '-'} R$ {Math.abs(accumulatedBalance).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
@@ -1387,74 +1387,52 @@ export default function Lancamentos() {
                                 onClick={() => handleCardClick(transaction)}
                               >
                                 <div
-                                  className={`group p-2 rounded-2xl cursor-pointer transition-all duration-150 bg-gradient-to-br ${
-                                    isPaid ? 'shadow-none ring-0 hover:shadow-none' : 'shadow-md ring-1 ring-black/5 hover:shadow-lg'
-                                  } ${
-                                    isPaid
-                                      ? (transaction.type === 'revenue' 
-                                          ? 'from-emerald-600 to-emerald-500 dark:from-emerald-700 dark:to-emerald-600' 
-                                           : 'from-rose-100 to-rose-50 dark:from-rose-900/40 dark:to-neutral-950')
-                                      : (isOverdue 
-                                          ? 'from-orange-50 to-white dark:from-orange-950/20 dark:to-neutral-950' 
-                                          : (transaction.type === 'expense' 
-                                              ? 'from-rose-50 to-white dark:from-rose-950/20 dark:to-neutral-950'
-                                              : 'from-blue-50 to-white dark:from-blue-950/20 dark:to-neutral-950'))
+                                  className={`group p-3.5 rounded-xl cursor-pointer transition-all duration-200 hover-elevate active-elevate-2 ${
+                                    isOverdue 
+                                      ? 'bg-orange-50/80 dark:bg-orange-950/30 border-l-3 border-orange-500' 
+                                      : isPaid
+                                        ? (transaction.type === 'revenue' 
+                                            ? 'bg-emerald-50 dark:bg-emerald-950/30' 
+                                            : 'bg-card')
+                                        : 'bg-card'
                                   }`}
                                   data-testid={`week-transaction-${transaction.id}`}
                                 >
-                                  <div className={`space-y-1 ${isPaid && transaction.type === 'revenue' ? 'text-white' : ''}`}>
-                                    <div className="flex items-center gap-1.5">
+                                  <div className="space-y-2.5">
+                                    <div className="flex items-center gap-2">
                                       {isPaid ? (
-                                        <CheckCircle className="w-4 h-4 text-black" strokeWidth={1.5} />
+                                        <CheckCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-500" strokeWidth={2} />
+                                      ) : isOverdue ? (
+                                        <AlertTriangle className="w-4 h-4 text-orange-600 dark:text-orange-500" strokeWidth={2} />
                                       ) : (
-                                        <div className={`w-5 h-5 rounded-full flex items-center justify-center text-white shadow ${
-                                          isOverdue 
-                                            ? 'bg-gradient-to-br from-orange-500 to-red-600' 
-                                            : (transaction.type === 'expense' 
-                                                ? 'bg-gradient-to-br from-rose-500 to-rose-600'
-                                                : 'bg-gradient-to-br from-blue-600 to-blue-700')
-                                        }`}>
-                                          {isOverdue ? (
-                                            <AlertTriangle className="w-3 h-3" />
-                                          ) : (
-                                            <Clock className="w-3 h-3" />
-                                          )}
-                                        </div>
+                                        <Clock className="w-4 h-4 text-muted-foreground" strokeWidth={2} />
                                       )}
                                       <Badge 
                                         variant="outline" 
-                                        className={`text-[11px] h-5 px-1.5 ${isPaid && transaction.type === 'revenue' ? 'font-sans tracking-tight bg-transparent text-black font-medium border-0' : 'font-mono bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600'}`}
+                                        className="text-xs h-5 px-2 font-mono"
                                         data-testid={`badge-code-week-${transaction.id}`}
                                       >
                                         {formatTransactionCode(transaction)}
                                       </Badge>
                                     </div>
-                                    {/* Status (apenas Vencido/Cancelado) sem fundo, texto forte */}
-                                    {showStatusBar && (
-                                      <div className={`mt-1 text-[11px] font-semibold ${statusBarClass}`}>
-                                        {statusLabel}
+                                    
+                                    {/* Person */}
+                                    {person && (
+                                      <div className="space-y-1">
+                                        <div className="text-xs text-muted-foreground">
+                                          {transaction.type === 'revenue' ? 'Cliente' : 'Fornecedor'}
+                                        </div>
+                                        <div className="text-sm font-medium leading-tight">
+                                          {person.name}
+                                        </div>
                                       </div>
                                     )}
                                     
-                                    
-                                    {/* Person - PRIORIDADE */}
-                                    {person && (
-                                      <>
-                                        {/* Linha suave separadora entre "Cliente" e ícone+código */}
-                                        <Separator className={`${isPaid && transaction.type === 'revenue' ? 'bg-black/20' : 'bg-border/40 dark:bg-white/15'} my-1`} />
-                                        <div className="space-y-[2px]">
-                                          <div className={`text-[10px] font-normal tracking-tight text-gray-700 dark:text-gray-300`}>{transaction.type === 'revenue' ? 'Cliente' : 'Fornecedor'}</div>
-                                          <div className="text-black dark:text-white font-medium text-[11px] tracking-tight leading-tight whitespace-normal break-words max-h-[2.6em] overflow-hidden">
-                                            {person.name}
-                                          </div>
-                                        </div>
-                                        {/* Removido separador abaixo do cliente para aproximar do valor */}
-                                      </>
-                                    )}
-                                    
-                                    {/* Amount - Estilo Apple (tabular-nums), normal e preto */}
-                                    <div className={`text-[14px] font-normal tracking-tight font-sans tabular-nums ${
-                                      isPaid ? 'text-black' : 'text-muted-foreground'
+                                    {/* Amount */}
+                                    <div className={`text-base font-medium tabular-nums ${
+                                      isPaid 
+                                        ? (transaction.type === 'revenue' ? 'text-emerald-600 dark:text-emerald-500' : 'text-destructive') 
+                                        : 'text-foreground'
                                     }`}>
                                       {isPaid ? (transaction.type === 'revenue' ? '+' : '−') : ''} R$ {amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                     </div>
