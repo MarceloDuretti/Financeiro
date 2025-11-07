@@ -1303,7 +1303,7 @@ export default function Lancamentos() {
                     return (
                       <div 
                         key={day.toISOString()} 
-                        className={`flex flex-col min-h-0 rounded-3xl shadow-md ring-1 ring-black/5 backdrop-blur-xl bg-white/80 dark:bg-white/10 transition-all duration-200 ${isCurrentDay ? 'ring-2 ring-[hsl(var(--ios-blue)/0.3)]' : ''}`}
+                        className={`flex flex-col min-h-0 rounded-3xl shadow-md ring-1 ring-black/5 backdrop-blur-xl bg-[#F5F5F7]/80 dark:bg-white/10 transition-all duration-200 ${isCurrentDay ? 'ring-2 ring-[hsl(var(--ios-blue)/0.3)]' : ''}`}
                         data-testid={`week-day-${format(day, 'yyyy-MM-dd')}`}
                       >
                         {/* Day Header - FIXO */}
@@ -1386,14 +1386,14 @@ export default function Lancamentos() {
                                 onClick={() => handleCardClick(transaction)}
                               >
                                 <div
-                                  className={`group p-4 rounded-3xl cursor-pointer transition-all duration-200 hover-elevate active-elevate-2 backdrop-blur-xl ${
+                                  className={`group p-3 rounded-3xl cursor-pointer transition-all duration-200 hover-elevate active-elevate-2 backdrop-blur-xl ${
                                     isOverdue 
                                       ? 'bg-[hsl(var(--ios-red)/0.08)] dark:bg-[hsl(var(--ios-red)/0.15)]' 
-                                      : 'bg-white/80 dark:bg-white/10'
+                                      : 'bg-[#F5F5F7]/80 dark:bg-white/10'
                                   }`}
                                   data-testid={`week-transaction-${transaction.id}`}
                                 >
-                                  <div className="space-y-3">
+                                  <div className="space-y-2">
                                     <div className="flex items-center gap-2">
                                       {isPaid ? (
                                         <CheckCircle className="w-4 h-4 text-[hsl(var(--ios-green))]" strokeWidth={2} />
@@ -1416,15 +1416,10 @@ export default function Lancamentos() {
                                       )}
                                     </div>
                                     
-                                    {/* Person */}
+                                    {/* Person - direto sem label */}
                                     {person && (
-                                      <div className="space-y-0.5">
-                                        <div className="text-[11px] text-[hsl(var(--ios-gray))]">
-                                          {transaction.type === 'revenue' ? 'Cliente' : 'Fornecedor'}
-                                        </div>
-                                        <div className="text-sm font-semibold leading-tight text-foreground/90">
-                                          {isOverdue && !isPaid ? 'Em atraso' : person.name}
-                                        </div>
+                                      <div className="text-sm font-semibold leading-tight text-foreground/90">
+                                        {person.name}
                                       </div>
                                     )}
                                     
@@ -1520,12 +1515,12 @@ export default function Lancamentos() {
                             className={`cursor-pointer rounded-3xl hover-elevate active-elevate-2 transition-all duration-200 backdrop-blur-xl border-0 ${
                               isOverdue 
                                 ? 'bg-[hsl(var(--ios-red)/0.08)] dark:bg-[hsl(var(--ios-red)/0.15)]' 
-                                : 'bg-white/80 dark:bg-white/10'
+                                : 'bg-[#F5F5F7]/80 dark:bg-white/10'
                             }`}
                             onClick={() => handleCardClick(transaction)}
                             data-testid={`card-transaction-${transaction.id}`}
                           >
-                            <CardContent className="p-4 space-y-3">
+                            <CardContent className="p-3 space-y-2">
                               <div className="flex items-center gap-2">
                                 {isPaid ? (
                                   <CheckCircle className="w-4 h-4 text-[hsl(var(--ios-green))]" strokeWidth={2} />
@@ -1548,15 +1543,10 @@ export default function Lancamentos() {
                                 )}
                               </div>
 
-                              {/* Person */}
+                              {/* Person - direto sem label */}
                               {person && (
-                                <div className="space-y-0.5">
-                                  <div className="text-[11px] text-[hsl(var(--ios-gray))]">
-                                    {transaction.type === 'revenue' ? 'Cliente' : 'Fornecedor'}
-                                  </div>
-                                  <div className="text-sm font-semibold leading-tight text-foreground/90">
-                                    {isOverdue && !isPaid ? 'Em atraso' : person.name}
-                                  </div>
+                                <div className="text-sm font-semibold leading-tight text-foreground/90">
+                                  {person.name}
                                 </div>
                               )}
 
@@ -1613,10 +1603,10 @@ export default function Lancamentos() {
                           return (
                             <div
                               key={transaction.id}
-                              className={`flex items-center gap-3 px-4 py-3 rounded-3xl hover-elevate cursor-pointer transition-all duration-150 backdrop-blur-xl ${
+                              className={`flex items-center gap-3 px-3 py-2.5 rounded-3xl hover-elevate cursor-pointer transition-all duration-150 backdrop-blur-xl ${
                                 isOverdue
                                   ? 'bg-[hsl(var(--ios-red)/0.08)] dark:bg-[hsl(var(--ios-red)/0.15)]'
-                                  : 'bg-white/80 dark:bg-white/10'
+                                  : 'bg-[#F5F5F7]/80 dark:bg-white/10'
                               }`}
                               onClick={() => handleCardClick(transaction)}
                               data-testid={`row-transaction-${transaction.id}`}
