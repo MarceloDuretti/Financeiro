@@ -76,6 +76,14 @@
   --chart-4: 180 75% 35%;
   --chart-5: 260 80% 38%;
 
+  /* Apple iOS Colors */
+  --ios-green: 142 80% 49%; /* #34C759 */
+  --ios-red: 4 100% 59%; /* #FF3B30 */
+  --ios-gray: 240 3% 56%; /* #8E8E93 */
+  --ios-yellow: 48 100% 50%; /* #FFCC00 */
+  --ios-blue: 211 100% 50%; /* #007AFF */
+  --apple-bg: 240 11% 98%; /* #F9F9FB */
+
   --font-sans: 'SF Pro Text', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'Segoe UI', Roboto, Arial, system-ui, sans-serif;
   --font-serif: Georgia, serif;
   --font-mono: 'SF Mono', Menlo, monospace;
@@ -193,6 +201,14 @@
   --chart-3: 240 85% 68%;
   --chart-4: 180 75% 65%;
   --chart-5: 260 80% 66%;
+
+  /* Apple iOS Colors (same as light mode) */
+  --ios-green: 142 80% 49%; /* #34C759 */
+  --ios-red: 4 100% 59%; /* #FF3B30 */
+  --ios-gray: 240 3% 56%; /* #8E8E93 */
+  --ios-yellow: 48 100% 50%; /* #FFCC00 */
+  --ios-blue: 211 100% 50%; /* #007AFF */
+  --apple-bg: 0 0% 11%; /* #1C1C1E dark mode bg */
 
   --shadow-2xs: 0px 1px 2px 0px hsl(0 0% 0% / 0.30);
   --shadow-xs: 0px 1px 3px 0px hsl(0 0% 0% / 0.40);

@@ -1,0 +1,71 @@
+e isso é justamente o tipo de detalhe que a Apple trataria com microestados visuais sutis, nada berrante.
+Vou te mostrar exatamente como ficaria visualmente e conceitualmente se uma conta estivesse paga ✅ ou em atraso ⚠️ dentro desse mesmo layout estilo Apple.
+
+🟢 1. Estado: Conta Paga (Quitada)
+Estilo Apple
+
+O cartão mantém o mesmo fundo translúcido, mas ganha um glow verde suave interno (não borda forte).
+
+O valor fica em cinza neutro, indicando que já foi processado.
+
+O status aparece pequeno no canto inferior direito:
+✓ Pago em 06/11 – via PIX
+
+A Apple usaria ícone checkmark.circle.fill (SF Symbol), com fade in animado e sound feedback suave (como Wallet ao aprovar pagamento).
+
+Exemplo visual simplificado:
+──────────────────────────────
+DES007      ✓ Pago
+Fornecedor  Marcelo Duretti
+R$ 1.200,00
+──────────────────────────────
+Cor: Cinza #B0B0B0
+Ícone: checkmark.circle.fill (verde translúcido)
+
+
+💡 Sensação Apple:
+Nada piscando, nada colorido demais — apenas clareza e serenidade.
+O usuário percebe que está resolvido, sem precisar pensar.
+
+🔴 2. Estado: Conta em Atraso
+Estilo Apple
+
+Fundo levemente avermelhado (rgba(255,59,48,0.08)) — o mesmo tom de alerta do app Wallet ou Lembretes.
+
+Ícone exclamationmark.triangle.fill em amarelo iOS padrão.
+
+Um sutil pulse a cada 5s, como alerta passivo.
+
+Texto adicional em itálico e cor secundária:
+Vencido há 3 dias
+
+O valor fica vermelho intenso (#FF3B30) com leve ênfase tipográfica (SF Pro Semibold).
+
+Exemplo visual:
+──────────────────────────────
+DES011      ⚠️ Em atraso
+Fornecedor  Tiago Silva Ferreira
+R$ 1.200,00
+Vencido há 3 dias
+──────────────────────────────
+Fundo translúcido vermelho claro
+
+🧠 3. Estado Dinâmico (Apple Style Intelligence)
+
+A Apple também exibiria contexto visual dinâmico:
+
+Se a conta atrasada for paga, o card faz um flip suave (transição 3D curta) para o estado “Pago”.
+
+Caso esteja a vencer, aparece uma barra fina inferior amarela, que vai se reduzindo conforme o prazo.
+
+🩵 4. Versão Compacta (visão semanal)
+
+No modo de resumo semanal, cada dia teria ícones de status agregados:
+
+🟢 bolinha = todas pagas
+
+🟡 meia-lua = há contas próximas do vencimento
+
+🔴 triângulo = há contas vencidas
+
+Tudo dentro de uma linha minimalista no topo da semana, semelhante ao progresso de atividades do Apple

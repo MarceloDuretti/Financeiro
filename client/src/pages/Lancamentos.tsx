@@ -1313,7 +1313,7 @@ export default function Lancamentos() {
                               {format(day, 'EEE', { locale: ptBR })}
                             </span>
                             {isCurrentDay && (
-                              <Badge variant="outline" className="h-5 text-[10px] px-2 border-primary/30 text-primary">
+                              <Badge className="h-5 text-[10px] px-2 bg-[hsl(var(--ios-blue)/0.1)] text-[hsl(var(--ios-blue))] border-0">
                                 Hoje
                               </Badge>
                             )}
@@ -1386,55 +1386,65 @@ export default function Lancamentos() {
                                 onClick={() => handleCardClick(transaction)}
                               >
                                 <div
-                                  className={`group p-3.5 rounded-xl cursor-pointer transition-all duration-200 hover-elevate active-elevate-2 ${
+                                  className={`group p-4 rounded-2xl cursor-pointer transition-all duration-200 hover-elevate active-elevate-2 backdrop-blur-xl ${
                                     isOverdue 
-                                      ? 'bg-orange-50/80 dark:bg-orange-950/30 border-l-[3px] border-orange-500' 
-                                      : isPaid
-                                        ? (transaction.type === 'revenue' 
-                                            ? 'bg-emerald-50 dark:bg-emerald-950/30' 
-                                            : 'bg-card')
-                                        : 'bg-card'
+                                      ? 'bg-[hsl(var(--ios-red)/0.08)] dark:bg-[hsl(var(--ios-red)/0.15)]' 
+                                      : 'bg-white/80 dark:bg-white/10'
                                   }`}
                                   data-testid={`week-transaction-${transaction.id}`}
                                 >
-                                  <div className="space-y-2.5">
+                                  <div className="space-y-3">
                                     <div className="flex items-center gap-2">
                                       {isPaid ? (
-                                        <CheckCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-500" strokeWidth={2} />
+                                        <CheckCircle className="w-4 h-4 text-[hsl(var(--ios-green))]" strokeWidth={2} />
                                       ) : isOverdue ? (
-                                        <AlertTriangle className="w-4 h-4 text-orange-600 dark:text-orange-500" strokeWidth={2} />
+                                        <AlertTriangle className="w-4 h-4 text-[hsl(var(--ios-yellow))]" strokeWidth={2} />
                                       ) : (
-                                        <Clock className="w-4 h-4 text-muted-foreground" strokeWidth={2} />
+                                        <Clock className="w-4 h-4 text-[hsl(var(--ios-gray))]" strokeWidth={2} />
                                       )}
                                       <Badge 
                                         variant="outline" 
-                                        className="text-xs h-5 px-2 font-mono"
+                                        className="text-[11px] h-5 px-2 font-mono bg-transparent"
                                         data-testid={`badge-code-week-${transaction.id}`}
                                       >
                                         {formatTransactionCode(transaction)}
                                       </Badge>
+                                      {isPaid && (
+                                        <Badge className="text-[10px] h-5 px-2 bg-[hsl(var(--ios-green)/0.15)] text-[hsl(var(--ios-green))] border-0">
+                                          Pago
+                                        </Badge>
+                                      )}
                                     </div>
                                     
                                     {/* Person */}
                                     {person && (
-                                      <div className="space-y-1">
-                                        <div className="text-xs text-muted-foreground">
+                                      <div className="space-y-0.5">
+                                        <div className="text-[11px] text-[hsl(var(--ios-gray))]">
                                           {transaction.type === 'revenue' ? 'Cliente' : 'Fornecedor'}
                                         </div>
-                                        <div className="text-sm font-medium leading-tight">
-                                          {person.name}
+                                        <div className="text-sm font-semibold leading-tight text-foreground/90">
+                                          {isOverdue && !isPaid ? 'Em atraso' : person.name}
                                         </div>
                                       </div>
                                     )}
                                     
                                     {/* Amount */}
-                                    <div className={`text-base font-medium tabular-nums ${
+                                    <div className={`text-base font-semibold tabular-nums ${
                                       isPaid 
-                                        ? (transaction.type === 'revenue' ? 'text-emerald-600 dark:text-emerald-500' : 'text-destructive') 
-                                        : 'text-foreground'
+                                        ? (transaction.type === 'revenue' ? 'text-[hsl(var(--ios-green))]' : 'text-[hsl(var(--ios-gray))]') 
+                                        : isOverdue
+                                          ? 'text-[hsl(var(--ios-red))]'
+                                          : 'text-foreground'
                                     }`}>
                                       {isPaid ? (transaction.type === 'revenue' ? '+' : '−') : ''} R$ {amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                     </div>
+                                    
+                                    {/* Overdue indicator */}
+                                    {isOverdue && !isPaid && transaction.dueDate && (
+                                      <div className="text-[11px] text-[hsl(var(--ios-red))] italic">
+                                        Vencido há {Math.floor((new Date().getTime() - new Date(transaction.dueDate).getTime()) / (1000 * 60 * 60 * 24))} dias
+                                      </div>
+                                    )}
                                   </div>
                                 </div>
                               </DraggableTransactionCard>
@@ -1507,69 +1517,79 @@ export default function Lancamentos() {
                         return (
                           <Card
                             key={transaction.id}
-                            className={`cursor-pointer rounded-xl hover-elevate active-elevate-2 transition-all duration-200 ${
+                            className={`cursor-pointer rounded-2xl hover-elevate active-elevate-2 transition-all duration-200 backdrop-blur-xl border-0 ${
                               isOverdue 
-                                ? 'bg-orange-50/80 dark:bg-orange-950/30 border-l-[3px] border-orange-500' 
-                                : isPaid
-                                  ? (transaction.type === 'revenue' 
-                                      ? 'bg-emerald-50 dark:bg-emerald-950/30' 
-                                      : 'bg-card')
-                                  : 'bg-card'
+                                ? 'bg-[hsl(var(--ios-red)/0.08)] dark:bg-[hsl(var(--ios-red)/0.15)]' 
+                                : 'bg-white/80 dark:bg-white/10'
                             }`}
                             onClick={() => handleCardClick(transaction)}
                             data-testid={`card-transaction-${transaction.id}`}
                           >
-                            <CardContent className="p-3.5 space-y-2.5">
+                            <CardContent className="p-4 space-y-3">
                               <div className="flex items-center gap-2">
                                 {isPaid ? (
-                                  <CheckCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-500" strokeWidth={2} />
+                                  <CheckCircle className="w-4 h-4 text-[hsl(var(--ios-green))]" strokeWidth={2} />
                                 ) : isOverdue ? (
-                                  <AlertTriangle className="w-4 h-4 text-orange-600 dark:text-orange-500" strokeWidth={2} />
+                                  <AlertTriangle className="w-4 h-4 text-[hsl(var(--ios-yellow))]" strokeWidth={2} />
                                 ) : (
-                                  <Clock className="w-4 h-4 text-muted-foreground" strokeWidth={2} />
+                                  <Clock className="w-4 h-4 text-[hsl(var(--ios-gray))]" strokeWidth={2} />
                                 )}
                                 <Badge 
                                   variant="outline" 
-                                  className="text-xs h-5 px-2 font-mono"
+                                  className="text-[11px] h-5 px-2 font-mono bg-transparent"
                                   data-testid={`badge-code-${transaction.id}`}
                                 >
                                   {formatTransactionCode(transaction)}
                                 </Badge>
+                                {isPaid && (
+                                  <Badge className="text-[10px] h-5 px-2 bg-[hsl(var(--ios-green)/0.15)] text-[hsl(var(--ios-green))] border-0">
+                                    Pago
+                                  </Badge>
+                                )}
                               </div>
 
                               {/* Person */}
                               {person && (
-                                <div className="space-y-1">
-                                  <div className="text-xs text-muted-foreground">
+                                <div className="space-y-0.5">
+                                  <div className="text-[11px] text-[hsl(var(--ios-gray))]">
                                     {transaction.type === 'revenue' ? 'Cliente' : 'Fornecedor'}
                                   </div>
-                                  <div className="text-sm font-medium leading-tight">
-                                    {person.name}
+                                  <div className="text-sm font-semibold leading-tight text-foreground/90">
+                                    {isOverdue && !isPaid ? 'Em atraso' : person.name}
                                   </div>
                                 </div>
                               )}
 
                               {/* Amount */}
-                              <div className={`text-base font-medium tabular-nums ${
+                              <div className={`text-base font-semibold tabular-nums ${
                                 isPaid 
-                                  ? (transaction.type === 'revenue' ? 'text-emerald-600 dark:text-emerald-500' : 'text-destructive') 
-                                  : 'text-foreground'
+                                  ? (transaction.type === 'revenue' ? 'text-[hsl(var(--ios-green))]' : 'text-[hsl(var(--ios-gray))]') 
+                                  : isOverdue
+                                    ? 'text-[hsl(var(--ios-red))]'
+                                    : 'text-foreground'
                               }`}>
                                 {isPaid ? (transaction.type === 'revenue' ? '+' : '−') : ''} R$ {amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                               </div>
+                              
+                              {/* Overdue indicator */}
+                              {isOverdue && !isPaid && transaction.dueDate && (
+                                <div className="text-[11px] text-[hsl(var(--ios-red))] italic">
+                                  Vencido há {Math.floor((new Date().getTime() - new Date(transaction.dueDate).getTime()) / (1000 * 60 * 60 * 24))} dias
+                                </div>
+                              )}
 
                               {/* Progress Bar with Percentage */}
                               <div className="space-y-1">
                                 <div className="flex items-center justify-between text-xs">
-                                  <span className="text-muted-foreground">% do mês</span>
+                                  <span className="text-[hsl(var(--ios-gray))]">% do mês</span>
                                   <span className="font-medium">{percentage.toFixed(1)}%</span>
                                 </div>
-                                <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                                <div className="h-1.5 bg-muted/30 rounded-full overflow-hidden">
                                   <div
                                     className={`h-full transition-all ${
                                       transaction.type === 'expense' 
-                                        ? 'bg-destructive' 
-                                        : 'bg-blue-600'
+                                        ? 'bg-[hsl(var(--ios-red))]' 
+                                        : 'bg-[hsl(var(--ios-blue))]'
                                     }`}
                                     style={{ width: `${Math.min(percentage, 100)}%` }}
                                   />
