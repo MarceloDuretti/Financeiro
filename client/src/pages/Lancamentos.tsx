@@ -1323,56 +1323,38 @@ export default function Lancamentos() {
                         data-testid={`week-day-${format(day, 'yyyy-MM-dd')}`}
                       >
                         {/* Day Header - FIXO */}
-                        <div className="flex-shrink-0 p-4 rounded-t-3xl bg-muted/20">
+                        <div className="flex-shrink-0 p-3 rounded-t-3xl bg-muted/20">
                           <div className="flex items-center justify-between mb-2">
                             <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                               {format(day, 'EEE', { locale: ptBR })}
                             </span>
-                            {isCurrentDay && (
-                              <Badge className="h-5 text-[10px] px-2 bg-[hsl(var(--ios-blue)/0.1)] text-[hsl(var(--ios-blue))] border-0">
-                                Hoje
-                              </Badge>
-                            )}
-                          </div>
-                          <div className="flex items-center justify-between mb-3">
-                            <div className="text-2xl font-normal tracking-tight">
-                              {format(day, 'd')}
-                            </div>
-                            {percentChange !== null && (
-                              <div className={`flex items-center gap-1 text-xs font-medium ${
-                                percentChange > 0 ? 'text-green-600 dark:text-green-500' : 
-                                percentChange < 0 ? 'text-red-600 dark:text-red-500' : 
-                                'text-muted-foreground'
-                              }`}>
-                                {percentChange > 0 ? (
-                                  <TrendingUp className="w-3.5 h-3.5" />
-                                ) : percentChange < 0 ? (
-                                  <TrendingDown className="w-3.5 h-3.5" />
-                                ) : null}
-                                <span>
-                                  {percentChange > 0 ? '+' : ''}{Math.abs(percentChange).toFixed(0)}%
-                                </span>
-                              </div>
-                            )}
                           </div>
                           
-                          {/* Saldos */}
-                          <div className="space-y-1 pt-2">
-                            <div className="flex items-center justify-between text-xs">
-                              <span className="text-muted-foreground">Dia:</span>
-                              <span className={`font-medium tabular-nums ${
-                                dayBalance > 0 ? 'text-blue-600' : dayBalance < 0 ? 'text-destructive' : 'text-muted-foreground'
-                              }`}>
-                                {dayBalance >= 0 ? '+' : '-'} R$ {Math.abs(dayBalance).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                              </span>
+                          {/* Compact Layout: Number + Day/Acum */}
+                          <div className="flex items-start gap-3">
+                            {/* Day Number - Large */}
+                            <div className="text-3xl font-normal tracking-tight leading-none">
+                              {format(day, 'd')}
                             </div>
-                            <div className="flex items-center justify-between text-xs">
-                              <span className="text-muted-foreground">Acum:</span>
-                              <span className={`font-medium tabular-nums ${
-                                accumulatedBalance > 0 ? 'text-blue-600' : accumulatedBalance < 0 ? 'text-destructive' : 'text-muted-foreground'
-                              }`}>
-                                {accumulatedBalance >= 0 ? '+' : '-'} R$ {Math.abs(accumulatedBalance).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                              </span>
+                            
+                            {/* Day and Accumulated - Compact Column */}
+                            <div className="flex-1 space-y-0.5 text-[11px]">
+                              <div className="flex items-center justify-between">
+                                <span className="text-muted-foreground">Dia:</span>
+                                <span className={`font-semibold tabular-nums ${
+                                  dayBalance > 0 ? 'text-blue-600' : dayBalance < 0 ? 'text-destructive' : 'text-muted-foreground'
+                                }`}>
+                                  {formatCompactCurrency(dayBalance, true)}
+                                </span>
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <span className="text-muted-foreground">Acum:</span>
+                                <span className={`font-semibold tabular-nums ${
+                                  accumulatedBalance > 0 ? 'text-blue-600' : accumulatedBalance < 0 ? 'text-destructive' : 'text-muted-foreground'
+                                }`}>
+                                  {formatCompactCurrency(accumulatedBalance, true)}
+                                </span>
+                              </div>
                             </div>
                           </div>
                         </div>
