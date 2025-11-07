@@ -1384,6 +1384,15 @@ export default function Lancamentos() {
                             <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                               {format(day, 'EEE', { locale: ptBR })}
                             </span>
+                            {percentChange !== null && (
+                              <span className={`text-[10px] font-semibold ${
+                                percentChange > 0 ? 'text-green-600 dark:text-green-500' : 
+                                percentChange < 0 ? 'text-red-600 dark:text-red-500' : 
+                                'text-muted-foreground'
+                              }`}>
+                                {percentChange > 0 ? '+' : percentChange < 0 ? '-' : ''}{Math.abs(percentChange).toFixed(0)}%
+                              </span>
+                            )}
                           </div>
                           
                           {/* Compact Layout: Number + Day/Acum */}
