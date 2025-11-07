@@ -1529,6 +1529,7 @@ export default function Lancamentos() {
                 </CardContent>
               </Card>
             ) : (
+              <DndContext onDragEnd={handleDragEnd}>
               <div className="space-y-6">
                 {Object.entries(transactionsByDay).map(([dayKey, dayTransactions]) => {
                   const isNoDate = dayKey === 'no-date';
@@ -1554,6 +1555,7 @@ export default function Lancamentos() {
                       </div>
 
                     {viewMode === 'cards' ? (
+                      <DroppableDayColumn dayDate={dayDate || new Date()}>
                       <div className="grid gap-y-3 gap-x-2" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))' }}>
                       {dayTransactions.map((transaction) => {
                         const isOverdue = transaction.status !== 'paid' && transaction.dueDate && new Date(transaction.dueDate) < new Date();
@@ -1573,14 +1575,17 @@ export default function Lancamentos() {
                         const showStatusBar = (transaction.status === 'cancelled' || isOverdue);
 
                         return (
-                          <Card
+                          <DraggableTransactionCard
                             key={transaction.id}
+                            transaction={transaction}
+                            onClick={() => handleCardClick(transaction)}
+                          >
+                          <Card
                             className={`cursor-pointer rounded-3xl hover-elevate active-elevate-2 transition-all duration-200 backdrop-blur-xl border-0 ${
                               isOverdue 
                                 ? 'bg-[hsl(var(--ios-red)/0.08)] dark:bg-[hsl(var(--ios-red)/0.15)]' 
                                 : 'bg-[#F5F5F7]/80 dark:bg-white/10'
                             }`}
-                            onClick={() => handleCardClick(transaction)}
                             data-testid={`card-transaction-${transaction.id}`}
                           >
                             <CardContent className="p-3 space-y-2">
@@ -1650,10 +1655,13 @@ export default function Lancamentos() {
                               </div>
                             </CardContent>
                           </Card>
+                          </DraggableTransactionCard>
                         );
                       })}
                     </div>
+                    </DroppableDayColumn>
                     ) : (
+                      <DroppableDayColumn dayDate={dayDate || new Date()}>
                       <div className="space-y-3">
                         {dayTransactions.map((transaction) => {
                           const isOverdue = transaction.status !== 'paid' && transaction.dueDate && new Date(transaction.dueDate) < new Date();
@@ -1664,14 +1672,17 @@ export default function Lancamentos() {
                           const person = customersSuppliers.find(p => p.id === transaction.personId);
 
                           return (
-                            <div
+                            <DraggableTransactionCard
                               key={transaction.id}
+                              transaction={transaction}
+                              onClick={() => handleCardClick(transaction)}
+                            >
+                            <div
                               className={`flex items-center gap-3 px-3 py-2.5 rounded-3xl hover-elevate cursor-pointer transition-all duration-150 backdrop-blur-xl ${
                                 isOverdue
                                   ? 'bg-[hsl(var(--ios-red)/0.08)] dark:bg-[hsl(var(--ios-red)/0.15)]'
                                   : 'bg-[#F5F5F7]/80 dark:bg-white/10'
                               }`}
-                              onClick={() => handleCardClick(transaction)}
                               data-testid={`row-transaction-${transaction.id}`}
                             >
                               {/* Code & Status Icon */}
@@ -1776,14 +1787,17 @@ export default function Lancamentos() {
                                 </Badge>
                               </div>
                             </div>
+                            </DraggableTransactionCard>
                           );
                         })}
                       </div>
+                      </DroppableDayColumn>
                     )}
                   </div>
                 );
                 })}
               </div>
+              </DndContext>
             )}
           </div>
         </div>
