@@ -707,10 +707,13 @@ export default function Lancamentos() {
     return { totalRevenues, totalExpenses };
   }, [monthOnlyTransactions]);
 
-  // Filter transactions (all views use monthOnlyTransactions for consistency)
+  // Filter transactions
   const filteredTransactions = useMemo(() => {
-    // All views use month-only transactions - week view renders only 7 days in UI
-    let filtered = monthOnlyTransactions.filter(transaction => {
+    // Week view uses all transactions (with buffer) to show complete weeks that cross months
+    // Cards/List views use month-only transactions to show only current month
+    const baseTransactions = viewMode === 'week' ? transactions : monthOnlyTransactions;
+    
+    let filtered = baseTransactions.filter(transaction => {
       if (typeFilter !== 'all' && transaction.type !== typeFilter) return false;
       if (statusFilter !== 'all' && transaction.status !== statusFilter) return false;
       if (searchQuery) {
@@ -722,8 +725,20 @@ export default function Lancamentos() {
       return true;
     });
 
+    // For week view, filter to only show transactions within the selected week
+    if (viewMode === 'week') {
+      const weekStart = selectedWeekStart;
+      const weekEnd = endOfWeek(selectedWeekStart, { locale: ptBR });
+      
+      filtered = filtered.filter(transaction => {
+        if (!transaction.dueDate) return true; // Include no-date transactions
+        const dueDate = new Date(transaction.dueDate);
+        return dueDate >= weekStart && dueDate <= weekEnd;
+      });
+    }
+
     return filtered;
-  }, [monthOnlyTransactions, typeFilter, statusFilter, searchQuery]);
+  }, [transactions, monthOnlyTransactions, typeFilter, statusFilter, searchQuery, viewMode, selectedWeekStart]);
 
   // Group transactions by full date (YYYY-MM-DD) to avoid collisions
   const transactionsByDay = useMemo(() => {
