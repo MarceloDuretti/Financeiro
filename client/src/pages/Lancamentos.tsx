@@ -553,6 +553,19 @@ export default function Lancamentos() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selectedMonth, selectedYear]);
 
+  // Debug logs
+  useEffect(() => {
+    console.log('📅 Query Params Debug:');
+    console.log('  viewMode:', viewMode);
+    console.log('  selectedMonth:', selectedMonth, '(', MONTHS[selectedMonth]?.full, ')');
+    console.log('  selectedYear:', selectedYear);
+    console.log('  startDate:', startDate);
+    console.log('  endDate:', endDate);
+    if (viewMode === 'week') {
+      console.log('  selectedWeekStart:', format(selectedWeekStart, 'dd/MM/yyyy (EEEE)', { locale: ptBR }));
+    }
+  }, [viewMode, selectedMonth, selectedYear, startDate, endDate, selectedWeekStart]);
+
   // Fetch transactions for selected month (without filters - filters are applied in filteredTransactions)
   const { data: transactions = [], isLoading } = useQuery<Transaction[]>({
     queryKey: ["/api/transactions", { 
@@ -562,6 +575,13 @@ export default function Lancamentos() {
     }],
     enabled: !!selectedCompanyId,
   });
+  
+  useEffect(() => {
+    console.log('📊 Transactions fetched:', transactions.length);
+    if (transactions.length > 0) {
+      console.log('  Dates:', transactions.map(t => t.dueDate ? format(new Date(t.dueDate), 'dd/MM') : 'sem-data').join(', '));
+    }
+  }, [transactions]);
 
   // Fetch all transactions for the year to show counts per month
   const yearStart = useMemo(() => format(new Date(selectedYear, 0, 1), 'yyyy-MM-dd'), [selectedYear]);
