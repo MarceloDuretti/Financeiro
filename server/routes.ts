@@ -1792,8 +1792,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const filters: any = {};
-      if (startDate && typeof startDate === 'string') filters.startDate = new Date(startDate);
-      if (endDate && typeof endDate === 'string') filters.endDate = new Date(endDate);
+      if (startDate && typeof startDate === 'string') {
+        filters.startDate = new Date(startDate);
+      }
+      if (endDate && typeof endDate === 'string') {
+        // endDate should include the entire day, not just midnight
+        const endDateObj = new Date(endDate);
+        endDateObj.setHours(23, 59, 59, 999);
+        filters.endDate = endDateObj;
+      }
       if (type && typeof type === 'string') filters.type = type as 'expense' | 'revenue';
       if (status && typeof status === 'string') filters.status = status;
       if (personId && typeof personId === 'string') filters.personId = personId;

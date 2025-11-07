@@ -441,46 +441,45 @@ export default function Lancamentos() {
 
   const endDate = useMemo(() => {
     if (viewMode === 'week') {
-      // For week view, fetch only the selected week (add one day to include the last day completely)
-      const weekEnd = endOfWeek(selectedWeekStart, { locale: ptBR });
-      const nextDay = new Date(weekEnd);
-      nextDay.setDate(nextDay.getDate() + 1);
-      return format(nextDay, 'yyyy-MM-dd');
+      // For week view, fetch only the selected week
+      return format(endOfWeek(selectedWeekStart, { locale: ptBR }), 'yyyy-MM-dd');
     } else {
-      // For cards/list views, fetch the entire month (add one day to include the last day completely)
-      const monthEnd = endOfMonth(new Date(selectedYear, selectedMonth, 1));
-      const nextDay = new Date(monthEnd);
-      nextDay.setDate(nextDay.getDate() + 1);
-      return format(nextDay, 'yyyy-MM-dd');
+      // For cards/list views, fetch the entire month
+      return format(endOfMonth(new Date(selectedYear, selectedMonth, 1)), 'yyyy-MM-dd');
     }
   }, [viewMode, selectedMonth, selectedYear, selectedWeekStart]);
 
-  // Sync week when month/year changes
+  // Sync week to always show the week containing the 1st day of selected month
   useEffect(() => {
     const today = new Date();
     const isCurrentMonth = selectedMonth === getMonth(today) && selectedYear === getYear(today);
     
     if (isCurrentMonth) {
-      // Se estamos no mês atual, vai para a semana atual
+      // If we're in the current month, go to current week
       setSelectedWeekStart(startOfWeek(today, { locale: ptBR }));
     } else {
-      // Se não, vai para a primeira semana do mês selecionado
+      // Always show the week containing the 1st day of the month
       const firstDayOfMonth = new Date(selectedYear, selectedMonth, 1);
       setSelectedWeekStart(startOfWeek(firstDayOfMonth, { locale: ptBR }));
     }
   }, [selectedMonth, selectedYear]);
 
-  // Go to current week when activating week view in current month
+  // When switching to week view, sync to the week containing the 1st of the month
   useEffect(() => {
     if (viewMode === 'week') {
       const today = new Date();
       const isCurrentMonth = selectedMonth === getMonth(today) && selectedYear === getYear(today);
       
       if (isCurrentMonth) {
+        // Current month: show current week
         setSelectedWeekStart(startOfWeek(today, { locale: ptBR }));
+      } else {
+        // Other months: show week containing the 1st
+        const firstDayOfMonth = new Date(selectedYear, selectedMonth, 1);
+        setSelectedWeekStart(startOfWeek(firstDayOfMonth, { locale: ptBR }));
       }
     }
-  }, [viewMode]);
+  }, [viewMode, selectedMonth, selectedYear]);
 
   // Navigation functions
   const goToPreviousMonth = () => {
